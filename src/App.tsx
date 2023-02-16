@@ -1,4 +1,4 @@
-import "./App.css";
+import "./App.scss";
 import SitesList from "./components/SitesList";
 import { QueryClient, QueryClientProvider } from "react-query";
 
@@ -8,8 +8,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="App">
-        <h1>MAAS Site Manager</h1>
-        <SitesList />
+        <div className="row">
+          <div className="col-12">
+            <h1>MAAS Site Manager</h1>
+            <SitesList />
+          </div>
+        </div>
       </div>
     </QueryClientProvider>
   );

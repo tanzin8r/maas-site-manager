@@ -1,4 +1,5 @@
 import { useQuery } from "react-query";
+import "./SitesList.scss";
 
 type Sites = {
   items: {
