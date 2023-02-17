@@ -3,8 +3,9 @@ import "./SitesList.scss";
 
 type Site = {
   name: string;
-  url: string;
+  url: string; // <full URL including protocol>,
   connection: "stable" | "stale" | "lost";
+  last_seen: string; // <ISO 8601 date>,
   address: {
     countrycode: string; // <alpha2 country code>,
     city: string;
@@ -30,18 +31,33 @@ type Sites = {
 const SiteRow = ({ site }: { site: Site }) => {
   return (
     <tr>
-      <td>{site.name}</td>
-      <td>{site.url}</td>
-      <td>{site.connection}</td>
-      <td>{site.address.countrycode}</td>
-      <td>{site.address.city}</td>
-      <td>{site.address.zip}</td>
-      <td>{site.address.street}</td>
-      <td>{site.timezone}</td>
-      <td>{site.stats.machines}</td>
-      <td>{site.stats.occupied_machines}</td>
-      <td>{site.stats.ready_machines}</td>
-      <td>{site.stats.error_machines}</td>
+      <td>
+        <div>{site.name}</div>
+        <div>
+          <a href={site.url}>{site.url}</a>
+        </div>
+      </td>
+      <td>
+        <div>{site.connection}</div>
+        <div>{site.last_seen}</div>
+      </td>
+      <td>
+        <div>{site.address.countrycode}</div>
+        <div>
+          {site.address.street}, {site.address.city}, {site.address.zip}
+        </div>
+      </td>
+      <td>
+        <div>11:00 (local time)</div>
+        <div>{site.timezone}</div>
+      </td>
+      <td>
+        <div>{site.stats.machines}</div>
+        <div>
+          Ready: {site.stats.ready_machines}, Occupied:
+          {site.stats.occupied_machines}, Error: {site.stats.error_machines}
+        </div>
+      </td>
     </tr>
   );
 };
@@ -60,6 +76,30 @@ const SitesList = () => {
     <div>
       <h2>Sites</h2>
       <table>
+        <thead>
+          <tr>
+            <th>
+              <div>MAAS region alias</div>
+              <div>URL</div>
+            </th>
+            <th>
+              <div>connection</div>
+              <div>last seen</div>
+            </th>
+            <th>
+              <div>country</div>
+              <div>street, city, zip</div>
+            </th>
+            <th>
+              <div>local time</div>
+              <div>timezone</div>
+            </th>
+            <th>
+              <div>total number of machines</div>
+              <div>machines per aggregated status</div>
+            </th>
+          </tr>
+        </thead>
         <tbody>
           {query.data
             ? query.data.items.map((site) => <SiteRow site={site} />)
