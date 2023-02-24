@@ -33,3 +33,11 @@ TODO, possibly edit an env/config file to point to a local backend
 
 TODO, sth like yarn && yarn run
 ```
+
+## How to run tests
+
+### End to end
+
+```bash
+yarn playwright test
+```

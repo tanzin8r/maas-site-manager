@@ -29,3 +29,6 @@ __pycache__/
 
 /.tox
 /build
+/test-results/
+/playwright-report/
+/playwright/.cache/
