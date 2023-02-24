@@ -19,7 +19,7 @@ docker run --rm -it \
     -e POSTGRES_PASSWORD=pass \
     --name postgres \
     postgres:14
- 
+
 tox -e run
 ```
 
@@ -29,7 +29,8 @@ Then run this frontend
 git clone https://code.launchpad.net/~maas-committers/maas-site-manager/+git/site-manager-frontend
 cd site-manager-frontend
 
-TODO, possibly edit an env/config file to point to a local backend
+# TODO, possibly edit an env/config file to point to a local backend
 
-TODO, sth like yarn && yarn run
+yarn  # install dependencies
+yarn run dev
 ```
