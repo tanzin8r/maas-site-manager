@@ -16,8 +16,26 @@ from ._tables import (
 
 
 async def get_sites(session: AsyncSession) -> Iterable[dict[str, Any]]:
+    stmt = select(
+        Site.c.id,
+        Site.c.name,
+        Site.c.identifier,
+        Site.c.city,
+        Site.c.latitude,
+        Site.c.longitude,
+        Site.c.note,
+        Site.c.region,
+        Site.c.street,
+        Site.c.timezone,
+        Site.c.url,
+    )
+    result = await session.execute(stmt)
+    return (row._asdict() for row in result.all())
+
+
+async def get_tokens(session: AsyncSession) -> Iterable[dict[str, Any]]:
     result = await session.execute(
-        select(Site.c.id, Site.c.name, Site.c.last_checkin)
+        select(Token.c.id, Token.c.site_id, Token.c.value, Token.c.expiration)
     )
     return (row._asdict() for row in result.all())
 

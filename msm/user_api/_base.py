@@ -16,17 +16,26 @@ async def root() -> dict[str, str]:
 async def sites(
     session: AsyncSession = Depends(db_session),
 ) -> list[schema.Site]:
-    """List existing sites."""
+    """Return all sites"""
     return [schema.Site(**entry) for entry in await queries.get_sites(session)]
+
+
+async def tokens(
+    session: AsyncSession = Depends(db_session),
+) -> list[schema.Token]:
+    """Return all tokens"""
+    return [
+        schema.Token(**entry) for entry in await queries.get_tokens(session)
+    ]
 
 
 async def tokens_post(
     create_request: schema.CreateTokensRequest,
     session: AsyncSession = Depends(db_session),
 ) -> schema.CreateTokensResponse:
-    """Create token(s) for site enrollment.
-
-    Token duration is expressed in seconds.
+    """
+    Create one or more tokens.
+    Token duration (TTL) is expressed in seconds.
     """
     expiration, tokens = await queries.create_tokens(
         session,
