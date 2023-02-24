@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // in tests any unsuccessful query should fail immediately without retrying
       retry: false,
     },
   },
