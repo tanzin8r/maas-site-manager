@@ -26,16 +26,16 @@ install-frontend-dependencies:
 
 # Overall CI targets
 
-ci-dep: ci-backend-dep
+ci-dep: ci-backend-dep ci-frontend-dep
 .PHONY: ci-dep
 
 ci-build: # will run the frontend build targets
-.PHONY: ci-build
+.PHONY: ci-build ci-frontend-build
 
-ci-lint: ci-backend-lint
+ci-lint: ci-backend-lint  # ci-frontend-lint  # TODO: linter not set up, uncomment later
 .PHONY: ci-lint
 
-ci-test: ci-backend-test
+ci-test: ci-backend-test  # ci-frontend-tests  # TODO: tests not yet working, uncomment later
 .PHONY: ci-test
 
 
@@ -67,7 +67,7 @@ ci-frontend-build:  # nothing to do since everything is run in tox envs
 .PHONY: ci-frontend-build
 
 ci-frontend-lint:
-	# see 1398-setup-frontend-linting: cd frontend && yarnpkg run lint
+	# cd frontend && yarn run lint  # TODO: uncomment once linting is set up
 .PHONY: ci-frontend-lint
 
 ci-frontend-test:
