@@ -1,4 +1,6 @@
-export const site = (site = {}) => ({
+import { Site } from "../api/types";
+
+export const site = (site: Partial<Site> = {}): Site => ({
   name: "maas-example-region",
   url: "http://maas.example.com",
   connection: "stable",
@@ -19,7 +21,7 @@ export const site = (site = {}) => ({
   ...site,
 });
 
-export const sites = {
+export const sites = (sites = {}) => ({
   items: [
     site(),
     site({
@@ -37,4 +39,5 @@ export const sites = {
   total: 42,
   page: 1,
   size: 20,
-};
+  ...sites,
+});

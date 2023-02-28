@@ -1,54 +1,18 @@
-import { useQuery } from "react-query";
-import SiteRow from "./components/SiteRow";
-import "./SitesList.scss";
-import { Sites } from "./types";
+import { useSitesQuery } from "../../hooks/api";
+import SitesTable from "./components/SitesTable";
 
 const SitesList = () => {
-  const query = useQuery<Sites>("/api/sites", async function () {
-    const response = await fetch("/api/sites");
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const responseJson = await response.json();
-    return responseJson;
-  });
+  const query = useSitesQuery();
 
   return (
     <div>
-      <h2>{query?.data?.items?.length || ""} MAAS Regions</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>
-              <div>MAAS region alias</div>
-              <div>URL</div>
-            </th>
-            <th>
-              <div>connection</div>
-              <div>last seen</div>
-            </th>
-            <th>
-              <div>country</div>
-              <div>street, city, zip</div>
-            </th>
-            <th>
-              <div>local time</div>
-              <div>timezone</div>
-            </th>
-            <th>
-              <div>total number of machines</div>
-              <div>machines per aggregated status</div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {query.data
-            ? query.data.items.map((site) => (
-                <SiteRow key={site.url} site={site} />
-              ))
-            : null}
-        </tbody>
-      </table>
+      <h2 className="p-heading--4">
+        {query?.data?.items?.length || ""} MAAS Regions
+      </h2>
+      {query.isLoading && !query.isFetchedAfterMount ? "Loading..." : null}
+      {query.isFetchedAfterMount && query.data ? (
+        <SitesTable data={query.data.items} />
+      ) : null}
     </div>
   );
 };
