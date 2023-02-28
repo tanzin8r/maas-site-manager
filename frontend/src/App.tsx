@@ -1,16 +1,17 @@
 import "./App.scss";
 import { QueryClient, QueryClientProvider } from "react-query";
-import router from "./router";
 import { RouterProvider } from "react-router-dom";
+
+import router from "./router";
 
 const queryClient = new QueryClient();
 
-function App() {
+const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
   );
-}
+};
 
 export default App;

@@ -1,9 +1,12 @@
+import React from "react";
+
 import { useQuery } from "react-query";
+
 import SiteRow from "./components/SiteRow";
 import "./SitesList.scss";
-import { Sites } from "./types";
+import type { Sites } from "./types";
 
-const SitesList = () => {
+const SitesList: React.FC = () => {
   const query = useQuery<Sites>("/api/sites", async function () {
     const response = await fetch("/api/sites");
     if (!response.ok) {
@@ -41,13 +44,7 @@ const SitesList = () => {
             </th>
           </tr>
         </thead>
-        <tbody>
-          {query.data
-            ? query.data.items.map((site) => (
-                <SiteRow key={site.url} site={site} />
-              ))
-            : null}
-        </tbody>
+        <tbody>{query.data ? query.data.items.map((site) => <SiteRow key={site.url} site={site} />) : null}</tbody>
       </table>
     </div>
   );

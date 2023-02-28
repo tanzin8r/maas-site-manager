@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-const MainLayout = () => (
+const MainLayout: React.FC = () => (
   <div className="l-application">
     <main className="l-main">
       <div className="row">

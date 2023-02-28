@@ -1,6 +1,6 @@
-import { Site } from "../types";
+import type { Site } from "../types";
 
-const SiteRow = ({ site }: { site: Site }) => {
+const SiteRow: React.FC<{ site: Site }> = ({ site }: { site: Site }) => {
   return (
     <tr>
       <td>

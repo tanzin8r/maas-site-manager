@@ -1,4 +1,6 @@
-export const site = (site = {}) => ({
+import type { Site } from "../components/SitesList/types";
+
+export const site: (site?: Partial<Site>) => Site = (site = {}) => ({
   name: "maas-example-region",
   url: "http://maas.example.com",
   connection: "stable",
