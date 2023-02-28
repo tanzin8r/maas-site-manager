@@ -24,6 +24,11 @@ logs
 /frontend/dist-ssr
 *.local
 
+# dotrun
+.docker-project
+.yarn.*.hash
+.dotrun.json
+
 # Frontend testing
 /frontend/test-results/
 /frontend/playwright-report/
