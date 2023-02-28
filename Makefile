@@ -67,7 +67,7 @@ ci-frontend-build:  # nothing to do since everything is run in tox envs
 .PHONY: ci-frontend-build
 
 ci-frontend-lint:
-	# cd frontend && yarn run lint  # TODO: uncomment once linting is set up
+	cd frontend && yarn run lint
 .PHONY: ci-frontend-lint
 
 ci-frontend-test:
