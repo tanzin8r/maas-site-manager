@@ -24,4 +24,5 @@ const customRender: (ui: ReactElement, options?: Omit<RenderOptions, "wrapper">)
 ) => render(ui, { wrapper: Providers, ...options });
 
 export * from "@testing-library/react";
-export { customRender };
+export { customRender as render };
+export { Providers };
