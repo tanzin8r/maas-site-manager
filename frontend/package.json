@@ -8,7 +8,7 @@
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "preview": "vite preview",
-    "lint": "npmPkgJsonLint . && eslint . --ext .ts,.tsx",
+    "lint": "npmPkgJsonLint . && tsc && eslint . --ext .ts,.tsx",
     "lint-fix": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
