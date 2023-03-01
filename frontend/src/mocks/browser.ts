@@ -6,6 +6,6 @@ import { sites } from "./factories";
 
 export const worker = setupWorker(
   rest.get(urls.sites, (_req, res, ctx) => {
-    return res(ctx.json(sites()));
+    return res(ctx.delay(), ctx.json(sites()));
   }),
 );

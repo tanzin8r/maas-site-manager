@@ -18,9 +18,13 @@ export type Site = {
   };
 };
 
-export type Sites = {
-  items: Site[];
+export type PaginatedQueryResult = {
+  items: unknown[];
   total: number;
   page: number;
   size: number;
+};
+
+export type SitesQueryResult = PaginatedQueryResult & {
+  items: Site[];
 };

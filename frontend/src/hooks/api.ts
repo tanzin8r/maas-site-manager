@@ -1,6 +1,7 @@
 import { useQuery } from "react-query";
 
 import { getSites } from "../api/handlers";
-import type { Sites } from "../api/types";
+import type { SitesQueryResult } from "../api/types";
 
-export const useSitesQuery = () => useQuery<Sites>("/api/sites", getSites);
+export const useSitesQuery = () => useQuery<SitesQueryResult>("/api/sites", getSites);
+export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;

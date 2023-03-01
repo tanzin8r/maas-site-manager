@@ -8,4 +8,9 @@ dotenv.config({ path: "../.env" });
 export default defineConfig({
   plugins: [react()],
   server: { port: Number(process.env.VITE_UI_PORT) },
+  css: {
+    preprocessorOptions: {
+      scss: { additionalData: `@import "node_modules/vanilla-framework"; @include vanilla;` },
+    },
+  },
 });

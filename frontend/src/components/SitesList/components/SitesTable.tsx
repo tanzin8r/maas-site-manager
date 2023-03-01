@@ -8,22 +8,37 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Column } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import pick from "lodash/fp/pick";
+import useLocalStorageState from "use-local-storage-state";
 
-import type { Site } from "../../../api/types";
+import type { SitesQueryResult } from "../../../api/types";
+import type { UseSitesQueryResult } from "../../../hooks/api";
+
+import "./SitesTable.scss";
+import SitesTableControls from "./SitesTableControls";
 
 const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>
   (row: T) =>
     pick(keys, row);
 
-const SitesTable = ({ data }: { data: Site[] }) => {
-  const [columnVisibility, setColumnVisibility] = useState({});
+export type Site = SitesQueryResult["items"][number];
+export type SitesColumnDef = ColumnDef<Site, Partial<Site>>;
+export type SitesColumn = Column<Site, unknown>;
 
-  const columns = useMemo<ColumnDef<Site, Partial<Site>>[]>(
+const SitesTable = ({
+  data,
+  isFetchedAfterMount,
+  isLoading,
+}: Pick<UseSitesQueryResult, "data" | "isLoading" | "isFetchedAfterMount">) => {
+  const [columnVisibility, setColumnVisibility] = useLocalStorageState("sitesTableColumnVisibility", {
+    defaultValue: {},
+  });
+
+  const columns = useMemo<SitesColumnDef[]>(
     () => [
       {
         id: "select",
@@ -155,7 +170,7 @@ const SitesTable = ({ data }: { data: Site[] }) => {
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable<Site>({
-    data: data || [],
+    data: data?.items || [],
     columns,
     state: {
       rowSelection,
@@ -175,39 +190,46 @@ const SitesTable = ({ data }: { data: Site[] }) => {
   });
 
   return (
-    <table aria-label="sites" className="u-table-layout--auto">
-      <thead>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <tr key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              return (
-                <th colSpan={header.colSpan} key={header.id}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  {header.column.getCanResize() && (
-                    <div
-                      className={`resizer ${header.column.getIsResizing() ? "isResizing" : ""}`}
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                    ></div>
-                  )}
-                </th>
-              );
-            })}
-          </tr>
-        ))}
-      </thead>
-      <tbody>
-        {table.getRowModel().rows.map((row) => {
-          return (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => {
-                return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>;
+    <>
+      <SitesTableControls allColumns={table.getAllLeafColumns()} data={data} isLoading={isLoading} />
+      <table aria-label="sites" className="sites-table">
+        <thead>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <th colSpan={header.colSpan} key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.column.getCanResize() && (
+                      <div
+                        className={`resizer ${header.column.getIsResizing() ? "isResizing" : ""}`}
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                      ></div>
+                    )}
+                  </th>
+                );
               })}
             </tr>
-          );
-        })}
-      </tbody>
-    </table>
+          ))}
+        </thead>
+        {isLoading && !isFetchedAfterMount ? (
+          <caption>Loading...</caption>
+        ) : (
+          <tbody>
+            {table.getRowModel().rows.map((row) => {
+              return (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map((cell) => {
+                    return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>;
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        )}
+      </table>
+    </>
   );
 };
 

@@ -119,7 +119,7 @@ module.exports = {
     {
       files: ["src/**/*.tsx"],
       rules: {
-        "react/no-multi-comp": ["error", { ignoreStateless: false }],
+        "react/no-multi-comp": ["error", { ignoreStateless: true }],
       },
     },
     {

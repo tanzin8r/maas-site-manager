@@ -18,14 +18,14 @@ afterEach(() => {
 });
 
 it("displays an empty sites table", () => {
-  render(<SitesTable data={[]} />);
+  render(<SitesTable data={{ items: [], total: 0, page: 1, size: 0 }} isFetchedAfterMount={true} isLoading={false} />);
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
 });
 
 it("displays rows with details for each site", () => {
   const items = sites().items as Site[];
-  render(<SitesTable data={items} />);
+  render(<SitesTable data={{ items, total: 1, page: 1, size: 1 }} isFetchedAfterMount={true} isLoading={false} />);
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
 
@@ -41,7 +41,9 @@ it("displays correct local time", () => {
   vi.setSystemTime(date);
 
   const item = site({ timezone: "CET" });
-  render(<SitesTable data={[item]} />);
+  render(
+    <SitesTable data={{ items: [item], total: 1, page: 1, size: 1 }} isFetchedAfterMount={true} isLoading={false} />,
+  );
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
   expect(screen.getByText(/13:00 \(local time\)/i)).toBeInTheDocument();

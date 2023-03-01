@@ -27,7 +27,7 @@ it("renders header", () => {
 it("displays loading text", () => {
   render(<SitesList />);
 
-  expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  expect(within(screen.getByRole("table", { name: /sites/i })).getByText(/loading/i)).toBeInTheDocument();
 });
 
 it("displays populated sites table", async () => {
