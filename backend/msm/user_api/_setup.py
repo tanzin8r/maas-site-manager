@@ -1,11 +1,20 @@
+from os import environ
+
 from fastapi import FastAPI
 
 from . import _base
 from .. import PACKAGE
 from ..db import Database
 
-# XXX drop hardcoded default
-DEFAULT_DB_DSN = "postgresql+asyncpg://postgres:pass@localhost/postgres"
+POSTGRES_HOST = environ.get("POSTGRES_HOST")
+POSTGRES_PORT = environ.get("POSTGRES_PORT")
+POSTGRES_DB = environ.get("POSTGRES_DB")
+POSTGRES_USER = environ.get("POSTGRES_USER")
+POSTGRES_PASSWORD = environ.get("POSTGRES_PASSWORD")
+DEFAULT_DB_DSN = (
+    "postgresql+asyncpg://"
+    + f"{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB}"
+)
 
 
 def create_app(db_dsn: str = DEFAULT_DB_DSN) -> FastAPI:
