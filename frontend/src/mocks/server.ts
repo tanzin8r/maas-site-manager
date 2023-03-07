@@ -4,15 +4,11 @@ import { setupServer } from "msw/node";
 
 import urls from "../api/urls";
 
-import { sites } from "./factories";
+import { createMockSitesResolver } from "./resolvers";
 
-const createMockGetServer = (endpoint: string, response: object) =>
-  setupServer(
-    rest.get(endpoint, (_req, res, ctx) => {
-      return res(ctx.json(response));
-    }),
-  );
+const createMockGetServer = (endpoint: string, resolver: ReturnType<typeof createMockSitesResolver>) =>
+  setupServer(rest.get(endpoint, resolver));
 
-const mockSitesServer = createMockGetServer(urls.sites, sites());
+const mockSitesServer = createMockGetServer(urls.sites, createMockSitesResolver());
 
 export { createMockGetServer, mockSitesServer };

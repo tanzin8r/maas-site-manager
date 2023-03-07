@@ -1,13 +1,10 @@
 import { Row, Col } from "@canonical/react-components";
 
 import type { UseSitesQueryResult } from "../../../hooks/api";
-import Placeholder from "../../Placeholder";
 
 import ColumnsVisibilityControl from "./ColumnsVisibilityControl";
+import SitesCount from "./SitesCount";
 import type { SitesColumn } from "./SitesTable";
-
-const SitesCount = ({ data, isLoading }: Pick<UseSitesQueryResult, "data" | "isLoading">) =>
-  isLoading ? <Placeholder isLoading={isLoading} text="xx" /> : <span>{`${data?.items?.length || ""}`}</span>;
 
 const SitesTableControls = ({
   data,
@@ -18,7 +15,7 @@ const SitesTableControls = ({
     <Row>
       <Col size={10}>
         <h2 className="p-heading--4">
-          <SitesCount data={data} isLoading={isLoading} /> MAAS Regions
+          <SitesCount data={data} isLoading={isLoading} />
         </h2>
       </Col>
       <Col className="u-flex u-flex--align-end u-flex--column" size={2}>

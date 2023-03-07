@@ -1,12 +1,13 @@
 import urls from "../../api/urls";
-import { sites } from "../../mocks/factories";
+import { siteFactory } from "../../mocks/factories";
+import { createMockSitesResolver } from "../../mocks/resolvers";
 import { createMockGetServer } from "../../mocks/server";
 import { render, screen, waitFor, within } from "../../test-utils";
 
 import SitesList from "./SitesList";
 
-const sitesData = sites();
-const mockServer = createMockGetServer(urls.sites, sitesData);
+const sites = siteFactory.buildList(2);
+const mockServer = createMockGetServer(urls.sites, createMockSitesResolver(sites));
 
 beforeAll(() => {
   mockServer.listen();
@@ -18,12 +19,6 @@ afterAll(() => {
   mockServer.close();
 });
 
-it("renders header", () => {
-  render(<SitesList />);
-
-  expect(screen.getByRole("heading", { name: /MAAS Regions/i })).toBeInTheDocument();
-});
-
 it("displays loading text", () => {
   render(<SitesList />);
 
@@ -31,16 +26,14 @@ it("displays loading text", () => {
 });
 
 it("displays populated sites table", async () => {
-  const { items } = sitesData;
   render(<SitesList />);
 
-  await waitFor(() => expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument());
+  expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
 
-  expect(screen.getAllByRole("rowgroup")).toHaveLength(2);
-  expect(screen.getByRole("heading", { name: /2 MAAS Regions/i })).toBeInTheDocument();
+  await waitFor(() => expect(screen.getAllByRole("rowgroup")).toHaveLength(2));
   const tableBody = screen.getAllByRole("rowgroup")[1];
-  expect(within(tableBody).getAllByRole("row")).toHaveLength(items.length);
+  expect(within(tableBody).getAllByRole("row")).toHaveLength(sites.length);
   within(tableBody)
     .getAllByRole("row")
-    .forEach((row, i) => expect(row).toHaveTextContent(new RegExp(items[i].name, "i")));
+    .forEach((row, i) => expect(row).toHaveTextContent(new RegExp(sites[i].name, "i")));
 });

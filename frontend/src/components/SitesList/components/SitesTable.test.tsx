@@ -1,8 +1,7 @@
 import timezoneMock from "timezone-mock";
 import { vi } from "vitest";
 
-import type { Site } from "../../../api/types";
-import { sites, site } from "../../../mocks/factories";
+import { siteFactory } from "../../../mocks/factories";
 import { render, screen, within } from "../../../test-utils";
 
 import SitesTable from "./SitesTable";
@@ -24,7 +23,7 @@ it("displays an empty sites table", () => {
 });
 
 it("displays rows with details for each site", () => {
-  const items = sites().items as Site[];
+  const items = siteFactory.buildList(1);
   render(<SitesTable data={{ items, total: 1, page: 1, size: 1 }} isFetchedAfterMount={true} isLoading={false} />);
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
@@ -40,11 +39,20 @@ it("displays correct local time", () => {
   const date = new Date("2000-01-01T12:00:00Z");
   vi.setSystemTime(date);
 
-  const item = site({ timezone: "CET" });
+  const item = siteFactory.build({ timezone: "CET" });
   render(
     <SitesTable data={{ items: [item], total: 1, page: 1, size: 1 }} isFetchedAfterMount={true} isLoading={false} />,
   );
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
   expect(screen.getByText(/13:00 \(local time\)/i)).toBeInTheDocument();
+});
+
+it("displays full name of the country", () => {
+  const item = siteFactory.build({ address: { countrycode: "GB" } });
+  render(
+    <SitesTable data={{ items: [item], total: 1, page: 1, size: 1 }} isFetchedAfterMount={true} isLoading={false} />,
+  );
+
+  expect(screen.getByText("United Kingdom")).toBeInTheDocument();
 });

@@ -16,6 +16,7 @@ import useLocalStorageState from "use-local-storage-state";
 
 import type { SitesQueryResult } from "../../../api/types";
 import type { UseSitesQueryResult } from "../../../hooks/api";
+import { getCountryName } from "../../../utils";
 
 import "./SitesTable.scss";
 import SitesTableControls from "./SitesTableControls";
@@ -114,7 +115,7 @@ const SitesTable = ({
           const { countrycode, city, zip, street } = address || {};
           return (
             <>
-              <div>{countrycode}</div>
+              <div>{countrycode ? getCountryName(countrycode) : ""}</div>
               <div className="u-text--muted">
                 {street}, {city}, {zip}
               </div>

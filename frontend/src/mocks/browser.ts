@@ -2,10 +2,6 @@ import { setupWorker, rest } from "msw";
 
 import urls from "../api/urls";
 
-import { sites } from "./factories";
+import { createMockSitesResolver } from "./resolvers";
 
-export const worker = setupWorker(
-  rest.get(urls.sites, (_req, res, ctx) => {
-    return res(ctx.delay(), ctx.json(sites()));
-  }),
-);
+export const worker = setupWorker(rest.get(urls.sites, createMockSitesResolver()));

@@ -1,9 +1,9 @@
 import type { ReactElement } from "react";
 import React from "react";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { RenderOptions, RenderResult } from "@testing-library/react";
 import { render } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "react-query";
 
 const queryClient = new QueryClient({
   defaultOptions: {

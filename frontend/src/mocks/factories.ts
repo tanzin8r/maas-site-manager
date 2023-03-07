@@ -1,43 +1,41 @@
+import Chance from "chance";
+import { Factory } from "fishery";
+import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
+
 import type { Site } from "../api/types";
 
-export const site = (site: Partial<Site> = {}): Site => ({
-  name: "maas-example-region",
-  url: "http://maas.example.com",
-  connection: "stable",
-  last_seen: "2020-10-20T12:00:00Z",
-  address: {
-    countrycode: "DE", // <alpha2 country code>,
-    city: "Berlin",
-    zip: "10405",
-    street: "Prenzlauer Allee 132",
-  },
-  timezone: "CET", // <three letter abbreviation>,
-  stats: {
-    machines: 300,
-    occupied_machines: 289,
-    ready_machines: 11,
-    error_machines: 0,
-  },
-  ...site,
-});
+const connections: Site["connection"][] = ["stable", "lost", "stale", "unstable"];
 
-export const sites = (sites = {}) => ({
-  items: [
-    site(),
-    site({
-      name: "maas-shanghai",
-      url: "http://maas.shanghai.com",
-      address: {
-        countrycode: "CHN",
-        city: "Shanghai",
-        zip: "200000",
-        street: "Xinzhen Road 3",
-      },
-      timezone: "CST",
-    }),
-  ],
-  total: 42,
-  page: 1,
-  size: 20,
-  ...sites,
+export const siteFactory = Factory.define<Site>(({ sequence }) => {
+  const chance = new Chance(`maas-${sequence}`);
+  const name = uniqueNamesGenerator({
+    dictionaries: [adjectives, colors, animals],
+    separator: "-",
+    length: 2,
+    seed: sequence,
+  });
+  const connection = uniqueNamesGenerator({
+    dictionaries: [connections],
+    seed: sequence,
+  }) as Site["connection"];
+  return {
+    identifier: `${sequence}`,
+    name,
+    url: `http://${name}.${chance.tld()}`,
+    connection,
+    last_seen: new Date(chance.date({ year: 2023 })).toISOString(),
+    address: {
+      countrycode: chance.country(), // <alpha2 country code>,
+      city: chance.city(),
+      zip: chance.zip(),
+      street: chance.address(),
+    },
+    timezone: "CET", // <three letter abbreviation>,
+    stats: {
+      machines: chance.integer({ min: 0, max: 1500 }),
+      occupied_machines: chance.integer({ min: 0, max: 500 }),
+      ready_machines: chance.integer({ min: 0, max: 500 }),
+      error_machines: chance.integer({ min: 0, max: 500 }),
+    },
+  };
 });
