@@ -23,10 +23,9 @@ function ColumnsVisibilityControl({ columns }: { columns: SitesColumn[] }) {
           .filter((column) => column.id !== "select")
           .map((column) => {
             return (
-              <div className="columns-visibility-checkbox">
+              <div className="columns-visibility-checkbox" key={column.id}>
                 <CheckboxInput
                   aria-label={column.id}
-                  key={column.id}
                   label={column.id}
                   {...{
                     checked: column.getIsVisible(),
