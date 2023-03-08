@@ -6,3 +6,7 @@
 @include vf-l-application;
 
 @import "./utils";
+@import "./patterns_icons";
+@import "./patterns_typography";
+@include maas-icons;
+@include maas-typography;
