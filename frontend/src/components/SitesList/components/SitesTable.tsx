@@ -1,13 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { Input } from "@canonical/react-components";
-import {
-  useReactTable,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-} from "@tanstack/react-table";
+import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { ColumnDef, Column } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
@@ -187,8 +181,6 @@ const SitesTable = ({
     enableColumnResizing: false,
     columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     debugTable: isDev,
     debugHeaders: isDev,
     debugColumns: isDev,

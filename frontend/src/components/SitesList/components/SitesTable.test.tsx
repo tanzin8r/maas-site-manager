@@ -35,6 +35,17 @@ it("displays rows with details for each site", () => {
     .forEach((row, i) => expect(row).toHaveTextContent(new RegExp(items[i].name, "i")));
 });
 
+it("displays correctly paginated results", () => {
+  const pageLength = 50;
+  const items = siteFactory.buildList(pageLength);
+  render(
+    <SitesTable data={{ items, total: 100, page: 1, size: pageLength }} isFetchedAfterMount={true} isLoading={false} />,
+  );
+
+  const tableBody = screen.getAllByRole("rowgroup")[1];
+  expect(within(tableBody).getAllByRole("row")).toHaveLength(pageLength);
+});
+
 it("displays correct local time", () => {
   const date = new Date("2000-01-01T12:00:00Z");
   vi.setSystemTime(date);
