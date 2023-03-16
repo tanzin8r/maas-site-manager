@@ -4,6 +4,7 @@ module.exports = {
   root: true,
   plugins: ["prettier", "no-relative-import-paths"],
   extends: [
+    "./.eslintrc-auto-import.json",
     "react-app", // Use the recommended rules from CRA.
     "plugin:import/errors",
     "plugin:import/warnings",

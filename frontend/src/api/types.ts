@@ -29,3 +29,13 @@ export type PaginatedQueryResult = {
 export type SitesQueryResult = PaginatedQueryResult & {
   items: Site[];
 };
+
+export type Token = {
+  name: string;
+  token: string;
+  expires: string; //<ISO 8601 date string>,
+  created: string; //<ISO 8601 date string>
+};
+export type PostTokensResult = {
+  items: Token[];
+};

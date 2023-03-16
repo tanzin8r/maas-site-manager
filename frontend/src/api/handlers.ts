@@ -22,3 +22,21 @@ export const getSites = async (params: GetSitesQueryParams, queryText?: string) 
     console.error(error);
   }
 };
+
+export type PostTokensData = {
+  amount: number;
+  name: string;
+  expires: string; // <ISO 8601 date string>,
+};
+
+export const postTokens = async (data: PostTokensData) => {
+  if (!data?.amount || !data?.name || !data?.expires) {
+    throw Error("Missing required fields");
+  }
+  try {
+    const response = await api.post(urls.tokens, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

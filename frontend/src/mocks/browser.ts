@@ -1,7 +1,5 @@
-import { setupWorker, rest } from "msw";
+import { setupWorker } from "msw";
 
-import { createMockSitesResolver } from "./resolvers";
+import { getSites, postTokens } from "./resolvers";
 
-import urls from "@/api/urls";
-
-export const worker = setupWorker(rest.get(urls.sites, createMockSitesResolver()));
+export const worker = setupWorker(getSites, postTokens);

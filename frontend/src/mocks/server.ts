@@ -8,7 +8,10 @@ import urls from "@/api/urls";
 
 const createMockGetServer = (endpoint: string, resolver: ReturnType<typeof createMockSitesResolver>) =>
   setupServer(rest.get(endpoint, resolver));
+const createMockPostServer = (endpoint: string, resolver: ReturnType<typeof createMockSitesResolver>) =>
+  setupServer(rest.post(endpoint, resolver));
 
 const mockSitesServer = createMockGetServer(urls.sites, createMockSitesResolver());
+const mockPostTokensServer = createMockPostServer(urls.tokens, createMockSitesResolver());
 
-export { createMockGetServer, mockSitesServer };
+export { createMockGetServer, createMockPostServer, mockSitesServer, mockPostTokensServer };

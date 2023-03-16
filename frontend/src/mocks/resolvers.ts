@@ -1,8 +1,10 @@
+import { rest } from "msw";
 import type { RestRequest, restContext, ResponseResolver } from "msw";
 
-import { siteFactory } from "./factories";
+import { siteFactory, tokenFactory } from "./factories";
 
-import type { GetSitesQueryParams } from "api/handlers";
+import urls from "@/api/urls";
+import type { GetSitesQueryParams, PostTokensData } from "api/handlers";
 
 export const sitesList = siteFactory.buildList(155);
 
@@ -22,3 +24,20 @@ export const createMockSitesResolver =
 
     return res(ctx.json(response));
   };
+
+type TokensResponseResolver = ResponseResolver<RestRequest<PostTokensData>, typeof restContext>;
+export const createMockTokensResolver = (): TokensResponseResolver => async (req, res, ctx) => {
+  let items;
+  const { amount, name, expires } = await req.json();
+  if (amount && name && expires) {
+    items = Array(amount).fill(tokenFactory.build({ name, expires }));
+  }
+  const response = {
+    items,
+  };
+
+  return res(ctx.json(response));
+};
+
+export const getSites = rest.get(urls.sites, createMockSitesResolver());
+export const postTokens = rest.post(urls.tokens, createMockTokensResolver());
