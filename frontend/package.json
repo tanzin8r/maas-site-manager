@@ -19,13 +19,16 @@
     "classnames": "2.3.2",
     "date-fns": "2.29.3",
     "date-fns-tz": "2.0.0",
+    "formik": "2.2.9",
+    "human-interval": "2.0.1",
     "lodash": "4.17.21",
     "pluralize": "8.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.8.1",
     "use-local-storage-state": "18.1.2",
-    "vanilla-framework": "3.11.0"
+    "vanilla-framework": "3.11.0",
+    "yup": "1.0.2"
   },
   "devDependencies": {
     "@playwright/test": "1.31.1",

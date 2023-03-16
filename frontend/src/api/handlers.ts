@@ -25,12 +25,12 @@ export const getSites = async (params: GetSitesQueryParams, queryText?: string) 
 
 export type PostTokensData = {
   amount: number;
-  name: string;
+  name?: string;
   expires: string; // <ISO 8601 date string>,
 };
 
 export const postTokens = async (data: PostTokensData) => {
-  if (!data?.amount || !data?.name || !data?.expires) {
+  if (!data?.amount || !data?.expires) {
     throw Error("Missing required fields");
   }
   try {

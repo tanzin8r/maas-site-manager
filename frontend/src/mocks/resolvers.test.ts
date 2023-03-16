@@ -20,9 +20,9 @@ afterAll(() => {
 describe("mock post tokens server", () => {
   it("returns list of tokens based on the request data", async () => {
     const amount = 1;
-    const { name, expires } = tokenFactory.build({ name: "test", expires: "2021-01-01" });
-    const result = await axios.post(urls.tokens, { name, expires, amount });
+    const { expires } = tokenFactory.build({ name: "test", expires: "2021-01-01" });
+    const result = await axios.post(urls.tokens, { expires, amount });
     expect(result.data.items).toHaveLength(amount);
-    expect(result.data.items[0]).toEqual(expect.objectContaining({ name, expires }));
+    expect(result.data.items[0]).toEqual(expect.objectContaining({ expires }));
   });
 });
