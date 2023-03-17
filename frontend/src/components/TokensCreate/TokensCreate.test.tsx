@@ -5,7 +5,7 @@ import { vi } from "vitest";
 import TokensCreate from "./TokensCreate";
 
 import urls from "@/api/urls";
-import { render, screen, userEvent } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent } from "@/test-utils";
 
 const postTokensEndpointMock = vi.fn();
 const mockServer = setupServer(
@@ -28,12 +28,12 @@ afterAll(() => {
 
 describe("TokensCreate", () => {
   it("renders the form", async () => {
-    render(<TokensCreate />);
+    renderWithMemoryRouter(<TokensCreate />);
     expect(screen.getByRole("form", { name: /Generate new enrollment tokens/i })).toBeInTheDocument();
   });
 
   it("if not all required fields have been entered the submit button is disabled", async () => {
-    render(<TokensCreate />);
+    renderWithMemoryRouter(<TokensCreate />);
     const amount = screen.getByLabelText(/Amount of tokens to generate/i);
     const expires = screen.getByLabelText(/Expiration time/i);
     expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeDisabled();
@@ -43,7 +43,7 @@ describe("TokensCreate", () => {
   });
 
   it("displays an error for invalid expiration value", async () => {
-    render(<TokensCreate />);
+    renderWithMemoryRouter(<TokensCreate />);
     const expires = screen.getByLabelText(/Expiration time/i);
     await userEvent.type(expires, "2");
     await userEvent.tab();
@@ -53,7 +53,7 @@ describe("TokensCreate", () => {
   });
 
   it("can generate enrolment tokens", async () => {
-    render(<TokensCreate />);
+    renderWithMemoryRouter(<TokensCreate />);
     const amount = screen.getByLabelText(/Amount of tokens to generate/i);
     const expires = screen.getByLabelText(/Expiration time/i);
     expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeDisabled();

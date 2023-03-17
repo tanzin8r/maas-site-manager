@@ -1,5 +1,5 @@
 import { Button, Col, Row } from "@canonical/react-components";
-import { Outlet, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const TokensList = () => {
   return (
@@ -11,16 +11,15 @@ const TokensList = () => {
       </Row>
       <Row>
         <Col size={12}>
-          <Button>Export</Button>
-          <Button appearance="negative">Delete</Button>
-          <Link to="create">
-            <Button appearance="positive" element="a">
+          <div className="u-flex u-flex--justify-end">
+            <Button>Export</Button>
+            <Button appearance="negative">Delete</Button>
+            <Link className="p-button--positive" role="button" state={{ sidebar: true }} to="">
               Generate tokens
-            </Button>
-          </Link>
+            </Link>
+          </div>
         </Col>
       </Row>
-      <Outlet />
     </section>
   );
 };

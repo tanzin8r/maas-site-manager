@@ -3,8 +3,10 @@ import { useId } from "react";
 import { Button, Input, Label, Notification } from "@canonical/react-components";
 import { useMutation } from "@tanstack/react-query";
 import { Field, Formik, Form } from "formik";
+import { Link, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 
+import "./TokensCreate.scss";
 import { humanIntervalToISODuration } from "./utils";
 
 import { postTokens } from "@/api/handlers";
@@ -40,6 +42,7 @@ const TokensCreate = () => {
   const headingId = useId();
   const expiresId = useId();
   const amountId = useId();
+  const navigate = useNavigate();
   const mutation = useMutation(postTokens);
   const handleSubmit = async (
     { amount, expires }: TokensCreateFormValues,
@@ -49,15 +52,18 @@ const TokensCreate = () => {
     // TODO: update the tokens list once fetching tokens from API is implemented
     // https://warthogs.atlassian.net/browse/MAASENG-1474
     setSubmitting(false);
+    navigate("/tokens", { state: { sidebar: false } });
   };
 
   return (
-    <div>
-      <h3 id={headingId}>Generate new enrollment tokens</h3>
+    <div className="tokens-create">
+      <h3 className="tokens-create__heading p-heading--4" id={headingId}>
+        Generate new enrollment tokens
+      </h3>
       {mutation.isError && <Notification severity="negative">There was an error generating the token(s).</Notification>}
       <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={TokensCreateSchema}>
         {({ isSubmitting, errors, touched, isValid, dirty }) => (
-          <Form aria-labelledby={headingId} noValidate>
+          <Form aria-labelledby={headingId} className="tokens-create" noValidate>
             <Label htmlFor={amountId}>Amount of tokens to generate</Label>
             <Field
               as={Input}
@@ -77,17 +83,22 @@ const TokensCreate = () => {
               type="text"
             />
             <p className="u-text--muted">
-              Use this token once to request an enrolment in the specified timeframe. <br />
-              Allowed time units are seconds, minutes, hours, days and weeks.
+              Use this token once to request an enrolment in the specified timeframe. Allowed time units are seconds,
+              minutes, hours, days and weeks.
             </p>
-            <Button type="button">Cancel</Button>
-            <Button
-              appearance="positive"
-              disabled={!dirty || !isValid || mutation.isLoading || isSubmitting}
-              type="submit"
-            >
-              Generate tokens
-            </Button>
+            <hr className="tokens-create__separator" />
+            <div className="tokens-create__buttons">
+              <Link className="p-button" role="button" state={{ sidebar: false }} to="tokens">
+                Cancel
+              </Link>
+              <Button
+                appearance="positive"
+                disabled={!dirty || !isValid || mutation.isLoading || isSubmitting}
+                type="submit"
+              >
+                Generate tokens
+              </Button>
+            </div>
           </Form>
         )}
       </Formik>

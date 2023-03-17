@@ -33,7 +33,7 @@ const Navigation = (): JSX.Element => {
 
   return (
     <>
-      <header className="l-navigation-bar">
+      <header aria-label="navigation" className="l-navigation-bar">
         <div className="p-panel is-dark">
           <div className="p-panel__header">
             <NavigationBanner />
@@ -52,7 +52,7 @@ const Navigation = (): JSX.Element => {
         </div>
       </header>
       <nav
-        aria-label="main navigation"
+        aria-label="main"
         className={classNames("l-navigation", { "is-collapsed": isCollapsed, "is-pinned": !isCollapsed })}
       >
         <div className="l-navigation__drawer">

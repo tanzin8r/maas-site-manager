@@ -1,0 +1,17 @@
+.tokens-create {
+  .tokens-create__heading {
+    margin-bottom: $sph--x-large;
+  }
+  hr.tokens-create__separator {
+    margin-bottom: $sph--large;
+  }
+  .tokens-create__buttons {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    a,
+    button {
+      margin-left: $sph--large;
+    }
+  }
+}

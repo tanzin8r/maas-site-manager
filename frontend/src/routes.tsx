@@ -2,7 +2,6 @@ import { createRoutesFromElements, Route, redirect } from "react-router-dom";
 
 import MainLayout from "@/components/MainLayout";
 import SitesList from "@/pages/sites";
-import TokensCreate from "@/pages/tokens/create";
 import Tokens from "@/pages/tokens/tokens";
 
 export const routes = createRoutesFromElements(
@@ -16,9 +15,7 @@ export const routes = createRoutesFromElements(
     <Route path="logout" />
     <Route element={<SitesList />} path="sites" />
     <Route path="requests" />
-    <Route element={<Tokens />} path="tokens">
-      <Route element={<TokensCreate />} path="create" />
-    </Route>
+    <Route element={<Tokens />} path="tokens" />
     <Route path="users" />
   </Route>,
 );
