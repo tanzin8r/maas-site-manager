@@ -3,8 +3,6 @@ import { useMemo, useState } from "react";
 import { Input } from "@canonical/react-components";
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { ColumnDef, Column } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { utcToZonedTime } from "date-fns-tz";
 import pick from "lodash/fp/pick";
 import useLocalStorageState from "use-local-storage-state";
 
@@ -13,7 +11,7 @@ import SitesTableControls from "./SitesTableControls";
 import type { SitesQueryResult } from "@/api/types";
 import { isDev } from "@/constants";
 import type { UseSitesQueryResult } from "@/hooks/api";
-import { getCountryName } from "@/utils";
+import { getCountryName, getTimeByUTCOffset, getTimezoneUTCString } from "@/utils";
 
 import "./SitesTable.scss";
 
@@ -127,16 +125,16 @@ const SitesTable = ({
         accessorFn: createAccessor("timezone"),
         header: () => (
           <>
-            <div>local time</div>
-            <div className="u-text--muted">timezone</div>
+            <div>local time (24hr)</div>
           </>
         ),
         cell: ({ getValue }) => {
           const { timezone } = getValue();
-          return timezone ? (
+          return Number.isInteger(timezone) ? (
             <>
-              <div>{format(utcToZonedTime(new Date(), timezone), "HH:mm")} (local time)</div>
-              <div className="u-text--muted">{timezone}</div>
+              <div>
+                {getTimeByUTCOffset(new Date(), timezone!)} UTC{getTimezoneUTCString(timezone!)}
+              </div>
             </>
           ) : null;
         },

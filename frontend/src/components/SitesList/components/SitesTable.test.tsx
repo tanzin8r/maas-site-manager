@@ -69,7 +69,7 @@ it("displays correct local time", () => {
   const date = new Date("2000-01-01T12:00:00Z");
   vi.setSystemTime(date);
 
-  const item = siteFactory.build({ timezone: "CET" });
+  const item = siteFactory.build({ timezone: 1 });
   render(
     <SitesTable
       data={{ items: [item], total: 1, page: 1, size: 1 }}
@@ -80,7 +80,7 @@ it("displays correct local time", () => {
   );
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
-  expect(screen.getByText(/13:00 \(local time\)/i)).toBeInTheDocument();
+  expect(screen.getByText(/13:00 UTC\+01:00/i)).toBeInTheDocument();
 });
 
 it("displays full name of the country", () => {

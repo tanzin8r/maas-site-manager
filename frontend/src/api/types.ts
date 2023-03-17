@@ -10,7 +10,7 @@ export type Site = {
     zip: string;
     street: string;
   };
-  timezone: string; // <three letter abbreviation>,
+  timezone: number;
   stats: {
     machines: number;
     occupied_machines: number;
