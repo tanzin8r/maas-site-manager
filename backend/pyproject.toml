@@ -25,3 +25,6 @@ non_interactive = true
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+plugins = [
+  "pydantic.mypy"
+]

@@ -35,10 +35,12 @@ async def test_list_sites(
     site2 = site1.copy()
     site2["id"] = 2
     site2["identifier"] = "site two"
+    site2["name"] = "BerlinHQ"
+    site2["city"] = "Berlin"
     await fixture.create("site", [site1, site2])
-    response = user_app_client.get("/sites")
+    response = user_app_client.get("/sites?city=onDo")  # vs London
     assert response.status_code == 200
-    assert response.json() == [site1, site2]
+    assert response.json() == [site1]
 
 
 @pytest.mark.asyncio
