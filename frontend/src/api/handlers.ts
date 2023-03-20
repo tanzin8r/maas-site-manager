@@ -3,10 +3,11 @@ import urls from "./urls";
 
 import { customParamSerializer } from "@/utils";
 
-export type GetSitesQueryParams = {
+export type PaginationParams = {
   page: string;
   size: string;
 };
+export type GetSitesQueryParams = PaginationParams & {};
 
 export const getSites = async (params: GetSitesQueryParams, queryText?: string) => {
   try {
@@ -38,5 +39,17 @@ export const postTokens = async (data: PostTokensData) => {
     return response.data;
   } catch (error) {
     throw error;
+  }
+};
+
+export type GetTokensQueryParams = PaginationParams & {};
+
+export const getTokens = async (params: GetTokensQueryParams) => {
+  try {
+    const response = await api.get(urls.tokens, { params });
+    return response.data;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(error);
   }
 };

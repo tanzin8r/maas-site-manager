@@ -7,6 +7,7 @@ import urls from "@/api/urls";
 import type { GetSitesQueryParams, PostTokensData } from "api/handlers";
 
 export const sitesList = siteFactory.buildList(155);
+export const tokensList = tokenFactory.buildList(100);
 
 type SitesResponseResolver = ResponseResolver<RestRequest<never, GetSitesQueryParams>, typeof restContext>;
 export const createMockSitesResolver =
@@ -41,5 +42,23 @@ export const createMockTokensResolver = (): TokensResponseResolver => async (req
   return res(ctx.json(response));
 };
 
+export const createMockGetTokensResolver =
+  (tokens = tokensList): TokensResponseResolver =>
+  (req, res, ctx) => {
+    const searchParams = new URLSearchParams(req.url.search);
+    const page = Number(searchParams.get("page"));
+    const size = Number(searchParams.get("size"));
+    const itemsPage = tokens.slice(page * Number(size), (page + 1) * size);
+
+    const response = {
+      items: itemsPage,
+      page,
+      total: tokens.length,
+    };
+
+    return res(ctx.json(response));
+  };
+
 export const getSites = rest.get(urls.sites, createMockSitesResolver());
 export const postTokens = rest.post(urls.tokens, createMockTokensResolver());
+export const getTokens = rest.get(urls.tokens, createMockGetTokensResolver());

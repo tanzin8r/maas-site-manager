@@ -1,15 +1,20 @@
 import { renderHook, waitFor } from "@testing-library/react";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
 
-import { useSitesQuery } from "./api";
+import { useSitesQuery, useTokensQuery } from "./api";
 
 import urls from "@/api/urls";
-import { siteFactory } from "@/mocks/factories";
-import { createMockSitesResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
+import { siteFactory, tokenFactory } from "@/mocks/factories";
+import { createMockGetTokensResolver, createMockSitesResolver } from "@/mocks/resolvers";
 import { Providers } from "@/test-utils";
 
 const sitesData = siteFactory.buildList(2);
-const mockServer = createMockGetServer(urls.sites, createMockSitesResolver(sitesData));
+const tokensData = tokenFactory.buildList(2);
+const mockServer = setupServer(
+  rest.get(urls.sites, createMockSitesResolver(sitesData)),
+  rest.get(urls.tokens, createMockGetTokensResolver(tokensData)),
+);
 
 beforeAll(() => {
   mockServer.listen();
@@ -27,4 +32,12 @@ it("should return sites", async () => {
   await waitFor(() => expect(result.current.isFetchedAfterMount).toBe(true));
 
   expect(result.current.data!.items).toEqual(sitesData);
+});
+
+it("should return tokens", async () => {
+  const { result } = renderHook(() => useTokensQuery({ page: "0", size: "2" }), { wrapper: Providers });
+
+  await waitFor(() => expect(result.current.isFetchedAfterMount).toBe(true));
+
+  expect(result.current.data!.items).toEqual(tokensData);
 });
