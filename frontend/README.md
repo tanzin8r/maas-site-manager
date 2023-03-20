@@ -42,3 +42,7 @@ yarn run dev
 ```bash
 yarn playwright test
 ```
+
+## Keeping packages up-to-date
+
+Run `yarn upgrade-all` to attempt to upgrade all packages to latest version.

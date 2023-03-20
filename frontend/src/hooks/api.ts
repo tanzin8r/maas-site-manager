@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import type { GetSitesQueryParams, GetTokensQueryParams } from "@/api/handlers";
-import { getSites, getTokens } from "@/api/handlers";
+import { postTokens, getSites, getTokens } from "@/api/handlers";
 import type { SitesQueryResult, PostTokensResult } from "@/api/types";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
@@ -20,3 +20,5 @@ export const useTokensQuery = ({ page, size }: GetTokensQueryParams) =>
     queryFn: () => getTokens({ page, size }),
     keepPreviousData: true,
   });
+
+export const useTokensMutation = () => useMutation(postTokens);

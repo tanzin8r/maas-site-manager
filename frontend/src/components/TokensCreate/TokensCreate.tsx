@@ -1,7 +1,6 @@
 import { useId } from "react";
 
 import { Button, Input, Label, Notification } from "@canonical/react-components";
-import { useMutation } from "@tanstack/react-query";
 import { Field, Formik, Form } from "formik";
 import { Link, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
@@ -9,7 +8,7 @@ import * as Yup from "yup";
 import "./TokensCreate.scss";
 import { humanIntervalToISODuration } from "./utils";
 
-import { postTokens } from "@/api/handlers";
+import { useTokensMutation } from "@/hooks/api";
 
 const initialValues = {
   amount: "",
@@ -43,12 +42,15 @@ const TokensCreate = () => {
   const expiresId = useId();
   const amountId = useId();
   const navigate = useNavigate();
-  const mutation = useMutation(postTokens);
+  const tokensMutation = useTokensMutation();
   const handleSubmit = async (
     { amount, expires }: TokensCreateFormValues,
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void },
   ) => {
-    await mutation.mutateAsync({ amount: Number(amount), expires: humanIntervalToISODuration(expires) as string });
+    await tokensMutation.mutateAsync({
+      amount: Number(amount),
+      expires: humanIntervalToISODuration(expires) as string,
+    });
     // TODO: update the tokens list once fetching tokens from API is implemented
     // https://warthogs.atlassian.net/browse/MAASENG-1474
     setSubmitting(false);
@@ -60,7 +62,9 @@ const TokensCreate = () => {
       <h3 className="tokens-create__heading p-heading--4" id={headingId}>
         Generate new enrollment tokens
       </h3>
-      {mutation.isError && <Notification severity="negative">There was an error generating the token(s).</Notification>}
+      {tokensMutation.isError && (
+        <Notification severity="negative">There was an error generating the token(s).</Notification>
+      )}
       <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={TokensCreateSchema}>
         {({ isSubmitting, errors, touched, isValid, dirty }) => (
           <Form aria-labelledby={headingId} className="tokens-create" noValidate>
@@ -93,7 +97,7 @@ const TokensCreate = () => {
               </Link>
               <Button
                 appearance="positive"
-                disabled={!dirty || !isValid || mutation.isLoading || isSubmitting}
+                disabled={!dirty || !isValid || tokensMutation.isLoading || isSubmitting}
                 type="submit"
               >
                 Generate tokens

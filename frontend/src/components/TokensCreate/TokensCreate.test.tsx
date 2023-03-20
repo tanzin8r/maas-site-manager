@@ -5,14 +5,18 @@ import { vi } from "vitest";
 import TokensCreate from "./TokensCreate";
 
 import urls from "@/api/urls";
+import type * as apiHooks from "@/hooks/api";
+import { createMockTokensResolver } from "@/mocks/resolvers";
 import { renderWithMemoryRouter, screen, userEvent } from "@/test-utils";
 
-const postTokensEndpointMock = vi.fn();
-const mockServer = setupServer(
-  rest.post(urls.tokens, async (req) => {
-    postTokensEndpointMock(await req.json());
-  }),
-);
+const mockServer = setupServer(rest.post(urls.tokens, createMockTokensResolver()));
+
+const tokensMutationMock = vi.fn();
+
+vi.mock("@/hooks/api", async (importOriginal) => {
+  const original: typeof apiHooks = await importOriginal();
+  return { ...original, useTokensMutation: () => ({ mutateAsync: tokensMutationMock }) };
+});
 
 beforeAll(() => {
   mockServer.listen();
@@ -62,8 +66,8 @@ describe("TokensCreate", () => {
     // can specify the token expiration time (e.g. 1 week)
     await userEvent.type(expires, "1 week");
     await userEvent.click(screen.getByRole("button", { name: /Generate tokens/i }));
-    expect(postTokensEndpointMock).toHaveBeenCalledTimes(1);
-    expect(postTokensEndpointMock).toHaveBeenCalledWith({
+    expect(tokensMutationMock).toHaveBeenCalledTimes(1);
+    expect(tokensMutationMock).toHaveBeenCalledWith({
       amount: 1,
       expires: "P0Y0M7DT0H0M0S",
     });
