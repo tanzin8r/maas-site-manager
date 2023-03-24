@@ -1,4 +1,4 @@
-# MAAS site manager
+# MAAS site manager backend
 
 ## Development environment
 

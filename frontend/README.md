@@ -35,12 +35,24 @@ yarn  # install dependencies
 yarn run dev
 ```
 
-## How to run tests
+## Project conventions
 
-### End to end
+## Testing
+
+We use [Playwright](https://playwright.dev/) for end-to-end tests and [Vitest](https://vitest.dev/) for unit/integration tests. We prefer integration testing over unit testing as we focus on user-centric testing and avoid testing implementation details. That makes changes and refactoring easier and helps ensure that things continue to work as expected for the end user.
+
+### How to run tests
+
+#### end-to-end
 
 ```bash
 yarn playwright test
+```
+
+#### unit/integration
+
+```bash
+yarn test
 ```
 
 ## Keeping packages up-to-date
