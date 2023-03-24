@@ -67,6 +67,13 @@ module.exports = {
             ignoreRestSiblings: true,
           },
         ],
+        "no-restricted-syntax": [
+          "error",
+          {
+            selector: "TSEnumDeclaration",
+            message: "Avoid enums, use const or string literal instead",
+          },
+        ],
         "@typescript-eslint/consistent-type-imports": 2,
         "import/namespace": "off",
         "import/no-named-as-default": 0,
