@@ -1,3 +1,38 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools",
+]
+
+[project]
+name = "msm"
+version = "0.0.1"
+description = "MAAS Site Manager"
+readme = "README.rst"
+maintainers = [
+    {name = "MAAS Developers", email = "maas-devel@lists.launchpad.net"},
+]
+authors = [
+    {name = "MAAS Developers", email = "maas-devel@lists.launchpad.net"},
+]
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi",
+  "pydantic[email]",
+  "SQLAlchemy[postgresql_asyncpg]",
+]
+[project.optional-dependencies]
+testing = [
+  "httpx",
+  "psycopg",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-postgresql",
+]
+
+[tool.setuptools.packages.find]
+include = ["msm*"]
+
 [tool.black]
 line-length = 79
 
@@ -9,22 +44,23 @@ from_first = false
 include_trailing_comma = true
 multi_line_output = 3
 order_by_type = false
-profile = 'black'
+profile = "black"
 use_parentheses = true
+
+[tool.flake8]
+max-line-length = 79
 
 [tool.pytest.ini_options]
 testpaths = [
   "msm/"
 ]
-junit_logging = 'all'
-junit_suite_name = 'maas-site-manager backend tests'
+junit_logging = "all"
+junit_suite_name = "maas-site-manager backend tests"
 
 [tool.mypy]
 install_types = true
 non_interactive = true
 strict = true
-warn_return_any = true
-warn_unused_configs = true
 plugins = [
   "pydantic.mypy"
 ]
