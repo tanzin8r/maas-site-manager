@@ -7,7 +7,7 @@ import { isDev } from "./constants";
 
 if (isDev) {
   const { worker } = await import("./mocks/browser");
-  worker.start();
+  await worker.start();
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
