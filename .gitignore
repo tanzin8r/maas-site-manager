@@ -23,6 +23,7 @@ logs
 /frontend/dist
 /frontend/dist-ssr
 /frontend/coverage
+/frontend/.yarn
 *.local
 
 # dotrun

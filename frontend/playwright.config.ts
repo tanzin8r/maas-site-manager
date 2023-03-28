@@ -49,20 +49,15 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
     },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    {
-      name: "Mobile Safari",
-      use: { ...devices["iPhone 12"] },
-    },
   ],
+  // run the dev server before starting tests
+  webServer: {
+    command: "yarnpkg run dev",
+    url: `http://localhost:${process.env.VITE_UI_PORT}`,
+    reuseExistingServer: !process.env.CI,
+  },
 });

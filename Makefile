@@ -6,7 +6,13 @@ postgresql
 endef
 
 define FRONTEND_PACKAGES
-yarnpkg
+yarnpkg \
+npm \
+libasound2 \
+libdbus-glib-1-2 \
+libnss3 \
+libnspr4 \
+libgbm1
 endef
 
 
@@ -35,7 +41,7 @@ ci-build: # will run the frontend build targets
 ci-lint: ci-backend-lint ci-frontend-lint
 .PHONY: ci-lint
 
-ci-test: ci-backend-test ci-frontend-test
+ci-test: ci-backend-test ci-frontend-test ci-e2e-test
 .PHONY: ci-test
 
 
@@ -60,6 +66,7 @@ ci-backend-test:
 
 ci-frontend-dep: install-frontend-dependencies
 	env -C frontend yarnpkg install
+	env -C frontend npx --yes playwright install
 .PHONY: ci-frontend-dep
 
 ci-frontend-build:
@@ -74,3 +81,6 @@ ci-frontend-test:
 	env -C frontend VITEST_JUNIT_SUITE_NAME='maas-site-manager frontend tests' yarnpkg run test --silent --reporter=junit --reporter=default --outputFile.junit=../junit-frontend.xml run
 .PHONY: ci-test
 
+ci-e2e-test:
+	env -C frontend PLAYWRIGHT_JUNIT_OUTPUT_NAME=../junit-e2e.xml npx playwright test --reporter=junit
+.PHONY: ci-test
