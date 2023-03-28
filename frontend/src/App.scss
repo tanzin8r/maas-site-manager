@@ -1,18 +1,53 @@
-@include vf-base;
-@include vanilla;
-// @include vf-p-table-sortable;
-// @include vf-p-table-expanding;
-@include vf-p-grid;
-@include vf-l-application;
+@use "sass:math";
 
-@import "patterns_icons"; // include common styles shared by all icons
+@import "@/settings.scss";
+@import "vanilla-framework";
+@include vf-base;
+
+// patterns
+@include vf-b-placeholders;
+@include vf-p-grid;
+@include vf-p-buttons;
+@include vf-p-forms;
+@include vf-p-links;
+@include vf-p-side-navigation;
+@include vf-p-navigation;
+@include vf-p-headings;
+@include vf-u-off-screen;
+@include vf-p-search-box;
+@include vf-p-form-tick-elements;
+@include vf-p-tooltips;
+
+// icons
+@include vf-p-icons;
 @include vf-p-icons-common;
+@include vf-p-icon-close;
+@include vf-p-icon-search;
 @include vf-p-icon-status-failed-small;
 @include vf-p-icon-status-waiting-small;
 @include vf-p-icon-status-succeeded-small;
-@include vf-p-icons;
-@import "./utils";
-@import "./patterns_icons";
-@import "./patterns_typography";
-@include maas-icons;
-@include maas-typography;
+@include vf-p-icon-settings;
+
+// Utilities
+@include vf-u-text-muted;
+@include vf-u-vertical-spacing;
+@include vf-u-vertically-center;
+@include vf-u-hide;
+
+// layout
+@include vf-l-application;
+@include vf-l-application-panels;
+@include vf-l-full-width;
+@include vf-l-site;
+
+@import "@/utils";
+@import "@/patterns_icons";
+@import "@/patterns_typography";
+
+// components styles
+@import "@/components/MainLayout/MainLayout.scss";
+@import "@/components/Navigation/Navigation.scss";
+@import "@/components/TokensCreate/TokensCreate.scss";
+@import "@/components/SitesList/components/ColumnsVisibilityControl.scss";
+@import "@/components/SitesList/components/SitesTable.scss";
+@import "@/components/Placeholder/Placeholder.scss";

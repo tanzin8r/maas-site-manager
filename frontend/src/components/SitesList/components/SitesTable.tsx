@@ -13,7 +13,6 @@ import { isDev } from "@/constants";
 import { useAppContext } from "@/context";
 import type { UseSitesQueryResult } from "@/hooks/api";
 import { getCountryName, getTimeByUTCOffset, getTimezoneUTCString } from "@/utils";
-import "./SitesTable.scss";
 
 const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>

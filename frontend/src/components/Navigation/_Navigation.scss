@@ -1,10 +1,5 @@
 .l-navigation {
-  @include vf-transition(
-    $property: #{width,
-    box-shadow,
-    background},
-    $duration: fast
-  );
+  @include vf-transition($property: #{width, box-shadow, background}, $duration: fast);
   &:hover,
   &:focus-within,
   &.is-pinned {
@@ -50,16 +45,9 @@
   }
 }
 .p-panel.is-dark {
-  background: inherit;
-
   .p-panel__header {
     background-color: inherit;
-    @include vf-transition(
-      $property: #{width,
-      box-shadow,
-      background},
-      $duration: fast
-    );
+    @include vf-transition($property: #{width, box-shadow, background}, $duration: fast);
   }
 
   .p-panel__logo {
@@ -119,10 +107,7 @@
     text-align: left;
     justify-content: flex-start;
   }
-  .p-side-navigation--icons
-    .p-side-navigation__item
-    .p-side-navigation__item
-    .p-side-navigation__link {
+  .p-side-navigation--icons .p-side-navigation__item .p-side-navigation__item .p-side-navigation__link {
     padding-left: 4rem;
   }
 }

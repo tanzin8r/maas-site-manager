@@ -4,7 +4,6 @@ import { Col, Row, usePrevious } from "@canonical/react-components";
 import classNames from "classnames";
 import { Outlet, useLocation } from "react-router-dom";
 
-import "./MainLayout.scss";
 import Navigation from "@/components/Navigation";
 import RemoveRegions from "@/components/RemoveRegions";
 import { useAppContext } from "@/context";

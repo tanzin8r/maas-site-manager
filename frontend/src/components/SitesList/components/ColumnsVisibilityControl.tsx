@@ -1,6 +1,5 @@
 import { ContextualMenu, Icon, CheckboxInput } from "@canonical/react-components";
 
-import "./ColumnsVisibilityControl.scss";
 import type { SitesColumn } from "./SitesTable";
 
 function ColumnsVisibilityControl({ columns }: { columns: SitesColumn[] }) {

@@ -5,7 +5,6 @@ import useLocalStorageState from "use-local-storage-state";
 
 import NavigationBanner from "./NavigationBanner";
 import NavigationCollapseToggle from "./NavigationCollapseToggle";
-import "./Navigation.scss";
 import NavigationItems from "./NavigationItems";
 import type { NavItem } from "./types";
 

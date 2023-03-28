@@ -22,16 +22,4 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: `
-          @use "sass:math";
-          @import "./src/settings.scss";
-          @import "node_modules/vanilla-framework";
-          @include vanilla;
-        `,
-      },
-    },
-  },
 });

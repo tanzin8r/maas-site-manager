@@ -4,7 +4,6 @@ import { Button, Input, Label, Notification } from "@canonical/react-components"
 import { Field, Formik, Form } from "formik";
 import * as Yup from "yup";
 
-import "./TokensCreate.scss";
 import { humanIntervalToISODuration } from "./utils";
 
 import { useAppContext } from "@/context";
