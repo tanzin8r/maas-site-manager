@@ -5,8 +5,8 @@ import type { ColumnDef, Column, Getter, Row } from "@tanstack/react-table";
 import pick from "lodash/fp/pick";
 import useLocalStorageState from "use-local-storage-state";
 
-import ConnectionInfo from "./ConnectionInfo";
-import SitesTableControls from "./SitesTableControls";
+import ConnectionInfo from "./ConnectionInfo/ConnectionInfo";
+import SitesTableControls from "./SitesTableControls/SitesTableControls";
 
 import type { SitesQueryResult } from "@/api/types";
 import { isDev } from "@/constants";

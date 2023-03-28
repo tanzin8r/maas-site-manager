@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Pagination } from "@canonical/react-components";
 
-import SitesTable from "./components/SitesTable";
+import SitesTable from "./SitesTable";
 
 import { useSitesQuery } from "@/hooks/api";
 import useDebounce from "@/hooks/useDebouncedValue";

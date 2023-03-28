@@ -45,9 +45,9 @@
 @import "@/patterns_typography";
 
 // components styles
-@import "@/components/MainLayout/MainLayout.scss";
-@import "@/components/Navigation/Navigation.scss";
-@import "@/components/TokensCreate/TokensCreate.scss";
-@import "@/components/SitesList/components/ColumnsVisibilityControl.scss";
-@import "@/components/SitesList/components/SitesTable.scss";
-@import "@/components/Placeholder/Placeholder.scss";
+@import "@/components/MainLayout/MainLayout";
+@import "@/components/Navigation/Navigation";
+@import "@/components/TokensCreate/TokensCreate";
+@import "@/components/SitesList/SitesTable/SitesTableControls/ColumnsVisibilityControl/ColumnsVisibilityControl";
+@import "@/components/SitesList/SitesTable/SitesTable";
+@import "@/components/Placeholder/Placeholder";
