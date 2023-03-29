@@ -1,4 +1,5 @@
-import { getTimezoneOffset } from "date-fns-tz";
+import { parseISO } from "date-fns";
+import { getTimezoneOffset, format, utcToZonedTime } from "date-fns-tz";
 import * as countries from "i18n-iso-countries";
 import { getName } from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
@@ -49,3 +50,6 @@ export const getTimeByUTCOffset = (date: Date, offset: number) => {
   const minutes = `${new Date(updatedTime).getUTCMinutes()}`.padStart(2, "0");
   return hours + ":" + minutes;
 };
+
+export const formatUTCDateString = (dateString: string) =>
+  format(utcToZonedTime(parseISO(dateString), "UTC"), "yyyy-MM-dd HH:mm", { timeZone: "UTC" });

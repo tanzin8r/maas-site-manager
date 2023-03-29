@@ -48,7 +48,7 @@ const SitesTable = ({
         id: "select",
         accessorKey: "name",
         header: ({ table }) => (
-          <label className="p-checkbox">
+          <label className="p-checkbox--inline">
             <input
               aria-checked={table.getIsSomeRowsSelected() || table.getIsSomePageRowsSelected() ? "mixed" : undefined}
               aria-label="select all"
@@ -67,7 +67,7 @@ const SitesTable = ({
         ),
         cell: ({ row, getValue }: { row: Row<Site>; getValue: Getter<Site["name"]> }) => {
           return (
-            <label className="p-checkbox">
+            <label className="p-checkbox--inline">
               <input
                 aria-label={getValue()}
                 className="p-checkbox__input"

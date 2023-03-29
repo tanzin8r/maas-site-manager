@@ -7,8 +7,8 @@ export type PaginationParams = {
   page: string;
   size: string;
 };
-export type GetSitesQueryParams = PaginationParams & {};
 
+export type GetSitesQueryParams = PaginationParams & {};
 export const getSites = async (params: GetSitesQueryParams, queryText?: string) => {
   try {
     const response = await api.get(urls.sites, {
@@ -29,7 +29,6 @@ export type PostTokensData = {
   name?: string;
   expires: string; // <ISO 8601 date string>,
 };
-
 export const postTokens = async (data: PostTokensData) => {
   if (!data?.amount || !data?.expires) {
     throw Error("Missing required fields");
@@ -43,10 +42,20 @@ export const postTokens = async (data: PostTokensData) => {
 };
 
 export type GetTokensQueryParams = PaginationParams & {};
-
 export const getTokens = async (params: GetTokensQueryParams) => {
   try {
     const response = await api.get(urls.tokens, { params });
+    return response.data;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(error);
+  }
+};
+
+export type GetEnrollmentRequestsQueryParams = PaginationParams & {};
+export const getEnrollmentRequests = async (params: GetEnrollmentRequestsQueryParams) => {
+  try {
+    const response = await api.get(urls.enrollmentRequests, { params });
     return response.data;
   } catch (error) {
     // eslint-disable-next-line no-console

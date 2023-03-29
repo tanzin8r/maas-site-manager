@@ -2,7 +2,7 @@ import Chance from "chance";
 import { Factory } from "fishery";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 
-import type { Site, Token } from "@/api/types";
+import type { EnrollmentRequest, PaginatedQueryResult, Site, Token } from "@/api/types";
 
 export const connections: Site["connection"][] = ["stable", "lost", "unknown"];
 
@@ -40,12 +40,36 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
   };
 });
 
+export const paginatedQueryResultFactory = <T extends unknown>() =>
+  Factory.define<PaginatedQueryResult<T>>(() => {
+    return { items: [], total: 0, page: 0, size: 0 };
+  });
+
+export const enrollmentRequestQueryResultFactory = paginatedQueryResultFactory<EnrollmentRequest>();
+export const sitesQueryResultFactory = paginatedQueryResultFactory<Site>();
+
 export const tokenFactory = Factory.define<Token>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
   return {
     name: `${sequence}`,
     token: chance.hash({ length: 32 }),
     expires: new Date(chance.date({ year: 2024 })).toISOString(), //<ISO 8601 date string>,
+    created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>
+  };
+});
+
+export const enrollmentRequestFactory = Factory.define<EnrollmentRequest>(({ sequence }) => {
+  const chance = new Chance(`maas-${sequence}`);
+  const name = uniqueNamesGenerator({
+    dictionaries: [adjectives, colors, animals],
+    separator: "-",
+    length: 2,
+    seed: sequence,
+  });
+  return {
+    id: `request-${sequence}`,
+    name,
+    url: `http://${name}.${chance.tld()}`,
     created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>
   };
 });

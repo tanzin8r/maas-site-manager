@@ -1,5 +1,5 @@
 import { setupWorker } from "msw";
 
-import { getSites, getTokens, postTokens } from "./resolvers";
+import { getSites, getTokens, getEnrollmentRequests, postTokens } from "./resolvers";
 
-export const worker = setupWorker(getSites, postTokens, getTokens);
+export const worker = setupWorker(getSites, postTokens, getEnrollmentRequests, getTokens);

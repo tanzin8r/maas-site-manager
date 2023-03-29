@@ -18,6 +18,9 @@
 @include vf-p-form-tick-elements;
 @include vf-p-tooltips;
 @include vf-p-pagination;
+@include vf-p-strip;
+@include vf-p-contextual-menu;
+@include vf-p-form-validation;
 
 // icons
 @include vf-p-icons;
@@ -34,6 +37,7 @@
 @include vf-u-vertical-spacing;
 @include vf-u-vertically-center;
 @include vf-u-hide;
+@include vf-u-align;
 
 // layout
 @include vf-l-application;

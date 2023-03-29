@@ -19,16 +19,14 @@ export type Site = {
   };
 };
 
-export type PaginatedQueryResult = {
-  items: unknown[];
+export type PaginatedQueryResult<D extends unknown> = {
+  items: D[];
   total: number;
   page: number;
   size: number;
 };
 
-export type SitesQueryResult = PaginatedQueryResult & {
-  items: Site[];
-};
+export type SitesQueryResult = PaginatedQueryResult<Site>;
 
 export type Token = {
   name: string;
@@ -39,3 +37,12 @@ export type Token = {
 export type PostTokensResult = {
   items: Token[];
 };
+
+export type EnrollmentRequest = {
+  id: string;
+  name: string;
+  url: string;
+  created: string; // <ISO 8601 date>,
+};
+
+export type EnrollmentRequestsQueryResult = PaginatedQueryResult<EnrollmentRequest>;

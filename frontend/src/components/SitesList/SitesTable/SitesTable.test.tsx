@@ -3,7 +3,7 @@ import { vi } from "vitest";
 
 import SitesTable from "./SitesTable";
 
-import { siteFactory } from "@/mocks/factories";
+import { siteFactory, sitesQueryResultFactory } from "@/mocks/factories";
 import { render, screen, within } from "@/test-utils";
 
 beforeEach(() => {
@@ -19,7 +19,7 @@ afterEach(() => {
 it("displays an empty sites table", () => {
   render(
     <SitesTable
-      data={{ items: [], total: 0, page: 1, size: 0 }}
+      data={sitesQueryResultFactory.build()}
       isFetchedAfterMount={true}
       isLoading={false}
       setSearchText={() => {}}
@@ -33,7 +33,7 @@ it("displays rows with details for each site", () => {
   const items = siteFactory.buildList(1);
   render(
     <SitesTable
-      data={{ items, total: 1, page: 1, size: 1 }}
+      data={sitesQueryResultFactory.build({ items, total: 1, page: 1, size: 1 })}
       isFetchedAfterMount={true}
       isLoading={false}
       setSearchText={() => {}}
@@ -54,7 +54,7 @@ it("displays correctly paginated results", () => {
   const items = siteFactory.buildList(pageLength);
   render(
     <SitesTable
-      data={{ items, total: 100, page: 1, size: pageLength }}
+      data={sitesQueryResultFactory.build({ items, total: 100, page: 1, size: pageLength })}
       isFetchedAfterMount={true}
       isLoading={false}
       setSearchText={() => {}}
@@ -72,7 +72,7 @@ it("displays correct local time", () => {
   const item = siteFactory.build({ timezone: 1 });
   render(
     <SitesTable
-      data={{ items: [item], total: 1, page: 1, size: 1 }}
+      data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
       isFetchedAfterMount={true}
       isLoading={false}
       setSearchText={() => {}}
@@ -87,7 +87,7 @@ it("displays full name of the country", () => {
   const item = siteFactory.build({ address: { countrycode: "GB" } });
   render(
     <SitesTable
-      data={{ items: [item], total: 1, page: 1, size: 1 }}
+      data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
       isFetchedAfterMount={true}
       isLoading={false}
       setSearchText={() => {}}

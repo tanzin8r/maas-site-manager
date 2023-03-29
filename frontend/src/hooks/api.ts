@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import type { GetSitesQueryParams, GetTokensQueryParams } from "@/api/handlers";
-import { postTokens, getSites, getTokens } from "@/api/handlers";
-import type { SitesQueryResult, PostTokensResult } from "@/api/types";
+import type { GetEnrollmentRequestsQueryParams, GetSitesQueryParams, GetTokensQueryParams } from "@/api/handlers";
+import { getEnrollmentRequests, postTokens, getSites, getTokens } from "@/api/handlers";
+import type { SitesQueryResult, PostTokensResult, EnrollmentRequestsQueryResult } from "@/api/types";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 
@@ -25,3 +25,12 @@ export const useTokensQuery = ({ page, size }: GetTokensQueryParams) =>
   });
 
 export const useTokensMutation = () => useMutation(postTokens);
+
+export type UseEnrollmentRequestsQueryResult = ReturnType<typeof useRequestsQuery>;
+export const useRequestsQuery = ({ page, size }: GetEnrollmentRequestsQueryParams) =>
+  useQuery<EnrollmentRequestsQueryResult>({
+    queryKey: ["requests", page, size],
+    queryFn: () => getEnrollmentRequests({ page, size }),
+    keepPreviousData: true,
+    refetchInterval: defaultRefetchInterval,
+  });
