@@ -53,3 +53,15 @@ export const getTimeByUTCOffset = (date: Date, offset: number) => {
 
 export const formatUTCDateString = (dateString: string) =>
   format(utcToZonedTime(parseISO(dateString), "UTC"), "yyyy-MM-dd HH:mm", { timeZone: "UTC" });
+
+export const copyToClipboard = (text: string, callback?: (text: string) => void) => {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      callback && callback(text);
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error("Error copying", error);
+    });
+};

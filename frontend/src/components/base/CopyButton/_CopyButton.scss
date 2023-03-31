@@ -1,0 +1,32 @@
+.table-cell__copy-button {
+  margin-left: $sph--small;
+  border: none;
+  background-color: $color-light;
+  font-weight: $font-weight-bold;
+  font-size: 0.75rem;
+  border-radius: 0.1875rem;
+  opacity: 0;
+  transition: all 0.2s ease-out;
+
+  &:hover {
+    background-color: $color-mid-x-light;
+    opacity: 1;
+  }
+
+  &.is-copied {
+    color: $color-x-light;
+    background-color: $color-positive;
+
+    &:hover {
+      background-color: $color-positive;
+    }
+  }
+
+  &:focus {
+    opacity: 1;
+  }
+}
+
+button.table-cell__copy-button.is-small {
+  margin-bottom: 0;
+}

@@ -1,0 +1,60 @@
+.tokens-table {
+  thead th:first-child {
+    width: 3rem;
+  }
+
+  @media screen and (min-width: $breakpoint-small) and (max-width: $breakpoint-large) {
+    thead th:last-child {
+      width: 10rem;
+    }
+
+    thead th:nth-child(3) {
+      width: 15rem;
+    }
+  }
+
+  td,
+  th {
+    vertical-align: middle;
+  }
+
+  .token-cell {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    min-width: 15rem;
+
+    &:hover .table-cell__copy-button {
+      opacity: 1;
+    }
+
+    .token-text {
+      max-width: 70%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .empty-table-caption {
+    margin-top: $spv--x-large;
+
+    .empty-table-caption__body {
+      max-width: 50%;
+      margin: 0 auto;
+      text-align: left;
+
+      @media screen and (min-width: $breakpoint-small) and (max-width: $breakpoint-large) {
+        max-width: 70%;
+      }
+
+      @media screen and (max-width: $breakpoint-small) {
+        max-width: none;
+      }
+
+      p {
+        color: $color-mid-dark;
+      }
+    }
+  }
+}

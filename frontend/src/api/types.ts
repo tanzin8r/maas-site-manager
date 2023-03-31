@@ -34,9 +34,7 @@ export type Token = {
   expires: string; //<ISO 8601 date string>,
   created: string; //<ISO 8601 date string>
 };
-export type PostTokensResult = {
-  items: Token[];
-};
+export type PostTokensResult = PaginatedQueryResult<Token>;
 
 export type EnrollmentRequest = {
   id: string;
