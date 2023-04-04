@@ -115,3 +115,11 @@
 .p-side-navigation--tooltip {
   z-index: $side-navigation-z-index + 1;
 }
+
+.l-navigation-bar.is-pinned {
+  width: 100%;
+  display: block;
+  visibility: visible;
+  grid-area: navbar;
+  height: 3.5rem;
+}

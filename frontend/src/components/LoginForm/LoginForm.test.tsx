@@ -1,0 +1,55 @@
+import LoginForm from "./LoginForm";
+
+import { render, screen, userEvent } from "@/test-utils";
+
+describe("LoginForm", () => {
+  it("renders", () => {
+    render(<LoginForm />);
+
+    expect(screen.getByRole("form", { name: "Login" })).toBeInTheDocument();
+  });
+
+  it("displays an error if the username input is left empty", async () => {
+    render(<LoginForm />);
+
+    const usernameInput = screen.getByRole("textbox", { name: "Username" });
+
+    await userEvent.type(usernameInput, "test");
+    await userEvent.clear(usernameInput);
+    await userEvent.click(screen.getByRole("form"));
+
+    expect(screen.getByText(/Please enter a username/)).toBeInTheDocument();
+  });
+
+  it("displays an error if the password input is left empty", async () => {
+    render(<LoginForm />);
+
+    const passwordInput = screen.getByLabelText("Password");
+
+    await userEvent.type(passwordInput, "test");
+    await userEvent.clear(passwordInput);
+    await userEvent.click(screen.getByRole("form"));
+
+    expect(screen.getByText(/Please enter a password/)).toBeInTheDocument();
+  });
+
+  it("disables the 'Login' button if a username and password are not present", async () => {
+    render(<LoginForm />);
+
+    const usernameInput = screen.getByRole("textbox", { name: "Username" });
+    const passwordInput = screen.getByLabelText("Password");
+    const loginButton = screen.getByRole("button", { name: "Login" });
+
+    expect(loginButton).toBeDisabled();
+
+    await userEvent.type(usernameInput, "uname");
+    expect(loginButton).toBeDisabled();
+
+    await userEvent.clear(usernameInput);
+    await userEvent.type(passwordInput, "pword");
+    expect(loginButton).toBeDisabled();
+
+    await userEvent.type(usernameInput, "uname");
+    expect(loginButton).not.toBeDisabled();
+  });
+});
