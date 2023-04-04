@@ -59,7 +59,7 @@ const TokensCreate = () => {
   return (
     <div className="tokens-create">
       <h3 className="tokens-create__heading p-heading--4" id={headingId}>
-        Generate new enrollment tokens
+        Generate new enrolment tokens
       </h3>
       {tokensMutation.isError && (
         <Notification severity="negative">There was an error generating the token(s).</Notification>

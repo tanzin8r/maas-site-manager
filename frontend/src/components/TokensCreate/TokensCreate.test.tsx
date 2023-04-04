@@ -33,7 +33,7 @@ afterAll(() => {
 describe("TokensCreate", () => {
   it("renders the form", async () => {
     renderWithMemoryRouter(<TokensCreate />);
-    expect(screen.getByRole("form", { name: /Generate new enrollment tokens/i })).toBeInTheDocument();
+    expect(screen.getByRole("form", { name: /Generate new enrolment tokens/i })).toBeInTheDocument();
   });
 
   it("if not all required fields have been entered the submit button is disabled", async () => {

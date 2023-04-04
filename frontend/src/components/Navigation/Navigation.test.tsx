@@ -1,6 +1,6 @@
 import { MemoryRouter } from "react-router-dom";
 
-import Navigation from "./Navigation";
+import Navigation, { navItems, navBottomItems } from "./Navigation";
 
 import { render, screen, userEvent } from "@/test-utils";
 
@@ -14,31 +14,22 @@ describe("Navigation", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument();
   });
 
-  it("can highlight an active URL", () => {
-    render(
-      <MemoryRouter initialEntries={[{ pathname: "/sites", key: "testKey" }]}>
-        <Navigation />
-      </MemoryRouter>,
-    );
+  [...navItems, ...navBottomItems].forEach(({ label, url }) => {
+    it(`highlights ${label} navigation item when active`, () => {
+      render(
+        <MemoryRouter initialEntries={[{ pathname: url, key: "testKey" }]}>
+          <Navigation />
+        </MemoryRouter>,
+      );
 
-    const currentMenuItem = screen.getAllByRole("link", { current: "page" })[0];
-    expect(currentMenuItem).toBeInTheDocument();
-    expect(currentMenuItem).toHaveTextContent("Overview");
+      const currentMenuItem = screen.getByRole("link", { current: "page", name: label });
+      expect(currentMenuItem).toBeInTheDocument();
+    });
   });
 
-  it("highlights 'Overview' when active", () => {
-    render(
-      <MemoryRouter initialEntries={[{ pathname: "/sites", key: "testKey" }]}>
-        <Navigation />
-      </MemoryRouter>,
-    );
-
-    const currentMenuItem = screen.getAllByRole("link", { current: "page" })[0];
-    expect(currentMenuItem).toBeInTheDocument();
-    expect(currentMenuItem).toHaveTextContent("Overview");
-  });
-
-  it("highlights 'Settings' when active", () => {
+  // TODO: enable once side navigation secondary panel is implemented
+  // https://warthogs.atlassian.net/browse/MAASENG-1508
+  it.skip("highlights 'Settings' when active", () => {
     const { rerender } = render(
       <MemoryRouter initialEntries={[{ pathname: "/tokens", key: "testKey" }]}>
         <Navigation />
