@@ -11,6 +11,7 @@ type TokensTableControlProps = AppPaginationProps & {
   resetPageCount: () => void;
   dataContext: string;
   setCurrentPage: (page: number) => void;
+  isLoading: boolean;
 };
 
 const PaginationBar = ({
@@ -23,6 +24,7 @@ const PaginationBar = ({
   resetPageCount,
   dataContext,
   setCurrentPage,
+  isLoading,
 }: TokensTableControlProps) => {
   const pageCounts = useMemo(() => [20, 30, 50], []);
   const pageOptions = useMemo(
@@ -58,6 +60,7 @@ const PaginationBar = ({
       <Col medium={3} size={3} small={4}>
         <TablePagination
           currentPage={currentPage}
+          isLoading={isLoading}
           itemsPerPage={itemsPerPage}
           onNextClick={onNextClick}
           onPreviousClick={onPreviousClick}

@@ -50,6 +50,7 @@ const TokensList = () => {
       <PaginationBar
         currentPage={page + 1}
         dataContext="tokens"
+        isLoading={isLoading}
         itemsPerPage={size}
         onNextClick={handleNextClick}
         onPreviousClick={handlePreviousClick}

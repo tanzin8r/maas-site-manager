@@ -8,6 +8,7 @@ it("should render pagination component correctly", () => {
   render(
     <TablePagination
       currentPage={1}
+      isLoading={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -22,6 +23,7 @@ it("should render previous button as disabled on first page", () => {
   render(
     <TablePagination
       currentPage={1}
+      isLoading={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -36,6 +38,7 @@ it("should render next button as disabled on last page", () => {
   render(
     <TablePagination
       currentPage={1}
+      isLoading={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -52,6 +55,7 @@ it("next and previous buttons work as expected", async () => {
   render(
     <TablePagination
       currentPage={2}
+      isLoading={false}
       itemsPerPage={10}
       onNextClick={onNextClick}
       onPreviousClick={onPreviousClick}
@@ -73,6 +77,7 @@ it("should have a numeric input showing the current page", () => {
   render(
     <TablePagination
       currentPage={currentPage}
+      isLoading={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -82,4 +87,22 @@ it("should have a numeric input showing the current page", () => {
   );
 
   expect(screen.getByRole("spinbutton", { name: /current page/i })).toHaveValue(currentPage);
+});
+
+it("disables numeric input and buttons when data is loading", () => {
+  render(
+    <TablePagination
+      currentPage={1}
+      isLoading={true}
+      itemsPerPage={10}
+      onNextClick={() => {}}
+      onPreviousClick={() => {}}
+      setCurrentPage={() => {}}
+      totalItems={1}
+    />,
+  );
+
+  expect(screen.getByRole("spinbutton", { name: /current page/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /previous page/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /next page/i })).toBeDisabled();
 });
