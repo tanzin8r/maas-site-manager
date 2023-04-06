@@ -10,6 +10,27 @@ import pytest
 from ...testing.db import Fixture
 
 
+def duration_format(time: timedelta, time_format: str) -> str:
+    # check if the format matches any pre-defined forms
+    match time_format.lower().split()[0]:
+        case "iso":
+            d, s = time.days, time.seconds
+            isostring = {
+                "P": True,
+                "Y": d // 365,
+                "D": d % 365,
+                "T": s > 0 or d == 0,
+                "H": s // 60 // 60,
+                "M": s // 60 % 60,
+                "S": s % 60 or "0",
+            }
+            return "".join(
+                f"{val}{char}" if val else ""
+                for char, val in isostring.items()
+            ).replace("True", "")
+    return str(int(time.total_seconds()))
+
+
 @pytest.mark.asyncio
 async def test_root(user_app_client: AsyncClient) -> None:
     response = await user_app_client.get("/")
@@ -68,14 +89,20 @@ async def test_list_sites(
 
 
 @pytest.mark.asyncio
-async def test_create_token(user_app_client: AsyncClient) -> None:
+@pytest.mark.parametrize("time_format", ["ISO 8601", "Float"])
+async def test_token_time_format(
+    time_format: str, user_app_client: AsyncClient
+) -> None:
     seconds = 100
+    expiry = timedelta(seconds=seconds)
+    formatted_expiry = duration_format(expiry, time_format)
+
     response = await user_app_client.post(
-        "/tokens", json={"count": 5, "duration": seconds}
+        "/tokens", json={"count": 5, "duration": formatted_expiry}
     )
     assert response.status_code == 200
     result = response.json()
-    assert datetime.fromisoformat(result["expiration"]) < (
+    assert datetime.fromisoformat(result["expired"]) < (
         datetime.utcnow() + timedelta(seconds=seconds)
     )
     assert len(result["tokens"]) == 5
@@ -90,13 +117,15 @@ async def test_list_tokens(
             "id": 1,
             "site_id": None,
             "value": "c54e5ba6-d214-40dd-b601-01ebb1019c07",
-            "expiration": datetime.fromisoformat("2023-02-23T09:09:51.103703"),
+            "expired": datetime.fromisoformat("2023-02-23T09:09:51.103703"),
+            "created": datetime.fromisoformat("2023-02-22T03:14:15.926535"),
         },
         {
             "id": 2,
             "site_id": None,
             "value": "b67c449e-fcf6-4014-887d-909859f9fb70",
-            "expiration": datetime.fromisoformat("2023-02-23T11:28:54.382456"),
+            "expired": datetime.fromisoformat("2023-02-23T11:28:54.382456"),
+            "created": datetime.fromisoformat("2023-02-22T03:14:15.926535"),
         },
     ]
     await fixture.create("tokens", tokens)

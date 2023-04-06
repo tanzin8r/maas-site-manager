@@ -61,6 +61,10 @@ ci-backend-test:
 	env -C backend tox -e test -- --junit-xml=../junit-backend.xml
 .PHONY: ci-test
 
+ci-backend-format:
+	env -C backend tox -e format
+.PHONY: ci-backend-format
+
 
 # Frontend CI targets
 

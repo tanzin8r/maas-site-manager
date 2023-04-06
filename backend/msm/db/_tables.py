@@ -56,7 +56,8 @@ Token = Table(
     Column(
         "value", UUID(as_uuid=True), nullable=False, index=True, default=uuid4
     ),
-    Column("expiration", DateTime, nullable=False),
+    Column("expired", DateTime, nullable=False),
+    Column("created", DateTime, nullable=False),
 )
 
 

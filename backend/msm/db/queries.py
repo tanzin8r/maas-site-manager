@@ -77,7 +77,7 @@ DerivedSchema = TypeVar("DerivedSchema", SiteSchema, TokenSchema)
 
 def extract_count_and_results(
     schema: Type[DerivedSchema],
-    db_results: Sequence[Row[tuple[Any, Any, Any, Any, Any]]],
+    db_results: Sequence[Row[tuple[Any, Any, Any, Any, Any, Any]]],
 ) -> tuple[int, Iterable[DerivedSchema]]:
     """
     Extract the count and result from a paginated query using a window function
@@ -154,7 +154,8 @@ async def get_tokens(
             Token.c.id,
             Token.c.site_id,
             Token.c.value,
-            Token.c.expiration,
+            Token.c.expired,
+            Token.c.created,
         )
         .select_from(Token)
         .offset(offset)
@@ -166,14 +167,16 @@ async def get_tokens(
 async def create_tokens(
     session: AsyncSession, duration: timedelta, count: int = 1
 ) -> tuple[datetime, list[UUID]]:
-    expiration = datetime.utcnow() + duration
+    created = datetime.utcnow()
+    expired = created + duration
     result = await session.execute(
         Token.insert().returning(Token.c.value),
         [
             {
-                "expiration": expiration,
+                "expired": expired,
+                "created": created,
             }
             for _ in range(count)
         ],
     )
-    return expiration, [row[0] for row in result]
+    return expired, [row[0] for row in result]

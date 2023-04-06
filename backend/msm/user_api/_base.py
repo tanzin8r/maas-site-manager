@@ -85,9 +85,9 @@ async def tokens_post(
     Create one or more tokens.
     Token duration (TTL) is expressed in seconds.
     """
-    expiration, tokens = await queries.create_tokens(
+    expired, tokens = await queries.create_tokens(
         session,
         create_request.duration,
         count=create_request.count,
     )
-    return schema.CreateTokensResponse(expiration=expiration, tokens=tokens)
+    return schema.CreateTokensResponse(expired=expired, tokens=tokens)

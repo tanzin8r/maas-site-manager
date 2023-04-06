@@ -112,7 +112,8 @@ class CreateToken(BaseModel):
 
     site_id: int | None
     value: UUID
-    expiration: datetime
+    expired: datetime
+    created: datetime
 
 
 class Token(CreateToken):
@@ -140,5 +141,5 @@ class CreateTokensRequest(BaseModel):
 class CreateTokensResponse(BaseModel):
     """List of created tokens, along with their duration."""
 
-    expiration: datetime
+    expired: datetime
     tokens: list[UUID]

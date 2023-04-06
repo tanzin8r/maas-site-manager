@@ -4,7 +4,7 @@ DELIMITER ','
 QUOTE '"'
 CSV HEADER;
 
-COPY tokens(site_id, value, expiration)
+COPY tokens(site_id, value, expired, created)
 FROM '/tokens.csv'
 DELIMITER ','
 QUOTE '"'
