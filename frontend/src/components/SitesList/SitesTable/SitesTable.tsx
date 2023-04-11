@@ -9,6 +9,7 @@ import ConnectionInfo from "./ConnectionInfo/ConnectionInfo";
 import SitesTableControls from "./SitesTableControls/SitesTableControls";
 
 import type { SitesQueryResult } from "@/api/types";
+import NoRegions from "@/components/NoRegions";
 import { isDev } from "@/constants";
 import { useAppContext } from "@/context";
 import type { UseSitesQueryResult } from "@/hooks/api";
@@ -242,6 +243,8 @@ const SitesTable = ({
         </thead>
         {isLoading && !isFetchedAfterMount ? (
           <caption>Loading...</caption>
+        ) : table.getRowModel().rows.length < 1 ? (
+          <NoRegions />
         ) : (
           <tbody>
             {table.getRowModel().rows.map((row) => {

@@ -3,21 +3,36 @@ import { vi } from "vitest";
 
 import SitesTable from "./SitesTable";
 
-import { siteFactory, sitesQueryResultFactory } from "@/mocks/factories";
-import { render, screen, within } from "@/test-utils";
+import urls from "@/api/urls";
+import { enrollmentRequestFactory, siteFactory, sitesQueryResultFactory } from "@/mocks/factories";
+import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
+import { createMockGetServer } from "@/mocks/server";
+import { render, renderWithMemoryRouter, screen, within } from "@/test-utils";
+
+const enrollmentRequests = enrollmentRequestFactory.buildList(2);
+const mockServer = createMockGetServer(
+  urls.enrollmentRequests,
+  createMockGetEnrollmentRequestsResolver(enrollmentRequests),
+);
 
 beforeEach(() => {
   vi.useFakeTimers();
   timezoneMock.register("Etc/GMT");
+  mockServer.listen();
 });
 
 afterEach(() => {
   timezoneMock.unregister();
   vi.useRealTimers();
+  mockServer.resetHandlers();
+});
+
+afterAll(() => {
+  mockServer.close();
 });
 
 it("displays an empty sites table", () => {
-  render(
+  renderWithMemoryRouter(
     <SitesTable
       data={sitesQueryResultFactory.build()}
       isFetchedAfterMount={true}

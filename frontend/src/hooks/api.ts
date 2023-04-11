@@ -41,6 +41,14 @@ export const useRequestsQuery = ({ page, size }: GetEnrollmentRequestsQueryParam
     refetchInterval: defaultRefetchInterval,
   });
 
+export const useRequestsCountQuery = () =>
+  useQuery<EnrollmentRequestsQueryResult>({
+    queryKey: ["requests", "0", "1"],
+    queryFn: () => getEnrollmentRequests({ page: "0", size: "1" }),
+    keepPreviousData: true,
+    refetchInterval: defaultRefetchInterval,
+  });
+
 export const useEnrollmentRequestsMutation = (
   options: UseMutationOptions<unknown, unknown, PostEnrollmentRequestsData, unknown>,
 ) => useMutation(patchEnrollmentRequests, options);
