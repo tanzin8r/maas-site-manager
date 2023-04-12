@@ -1,17 +1,18 @@
 import type { PropsWithChildren } from "react";
 import { useEffect } from "react";
 
-import { Col, Row, usePrevious } from "@canonical/react-components";
+import { Col, Row, Strip, usePrevious } from "@canonical/react-components";
 import classNames from "classnames";
 import { Outlet, useLocation } from "react-router-dom";
 
+import { routesConfig } from "@/base/routesConfig";
+import type { RoutePath } from "@/base/routesConfig";
 import DocumentTitle from "@/components/DocumentTitle/DocumentTitle";
 import Navigation from "@/components/Navigation";
+import NavigationBanner from "@/components/Navigation/NavigationBanner";
 import RemoveRegions from "@/components/RemoveRegions";
 import { useAppContext } from "@/context";
 import TokensCreate from "@/pages/tokens/create";
-import type { RoutePath } from "@/routes";
-import { routesConfig } from "@/routes";
 
 export const sidebarLabels: Record<"removeRegions" | "createToken", string> = {
   removeRegions: "Remove regions",
@@ -37,6 +38,29 @@ const getPageTitle = (pathname: RoutePath) => {
   return title ? `${title} | MAAS Site Manager` : "MAAS Site Manager";
 };
 
+const LoginLayout: React.FC = () => {
+  return (
+    <div className="l-application">
+      <header className="l-navigation-bar is-pinned">
+        <div className="p-panel is-dark">
+          <div className="p-panel__header">
+            <NavigationBanner />
+          </div>
+        </div>
+      </header>
+      <main className="l-main">
+        <div>
+          <Strip element="section" includeCol={false} shallow>
+            <Col size={12}>
+              <Outlet />
+            </Col>
+          </Strip>
+        </div>
+      </main>
+    </div>
+  );
+};
+
 const MainLayout: React.FC = () => {
   const { sidebar, setSidebar } = useAppContext();
   const { pathname } = useLocation();
@@ -51,7 +75,6 @@ const MainLayout: React.FC = () => {
 
   return (
     <>
-      <DocumentTitle>{getPageTitle(pathname as RoutePath)}</DocumentTitle>
       <div className="l-application">
         <Navigation />
         <main className="l-main is-maas-site-manager">
@@ -74,4 +97,14 @@ const MainLayout: React.FC = () => {
   );
 };
 
-export default MainLayout;
+const Layout = () => {
+  const { pathname } = useLocation();
+  return (
+    <>
+      <DocumentTitle>{getPageTitle(pathname as RoutePath)}</DocumentTitle>
+      {pathname === "/login" ? <LoginLayout /> : <MainLayout />}
+    </>
+  );
+};
+
+export default Layout;

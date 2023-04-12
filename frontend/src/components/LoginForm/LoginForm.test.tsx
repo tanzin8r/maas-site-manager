@@ -1,16 +1,16 @@
 import LoginForm from "./LoginForm";
 
-import { render, screen, userEvent } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent } from "@/test-utils";
 
 describe("LoginForm", () => {
   it("renders", () => {
-    render(<LoginForm />);
+    renderWithMemoryRouter(<LoginForm />);
 
     expect(screen.getByRole("form", { name: "Login" })).toBeInTheDocument();
   });
 
   it("displays an error if the username input is left empty", async () => {
-    render(<LoginForm />);
+    renderWithMemoryRouter(<LoginForm />);
 
     const usernameInput = screen.getByRole("textbox", { name: "Username" });
 
@@ -22,7 +22,7 @@ describe("LoginForm", () => {
   });
 
   it("displays an error if the password input is left empty", async () => {
-    render(<LoginForm />);
+    renderWithMemoryRouter(<LoginForm />);
 
     const passwordInput = screen.getByLabelText("Password");
 
@@ -34,7 +34,7 @@ describe("LoginForm", () => {
   });
 
   it("disables the 'Login' button if a username and password are not present", async () => {
-    render(<LoginForm />);
+    renderWithMemoryRouter(<LoginForm />);
 
     const usernameInput = screen.getByRole("textbox", { name: "Username" });
     const passwordInput = screen.getByLabelText("Password");

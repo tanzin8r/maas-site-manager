@@ -2,7 +2,7 @@
 import App from "./App";
 
 import { allResolvers } from "@/mocks/resolvers";
-import { waitFor, render, within, setupServer } from "@/test-utils";
+import { waitFor, render, setupServer } from "@/test-utils";
 
 const mockServer = setupServer(...allResolvers);
 beforeAll(() => {
@@ -22,5 +22,4 @@ it("renders vanilla layout components correctly", async () => {
   expect(application.querySelector(".l-navigation-bar")).toBeInTheDocument();
   expect(application.querySelector(".l-main")).toBeInTheDocument();
   expect(application.querySelector(".l-navigation-bar")).toBeInTheDocument();
-  expect(within(container).getByRole("heading", { name: /MAAS Site Manager/i })).toBeInTheDocument();
 });

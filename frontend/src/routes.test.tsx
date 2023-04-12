@@ -1,8 +1,9 @@
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import { allResolvers } from "./mocks/resolvers";
-import routes, { routesConfig } from "./routes";
 
+import { routesConfig } from "@/base/routesConfig";
+import routes from "@/routes";
 import { render, waitFor, setupServer } from "@/test-utils";
 
 const mockServer = setupServer(...allResolvers);
@@ -10,6 +11,7 @@ const mockServer = setupServer(...allResolvers);
 describe("router", () => {
   beforeAll(() => {
     mockServer.listen();
+    localStorage.setItem("jwtToken", "test");
   });
   afterEach(() => {
     mockServer.resetHandlers();

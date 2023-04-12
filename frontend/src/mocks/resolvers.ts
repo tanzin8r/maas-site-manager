@@ -1,17 +1,33 @@
 import { rest } from "msw";
 import type { RestRequest, restContext, ResponseResolver } from "msw";
 
-import { siteFactory, tokenFactory, enrollmentRequestFactory } from "./factories";
+import { siteFactory, tokenFactory, enrollmentRequestFactory, accessTokenFactory } from "./factories";
 
 import type { GetSitesQueryParams, PostTokensData } from "@/api/handlers";
 import urls from "@/api/urls";
+import { isDev } from "@/constants";
 
+export const mockResponseDelay = isDev ? 0 : 0;
 export const sitesList = siteFactory.buildList(155);
-export const tokensList = tokenFactory.buildList(100);
+export const tokensList = tokenFactory.buildList(150);
 export const enrollmentRequestsList = [
   enrollmentRequestFactory.build({ created: undefined }),
   ...enrollmentRequestFactory.buildList(100),
 ];
+const accessToken = accessTokenFactory.build();
+
+export const createMockLoginResolver =
+  (): ResponseResolver<RestRequest<any, any>, typeof restContext> => async (req, res, ctx) => {
+    const { username, password } = await req.body;
+    if (username === "admin" && password === "test") {
+      return res(ctx.json(accessToken));
+    }
+    return res(
+      ctx.status(401),
+      ctx.set("WWW-Authenticate", "Bearer"),
+      ctx.json({ detail: "Incorrect username or password" }),
+    );
+  };
 
 type SitesResponseResolver = ResponseResolver<RestRequest<never, GetSitesQueryParams>, typeof restContext>;
 export const createMockSitesResolver =
@@ -91,6 +107,7 @@ export const createMockPostEnrollmentRequestsResolver =
     }
   };
 
+export const postLogin = rest.post(urls.login, createMockLoginResolver());
 export const getSites = rest.get(urls.sites, createMockSitesResolver());
 export const postTokens = rest.post(urls.tokens, createMockTokensResolver());
 export const getTokens = rest.get(urls.tokens, createMockGetTokensResolver());

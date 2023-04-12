@@ -2,7 +2,7 @@ import Chance from "chance";
 import { Factory } from "fishery";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 
-import type { EnrollmentRequest, PaginatedQueryResult, Site, Token } from "@/api/types";
+import type { AccessToken, EnrollmentRequest, PaginatedQueryResult, Site, Token } from "@/api/types";
 
 export const connections: Site["connection"][] = ["stable", "lost", "unknown"];
 
@@ -55,6 +55,14 @@ export const tokenFactory = Factory.define<Token>(({ sequence }) => {
     token: chance.hash({ length: 32 }),
     expires: new Date(chance.date({ year: 2024 })).toISOString(), //<ISO 8601 date string>,
     created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>
+  };
+});
+
+export const accessTokenFactory = Factory.define<AccessToken>(({ sequence }) => {
+  const chance = new Chance(`maas-${sequence}`);
+  return {
+    access_token: chance.hash({ length: 64 }),
+    token_type: "bearer",
   };
 });
 

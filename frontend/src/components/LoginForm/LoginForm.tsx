@@ -1,6 +1,12 @@
-import { Col, Row, Strip, Input, useId, Label, Card, Button } from "@canonical/react-components";
+import { useCallback, useEffect } from "react";
+
+import { Notification, Col, Row, Strip, Input, useId, Label, Card, Button } from "@canonical/react-components";
+import type { FormikHelpers } from "formik";
 import { Field, Form, Formik } from "formik";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import * as Yup from "yup";
+
+import { useAuthContext } from "@/context";
 
 const initialValues = {
   username: "",
@@ -19,56 +25,83 @@ const LoginForm = () => {
   const headingId = `heading-${id}`;
   const usernameId = `username-${id}`;
   const passwordId = `password=${id}`;
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { login, isError, failureReason, status } = useAuthContext();
+  const handleRedirect = useCallback(() => {
+    // send user back to the page they tried to visit
+    // { replace: true } avoids going back to login page once authenticated
+    navigate(searchParams.get("redirectTo") ?? "/sites", { replace: true });
+  }, [searchParams, navigate]);
 
-  const handleSubmit = (values: LoginFormValues) => {
-    // 1. send values to backend
-    // 2. if error, return error and display
-    // 3. if all good, set cookie and navigate to /sites
+  const handleSubmit = async (
+    { username, password }: LoginFormValues,
+    { setSubmitting }: FormikHelpers<LoginFormValues>,
+  ) => {
+    await login({ username, password });
+    setSubmitting(false);
   };
 
+  useEffect(() => {
+    if (status === "authenticated") {
+      handleRedirect();
+    }
+  }, [handleRedirect, status]);
+
   return (
-    <Strip>
-      <Row>
-        <Col emptyLarge={4} size={6}>
-          <Card>
-            <h1 className="p-card__title p-heading--3" id={headingId}>
-              Login
-            </h1>
-            <Formik<LoginFormValues>
-              initialValues={initialValues}
-              onSubmit={handleSubmit}
-              validationSchema={LoginFormSchema}
-            >
-              {({ isSubmitting, errors, touched, isValid, dirty }) => (
-                <Form aria-labelledby={headingId}>
-                  <Label htmlFor={usernameId}>Username</Label>
-                  <Field
-                    as={Input}
-                    error={touched.username && errors.username}
-                    id={usernameId}
-                    name="username"
-                    required
-                    type="text"
-                  />
-                  <Label htmlFor={passwordId}>Password</Label>
-                  <Field
-                    as={Input}
-                    error={touched.password && errors.password}
-                    id={passwordId}
-                    name="password"
-                    required
-                    type="password"
-                  />
-                  <Button appearance="positive" disabled={!dirty || !isValid || isSubmitting} type="submit">
-                    Login
-                  </Button>
-                </Form>
-              )}
-            </Formik>
-          </Card>
-        </Col>
-      </Row>
-    </Strip>
+    <>
+      <Strip>
+        {isError ? (
+          <Row>
+            <Col emptyLarge={4} size={6}>
+              <Notification role="alert" severity="negative">
+                {failureReason?.response?.data?.detail ?? "An unknown error occurred."}
+              </Notification>
+            </Col>
+          </Row>
+        ) : null}
+        <Row>
+          <Col emptyLarge={4} size={6}>
+            <Card>
+              <h1 className="p-card__title p-heading--3" id={headingId}>
+                Login
+              </h1>
+              <Formik<LoginFormValues>
+                initialValues={initialValues}
+                onSubmit={handleSubmit}
+                validationSchema={LoginFormSchema}
+              >
+                {({ isSubmitting, errors, touched, isValid, dirty }) => (
+                  <Form aria-labelledby={headingId}>
+                    <Label htmlFor={usernameId}>Username</Label>
+                    <Field
+                      as={Input}
+                      error={touched.username && errors.username}
+                      id={usernameId}
+                      name="username"
+                      required
+                      type="text"
+                    />
+                    <Label htmlFor={passwordId}>Password</Label>
+                    <Field
+                      as={Input}
+                      error={touched.password && errors.password}
+                      id={passwordId}
+                      name="password"
+                      required
+                      type="password"
+                    />
+                    <Button appearance="positive" disabled={!dirty || !isValid || isSubmitting} type="submit">
+                      Login
+                    </Button>
+                  </Form>
+                )}
+              </Formik>
+            </Card>
+          </Col>
+        </Row>
+      </Strip>
+    </>
   );
 };
 

@@ -3,6 +3,32 @@ import urls from "./urls";
 
 import { customParamSerializer } from "@/utils";
 
+export type PostLoginData = {
+  username: string;
+  password: string;
+};
+
+export const postLogin = async (data: PostLoginData) => {
+  if (!data?.username || !data?.password) {
+    throw Error("Missing required fields");
+  }
+  try {
+    const formData = new FormData();
+    formData.append("username", data.username);
+    formData.append("password", data.password);
+
+    const response = await api.post(urls.login, formData, { headers: { "Content-Type": "multipart/form-data" } });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export type PostRegisterData = {
+  username: string;
+  password: string;
+};
+
 export type PaginationParams = {
   page: string;
   size: string;

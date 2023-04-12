@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { adminAuthFile } from "./constants";
+
+test.use({ storageState: adminAuthFile });
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/requests");

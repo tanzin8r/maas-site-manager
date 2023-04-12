@@ -1,3 +1,8 @@
+export type AccessToken = {
+  access_token: string;
+  token_type: "bearer";
+};
+
 export type Site = {
   identifier: string;
   name: string;

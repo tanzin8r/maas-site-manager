@@ -5,8 +5,8 @@ import useLocalStorageState from "use-local-storage-state";
 
 import NavigationBanner from "./NavigationBanner";
 import NavigationCollapseToggle from "./NavigationCollapseToggle";
-import NavigationItems from "./NavigationItems";
-import type { NavLink } from "./types";
+import NavigationList from "./NavigationList";
+import type { NavGroup, NavLink } from "./types";
 
 export const navItems: NavLink[] = [
   {
@@ -21,14 +21,15 @@ export const navBottomItems: NavLink[] = [
   { label: "Requests", url: "/requests" },
 ];
 
-const navItemsBottom = [
+const navItemsBottom: NavGroup[] = [
   {
     groupTitle: "Enrolment",
     groupIcon: "settings",
     navLinks: navBottomItems,
-    highlight: ["/tokens", "/users", "/requests"],
   },
 ];
+
+const navItemsAccount = [{ label: "Log out", url: "/logout" }];
 
 const Navigation = (): JSX.Element => {
   const [isCollapsed, setIsCollapsed] = useLocalStorageState<boolean>("appSideNavIsCollapsed", { defaultValue: true });
@@ -69,12 +70,9 @@ const Navigation = (): JSX.Element => {
               </NavigationBanner>
             </div>
             <div className="p-panel__content">
-              <div className="p-side-navigation--icons is-dark">
-                <NavigationItems items={navItems} path={path} />
-              </div>
-              <div className="p-side-navigation--icons is-dark">
-                <NavigationItems items={navItemsBottom} path={path} />
-              </div>
+              <NavigationList hasIcons isDark items={navItems} path={path} />
+              <NavigationList hasIcons isDark items={navItemsBottom} path={path} />
+              <NavigationList hasIcons isDark items={navItemsAccount} path={path} />
             </div>
           </div>
         </div>

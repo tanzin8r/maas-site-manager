@@ -1,14 +1,23 @@
-import type { UseMutationOptions } from "@tanstack/react-query";
+import type { UseMutationOptions, UseMutationResult } from "@tanstack/react-query";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 
 import type {
   GetEnrollmentRequestsQueryParams,
   GetSitesQueryParams,
   GetTokensQueryParams,
   PostEnrollmentRequestsData,
+  PostLoginData,
 } from "@/api/handlers";
-import { patchEnrollmentRequests, getEnrollmentRequests, postTokens, getSites, getTokens } from "@/api/handlers";
-import type { SitesQueryResult, PostTokensResult, EnrollmentRequestsQueryResult } from "@/api/types";
+import {
+  postLogin,
+  patchEnrollmentRequests,
+  getEnrollmentRequests,
+  postTokens,
+  getSites,
+  getTokens,
+} from "@/api/handlers";
+import type { SitesQueryResult, PostTokensResult, EnrollmentRequestsQueryResult, AccessToken } from "@/api/types";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 
@@ -52,3 +61,6 @@ export const useRequestsCountQuery = () =>
 export const useEnrollmentRequestsMutation = (
   options: UseMutationOptions<unknown, unknown, PostEnrollmentRequestsData, unknown>,
 ) => useMutation(patchEnrollmentRequests, options);
+
+export type LoginError = AxiosError<{ detail?: string }>;
+export const useLoginMutation = (): UseMutationResult<AccessToken, LoginError, PostLoginData> => useMutation(postLogin);

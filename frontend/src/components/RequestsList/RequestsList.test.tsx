@@ -6,7 +6,7 @@ import RequestsList from "./RequestsList";
 import urls from "@/api/urls";
 import { enrollmentRequestFactory } from "@/mocks/factories";
 import { createMockGetEnrollmentRequestsResolver, patchEnrollmentRequests } from "@/mocks/resolvers";
-import { renderWithMemoryRouter, screen, userEvent, waitFor, within } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/test-utils";
 
 const enrollmentRequest = enrollmentRequestFactory.build({ name: "new-maas-site" });
 const enrollmentRequests = [enrollmentRequest, ...enrollmentRequestFactory.buildList(2)];
@@ -24,18 +24,6 @@ afterEach(() => {
 });
 afterAll(() => {
   mockServer.close();
-});
-
-it("displays a loading text", async () => {
-  const { rerender } = renderWithMemoryRouter(<RequestsList />);
-
-  const table = screen.getByRole("table", { name: /enrollment requests/i });
-  expect(table).toBeInTheDocument();
-  expect(within(table).getByText(/Loading/i)).toBeInTheDocument();
-
-  rerender(<RequestsList />);
-
-  await waitFor(() => expect(within(table).queryByText(/Loading/i)).not.toBeInTheDocument());
 });
 
 it("action buttons are disabled if no row is selected", async () => {

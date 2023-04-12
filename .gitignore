@@ -35,6 +35,7 @@ logs
 /frontend/test-results/
 /frontend/playwright-report/
 /frontend/playwright/.cache/
+/frontend/tests/.auth/*
 
 # Python
 *.py[cod]

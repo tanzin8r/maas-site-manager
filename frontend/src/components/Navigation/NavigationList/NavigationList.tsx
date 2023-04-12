@@ -3,11 +3,13 @@ import { useId, useMemo } from "react";
 import { Icon } from "@canonical/react-components";
 import classNames from "classnames";
 
-import NavigationItem from "../NavigationItem/NavigationItem";
-import type { NavGroup, NavItem } from "../types";
-import { isNavGroup, isSelected } from "../utils";
+import NavigationItem from "@/components/Navigation/NavigationItem/NavigationItem";
+import type { NavGroup, NavItem } from "@/components/Navigation/types";
+import { isNavGroup, isSelected } from "@/components/Navigation/utils";
 
 type Props = {
+  isDark?: boolean;
+  hasIcons?: boolean;
   items: NavItem[];
   logout?: () => void;
   path: string;
@@ -49,18 +51,18 @@ const NavigationItemGroup = ({ group, path }: { group: NavGroup } & Pick<Props, 
   );
 };
 
-const NavigationItems = ({ items, logout, path }: Props): JSX.Element => {
+const NavigationList = ({ items, logout, path, isDark, hasIcons }: Props): JSX.Element => {
   return (
-    <>
+    <div className={classNames({ "is-dark": isDark, "p-side-navigation--icons": hasIcons })}>
       <ul className="p-side-navigation__list">
         {items.map((item, i) => {
           if (isNavGroup(item)) {
             return <NavigationItemGroup group={item} key={`${i}-${item.groupTitle}`} path={path} />;
-          } else return <NavigationItem key={i} navLink={item} path={path} />;
+          } else return <NavigationItem key={`${i}-${item.label}`} navLink={item} path={path} />;
         })}
       </ul>
-    </>
+    </div>
   );
 };
 
-export default NavigationItems;
+export default NavigationList;

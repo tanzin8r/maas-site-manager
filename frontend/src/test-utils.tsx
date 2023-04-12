@@ -7,7 +7,9 @@ import { screen, render } from "@testing-library/react";
 import type { MemoryRouterProps } from "react-router-dom";
 import { MemoryRouter } from "react-router-dom";
 
-import { AppContextProvider } from "./context";
+import { AppContextProvider, AuthContextProvider } from "./context";
+
+import apiClient from "@/api";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +30,9 @@ const makeProvidersWithMemoryRouter =
     return (
       <Providers>
         <MemoryRouter {...memoryRouterProps}>
-          <AppContextProvider>{children}</AppContextProvider>
+          <AppContextProvider>
+            <AuthContextProvider apiClient={apiClient}>{children}</AuthContextProvider>
+          </AppContextProvider>
         </MemoryRouter>
       </Providers>
     );
