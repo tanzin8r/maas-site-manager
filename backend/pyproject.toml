@@ -53,7 +53,7 @@ max-line-length = 79
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = [
-  "msm/"
+  "tests/"
 ]
 junit_logging = "all"
 junit_suite_name = "maas-site-manager backend tests"

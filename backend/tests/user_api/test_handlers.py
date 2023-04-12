@@ -7,7 +7,7 @@ from datetime import (
 from httpx import AsyncClient
 import pytest
 
-from ...testing.db import Fixture
+from ..fixtures.db import Fixture
 
 
 def duration_format(time: timedelta, time_format: str) -> str:

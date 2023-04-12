@@ -1,8 +1,8 @@
-from .testing.app import (
+from .fixtures.app import (
     user_app,
     user_app_client,
 )
-from .testing.db import (
+from .fixtures.db import (
     db,
     db_setup,
     fixture,

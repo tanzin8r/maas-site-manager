@@ -9,7 +9,7 @@ from pytest_postgresql.executor import PostgreSQLExecutor
 from pytest_postgresql.janitor import DatabaseJanitor
 from sqlalchemy import create_engine
 
-from ..db import (
+from msm.db import (
     Database,
     METADATA,
 )

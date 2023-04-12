@@ -7,8 +7,8 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 import pytest
 
-from ..db import Database
-from ..user_api import create_app
+from msm.db import Database
+from msm.user_api import create_app
 
 
 @pytest.fixture
