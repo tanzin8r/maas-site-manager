@@ -61,7 +61,7 @@ async def test_list_sites(
     site2["timezone"] = "1.00"
     site2["city"] = "Berlin"
     site2["country"] = "de"
-    await fixture.create("sites", [site1, site2])
+    await fixture.create("site", [site1, site2])
     page1 = await user_app_client.get("/sites")
     assert page1.status_code == 200
     assert page1.json() == {
@@ -128,7 +128,7 @@ async def test_list_tokens(
             "created": datetime.fromisoformat("2023-02-22T03:14:15.926535"),
         },
     ]
-    await fixture.create("tokens", tokens)
+    await fixture.create("token", tokens)
     response = await user_app_client.get("/tokens")
     assert response.status_code == 200
     assert response.json()["total"] == 2

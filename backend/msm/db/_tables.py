@@ -17,9 +17,9 @@ from sqlalchemy.types import DateTime
 METADATA = MetaData()
 
 Site = Table(
-    "sites",
+    "site",
     METADATA,
-    Column("id", Integer, primary_key=True, index=True),
+    Column("id", Integer, primary_key=True),
     Column("city", String(250)),
     # ISO 3166 Alpha2
     Column("country", String(2)),
@@ -37,9 +37,9 @@ Site = Table(
 
 
 User = Table(
-    "users",
+    "user",
     METADATA,
-    Column("id", Integer, primary_key=True, index=True),
+    Column("id", Integer, primary_key=True),
     Column("email", String(250), unique=True, index=True),
     Column("full_name", String(250)),
     # this is the hashed password
@@ -49,10 +49,10 @@ User = Table(
 
 
 Token = Table(
-    "tokens",
+    "token",
     METADATA,
-    Column("id", Integer, primary_key=True, index=True),
-    Column("site_id", Integer, ForeignKey("sites.id"), index=True),
+    Column("id", Integer, primary_key=True),
+    Column("site_id", Integer, ForeignKey("site.id"), index=True),
     Column(
         "value", UUID(as_uuid=True), nullable=False, index=True, default=uuid4
     ),
@@ -64,9 +64,9 @@ Token = Table(
 SiteData = Table(
     "site_data",
     METADATA,
-    Column("id", Integer, primary_key=True, index=True),
+    Column("id", Integer, primary_key=True),
     Column(
-        "site_id", Integer, ForeignKey("sites.id"), index=True, nullable=False
+        "site_id", Integer, ForeignKey("site.id"), unique=True, nullable=False
     ),
     Column("allocated_machines", Integer),
     Column("deployed_machines", Integer),

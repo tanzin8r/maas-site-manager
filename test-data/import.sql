@@ -1,16 +1,16 @@
-COPY sites(id, city, country, latitude, longitude, name, note, region, street, timezone, url)
+COPY site(id, city, country, latitude, longitude, name, note, region, street, timezone, url)
 FROM '/sites.csv'
 DELIMITER ','
 QUOTE '"'
 CSV HEADER;
 
-COPY tokens(site_id, value, expired, created)
+COPY token(site_id, value, expired, created)
 FROM '/tokens.csv'
 DELIMITER ','
 QUOTE '"'
 CSV HEADER;
 
-COPY users(email, full_name, disabled, password)
+COPY "user"(email, full_name, disabled, password)
 FROM '/users.csv'
 DELIMITER ','
 QUOTE '"'
