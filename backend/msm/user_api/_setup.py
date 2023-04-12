@@ -1,4 +1,6 @@
+from contextlib import asynccontextmanager
 from os import environ
+from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,13 +27,18 @@ origins = [
 
 
 def create_app(db_dsn: str = DEFAULT_DB_DSN) -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+        await db.connect()
+        yield
+        await db.disconnect()
+
     db = Database(db_dsn)
     app = FastAPI(
         title="MAAS Site Manager",
         name=PACKAGE.project_name,
         version=PACKAGE.version,
-        on_startup=[db.connect],
-        on_shutdown=[db.disconnect],
+        lifespan=lifespan,
     )
     app.add_middleware(
         CORSMiddleware,
