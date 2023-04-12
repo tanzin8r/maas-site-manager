@@ -19,5 +19,4 @@ COPY . /app/
 # Expose port
 EXPOSE 8000
 
-#ENTRYPOINT ["tail", "-f", "/dev/null"]  # to keep it running for debugging
-ENTRYPOINT ["python", "-m", "tox", "-e", "run", "run"]
+ENTRYPOINT ["python", "-m", "tox", "run", "-e", "run"]

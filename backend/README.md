@@ -57,12 +57,12 @@ In development, the application can be run using the `uvicorn` ASGI server.
 
 It requires a PostgreSQL database set up to connect to.  One (more persistent)
 option is to set up the required user and database in the system-wide
-PostgreSQL instance (installed via `make install-dependencies`).
+PostgreSQL instance (installed via `make install-dependencies).
 
 Make sure to set the following environment variables when starting the app:
 
 ```
-export POSTGRES_HOST="hostname"
+export POSTGRES_HOST="locahost"  # change if PostgreSQL is running elsewhere
 export POSTGRES_PORT=5432
 export POSTGRES_DB="postgres"  # default for postgres docker image
 export POSTGRES_USER="postgres"  # default for postgres docker image
