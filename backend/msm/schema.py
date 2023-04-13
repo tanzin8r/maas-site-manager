@@ -61,20 +61,9 @@ class CreateSite(BaseModel):
     # TODO: we will need to add tags
 
 
-class Site(CreateSite):
-    """
-    Site persisted to the database
-    """
+class SiteData(BaseModel):
+    """Data for a site"""
 
-    id: int
-
-
-class CreateSiteData(BaseModel):
-    """
-    All SiteData is obligatory
-    """
-
-    site_id: int
     allocated_machines: int
     deployed_machines: int
     ready_machines: int
@@ -82,12 +71,19 @@ class CreateSiteData(BaseModel):
     last_seen: datetime
 
 
-class SiteData(CreateSiteData):
+class Site(CreateSite):
     """
-    SiteData persisted to the database
+    Site persisted to the database
     """
 
     id: int
+    stats: SiteData | None
+
+
+class CreateSiteData(SiteData):
+    """Site data"""
+
+    site_id: int
 
 
 class PaginatedSites(PaginatedResults):

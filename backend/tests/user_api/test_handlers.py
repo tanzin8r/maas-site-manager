@@ -2,6 +2,7 @@ from datetime import (
     datetime,
     timedelta,
 )
+from typing import Any
 
 # from fastapi.testclient import TestClient
 from httpx import AsyncClient
@@ -51,6 +52,7 @@ async def test_list_sites(
         "longitude": "-0.118092",
         "note": "the first site",
         "region": "Blue Fin Bldg",
+        "stats": None,
         "street": "110 Southwark St",
         "timezone": "0.00",
         "url": "https://londoncalling.example.com",
@@ -85,6 +87,51 @@ async def test_list_sites(
         "size": 1,
         "total": 2,
         "items": [site2],
+    }
+
+
+@pytest.mark.asyncio
+async def test_list_sites_with_stats(
+    user_app_client: AsyncClient, fixture: Fixture
+) -> None:
+    site: dict[str, Any] = {
+        "name": "LondonHQ",
+        "city": "London",
+        "country": "gb",
+        "latitude": "51.509865",
+        "longitude": "-0.118092",
+        "note": "the first site",
+        "region": "Blue Fin Bldg",
+        "street": "110 Southwark St",
+        "timezone": "0.00",
+        "url": "https://londoncalling.example.com",
+    }
+    await fixture.create("site", [site])
+    last_seen = datetime.utcnow()
+    site_data = {
+        "site_id": 1,
+        "allocated_machines": 10,
+        "deployed_machines": 20,
+        "ready_machines": 30,
+        "error_machines": 40,
+        "last_seen": last_seen,
+    }
+    await fixture.create("site_data", [site_data])
+    del site_data["site_id"]
+    site_data["last_seen"] = last_seen.isoformat()
+    site.update(
+        {
+            "id": 1,
+            "stats": site_data,
+        }
+    )
+    page = await user_app_client.get("/sites")
+    assert page.status_code == 200
+    assert page.json() == {
+        "page": 1,
+        "size": 20,
+        "total": 1,
+        "items": [site],
     }
 
 

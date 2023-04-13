@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections.abc import Iterable
 from datetime import (
     datetime,
@@ -9,13 +7,14 @@ from typing import (
     Any,
     Sequence,
     Type,
-    TYPE_CHECKING,
     TypeVar,
 )
 from uuid import UUID
 
 from sqlalchemy import (
+    case,
     func,
+    Operators,
     Row,
     select,
     Table,
@@ -29,11 +28,9 @@ from ..schema import (
 )
 from ._tables import (
     Site,
+    SiteData,
     Token,
 )
-
-if TYPE_CHECKING:
-    from sqlalchemy import Operators
 
 
 def filters_from_arguments(
@@ -131,8 +128,28 @@ async def get_filtered_sites(
             Site.c.street,
             Site.c.timezone,
             Site.c.url,
+            case(
+                (
+                    SiteData.c.site_id != None,  # noqa: E711
+                    func.json_build_object(
+                        "allocated_machines",
+                        SiteData.c.allocated_machines,
+                        "deployed_machines",
+                        SiteData.c.deployed_machines,
+                        "ready_machines",
+                        SiteData.c.ready_machines,
+                        "error_machines",
+                        SiteData.c.error_machines,
+                        "last_seen",
+                        SiteData.c.last_seen,
+                    ),
+                ),
+                else_=None,
+            ).label("stats"),
         )
-        .select_from(Site)
+        .select_from(
+            Site.join(SiteData, SiteData.c.site_id == Site.c.id, isouter=True)
+        )
         .limit(limit)
         .offset(offset)
     )
