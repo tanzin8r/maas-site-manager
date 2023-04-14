@@ -2,7 +2,12 @@
 #
 # This script imports the testdata from this directory into the postgres database
 #
-envfile="../.env.dev"
+
+POSTGRES_HOST="${POSTGRERS_HOST:-localhost}"
+POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+POSTGRES_DB="${POSTGRES_DB:-postgres}"  # default for postgres docker image
+POSTGRES_USER="${POSTGRES_USER:-postgres}"  # default for postgres docker image
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-msm}"  # default for postgres docker image
 
 basedir="$(dirname "$0")"
 
@@ -26,14 +31,6 @@ if ! command -v psql > /dev/null; then
 The psql command was not found. It is need it to import the data. Try:
   apt-get install postgresql-client
 EOF
-    exit 1
-fi
-
-if [ -e "$envfile" ]; then
-    # shellcheck disable=SC1090
-    . "$envfile"
-else 
-    echo "Cannot source dev environment. Make sure ${envfile} exists." >&2
     exit 1
 fi
 
