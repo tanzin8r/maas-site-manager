@@ -2,9 +2,7 @@ from datetime import (
     datetime,
     timedelta,
 )
-from typing import Any
 
-# from fastapi.testclient import TestClient
 from httpx import AsyncClient
 import pytest
 
@@ -44,7 +42,6 @@ async def test_list_sites(
     user_app_client: AsyncClient, fixture: Fixture
 ) -> None:
     site1 = {
-        "id": 1,
         "name": "LondonHQ",
         "city": "London",
         "country": "gb",
@@ -52,25 +49,26 @@ async def test_list_sites(
         "longitude": "-0.118092",
         "note": "the first site",
         "region": "Blue Fin Bldg",
-        "stats": None,
         "street": "110 Southwark St",
         "timezone": "0.00",
         "url": "https://londoncalling.example.com",
     }
     site2 = site1.copy()
-    site2["id"] = 2
     site2["name"] = "BerlinHQ"
     site2["timezone"] = "1.00"
     site2["city"] = "Berlin"
     site2["country"] = "de"
-    await fixture.create("site", [site1, site2])
+    sites = await fixture.create("site", [site1, site2])
+    for site in sites:
+        site["timezone"] = str(site["timezone"])
+        site["stats"] = None
     page1 = await user_app_client.get("/sites")
     assert page1.status_code == 200
     assert page1.json() == {
         "page": 1,
         "size": 20,
         "total": 2,
-        "items": [site1, site2],
+        "items": sites,
     }
     filtered = await user_app_client.get("/sites?city=onDo")  # vs London
     assert filtered.status_code == 200
@@ -78,7 +76,7 @@ async def test_list_sites(
         "page": 1,
         "size": 20,
         "total": 1,
-        "items": [site1],
+        "items": [sites[0]],
     }
     paginated = await user_app_client.get("/sites?page=2&size=1")
     assert paginated.status_code == 200
@@ -86,7 +84,7 @@ async def test_list_sites(
         "page": 2,
         "size": 1,
         "total": 2,
-        "items": [site2],
+        "items": [sites[1]],
     }
 
 
@@ -94,37 +92,42 @@ async def test_list_sites(
 async def test_list_sites_with_stats(
     user_app_client: AsyncClient, fixture: Fixture
 ) -> None:
-    site: dict[str, Any] = {
-        "name": "LondonHQ",
-        "city": "London",
-        "country": "gb",
-        "latitude": "51.509865",
-        "longitude": "-0.118092",
-        "note": "the first site",
-        "region": "Blue Fin Bldg",
-        "street": "110 Southwark St",
-        "timezone": "0.00",
-        "url": "https://londoncalling.example.com",
-    }
-    await fixture.create("site", [site])
-    last_seen = datetime.utcnow()
-    site_data = {
-        "site_id": 1,
-        "allocated_machines": 10,
-        "deployed_machines": 20,
-        "ready_machines": 30,
-        "error_machines": 40,
-        "last_seen": last_seen,
-    }
-    await fixture.create("site_data", [site_data])
-    del site_data["site_id"]
-    site_data["last_seen"] = last_seen.isoformat()
-    site.update(
-        {
-            "id": 1,
-            "stats": site_data,
-        }
+    [site] = await fixture.create(
+        "site",
+        [
+            {
+                "name": "LondonHQ",
+                "city": "London",
+                "country": "gb",
+                "latitude": "51.509865",
+                "longitude": "-0.118092",
+                "note": "the first site",
+                "region": "Blue Fin Bldg",
+                "street": "110 Southwark St",
+                "timezone": "0.00",
+                "url": "https://londoncalling.example.com",
+            }
+        ],
     )
+    [site_data] = await fixture.create(
+        "site_data",
+        [
+            {
+                "site_id": site["id"],
+                "allocated_machines": 10,
+                "deployed_machines": 20,
+                "ready_machines": 30,
+                "error_machines": 40,
+                "last_seen": datetime.utcnow(),
+            }
+        ],
+    )
+    del site_data["id"]
+    del site_data["site_id"]
+    site_data["last_seen"] = site_data["last_seen"].isoformat()
+    site["timezone"] = str(site["timezone"])
+    site["stats"] = site_data
+
     page = await user_app_client.get("/sites")
     assert page.status_code == 200
     assert page.json() == {
@@ -159,24 +162,36 @@ async def test_token_time_format(
 async def test_list_tokens(
     user_app_client: AsyncClient, fixture: Fixture
 ) -> None:
-    tokens = [
-        {
-            "id": 1,
-            "site_id": None,
-            "value": "c54e5ba6-d214-40dd-b601-01ebb1019c07",
-            "expired": datetime.fromisoformat("2023-02-23T09:09:51.103703"),
-            "created": datetime.fromisoformat("2023-02-22T03:14:15.926535"),
-        },
-        {
-            "id": 2,
-            "site_id": None,
-            "value": "b67c449e-fcf6-4014-887d-909859f9fb70",
-            "expired": datetime.fromisoformat("2023-02-23T11:28:54.382456"),
-            "created": datetime.fromisoformat("2023-02-22T03:14:15.926535"),
-        },
-    ]
-    await fixture.create("token", tokens)
+    tokens = await fixture.create(
+        "token",
+        [
+            {
+                "site_id": None,
+                "value": "c54e5ba6-d214-40dd-b601-01ebb1019c07",
+                "expired": datetime.fromisoformat(
+                    "2023-02-23T09:09:51.103703"
+                ),
+                "created": datetime.fromisoformat(
+                    "2023-02-22T03:14:15.926535"
+                ),
+            },
+            {
+                "site_id": None,
+                "value": "b67c449e-fcf6-4014-887d-909859f9fb70",
+                "expired": datetime.fromisoformat(
+                    "2023-02-23T11:28:54.382456"
+                ),
+                "created": datetime.fromisoformat(
+                    "2023-02-22T03:14:15.926535"
+                ),
+            },
+        ],
+    )
+    for token in tokens:
+        token["expired"] = token["expired"].isoformat()
+        token["created"] = token["created"].isoformat()
+        token["value"] = str(token["value"])
     response = await user_app_client.get("/tokens")
     assert response.status_code == 200
     assert response.json()["total"] == 2
-    assert len(response.json()["items"]) == 2
+    assert response.json()["items"] == tokens
