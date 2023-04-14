@@ -50,7 +50,7 @@ class CreateSite(BaseModel):
 
     name: str
     city: str | None
-    country: str | None
+    country: str | None = Field(min_length=2, max_length=2)
     latitude: str | None
     longitude: str | None
     note: str | None

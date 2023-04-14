@@ -7,7 +7,6 @@ from sqlalchemy import (
     Integer,
     MetaData,
     Numeric,
-    String,
     Table,
     Text,
 )
@@ -20,18 +19,17 @@ Site = Table(
     "site",
     METADATA,
     Column("id", Integer, primary_key=True),
-    Column("city", String(250)),
-    # ISO 3166 Alpha2
-    Column("country", String(2)),
-    Column("latitude", String(20)),
-    Column("longitude", String(20)),
-    Column("name", String(250), unique=True),
-    Column("note", Text()),
-    Column("region", String(250)),
-    Column("street", String(250)),
+    Column("city", Text),
+    Column("country", Text),  # ISO 3166 Alpha2
+    Column("latitude", Text),
+    Column("longitude", Text),
+    Column("name", Text, unique=True),
+    Column("note", Text),
+    Column("region", Text),
+    Column("street", Text),
     # Timezones need be up to x.25 accuracy
     Column("timezone", Numeric(precision=3, scale=2)),
-    Column("url", String(2048)),
+    Column("url", Text),
 )
 
 
@@ -39,10 +37,9 @@ User = Table(
     "user",
     METADATA,
     Column("id", Integer, primary_key=True),
-    Column("email", String(250), unique=True, index=True),
-    Column("full_name", String(250)),
-    # this is the hashed password
-    Column("password", String(100)),
+    Column("email", Text, unique=True, index=True),
+    Column("full_name", Text),
+    Column("password", Text),  # this is the hashed password
     Column("disabled", Boolean),
 )
 
