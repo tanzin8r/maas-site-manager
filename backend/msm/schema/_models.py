@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from datetime import (
     datetime,
     timedelta,
@@ -12,19 +11,7 @@ from pydantic import (
 )
 from pydantic.fields import Field
 
-from msm import MAX_PAGE_SIZE
-
-
-class PaginatedResults(BaseModel):
-    """
-    Base class to wrap objects in a pagination.
-    Derived classes should overwrite the items property
-    """
-
-    total: int = Field(min=0)
-    page: int = Field(min=0)
-    size: int = Field(min=0, max=MAX_PAGE_SIZE)
-    items: Sequence[BaseModel]
+from ._pagination import PaginatedResults
 
 
 class CreateUser(BaseModel):

@@ -3,19 +3,21 @@ from datetime import (
     datetime,
     timedelta,
 )
+from functools import reduce
+from operator import or_
 from uuid import UUID
 
 from sqlalchemy import (
     case,
+    ColumnOperators,
     func,
-    Operators,
     select,
     Table,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import MAX_PAGE_SIZE
 from ..schema import (
+    MAX_PAGE_SIZE,
     Site as SiteSchema,
     Token as TokenSchema,
 )
@@ -28,10 +30,9 @@ from ._tables import (
 
 def filters_from_arguments(
     table: Table,
-    **kwargs: list[str] | None,
-) -> Iterable[Operators]:
-    """
-    Yields clauses to join with AND and all entries for a single arg by OR.
+    **filter_args: list[str] | None,
+) -> list[ColumnOperators]:
+    """Return clauses to join with AND and all entries for a single arg by OR.
     This enables to convert query params such as
 
       ?name=name1&name=name2&city=city
@@ -41,52 +42,48 @@ def filters_from_arguments(
       (name ilike %name1% OR name ilike %name2%) AND city ilike %city%
 
     :param table: the table to create the WHERE clause for
-    :param kwargs: the parameters matching the table's column name
-                   as keys and lists of strings that will be matched
-                   via ilike
-    :returns: a generator yielding where clause that joins all queries
-              per column with OR and all columns with AND
+    :param filter_args: the parameters matching the table's column name
+                        as keys and lists of strings that will be matched
+                        via ilike
+    :returns: a list with clauses to filter table values, which are meant to be
+              used in AND. Clauses for each column are joined with OR.
     """
-    for dimension, needles in kwargs.items():
-        column = table.c[dimension]
-
-        match needles:
-            case [needle]:
-                # If there's only one we don't need any ORs
-                yield column.icontains(needle, autoescape=True)
-            case [needle, *other_needles]:
-                # More than one thing to match against, join them with OR
-                clause = column.icontains(needle, autoescape=True) | False
-                for needle in other_needles:
-                    clause |= column.icontains(needle, autoescape=True)
-                yield clause
+    return [
+        reduce(
+            or_,
+            (
+                table.c[name].icontains(value, autoescape=True)
+                for value in values
+            ),
+        )
+        for name, values in filter_args.items()
+        if values
+    ]
 
 
 async def get_filtered_sites(
     session: AsyncSession,
     offset: int = 0,
     limit: int = MAX_PAGE_SIZE,
-    city: list[str] | None = [],
-    country: list[str] | None = [],
-    name: list[str] | None = [],
-    note: list[str] | None = [],
-    region: list[str] | None = [],
-    street: list[str] | None = [],
-    timezone: list[str] | None = [],
-    url: list[str] | None = [],
+    city: list[str] | None = None,
+    country: list[str] | None = None,
+    name: list[str] | None = None,
+    note: list[str] | None = None,
+    region: list[str] | None = None,
+    street: list[str] | None = None,
+    timezone: list[str] | None = None,
+    url: list[str] | None = None,
 ) -> tuple[int, Iterable[SiteSchema]]:
-    filters = list(
-        filters_from_arguments(
-            Site,
-            city=city,
-            country=country,
-            name=name,
-            note=note,
-            region=region,
-            street=street,
-            timezone=timezone,
-            url=url,
-        )
+    filters = filters_from_arguments(
+        Site,
+        city=city,
+        country=country,
+        name=name,
+        note=note,
+        region=region,
+        street=street,
+        timezone=timezone,
+        url=url,
     )
     count = (
         await session.execute(

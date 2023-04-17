@@ -1,86 +1,70 @@
-from fastapi import (
-    Depends,
-    Query,
-)
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import (
-    __version__,
-    DEFAULT_PAGE_SIZE,
-    MAX_PAGE_SIZE,
-    schema,
-)
+from .. import __version__
 from ..db import (
     db_session,
     queries,
 )
-
-
-async def pagination_parameters(
-    page: int = Query(default=1, gte=1),
-    size: int = Query(default=DEFAULT_PAGE_SIZE, lte=MAX_PAGE_SIZE, gte=1),
-) -> dict[str, int]:
-    """Make parameters for pagination accessible as a dict"""
-    return {"page": page, "size": size, "offset": (page - 1) * size}
+from ..schema import (
+    CreateTokensRequest,
+    CreateTokensResponse,
+    PaginatedSites,
+    PaginatedTokens,
+    pagination_params,
+    PaginationParams,
+)
+from ._forms import (
+    site_filter_parameters,
+    SiteFilterParams,
+)
 
 
 async def root() -> dict[str, str]:
+    """Root endpoint."""
     return {"version": __version__}
 
 
 async def sites(
-    city: list[str] | None = Query(default=None, title="Filter for cities"),
-    name: list[str] | None = Query(default=None, title="Filter for names"),
-    note: list[str] | None = Query(default=None, title="Filter for notes"),
-    region: list[str] | None = Query(default=None, title="Filter for regions"),
-    street: list[str] | None = Query(default=None, title="Filter for streets"),
-    timezone: list[str]
-    | None = Query(default=None, title="Filter for timezones"),
-    url: list[str] | None = Query(default=None, title="Filter for urls"),
     session: AsyncSession = Depends(db_session),
-    pagination_params: dict[str, int] = Depends(pagination_parameters),
-) -> schema.PaginatedSites:
-    """Return all sites"""
+    pagination_params: PaginationParams = Depends(pagination_params),
+    filter_params: SiteFilterParams = Depends(site_filter_parameters),
+) -> PaginatedSites:
+    """Return all sites."""
     total, results = await queries.get_filtered_sites(
         session,
-        pagination_params["offset"],
-        pagination_params["size"],
-        city,
-        name,
-        note,
-        region,
-        street,
-        timezone,
-        url,
+        offset=pagination_params.offset,
+        limit=pagination_params.size,
+        **filter_params._asdict(),
     )
-    return schema.PaginatedSites(
+    return PaginatedSites(
         total=total,
-        page=pagination_params["page"],
-        size=pagination_params["size"],
+        page=pagination_params.page,
+        size=pagination_params.size,
         items=list(results),
     )
 
 
 async def tokens(
     session: AsyncSession = Depends(db_session),
-    pagination_params: dict[str, int] = Depends(pagination_parameters),
-) -> schema.PaginatedTokens:
+    pagination_params: PaginationParams = Depends(pagination_params),
+) -> PaginatedTokens:
     """Return all tokens"""
     total, results = await queries.get_tokens(
-        session, pagination_params["offset"], pagination_params["size"]
+        session, pagination_params.offset, pagination_params.size
     )
-    return schema.PaginatedTokens(
+    return PaginatedTokens(
         total=total,
-        page=pagination_params["page"],
-        size=pagination_params["size"],
+        page=pagination_params.page,
+        size=pagination_params.size,
         items=list(results),
     )
 
 
 async def tokens_post(
-    create_request: schema.CreateTokensRequest,
+    create_request: CreateTokensRequest,
     session: AsyncSession = Depends(db_session),
-) -> schema.CreateTokensResponse:
+) -> CreateTokensResponse:
     """
     Create one or more tokens.
     Token duration (TTL) is expressed in seconds.
@@ -90,4 +74,4 @@ async def tokens_post(
         create_request.duration,
         count=create_request.count,
     )
-    return schema.CreateTokensResponse(expired=expired, tokens=tokens)
+    return CreateTokensResponse(expired=expired, tokens=tokens)
