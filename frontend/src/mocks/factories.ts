@@ -52,7 +52,7 @@ export const tokenFactory = Factory.define<Token>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
   return {
     name: `${sequence}`,
-    token: chance.hash({ length: 32 }),
+    token: chance.hash({ length: 64 }),
     expires: new Date(chance.date({ year: 2024 })).toISOString(), //<ISO 8601 date string>,
     created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>
   };

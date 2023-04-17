@@ -3,13 +3,31 @@
     width: 3rem;
   }
 
+  thead th:last-child {
+    width: 15rem;
+  }
+
+  thead th:nth-child(3) {
+    width: 15rem;
+  }
+
   @media screen and (min-width: $breakpoint-small) and (max-width: $breakpoint-large) {
     thead th:last-child {
       width: 10rem;
     }
 
     thead th:nth-child(3) {
-      width: 15rem;
+      width: 10rem;
+    }
+  }
+
+  @media screen and (max-width: $breakpoint-small) {
+    thead th:last-child {
+      width: auto;
+    }
+
+    thead th:nth-child(3) {
+      width: auto;
     }
   }
 
@@ -22,14 +40,13 @@
     width: 100%;
     display: flex;
     align-items: center;
-    min-width: 15rem;
 
     &:hover .table-cell__copy-button {
       opacity: 1;
     }
 
     .token-text {
-      max-width: 70%;
+      max-width: 80%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

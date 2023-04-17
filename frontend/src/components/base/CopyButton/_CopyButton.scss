@@ -3,7 +3,7 @@
   border: none;
   background-color: $color-light;
   font-weight: $font-weight-bold;
-  font-size: 0.75rem;
+  font-size: 0.75rem !important;
   border-radius: 0.1875rem;
   opacity: 0;
   transition: all 0.2s ease-out;
