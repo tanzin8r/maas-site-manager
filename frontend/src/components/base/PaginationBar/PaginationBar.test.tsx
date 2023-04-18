@@ -7,13 +7,12 @@ it("should render the PaginationBar component correctly", () => {
     <PaginationBar
       currentPage={1}
       dataContext="tokens"
+      handlePageSizeChange={() => {}}
       isLoading={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
-      resetPageCount={() => {}}
       setCurrentPage={() => {}}
-      setPageSize={() => {}}
       totalItems={50}
     />,
   );

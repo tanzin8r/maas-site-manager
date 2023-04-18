@@ -1,4 +1,10 @@
 .table-pagination {
+  position: relative;
+
+  @media screen and (max-width: $breakpoint-small) {
+    margin-bottom: $spv--large;
+  }
+
   ul {
     display: flex;
     gap: $sph--small;
@@ -45,7 +51,10 @@
     }
 
     .p-form-validation__message {
-      display: none;
+      position: absolute;
+      left: 0.625rem;
+      margin-top: 0;
+      white-space: nowrap;
     }
   }
 }

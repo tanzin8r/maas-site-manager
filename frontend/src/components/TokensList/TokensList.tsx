@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Button, Col, Row } from "@canonical/react-components";
 
@@ -8,26 +8,23 @@ import TokensTable from "./components/TokensTable/TokensTable";
 
 import { useAppContext } from "@/context";
 import { useTokensQuery } from "@/hooks/api";
-import useDebouncedValue from "@/hooks/useDebouncedValue";
+import usePagination from "@/hooks/usePagination";
 
 const DEFAULT_PAGE_SIZE = 50;
 
 const TokensList = () => {
   const { setSidebar } = useAppContext();
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(DEFAULT_PAGE_SIZE);
-  const debouncedPageNumber = useDebouncedValue(page);
+  const [totalDataCount, setTotalDataCount] = useState(0);
+  const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
+    usePagination(DEFAULT_PAGE_SIZE, totalDataCount);
 
-  const { data, isLoading, isFetchedAfterMount } = useTokensQuery({ page: `${debouncedPageNumber}`, size: `${size}` });
+  const { data, isLoading, isFetchedAfterMount } = useTokensQuery({ page: `${debouncedPage}`, size: `${size}` });
 
-  const handleNextClick = () => {
-    const maxPage = data?.total ? data?.total / size : 1;
-    setPage((prev) => (prev >= maxPage ? maxPage : prev + 1));
-  };
-
-  const handlePreviousClick = () => {
-    setPage((prev) => (prev === 0 ? 0 : prev - 1));
-  };
+  useEffect(() => {
+    if (data && "total" in data) {
+      setTotalDataCount(data.total);
+    }
+  }, [data]);
 
   return (
     <section>
@@ -50,13 +47,12 @@ const TokensList = () => {
       <PaginationBar
         currentPage={page + 1}
         dataContext="tokens"
+        handlePageSizeChange={handlePageSizeChange}
         isLoading={isLoading}
         itemsPerPage={size}
         onNextClick={handleNextClick}
         onPreviousClick={handlePreviousClick}
-        resetPageCount={() => setPage(0)}
         setCurrentPage={setPage}
-        setPageSize={setSize}
         totalItems={data?.total || 0}
       />
       <TokensTable data={data} isFetchedAfterMount={isFetchedAfterMount} isLoading={isLoading} />

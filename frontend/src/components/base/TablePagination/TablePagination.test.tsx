@@ -104,3 +104,42 @@ it("disables numeric input and buttons when data is loading", () => {
   expect(screen.getByRole("button", { name: /previous page/i })).toBeDisabled();
   expect(screen.getByRole("button", { name: /next page/i })).toBeDisabled();
 });
+
+it("displays an error message when input out of range", async () => {
+  render(
+    <TablePagination
+      currentPage={1}
+      isLoading={false}
+      itemsPerPage={10}
+      onNextClick={() => {}}
+      onPreviousClick={() => {}}
+      setCurrentPage={() => {}}
+      totalItems={1}
+    />,
+  );
+  const numInput = screen.getByRole("spinbutton", { name: /current page/i });
+  await userEvent.clear(numInput);
+  expect(screen.getByText(/Enter a page number./i)).toBeInTheDocument();
+  await userEvent.type(numInput, "42");
+  expect(screen.getByText(/42 is not a valid page/i)).toBeInTheDocument();
+});
+
+it("returns input to original page value on blur when invalid value is inputted", async () => {
+  const currentPage = 1;
+  render(
+    <TablePagination
+      currentPage={currentPage}
+      isLoading={false}
+      itemsPerPage={10}
+      onNextClick={() => {}}
+      onPreviousClick={() => {}}
+      setCurrentPage={() => {}}
+      totalItems={1}
+    />,
+  );
+  const numInput = screen.getByRole("spinbutton", { name: /current page/i });
+  await userEvent.clear(numInput);
+  await userEvent.type(numInput, "42");
+  await userEvent.click(document.body);
+  expect(numInput).toHaveValue(currentPage);
+});

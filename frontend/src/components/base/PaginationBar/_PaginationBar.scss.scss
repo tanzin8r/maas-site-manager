@@ -3,6 +3,12 @@
   border-bottom: 1px solid $color-mid-light;
   align-items: center;
   padding: $spv--small 0;
+  margin-bottom: $spv--large;
+  padding-bottom: $spv--large;
+
+  @media screen and (max-width: $breakpoint-small) {
+    padding-bottom: $spv--small;
+  }
 
   .pagination-bar__description {
     margin: 0;

@@ -7,8 +7,7 @@ import type { AppPaginationProps } from "@/components/base/TablePagination/Table
 import TablePagination from "@/components/base/TablePagination/TablePagination";
 
 type TokensTableControlProps = AppPaginationProps & {
-  setPageSize: (size: number) => void;
-  resetPageCount: () => void;
+  handlePageSizeChange: (size: number) => void;
   dataContext: string;
   setCurrentPage: (page: number) => void;
   isLoading: boolean;
@@ -20,8 +19,7 @@ const PaginationBar = ({
   totalItems,
   onNextClick,
   onPreviousClick,
-  setPageSize,
-  resetPageCount,
+  handlePageSizeChange,
   dataContext,
   setCurrentPage,
   isLoading,
@@ -33,9 +31,8 @@ const PaginationBar = ({
   );
 
   const handleSizeChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    resetPageCount();
     const { value } = e.target;
-    setPageSize(Number(value));
+    handlePageSizeChange(Number(value));
   };
 
   const getDisplayedDataCount = () => {
@@ -52,7 +49,7 @@ const PaginationBar = ({
 
   return (
     <Row className="pagination-bar">
-      <Col medium={3} size={7} small={4}>
+      <Col medium={6} size={7} small={4}>
         <p className="pagination-bar__description">
           Showing {getDisplayedDataCount()} out of {totalItems} {dataContext}
         </p>
@@ -68,7 +65,7 @@ const PaginationBar = ({
           totalItems={totalItems}
         />
       </Col>
-      <Col medium={6} size={2} small={4}>
+      <Col medium={3} size={2} small={4}>
         <Select
           aria-label="Tokens per page"
           name="Tokens per page"

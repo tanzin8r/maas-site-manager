@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { Button, Icon, Input } from "@canonical/react-components";
 
@@ -22,14 +22,39 @@ const TablePagination = ({
   setCurrentPage,
   isLoading,
 }: AppPaginationProps) => {
+  const [pageNumber, setPageNumber] = useState<number | undefined>(currentPage);
+  const [error, setError] = useState("");
   const totalPages = useMemo(() => Math.ceil(totalItems / itemsPerPage), [itemsPerPage, totalItems]);
 
-  const isInputError = currentPage <= 0 || currentPage > totalPages;
-
   const handlePageInput = (e: ChangeEvent<HTMLInputElement>) => {
-    const { valueAsNumber } = e.target;
-    // TODO: Handle NaN values
-    setCurrentPage(valueAsNumber - 1);
+    const { value, valueAsNumber } = e.target;
+    if (value) {
+      setPageNumber(valueAsNumber);
+      if (valueAsNumber > totalPages || valueAsNumber < 1) {
+        setError(`${valueAsNumber} is not a valid page`);
+      } else {
+        setError("");
+        setCurrentPage(valueAsNumber - 1);
+      }
+    } else {
+      setPageNumber(undefined);
+      setError("Enter a page number.");
+    }
+  };
+
+  const handleInputBlur = () => {
+    setPageNumber(currentPage);
+    setError("");
+  };
+
+  const handleNextClick = () => {
+    onNextClick();
+    setPageNumber((prev) => (prev ? prev + 1 : undefined));
+  };
+
+  const handlePreviousClick = () => {
+    onPreviousClick();
+    setPageNumber((prev) => (prev ? prev - 1 : undefined));
   };
 
   return (
@@ -41,7 +66,7 @@ const TablePagination = ({
             aria-label="previous page"
             disabled={currentPage === 1 || isLoading}
             hasIcon
-            onClick={onPreviousClick}
+            onClick={handlePreviousClick}
           >
             <Icon className="u__left-rotate" name="chevron-down" />
           </Button>
@@ -51,11 +76,12 @@ const TablePagination = ({
           aria-label="current page"
           className="current-page"
           disabled={isLoading}
-          error={isInputError ? "The entered value is out of range" : undefined}
+          error={error}
           min={1}
+          onBlur={handleInputBlur}
           onChange={handlePageInput}
           type="number"
-          value={currentPage}
+          value={pageNumber}
         />
         <span>of</span>
         <span>{totalPages}</span>
@@ -65,7 +91,7 @@ const TablePagination = ({
             aria-label="next page"
             disabled={currentPage === totalPages || isLoading}
             hasIcon
-            onClick={onNextClick}
+            onClick={handleNextClick}
           >
             <Icon className="u__right-rotate" name="chevron-up" />
           </Button>
