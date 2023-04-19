@@ -89,4 +89,17 @@ describe("Navigation", () => {
 
     expect(primaryNavigation).toHaveClass("is-pinned");
   });
+
+  it("removes focus from the current element after clicking the link", async () => {
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/", key: "testKey" }]}>
+        <Navigation />
+      </MemoryRouter>,
+    );
+    const navigationLinks = screen.getAllByRole("link");
+    for (const link of navigationLinks) {
+      await userEvent.click(link);
+      expect(link).not.toHaveFocus();
+    }
+  });
 });

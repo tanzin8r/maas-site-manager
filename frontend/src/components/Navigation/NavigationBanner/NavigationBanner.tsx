@@ -11,6 +11,11 @@ const NavigationBanner = ({ children }: { children?: React.ReactNode }): JSX.Ele
         aria-current={isSelected(location.pathname, homepageLink)}
         aria-label={homepageLink.label}
         className="p-panel__logo"
+        onClick={(event) => {
+          // removing the focus from the link element after click
+          // this allows the side navigation to collapse on mouseleave
+          event.currentTarget.blur();
+        }}
         to={homepageLink.url}
       >
         <div className="p-navigation__tagged-logo">
