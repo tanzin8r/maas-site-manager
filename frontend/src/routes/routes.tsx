@@ -3,6 +3,7 @@ import { createRoutesFromElements, Route, redirect } from "react-router-dom";
 import RequireLogin from "./RequireLogin";
 
 import MainLayout from "@/components/MainLayout";
+import NotFound from "@/pages/404";
 import Login from "@/pages/login";
 import Logout from "@/pages/logout";
 import Requests from "@/pages/requests";
@@ -11,6 +12,14 @@ import Tokens from "@/pages/tokens/tokens";
 
 export const routes = createRoutesFromElements(
   <Route element={<MainLayout />} path="/">
+    <Route
+      element={
+        <RequireLogin>
+          <NotFound />
+        </RequireLogin>
+      }
+      path="*"
+    />
     <Route index loader={() => redirect("sites")} />
     <Route element={<Logout />} path="logout" />
     <Route element={<Login />} path="login" />
