@@ -89,6 +89,40 @@ async def test_list_sites(
 
 
 @pytest.mark.asyncio
+async def test_list_sites_filter_timezone(
+    user_app_client: AsyncClient, fixture: Fixture
+) -> None:
+    site1 = {
+        "name": "LondonHQ",
+        "city": "London",
+        "country": "gb",
+        "latitude": "51.509865",
+        "longitude": "-0.118092",
+        "note": "the first site",
+        "region": "Blue Fin Bldg",
+        "street": "110 Southwark St",
+        "timezone": "3.00",
+        "url": "https://londoncalling.example.com",
+    }
+    site2 = site1.copy()
+    site2["name"] = "BerlinHQ"
+    site2["timezone"] = "1.00"
+    site2["city"] = "Berlin"
+    site2["country"] = "de"
+    [created_site, _] = await fixture.create("site", [site1, site2])
+    created_site["timezone"] = str(created_site["timezone"])
+    created_site["stats"] = None
+    page1 = await user_app_client.get("/sites?timezone=3.0")
+    assert page1.status_code == 200
+    assert page1.json() == {
+        "page": 1,
+        "size": 20,
+        "total": 1,
+        "items": [created_site],
+    }
+
+
+@pytest.mark.asyncio
 async def test_list_sites_with_stats(
     user_app_client: AsyncClient, fixture: Fixture
 ) -> None:

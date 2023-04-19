@@ -12,7 +12,7 @@ class SiteFilterParams(NamedTuple):
     note: list[str] | None
     region: list[str] | None
     street: list[str] | None
-    timezone: list[str] | None
+    timezone: list[float] | None
     url: list[str] | None
 
 
@@ -24,7 +24,7 @@ async def site_filter_parameters(
     note: list[str] | None = Query(default=None, title="Filter for notes"),
     region: list[str] | None = Query(default=None, title="Filter for regions"),
     street: list[str] | None = Query(default=None, title="Filter for streets"),
-    timezone: list[str]
+    timezone: list[float]
     | None = Query(default=None, title="Filter for timezones"),
     url: list[str] | None = Query(default=None, title="Filter for urls"),
 ) -> SiteFilterParams:

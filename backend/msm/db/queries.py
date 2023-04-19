@@ -5,6 +5,7 @@ from datetime import (
 )
 from functools import reduce
 from operator import or_
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
@@ -12,7 +13,9 @@ from sqlalchemy import (
     ColumnOperators,
     func,
     select,
+    String,
     Table,
+    Text,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,7 +33,7 @@ from ._tables import (
 
 def filters_from_arguments(
     table: Table,
-    **filter_args: list[str] | None,
+    **filter_args: list[Any] | None,
 ) -> list[ColumnOperators]:
     """Return clauses to join with AND and all entries for a single arg by OR.
     This enables to convert query params such as
@@ -44,17 +47,25 @@ def filters_from_arguments(
     :param table: the table to create the WHERE clause for
     :param filter_args: the parameters matching the table's column name
                         as keys and lists of strings that will be matched
-                        via ilike
     :returns: a list with clauses to filter table values, which are meant to be
               used in AND. Clauses for each column are joined with OR.
+
+    Matching is performed using `ilike` for text-based fields, exact match
+    otherwise.
+
     """
+
+    def compare_expr(name: str, value: Any) -> ColumnOperators:
+        column = table.c[name]
+        if isinstance(column.type, (Text, String)):
+            return column.icontains(value, autoescape=True)
+        else:
+            return column.__eq__(value)
+
     return [
         reduce(
             or_,
-            (
-                table.c[name].icontains(value, autoescape=True)
-                for value in values
-            ),
+            (compare_expr(name, value) for value in values),
         )
         for name, values in filter_args.items()
         if values
@@ -71,7 +82,7 @@ async def get_filtered_sites(
     note: list[str] | None = None,
     region: list[str] | None = None,
     street: list[str] | None = None,
-    timezone: list[str] | None = None,
+    timezone: list[float] | None = None,
     url: list[str] | None = None,
 ) -> tuple[int, Iterable[SiteSchema]]:
     filters = filters_from_arguments(
