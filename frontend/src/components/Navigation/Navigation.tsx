@@ -6,7 +6,7 @@ import useLocalStorageState from "use-local-storage-state";
 import NavigationBanner from "./NavigationBanner";
 import NavigationCollapseToggle from "./NavigationCollapseToggle";
 import NavigationList from "./NavigationList";
-import type { NavGroup, NavLink } from "./types";
+import type { NavLink } from "./types";
 
 export const navItems: NavLink[] = [
   {
@@ -16,16 +16,11 @@ export const navItems: NavLink[] = [
   },
 ];
 
-export const navBottomItems: NavLink[] = [
-  { label: "Tokens", url: "/tokens" },
-  { label: "Requests", url: "/requests" },
-];
-
-const navItemsBottom: NavGroup[] = [
+export const navItemsBottom: NavLink[] = [
   {
-    groupTitle: "Enrolment",
-    groupIcon: "settings",
-    navLinks: navBottomItems,
+    label: "Settings",
+    url: "/settings",
+    icon: "settings",
   },
 ];
 

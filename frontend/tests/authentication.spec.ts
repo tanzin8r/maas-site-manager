@@ -12,12 +12,12 @@ test.afterEach(async ({ page }) => {
   await page.getByRole("link", { name: "Log out" }).click();
 });
 
-Object.keys(protectedRoutes).forEach((url) => {
-  test(`user is redirected to login page when attempting to visit ${url}`, async ({ page }) => {
-    await page.goto(url);
-    await expect(page).toHaveURL(`${routesConfig.login.path}?redirectTo=${encodeURIComponent("/" + url)}`);
+Object.values(protectedRoutes).forEach(({ path }) => {
+  test(`user is redirected to login page when attempting to visit ${path}`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page).toHaveURL(`${routesConfig.login.path}?redirectTo=${encodeURIComponent(path)}`);
     await login({ page });
-    await expect(page).toHaveURL(url);
+    await expect(page).toHaveURL(path);
   });
 });
 

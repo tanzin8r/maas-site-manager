@@ -1,6 +1,6 @@
 @use "sass:math";
 
-@import "@/settings.scss";
+@import "@/settings";
 @import "vanilla-framework";
 @include vf-base;
 
@@ -54,12 +54,13 @@
 // components styles
 @import "@/components/MainLayout/MainLayout";
 @import "@/components/Navigation/Navigation";
+@import "@/components/SecondaryNavigation/SecondaryNavigation";
 @import "@/components/TokensCreate/TokensCreate";
 @import "@/components/SitesList/SitesTable/SitesTableControls/SitesTableControls";
 @import "@/components/SitesList/SitesTable/SitesTableControls/ColumnsVisibilityControl/ColumnsVisibilityControl";
 @import "@/components/SitesList/SitesTable/SitesTable";
 @import "@/components/Placeholder/Placeholder";
-@import "@/components/TokensList/components/TokensTable/TokensTable.scss";
-@import "@/components/base/CopyButton/CopyButton.scss";
-@import "@/components/base/TablePagination/TablePagination.scss";
-@import "@/components/base/PaginationBar/PaginationBar.scss";
+@import "@/components/TokensList/components/TokensTable/TokensTable";
+@import "@/components/base/CopyButton/CopyButton";
+@import "@/components/base/TablePagination/TablePagination";
+@import "@/components/base/PaginationBar/PaginationBar";

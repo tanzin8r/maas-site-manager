@@ -1,6 +1,6 @@
 import { MemoryRouter } from "react-router-dom";
 
-import Navigation, { navItems, navBottomItems } from "./Navigation";
+import Navigation, { navItems, navItemsBottom } from "./Navigation";
 
 import { render, screen, userEvent } from "@/test-utils";
 
@@ -14,7 +14,7 @@ describe("Navigation", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument();
   });
 
-  [...navItems, ...navBottomItems].forEach(({ label, url }) => {
+  [...navItems, ...navItemsBottom].forEach(({ label, url }) => {
     it(`highlights ${label} navigation item when active`, () => {
       render(
         <MemoryRouter initialEntries={[{ pathname: url, key: "testKey" }]}>

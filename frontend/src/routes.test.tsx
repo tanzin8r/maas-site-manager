@@ -4,7 +4,7 @@ import { allResolvers } from "./mocks/resolvers";
 
 import { routesConfig } from "@/base/routesConfig";
 import routes from "@/routes";
-import { render, waitFor, setupServer } from "@/test-utils";
+import { render, screen, waitFor, setupServer } from "@/test-utils";
 
 const mockServer = setupServer(...allResolvers);
 
@@ -18,6 +18,7 @@ describe("router", () => {
   });
   afterAll(() => {
     mockServer.close();
+    localStorage.removeItem("jwtToken");
   });
 
   it("redirects to the default route", async () => {
@@ -33,6 +34,11 @@ describe("router", () => {
       const router = createMemoryRouter(routes, { initialEntries: [path], initialIndex: 0 });
       render(<RouterProvider router={router} />);
       expect(document.title).toBe(`${title} | MAAS Site Manager`);
+    });
+    it(`displays correct heading for ${title} page`, async () => {
+      const router = createMemoryRouter(routes, { initialEntries: [path], initialIndex: 0 });
+      render(<RouterProvider router={router} />);
+      expect(screen.getByRole("heading", { level: 1, name: `${title} | MAAS Site Manager` })).toBeInTheDocument();
     });
   });
 });

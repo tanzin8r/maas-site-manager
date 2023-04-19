@@ -1,7 +1,23 @@
 .l-main.is-maas-site-manager {
-  margin-top: $sph--large;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  @media (min-width: $breakpoint-small) {
+    flex-direction: row;
+  }
+  .l-main__nav {
+    flex-shrink: 0;
+
+    @media (min-width: $breakpoint-small) {
+      height: 100vh;
+    }
+
+
+  }
+  .l-main__content {
+    overflow-y: auto;
+  }
 }
 .l-aside.is-maas-site-manager {
   background: $color-x-light;
-  padding-top: $sph--large;
 }

@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 
 import { Button, Col, Row } from "@canonical/react-components";
 
-import PaginationBar from "../base/PaginationBar";
-
 import TokensTable from "./components/TokensTable/TokensTable";
 
+import PaginationBar from "@/components/base/PaginationBar";
 import { useAppContext } from "@/context";
 import { useTokensQuery } from "@/hooks/api";
 import usePagination from "@/hooks/usePagination";
@@ -28,11 +27,6 @@ const TokensList = () => {
 
   return (
     <section>
-      <Row>
-        <Col size={2}>
-          <h2 className="p-heading--4">Tokens</h2>
-        </Col>
-      </Row>
       <Row>
         <Col size={12}>
           <div className="u-flex u-flex--justify-end">

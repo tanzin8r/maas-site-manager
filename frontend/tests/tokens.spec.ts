@@ -1,11 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 import { adminAuthFile } from "./constants";
+import { routesConfig } from "@/base/routesConfig";
 
 test.use({ storageState: adminAuthFile });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/tokens");
+  await page.goto(routesConfig.tokens.path);
 });
 
 test("can open and close token generate form", async ({ page }) => {

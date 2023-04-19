@@ -4,11 +4,11 @@ export const protectedRoutes = {
     title: "Regions",
   },
   requests: {
-    path: "/requests",
+    path: "/settings/requests",
     title: "Requests",
   },
   tokens: {
-    path: "/tokens",
+    path: "/settings/tokens",
     title: "Tokens",
   },
 };

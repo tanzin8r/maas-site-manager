@@ -1,11 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 import { adminAuthFile } from "./constants";
+import { routesConfig } from "@/base/routesConfig";
 
 test.use({ storageState: adminAuthFile });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/sites");
+  await page.goto(routesConfig.sites.path);
 });
 
 test("can hide table columns", async ({ page }) => {

@@ -3,6 +3,8 @@
   &:hover,
   &:focus-within,
   &.is-pinned {
+      grid-area: nav;
+      position: static;
     .l-navigation__controls {
       opacity: 1;
       visibility: visible;

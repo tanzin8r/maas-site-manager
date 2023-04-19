@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { adminAuthFile } from "./constants";
 
+import { routesConfig } from "@/base/routesConfig";
+
 test.use({ storageState: adminAuthFile });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/requests");
+  await page.goto(routesConfig.requests.path);
 });
 
 test("goes to the regions page if the user clicks on the regions link", async ({ page }) => {
