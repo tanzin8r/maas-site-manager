@@ -8,10 +8,10 @@ import type { NavGroup, NavItem } from "@/components/Navigation/types";
 import { isNavGroup, isSelected } from "@/components/Navigation/utils";
 
 type Props = {
+  hideDivider?: boolean;
   isDark?: boolean;
   hasIcons?: boolean;
   items: NavItem[];
-  logout?: () => void;
   path: string;
 };
 
@@ -51,10 +51,10 @@ const NavigationItemGroup = ({ group, path }: { group: NavGroup } & Pick<Props, 
   );
 };
 
-const NavigationList = ({ items, logout, path, isDark, hasIcons }: Props): JSX.Element => {
+const NavigationList = ({ hideDivider = false, items, path, isDark, hasIcons }: Props): JSX.Element => {
   return (
     <div className={classNames({ "is-dark": isDark, "p-side-navigation--icons": hasIcons })}>
-      <ul className="p-side-navigation__list">
+      <ul className={classNames("p-side-navigation__list", { "no-divider": hideDivider })}>
         {items.map((item, i) => {
           if (isNavGroup(item)) {
             return <NavigationItemGroup group={item} key={`${i}-${item.groupTitle}`} path={path} />;

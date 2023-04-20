@@ -1,8 +1,8 @@
 import { MemoryRouter } from "react-router-dom";
 
-import Navigation, { navItems, navItemsBottom } from "./Navigation";
+import Navigation, { navItems, settingsNavItems } from "./Navigation";
 
-import { render, screen, userEvent } from "@/test-utils";
+import { render, renderWithMemoryRouter, screen, userEvent } from "@/test-utils";
 
 describe("Navigation", () => {
   it("displays navigation", () => {
@@ -14,7 +14,7 @@ describe("Navigation", () => {
     expect(screen.getByRole("navigation")).toBeInTheDocument();
   });
 
-  [...navItems, ...navItemsBottom].forEach(({ label, url }) => {
+  [...navItems, ...settingsNavItems].forEach(({ label, url }) => {
     it(`highlights ${label} navigation item when active`, () => {
       render(
         <MemoryRouter initialEntries={[{ pathname: url, key: "testKey" }]}>
@@ -88,6 +88,25 @@ describe("Navigation", () => {
     );
 
     expect(primaryNavigation).toHaveClass("is-pinned");
+  });
+
+  it("links to the documentation at the bottom of the nav", () => {
+    renderWithMemoryRouter(<Navigation />);
+
+    expect(screen.getByRole("link", { name: "Documentation" })).toHaveAttribute("href", "https://maas.io/docs");
+  });
+
+  it("links to MAAS discourse at the bottom of the nav", () => {
+    renderWithMemoryRouter(<Navigation />);
+
+    expect(screen.getByRole("link", { name: "Community" })).toHaveAttribute("href", "https://discourse.maas.io/");
+  });
+
+  it.skip("links to the bug report page at the bottom of the nav", () => {
+    // TODO: Enable this test once a bug report link is available https://warthogs.atlassian.net/browse/MAASENG-1588
+    renderWithMemoryRouter(<Navigation />);
+
+    expect(screen.getByRole("link", { name: "Report a bug" })).toHaveAttribute("href", "");
   });
 
   it("removes focus from the current element after clicking the link", async () => {

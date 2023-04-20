@@ -1,5 +1,6 @@
 export type NavLink = {
   adminOnly?: boolean;
+  external?: boolean;
   highlight?: string | string[];
   icon?: string | React.ReactNode;
   label: string;

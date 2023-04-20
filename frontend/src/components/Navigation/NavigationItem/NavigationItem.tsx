@@ -19,7 +19,7 @@ const NavigationItem = ({ navLink, path }: Props): JSX.Element => {
       className={`p-side-navigation__item${isSelected(path, navLink) ? " is-selected" : ""}`}
     >
       <Link
-        aria-current={isSelected(path, navLink) ? "page" : undefined}
+        aria-current={!navLink.external && isSelected(path, navLink) ? "page" : undefined}
         className="p-side-navigation__link"
         id={`${navLink.label}-${id}`}
         onClick={(event) => {
@@ -27,6 +27,8 @@ const NavigationItem = ({ navLink, path }: Props): JSX.Element => {
           // this allows the side navigation to collapse on mouseleave
           event.currentTarget.blur();
         }}
+        rel={navLink.external ? "noreferrer noopener" : ""}
+        target={navLink.external ? "_blank" : ""}
         to={navLink.url}
       >
         {navLink.icon ? (

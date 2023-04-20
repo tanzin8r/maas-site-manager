@@ -1,4 +1,6 @@
 const docsUrls = {
+  baseDocsLink: "",
+  configFile: "",
   enrollmentRequest: "",
 };
 

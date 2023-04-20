@@ -45,6 +45,7 @@
   .l-navigation--item-icon {
     margin-right: $sph--small;
   }
+  
 }
 .p-panel.is-dark {
   .p-panel__header {
@@ -86,6 +87,10 @@
       left: 1rem;
       opacity: 1;
     }
+    .no-divider::after {
+      left: 1rem;
+      opacity: 0;
+    }
     .p-side-navigation__footer {
       @extend .p-side-navigation__text;
       padding-left: 1.5rem;
@@ -111,6 +116,10 @@
   }
   .p-side-navigation--icons .p-side-navigation__item .p-side-navigation__item .p-side-navigation__link {
     padding-left: 4rem;
+  }
+
+  ul:last-of-type {
+    margin-bottom: $spv--large;
   }
 }
 
