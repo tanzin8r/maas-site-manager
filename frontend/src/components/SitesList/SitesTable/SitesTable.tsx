@@ -11,6 +11,7 @@ import SitesTableControls from "./SitesTableControls/SitesTableControls";
 import type { SitesQueryResult } from "@/api/types";
 import ExternalLink from "@/components/ExternalLink";
 import NoRegions from "@/components/NoRegions";
+import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import { isDev } from "@/constants";
 import { useAppContext } from "@/context";
 import type { UseSitesQueryResult } from "@/hooks/api";
@@ -49,24 +50,7 @@ const SitesTable = ({
       {
         id: "select",
         accessorKey: "name",
-        header: ({ table }) => (
-          <label className="p-checkbox--inline">
-            <input
-              aria-checked={table.getIsSomeRowsSelected() || table.getIsSomePageRowsSelected() ? "mixed" : undefined}
-              aria-label="select all"
-              className="p-checkbox__input"
-              type="checkbox"
-              {...{
-                checked:
-                  table.getIsSomePageRowsSelected() ||
-                  table.getIsSomeRowsSelected() ||
-                  table.getIsAllPageRowsSelected(),
-                onChange: table.getToggleAllPageRowsSelectedHandler(),
-              }}
-            />
-            <span className="p-checkbox__label" />
-          </label>
-        ),
+        header: ({ table }) => <SelectAllCheckbox table={table} />,
         cell: ({ row, getValue }: { row: Row<Site>; getValue: Getter<Site["name"]> }) => {
           return (
             <label className="p-checkbox--inline">
@@ -198,7 +182,7 @@ const SitesTable = ({
         pageSize,
       },
     },
-    getRowId: (row) => row.identifier,
+    getRowId: (row) => row.id,
     manualPagination: true,
     pageCount,
     onColumnVisibilityChange: setColumnVisibility,

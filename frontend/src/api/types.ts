@@ -4,7 +4,7 @@ export type AccessToken = {
 };
 
 export type Site = {
-  identifier: string;
+  id: string;
   name: string;
   url: string; // <full URL including protocol>,
   connection: "stable" | "lost" | "unknown";
@@ -34,7 +34,8 @@ export type PaginatedQueryResult<D extends unknown> = {
 export type SitesQueryResult = PaginatedQueryResult<Site>;
 
 export type Token = {
-  name: string;
+  id: string;
+  site_id: Site["id"] | null;
   token: string;
   expires: string; //<ISO 8601 date string>,
   created: string; //<ISO 8601 date string>

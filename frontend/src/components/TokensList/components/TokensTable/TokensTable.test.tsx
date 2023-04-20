@@ -18,7 +18,7 @@ it("displays rows for each token", () => {
   expect(within(tableBody).getAllByRole("row")).toHaveLength(items.length);
   within(tableBody)
     .getAllByRole("row")
-    .forEach((row, idx) => expect(row).toHaveTextContent(new RegExp(items[idx].name, "i")));
+    .forEach((row, idx) => expect(row).toHaveTextContent(new RegExp(items[idx].token, "i")));
 });
 
 it("displays a copy button in each row", () => {

@@ -7,6 +7,7 @@ import { format, formatDistanceStrict } from "date-fns";
 import pick from "lodash/fp/pick";
 
 import type { Token } from "@/api/types";
+import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import CopyButton from "@/components/base/CopyButton";
 import TooltipButton from "@/components/base/TooltipButton";
 import { useAppContext } from "@/context";
@@ -44,18 +45,7 @@ const TokensTable = ({
     () => [
       {
         id: "select",
-        header: ({ table }) => (
-          <div>
-            <Input
-              checked={table.getIsAllRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-              type="checkbox"
-              {...{
-                indeterminate: table.getIsSomeRowsSelected(),
-              }}
-            />
-          </div>
-        ),
+        header: ({ table }) => <SelectAllCheckbox table={table} />,
         cell: ({ row }) => (
           <div>
             <Input
@@ -63,9 +53,6 @@ const TokensTable = ({
               disabled={!row.getCanSelect()}
               onChange={row.getToggleSelectedHandler()}
               type="checkbox"
-              {...{
-                indeterminate: row.getIsSomeSelected(),
-              }}
             />
           </div>
         ),
@@ -119,6 +106,7 @@ const TokensTable = ({
   useEffect(() => {
     return () => setRowSelection({});
   }, [setRowSelection]);
+
   const noItems = useMemo<Token[]>(() => [], []);
 
   const tokenTable = useReactTable<Token>({
@@ -127,9 +115,11 @@ const TokensTable = ({
     state: {
       rowSelection,
     },
+    getRowId: (row) => row.id,
+    manualPagination: true,
     enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
-    columnResizeMode: "onChange",
+    enableMultiRowSelection: true,
     onRowSelectionChange: setRowSelection,
   });
   return (

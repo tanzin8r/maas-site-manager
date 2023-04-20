@@ -19,7 +19,7 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
     seed: sequence,
   }) as Site["connection"];
   return {
-    identifier: `${sequence}`,
+    id: `${sequence}`,
     name,
     url: `http://${name}.${chance.tld()}`,
     connection,
@@ -51,7 +51,8 @@ export const sitesQueryResultFactory = paginatedQueryResultFactory<Site>();
 export const tokenFactory = Factory.define<Token>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
   return {
-    name: `${sequence}`,
+    id: `${sequence}`,
+    site_id: `${chance.integer({ min: 0, max: 100 })}`,
     token: chance.hash({ length: 64 }),
     expires: new Date(chance.date({ year: 2024 })).toISOString(), //<ISO 8601 date string>,
     created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>

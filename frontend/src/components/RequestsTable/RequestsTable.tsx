@@ -7,6 +7,7 @@ import type { EnrollmentRequest } from "@/api/types";
 import docsUrls from "@/base/docsUrls";
 import DateTime from "@/components/DateTime";
 import ExternalLink from "@/components/ExternalLink";
+import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import TableCaption from "@/components/TableCaption";
 import { isDev } from "@/constants";
 import { useAppContext } from "@/context";
@@ -34,24 +35,7 @@ const RequestsTable = ({
       {
         id: "select",
         accessorKey: "name",
-        header: ({ table }) => (
-          <label className="p-checkbox--inline">
-            <input
-              aria-checked={table.getIsSomeRowsSelected() || table.getIsSomePageRowsSelected() ? "mixed" : undefined}
-              aria-label="select all"
-              className="p-checkbox__input"
-              type="checkbox"
-              {...{
-                checked:
-                  table.getIsSomePageRowsSelected() ||
-                  table.getIsSomeRowsSelected() ||
-                  table.getIsAllPageRowsSelected(),
-                onChange: table.getToggleAllPageRowsSelectedHandler(),
-              }}
-            />
-            <span className="p-checkbox__label" />
-          </label>
-        ),
+        header: ({ table }) => <SelectAllCheckbox table={table} />,
         cell: ({ row, getValue }: { row: Row<EnrollmentRequest>; getValue: Getter<EnrollmentRequest["name"]> }) => {
           return (
             <label className="p-checkbox--inline">
