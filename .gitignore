@@ -24,6 +24,7 @@ logs
 /frontend/dist-ssr
 /frontend/coverage
 /frontend/.yarn
+/frontend/.stylelintcache
 *.local
 
 # dotrun

@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import AutoImport from "unplugin-auto-import/vite";
+import stylelint from "vite-plugin-stylelint";
 import dotenv from "dotenv";
 import * as path from "path";
 
@@ -20,6 +21,7 @@ export default defineConfig({
         enabled: true,
       },
     }),
+    stylelint(),
   ],
   server: { port: Number(process.env.VITE_UI_PORT) },
   resolve: {
