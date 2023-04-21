@@ -1,8 +1,16 @@
+from logging import getLogger
+from os import (
+    environ,
+    getenv,
+)
+
 from pydantic import (
     BaseSettings,
     Field,
     PostgresDsn,
 )
+
+logger = getLogger("site-manager.settings")
 
 
 class Settings(BaseSettings):
@@ -27,6 +35,14 @@ class Settings(BaseSettings):
         ],
         env="MSM_ALLOWED_ORIGINS",
     )
+
+    secret_key: str = getenv("SECRET_KEY", "")
+    if "SECRET_KEY" not in environ:
+        logger.critical("Secret key not defined in environment!")
+
+    algorithm = "HS256"
+
+    access_token_expire_minutes = int(getenv("TOKEN_EXPIRATION_TIME", 30))
 
 
 SETTINGS = Settings()

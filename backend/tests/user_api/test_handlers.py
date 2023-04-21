@@ -6,6 +6,7 @@ from datetime import (
 from httpx import AsyncClient
 import pytest
 
+from ..fixtures.app import AuthAsyncClient
 from ..fixtures.db import Fixture
 
 
@@ -38,8 +39,17 @@ async def test_root(user_app_client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_root_as_auth(
+    authenticated_user_app_client: AuthAsyncClient,
+) -> None:
+    response = await authenticated_user_app_client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"version": "0.0.1"}
+
+
+@pytest.mark.asyncio
 async def test_list_sites(
-    user_app_client: AsyncClient, fixture: Fixture
+    authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site1 = {
         "name": "LondonHQ",
@@ -65,7 +75,7 @@ async def test_list_sites(
     sites = await fixture.create("site", [site1, site2])
     for site in sites:
         site["stats"] = None
-    page1 = await user_app_client.get("/sites")
+    page1 = await authenticated_user_app_client.get("/sites")
     assert page1.status_code == 200
     assert page1.json() == {
         "page": 1,
@@ -73,7 +83,9 @@ async def test_list_sites(
         "total": 2,
         "items": sites,
     }
-    filtered = await user_app_client.get("/sites?city=onDo")  # vs London
+    filtered = await authenticated_user_app_client.get(
+        "/sites?city=onDo"
+    )  # vs London
     assert filtered.status_code == 200
     assert filtered.json() == {
         "page": 1,
@@ -81,7 +93,7 @@ async def test_list_sites(
         "total": 1,
         "items": [sites[0]],
     }
-    paginated = await user_app_client.get("/sites?page=2&size=1")
+    paginated = await authenticated_user_app_client.get("/sites?page=2&size=1")
     assert paginated.status_code == 200
     assert paginated.json() == {
         "page": 2,
@@ -93,7 +105,7 @@ async def test_list_sites(
 
 @pytest.mark.asyncio
 async def test_list_sites_filter_timezone(
-    user_app_client: AsyncClient, fixture: Fixture
+    authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site1 = {
         "name": "LondonHQ",
@@ -118,7 +130,9 @@ async def test_list_sites_filter_timezone(
     )
     [created_site, _] = await fixture.create("site", [site1, site2])
     created_site["stats"] = None
-    page1 = await user_app_client.get("/sites?timezone=Europe/London")
+    page1 = await authenticated_user_app_client.get(
+        "/sites?timezone=Europe/London"
+    )
     assert page1.status_code == 200
     assert page1.json() == {
         "page": 1,
@@ -130,7 +144,7 @@ async def test_list_sites_filter_timezone(
 
 @pytest.mark.asyncio
 async def test_list_sites_with_stats(
-    user_app_client: AsyncClient, fixture: Fixture
+    authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     [site] = await fixture.create(
         "site",
@@ -167,7 +181,7 @@ async def test_list_sites_with_stats(
     site_data["last_seen"] = site_data["last_seen"].isoformat()
     site["stats"] = site_data
 
-    page = await user_app_client.get("/sites")
+    page = await authenticated_user_app_client.get("/sites")
     assert page.status_code == 200
     assert page.json() == {
         "page": 1,
@@ -180,13 +194,13 @@ async def test_list_sites_with_stats(
 @pytest.mark.asyncio
 @pytest.mark.parametrize("time_format", ["ISO 8601", "Float"])
 async def test_token_time_format(
-    time_format: str, user_app_client: AsyncClient
+    time_format: str, authenticated_user_app_client: AuthAsyncClient
 ) -> None:
     seconds = 100
     expiry = timedelta(seconds=seconds)
     formatted_expiry = duration_format(expiry, time_format)
 
-    response = await user_app_client.post(
+    response = await authenticated_user_app_client.post(
         "/tokens", json={"count": 5, "duration": formatted_expiry}
     )
     assert response.status_code == 200
@@ -199,7 +213,7 @@ async def test_token_time_format(
 
 @pytest.mark.asyncio
 async def test_list_tokens(
-    user_app_client: AsyncClient, fixture: Fixture
+    authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     tokens = await fixture.create(
         "token",
@@ -230,7 +244,65 @@ async def test_list_tokens(
         token["expired"] = token["expired"].isoformat()
         token["created"] = token["created"].isoformat()
         token["value"] = str(token["value"])
-    response = await user_app_client.get("/tokens")
+    response = await authenticated_user_app_client.get("/tokens")
     assert response.status_code == 200
     assert response.json()["total"] == 2
     assert response.json()["items"] == tokens
+
+
+@pytest.mark.asyncio
+async def test_login_fails_with_wrong_password(
+    user_app_client: AsyncClient, fixture: Fixture
+) -> None:
+    phash = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
+    userdata = {
+        "id": 1,
+        "email": "admin@example.com",
+        "full_name": "Admin",
+        "password": phash,
+    }
+    await fixture.create("user", userdata)
+
+    fail_response = await user_app_client.post(
+        "/login",
+        data={"username": userdata["email"], "password": "incorrect_pass"},
+    )
+    assert fail_response.status_code == 401, "Expected authentication error."
+
+    fail_response = await user_app_client.post(
+        "/login", data={"username": userdata["email"], "password": "admin"}
+    )
+    assert fail_response.status_code == 200, "Expected user login."
+
+
+@pytest.mark.asyncio
+async def test_sites_fails_without_login(
+    user_app_client: AsyncClient, fixture: Fixture
+) -> None:
+    site = [
+        {
+            "name": "LondonHQ",
+            "city": "London",
+            "country": "gb",
+            "latitude": "51.509865",
+            "longitude": "-0.118092",
+            "note": "the first site",
+            "region": "Blue Fin Bldg",
+            "street": "110 Southwark St",
+            "timezone": "Europe/London",
+            "url": "https://londoncalling.example.com",
+        }
+    ]
+    await fixture.create("site", site)
+    page1 = await user_app_client.get("/sites")
+    assert page1.status_code == 401, "Expected authentication error."
+
+
+@pytest.mark.asyncio
+async def test_token_fails_without_login(user_app_client: AsyncClient) -> None:
+    seconds = 100
+
+    response = await user_app_client.post(
+        "/tokens", json={"count": 5, "duration": seconds}
+    )
+    assert response.status_code == 401, "Expected authentication error."

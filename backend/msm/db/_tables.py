@@ -1,7 +1,6 @@
 from uuid import uuid4
 
 from sqlalchemy import (
-    Boolean,
     Column,
     ForeignKey,
     Integer,
@@ -38,7 +37,6 @@ User = Table(
     Column("email", Text, unique=True, index=True),
     Column("full_name", Text),
     Column("password", Text),  # this is the hashed password
-    Column("disabled", Boolean),
 )
 
 

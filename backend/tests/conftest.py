@@ -1,6 +1,7 @@
 import pytest
 
 from .fixtures.app import (
+    authenticated_user_app_client,
     user_app,
     user_app_client,
 )
@@ -10,7 +11,14 @@ from .fixtures.db import (
     fixture,
 )
 
-__all__ = ["db", "db_setup", "user_app", "user_app_client", "fixture"]
+__all__ = [
+    "db",
+    "db_setup",
+    "user_app",
+    "authenticated_user_app_client",
+    "user_app_client",
+    "fixture",
+]
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

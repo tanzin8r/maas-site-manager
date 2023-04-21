@@ -18,7 +18,10 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
   "fastapi",
+  "passlib[bcrypt]",
   "pydantic[email]",
+  "python-jose[cryptography]",
+  "python-multipart",
   "pytz",
   "SQLAlchemy[postgresql_asyncpg]",
   "StrEnum", # emulate enum.StrEnum, which is available in Python3.11

@@ -8,6 +8,7 @@ from operator import or_
 from typing import Any
 from uuid import UUID
 
+# from passlib.context import CryptContext
 from sqlalchemy import (
     case,
     ColumnOperators,
@@ -23,12 +24,34 @@ from ..schema import (
     MAX_PAGE_SIZE,
     Site as SiteSchema,
     Token as TokenSchema,
+    UserWithPassword as UserPWSchema,
 )
 from ._tables import (
     Site,
     SiteData,
     Token,
+    User,
 )
+
+
+async def get_user(session: AsyncSession, email: str) -> UserPWSchema | None:
+    """
+    Gets a user by its unique identifier: their email
+    """
+    stmt = (
+        select(
+            User.c.id,
+            User.c.email,
+            User.c.full_name,
+            User.c.password,
+        )
+        .select_from(User)
+        .where(User.c.email == email)
+    )
+    if result := await session.execute(stmt):
+        if user := result.one_or_none():
+            return UserPWSchema(**user._asdict())
+    return None
 
 
 def filters_from_arguments(

@@ -1,4 +1,12 @@
-from fastapi import Depends
+from datetime import timedelta
+from typing import Annotated
+
+from fastapi import (
+    Depends,
+    HTTPException,
+    status,
+)
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import __version__
@@ -9,14 +17,22 @@ from ..db import (
 from ..schema import (
     CreateTokensRequest,
     CreateTokensResponse,
+    JSONWebToken,
     PaginatedSites,
     PaginatedTokens,
     pagination_params,
     PaginationParams,
+    User,
 )
+from ..settings import SETTINGS
 from ._forms import (
     site_filter_parameters,
     SiteFilterParams,
+)
+from ._jwt import (
+    authenticate_user,
+    create_access_token,
+    get_authenticated_user,
 )
 
 
@@ -26,6 +42,7 @@ async def root() -> dict[str, str]:
 
 
 async def sites(
+    current_user: Annotated[User, Depends(get_authenticated_user)],
     session: AsyncSession = Depends(db_session),
     pagination_params: PaginationParams = Depends(pagination_params),
     filter_params: SiteFilterParams = Depends(site_filter_parameters),
@@ -46,6 +63,7 @@ async def sites(
 
 
 async def tokens(
+    current_user: Annotated[User, Depends(get_authenticated_user)],
     session: AsyncSession = Depends(db_session),
     pagination_params: PaginationParams = Depends(pagination_params),
 ) -> PaginatedTokens:
@@ -62,6 +80,7 @@ async def tokens(
 
 
 async def tokens_post(
+    current_user: Annotated[User, Depends(get_authenticated_user)],
     create_request: CreateTokensRequest,
     session: AsyncSession = Depends(db_session),
 ) -> CreateTokensResponse:
@@ -75,3 +94,32 @@ async def tokens_post(
         count=create_request.count,
     )
     return CreateTokensResponse(expired=expired, tokens=tokens)
+
+
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    session: AsyncSession = Depends(db_session),
+) -> JSONWebToken:
+    user = await authenticate_user(
+        session, form_data.username, form_data.password
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(
+        minutes=SETTINGS.access_token_expire_minutes
+    )
+    access_token = create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return JSONWebToken(access_token=access_token, token_type="bearer")
+
+
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_authenticated_user)],
+    session: AsyncSession = Depends(db_session),
+) -> User:
+    return current_user

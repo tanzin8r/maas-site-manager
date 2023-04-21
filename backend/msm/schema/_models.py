@@ -19,19 +19,30 @@ from ._pagination import PaginatedResults
 TimeZone = StrEnum("TimeZone", pytz.all_timezones)
 
 
-class CreateUser(BaseModel):
+class ReadUser(BaseModel):
     """
     A MAAS Site Manager User
+    We never want to sent the password (hash) around
     """
 
     email: EmailStr = Field(title="email@example.com")
     full_name: str
+
+
+class UserWithPassword(ReadUser):
+    """
+    To create a user we need a password as well.
+    """
+
     # use password.get_secret_value() to retrieve the value
-    password: SecretStr = Field(min_length=8, max_length=50)
-    disabled: bool
+    password: SecretStr = Field(min_length=8, max_length=100)
 
 
-class User(CreateUser):
+class User(ReadUser):
+    """
+    To read a user from the DB it comes with an ID
+    """
+
     id: int
 
 
@@ -110,6 +121,23 @@ class Token(CreateToken):
     """
 
     id: int
+
+
+class JSONWebToken(BaseModel):
+    """
+    A JSON Web Token for authenticating users.
+    """
+
+    access_token: str
+    token_type: str
+
+
+class JSONWebTokenData(BaseModel):
+    """
+    The payload data for a JWT Token
+    """
+
+    email: str
 
 
 class PaginatedTokens(PaginatedResults):

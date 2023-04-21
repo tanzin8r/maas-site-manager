@@ -1,14 +1,63 @@
+from __future__ import annotations
+
 from typing import (
     AsyncIterable,
     Iterable,
 )
 
 from fastapi import FastAPI
-from httpx import AsyncClient
+from httpx import (
+    AsyncClient,
+    Response,
+)
 import pytest
 
 from msm.db import Database
 from msm.user_api import create_app
+
+from .db import Fixture
+
+
+class AuthAsyncClient(AsyncClient):
+    """Equivalent to AsyncClient, but has the ability to send
+    requests from an authorized login"""
+
+    def __init__(self, **kwargs) -> None:  # type: ignore
+        super().__init__(**kwargs)
+        self.email: str = ""
+        self._token: str = ""
+        self._token_type: str = ""
+
+    async def login(self, email: str, password: str) -> None:
+        """login this client with the email and password"""
+        response = await self.post(
+            "/login", data={"username": email, "password": password}
+        )
+        assert (
+            response.status_code == 200
+        ), f"Could not login user: {response.text}"
+        self.email = email
+        self._token = response.json()["access_token"]
+        self._token_type = response.json()["token_type"].capitalize()
+
+    @property
+    def authed(self) -> bool:
+        """Are we logged in?"""
+        return bool(self._token)
+
+    async def request(self, *args, **kwargs) -> Response:  # type: ignore
+        """Generate a request with the authorized payload attached if the user
+        has been logged in. All methods (get, post, push, ...) use this in
+        the backend to construct their requests"""
+        if self.authed:
+            kwargs.update(
+                {
+                    "headers": {
+                        "Authorization": f"{self._token_type} {self._token}"
+                    },
+                }
+            )
+        return await super().request(*args, **kwargs)
 
 
 @pytest.fixture
@@ -25,4 +74,24 @@ def user_app(
 async def user_app_client(user_app: FastAPI) -> AsyncIterable[AsyncClient]:
     """Client for the user API."""
     async with AsyncClient(app=user_app, base_url="http://test") as client:
+        yield client
+
+
+@pytest.fixture
+async def authenticated_user_app_client(
+    user_app: FastAPI, fixture: Fixture
+) -> AsyncIterable[AuthAsyncClient]:
+    """Authenticated Client for the user API."""
+    phash = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
+    await fixture.create(
+        "user",
+        {
+            "id": 1,
+            "email": "admin@example.com",
+            "full_name": "Admin",
+            "password": phash,
+        },
+    )
+    async with AuthAsyncClient(app=user_app, base_url="http://test") as client:
+        await client.login("admin@example.com", "admin")
         yield client

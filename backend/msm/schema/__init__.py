@@ -3,10 +3,14 @@
 from ._models import (
     CreateTokensRequest,
     CreateTokensResponse,
+    JSONWebToken,
+    JSONWebTokenData,
     PaginatedSites,
     PaginatedTokens,
     Site,
     Token,
+    User,
+    UserWithPassword,
 )
 from ._pagination import (
     MAX_PAGE_SIZE,
@@ -26,4 +30,8 @@ __all__ = [
     "PaginatedSites",
     "PaginatedTokens",
     "MAX_PAGE_SIZE",
+    "UserWithPassword",
+    "User",
+    "JSONWebToken",
+    "JSONWebTokenData",
 ]
