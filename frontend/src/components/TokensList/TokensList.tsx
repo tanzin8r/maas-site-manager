@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import TokensTable from "./components/TokensTable/TokensTable";
 
 import docsUrls from "@/base/docsUrls";
+import { routesConfig } from "@/base/routesConfig";
 import ExternalLink from "@/components/ExternalLink";
 import PaginationBar from "@/components/base/PaginationBar";
 import { useAppContext } from "@/context";
@@ -60,7 +61,7 @@ const TokensList = () => {
                         {/* TODO: Add certificate here once endpoint is ready https://warthogs.atlassian.net/browse/MAASENG-1584 */}
                       </li>
                       <li>
-                        Accept the incoming request in the <Link to="/requests">Requests page</Link>
+                        Accept the incoming request in the <Link to={routesConfig.requests.path}>Requests page</Link>
                       </li>
                     </ol>
                   ),
