@@ -1,5 +1,3 @@
-import * as timezoneMock from "timezone-mock";
-
 import SitesTable from "./SitesTable";
 
 import urls from "@/api/urls";
@@ -16,12 +14,10 @@ const mockServer = createMockGetServer(
 
 beforeEach(() => {
   vi.useFakeTimers();
-  timezoneMock.register("Etc/GMT");
   mockServer.listen();
 });
 
 afterEach(() => {
-  timezoneMock.unregister();
   vi.useRealTimers();
   mockServer.resetHandlers();
 });
@@ -80,10 +76,10 @@ it("displays correctly paginated results", () => {
 });
 
 it("displays correct local time", () => {
-  const date = new Date("2000-01-01T12:00:00Z");
+  const date = new Date("Fri Apr 21 2023 12:00:00 GMT+0000 (GMT)");
   vi.setSystemTime(date);
 
-  const item = siteFactory.build({ timezone: 1 });
+  const item = siteFactory.build({ timezone: "Europe/London" });
   renderWithMemoryRouter(
     <SitesTable
       data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
@@ -94,7 +90,7 @@ it("displays correct local time", () => {
   );
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
-  expect(screen.getByText(/13:00 UTC\+01:00/i)).toBeInTheDocument();
+  expect(screen.getByText(/13:00 UTC\+1/i)).toBeInTheDocument();
 });
 
 it("displays full name of the country", () => {

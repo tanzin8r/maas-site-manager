@@ -34,21 +34,23 @@ export const customParamSerializer = (params: Record<string, string>, queryText?
   );
 };
 
-export const getTimezoneUTCString = (offset: number) => {
+export const getTimezoneUTCString = (timezone: string, date?: Date | number) => {
+  const offset = getTimezoneOffset(timezone, date);
   const sign = offset < 0 ? "-" : "+";
   const absOffset = Math.abs(offset);
-  const hours = Math.floor(absOffset);
-  const minutes = Math.floor((absOffset - hours) * 60);
-  const paddedHours = String(hours).padStart(2, "0");
-  const paddedMinutes = String(minutes).padStart(2, "0");
-  return sign + paddedHours + ":" + paddedMinutes;
+  const minutes = Math.floor(absOffset / 60000) % 60;
+  const hours = Math.floor(absOffset / 60000 / 60);
+  if (absOffset > 0) {
+    return `${sign}${hours}` + (minutes > 0 ? `:${minutes}` : "");
+  } else {
+    return "";
+  }
 };
 
-export const getTimeByUTCOffset = (date: Date, offset: number) => {
-  const utcString = getTimezoneUTCString(offset);
-  const updatedTime = date.getTime() + getTimezoneOffset(utcString);
-  const hours = `${new Date(updatedTime).getUTCHours()}`.padStart(2, "0");
-  const minutes = `${new Date(updatedTime).getUTCMinutes()}`.padStart(2, "0");
+export const getTimeInTimezone = (date: Date, timezone: string) => {
+  const time = date.getTime() + getTimezoneOffset(timezone);
+  const hours = `${new Date(time).getUTCHours()}`.padStart(2, "0");
+  const minutes = `${new Date(time).getUTCMinutes()}`.padStart(2, "0");
   return hours + ":" + minutes;
 };
 

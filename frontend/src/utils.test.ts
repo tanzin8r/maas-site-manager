@@ -1,4 +1,4 @@
-import { customParamSerializer, getTimeByUTCOffset, getTimezoneUTCString, parseSearchTextToQueryParams } from "./utils";
+import { customParamSerializer, getTimezoneUTCString, parseSearchTextToQueryParams, getTimeInTimezone } from "./utils";
 
 describe("parseSearchTextToQueryParams tests", () => {
   it('should modify search params from "label:value" to "label=value"', () => {
@@ -34,37 +34,29 @@ describe("customParamSerializer", () => {
   });
 });
 
-describe("getTimezoneUTCString", () => {
-  it("should return the correct positive UTC string", () => {
-    const offset = 2;
-    const result = getTimezoneUTCString(offset);
-    expect(result).toBe("+02:00");
-  });
-
-  it("should return the correct negative UTC string", () => {
-    const offset = -5;
-    const result = getTimezoneUTCString(offset);
-    expect(result).toBe("-05:00");
-  });
-
-  it("should return the correct UTC string for '0' offset", () => {
-    const offset = 0;
-    const result = getTimezoneUTCString(offset);
-    expect(result).toBe("+00:00");
+describe("getTimezoneUTCString returns simplified UTC timezone string for each timezone", () => {
+  [
+    ["Canada/Newfoundland", "-2:30"],
+    ["UTC", ""],
+    ["Europe/London", "+1"],
+  ].forEach(([timezone, expected]) => {
+    it(`returns ${expected} for ${timezone}`, () => {
+      const result = getTimezoneUTCString(timezone);
+      expect(result).toBe(expected);
+    });
   });
 });
 
-describe("getTimeByUTCOffset", () => {
-  it("should display correct positive time offset", () => {
-    const date = new Date("2000-01-01T12:00:00Z");
-    const offset = 2;
-    const result = getTimeByUTCOffset(date, offset);
-    expect(result).toBe("14:00");
-  });
-  it("should display correct negative time offset", () => {
-    const date = new Date("2000-01-01T12:00:00Z");
-    const offset = -2;
-    const result = getTimeByUTCOffset(date, offset);
-    expect(result).toBe("10:00");
+describe("getTimeInTimezone", () => {
+  [
+    ["Canada/Newfoundland", "09:30"],
+    ["UTC", "12:00"],
+    ["Europe/Warsaw", "14:00"],
+    ["Europe/London", "13:00"],
+  ].forEach(([timezone, expected]) => {
+    it(`returns ${expected} for ${timezone}`, () => {
+      const result = getTimeInTimezone(new Date("2000-01-01T12:00:00Z"), timezone);
+      expect(result).toBe(expected);
+    });
   });
 });

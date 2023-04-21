@@ -15,7 +15,7 @@ import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import { isDev } from "@/constants";
 import { useAppContext } from "@/context";
 import type { UseSitesQueryResult } from "@/hooks/api";
-import { getCountryName, getTimeByUTCOffset, getTimezoneUTCString } from "@/utils";
+import { getCountryName, getTimezoneUTCString, getTimeInTimezone } from "@/utils";
 
 const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>
@@ -131,12 +131,10 @@ const SitesTable = ({
         ),
         cell: ({ getValue }) => {
           const { timezone } = getValue();
-          return Number.isInteger(timezone) ? (
-            <>
-              <div>
-                {getTimeByUTCOffset(new Date(), timezone!)} UTC{getTimezoneUTCString(timezone!)}
-              </div>
-            </>
+          return timezone ? (
+            <div>
+              {getTimeInTimezone(new Date(), timezone)} UTC{getTimezoneUTCString(timezone)}
+            </div>
           ) : null;
         },
       },

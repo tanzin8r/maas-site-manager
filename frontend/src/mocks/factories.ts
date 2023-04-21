@@ -30,7 +30,7 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
       zip: chance.zip(),
       street: chance.address(),
     },
-    timezone: chance.integer({ min: -12, max: 14 }),
+    timezone: chance.timezone().utc[0],
     stats: {
       machines: chance.integer({ min: 0, max: 1500 }),
       occupied_machines: chance.integer({ min: 0, max: 500 }),

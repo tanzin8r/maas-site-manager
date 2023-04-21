@@ -15,7 +15,7 @@ export type Site = {
     zip: string;
     street: string;
   };
-  timezone: number;
+  timezone: string; // IANA time zone name,
   stats: {
     machines: number;
     occupied_machines: number;
