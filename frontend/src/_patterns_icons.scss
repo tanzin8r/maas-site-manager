@@ -15,3 +15,16 @@
   @extend %icon;
   @include maas-icon-maas-logo();
 }
+
+.p-icon--status-ready {
+  @extend %icon;
+  background-image: url("data:image/svg+xml,%3Csvg width='17' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 4a4 4 0 110 8 4 4 0 010-8z' fill='#{vf-url-friendly-color(#D3E4ED)}'  fill-rule='nonzero'/%3E%3C/svg%3E");
+}
+.p-icon--status-deployed {
+  @extend %icon;
+  @include vf-icon-status-small($color-x-dark);
+}
+.p-icon--status-allocated {
+  @extend %icon;
+  @include vf-icon-status-small($color-information);
+}

@@ -1,0 +1,35 @@
+.p-popover {
+  @extend %vf-bg--x-light;
+  @extend %vf-has-box-shadow;
+  @extend %vf-has-round-corners;
+  z-index: 10;
+}
+%popover-grid {
+  display: grid;
+  grid-column-gap: $sph--small;
+  grid-template-columns: $sph--small 2rem auto;
+  padding: $spv--small $spv--large;
+}
+
+.p-popover {
+  width: 13.5rem;
+}
+
+.p-popover__header {
+  margin: 0 $sph--large;
+}
+
+.p-popover__primary {
+  @extend %popover-grid;
+}
+
+.p-popover__secondary {
+  @extend %popover-grid;
+  background: $color-light;
+}
+
+.p-popover__separator {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  margin-top: $spv--small;
+}

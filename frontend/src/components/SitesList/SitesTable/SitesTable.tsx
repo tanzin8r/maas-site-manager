@@ -5,6 +5,7 @@ import type { ColumnDef, Column, Getter, Row } from "@tanstack/react-table";
 import pick from "lodash/fp/pick";
 import useLocalStorageState from "use-local-storage-state";
 
+import AggregatedStats from "./AggregatedStatus";
 import ConnectionInfo from "./ConnectionInfo/ConnectionInfo";
 import SitesTableControls from "./SitesTableControls/SitesTableControls";
 
@@ -15,7 +16,7 @@ import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import { isDev } from "@/constants";
 import { useAppContext } from "@/context";
 import type { UseSitesQueryResult } from "@/hooks/api";
-import { getCountryName, getTimezoneUTCString, getTimeInTimezone } from "@/utils";
+import { getAllMachines, getCountryName, getTimezoneUTCString, getTimeInTimezone } from "@/utils";
 
 const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>
@@ -139,25 +140,29 @@ const SitesTable = ({
         },
       },
       {
-        id: "status",
+        id: "machines",
         accessorFn: createAccessor("stats"),
         header: () => (
           <>
             <div>machines</div>
-            <div className="u-text--muted">aggregated status</div>
           </>
         ),
         cell: ({ getValue }) => {
           const { stats } = getValue();
-          const { machines, ready_machines, occupied_machines, error_machines } = stats || {};
-          return (
-            <>
-              <div>{machines}</div>
-              <div className="u-text--muted">
-                Ready: {ready_machines}, Occupied: {occupied_machines}, Error: {error_machines}
-              </div>
-            </>
-          );
+          return getAllMachines(stats);
+        },
+      },
+      {
+        id: "status",
+        accessorFn: createAccessor("stats"),
+        header: () => (
+          <>
+            <div>aggregated status</div>
+          </>
+        ),
+        cell: ({ getValue }) => {
+          const { stats } = getValue();
+          return stats ? <AggregatedStats stats={stats} /> : null;
         },
       },
     ],

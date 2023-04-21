@@ -6,6 +6,25 @@ import type { AccessToken, EnrollmentRequest, PaginatedQueryResult, Site, Token 
 
 export const connections: Site["connection"][] = ["stable", "lost", "unknown"];
 
+export const statsFactory = Factory.define<Site["stats"]>(({ sequence }) => {
+  const chance = new Chance(`maas-${sequence}`);
+  return {
+    deployed_machines: chance.integer({ min: 0, max: 500 }),
+    allocated_machines: chance.integer({ min: 0, max: 500 }),
+    ready_machines: chance.integer({ min: 0, max: 500 }),
+    error_machines: chance.integer({ min: 0, max: 500 }),
+    last_seen: new Date(chance.date({ year: 2023 })).toISOString(),
+    connection: connectionFactory.build(),
+  };
+});
+
+export const connectionFactory = Factory.define<Site["connection"]>(({ sequence }) => {
+  return uniqueNamesGenerator({
+    dictionaries: [connections],
+    seed: sequence,
+  }) as Site["connection"];
+});
+
 export const siteFactory = Factory.define<Site>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
   const name = uniqueNamesGenerator({
@@ -14,15 +33,12 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
     length: 2,
     seed: sequence,
   });
-  const connection = uniqueNamesGenerator({
-    dictionaries: [connections],
-    seed: sequence,
-  }) as Site["connection"];
+
   return {
     id: `${sequence}`,
     name,
     url: `http://${name}.${chance.tld()}`,
-    connection,
+    connection: connectionFactory.build(),
     last_seen: new Date(chance.date({ year: 2023 })).toISOString(),
     address: {
       countrycode: chance.country(), // <alpha2 country code>,
@@ -31,12 +47,7 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
       street: chance.address(),
     },
     timezone: chance.timezone().utc[0],
-    stats: {
-      machines: chance.integer({ min: 0, max: 1500 }),
-      occupied_machines: chance.integer({ min: 0, max: 500 }),
-      ready_machines: chance.integer({ min: 0, max: 500 }),
-      error_machines: chance.integer({ min: 0, max: 500 }),
-    },
+    stats: statsFactory.build(),
   };
 });
 

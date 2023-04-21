@@ -1,7 +1,7 @@
 import SitesTable from "./SitesTable";
 
 import urls from "@/api/urls";
-import { enrollmentRequestFactory, siteFactory, sitesQueryResultFactory } from "@/mocks/factories";
+import { enrollmentRequestFactory, siteFactory, sitesQueryResultFactory, statsFactory } from "@/mocks/factories";
 import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";
 import { renderWithMemoryRouter, screen, within } from "@/test-utils";
@@ -105,4 +105,25 @@ it("displays full name of the country", () => {
   );
 
   expect(screen.getByText("United Kingdom")).toBeInTheDocument();
+});
+
+it("displays correct number of deployed machines", () => {
+  const item = siteFactory.build({
+    stats: statsFactory.build({
+      deployed_machines: 100,
+      allocated_machines: 200,
+      ready_machines: 300,
+      error_machines: 400,
+    }),
+  });
+  renderWithMemoryRouter(
+    <SitesTable
+      data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
+      isFetchedAfterMount={true}
+      isLoading={false}
+      setSearchText={() => {}}
+    />,
+  );
+
+  expect(screen.getByText("100 of 1000 deployed")).toBeInTheDocument();
 });
