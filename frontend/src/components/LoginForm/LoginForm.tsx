@@ -28,6 +28,7 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, isError, failureReason, status } = useAuthContext();
+  const failureDetails = failureReason?.response?.data?.detail;
   const handleRedirect = useCallback(() => {
     // send user back to the page they tried to visit
     // { replace: true } avoids going back to login page once authenticated
@@ -54,8 +55,8 @@ const LoginForm = () => {
         {isError ? (
           <Row>
             <Col emptyLarge={4} size={6}>
-              <Notification role="alert" severity="negative">
-                {failureReason?.response?.data?.detail ?? "An unknown error occurred."}
+              <Notification role="alert" severity="negative" title="Error">
+                {failureDetails && typeof failureDetails === "string" ? failureDetails : "An unknown error occurred"}
               </Notification>
             </Col>
           </Row>

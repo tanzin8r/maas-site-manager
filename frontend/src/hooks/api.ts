@@ -61,6 +61,8 @@ export const useRequestsCountQuery = () =>
 export const useEnrollmentRequestsMutation = (
   options: UseMutationOptions<unknown, unknown, PostEnrollmentRequestsData, unknown>,
 ) => useMutation(patchEnrollmentRequests, options);
-
-export type LoginError = AxiosError<{ detail?: string }>;
+export type ApiError = AxiosError<{
+  detail?: string | Array<{ loc: string[]; msg: string; type: string }>;
+}>;
+export type LoginError = ApiError;
 export const useLoginMutation = (): UseMutationResult<AccessToken, LoginError, PostLoginData> => useMutation(postLogin);
