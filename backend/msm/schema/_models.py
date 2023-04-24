@@ -29,21 +29,21 @@ class ReadUser(BaseModel):
     full_name: str
 
 
-class UserWithPassword(ReadUser):
-    """
-    To create a user we need a password as well.
-    """
-
-    # use password.get_secret_value() to retrieve the value
-    password: SecretStr = Field(min_length=8, max_length=100)
-
-
 class User(ReadUser):
     """
     To read a user from the DB it comes with an ID
     """
 
     id: int
+
+
+class UserWithPassword(User):
+    """
+    To create a user we need a password as well.
+    """
+
+    # use password.get_secret_value() to retrieve the value
+    password: SecretStr = Field(min_length=8, max_length=100)
 
 
 class UserLoginRequest(BaseModel):
