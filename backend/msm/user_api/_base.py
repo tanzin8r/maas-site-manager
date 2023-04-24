@@ -6,7 +6,6 @@ from fastapi import (
     HTTPException,
     status,
 )
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import __version__
@@ -23,6 +22,7 @@ from ..schema import (
     pagination_params,
     PaginationParams,
     User,
+    UserLoginRequest,
 )
 from ..settings import SETTINGS
 from ._forms import (
@@ -42,7 +42,7 @@ async def root() -> dict[str, str]:
 
 
 async def sites(
-    current_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     session: AsyncSession = Depends(db_session),
     pagination_params: PaginationParams = Depends(pagination_params),
     filter_params: SiteFilterParams = Depends(site_filter_parameters),
@@ -63,7 +63,7 @@ async def sites(
 
 
 async def tokens(
-    current_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     session: AsyncSession = Depends(db_session),
     pagination_params: PaginationParams = Depends(pagination_params),
 ) -> PaginatedTokens:
@@ -80,7 +80,7 @@ async def tokens(
 
 
 async def tokens_post(
-    current_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     create_request: CreateTokensRequest,
     session: AsyncSession = Depends(db_session),
 ) -> CreateTokensResponse:
@@ -97,11 +97,11 @@ async def tokens_post(
 
 
 async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    user_login: UserLoginRequest,
     session: AsyncSession = Depends(db_session),
 ) -> JSONWebToken:
     user = await authenticate_user(
-        session, form_data.username, form_data.password
+        session, user_login.username, user_login.password
     )
     if not user:
         raise HTTPException(
@@ -119,7 +119,7 @@ async def login_for_access_token(
 
 
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     session: AsyncSession = Depends(db_session),
 ) -> User:
-    return current_user
+    return authenticated_user

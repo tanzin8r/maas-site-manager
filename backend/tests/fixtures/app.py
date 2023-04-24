@@ -31,7 +31,7 @@ class AuthAsyncClient(AsyncClient):
     async def login(self, email: str, password: str) -> None:
         """login this client with the email and password"""
         response = await self.post(
-            "/login", data={"username": email, "password": password}
+            "/login", json={"username": email, "password": password}
         )
         assert (
             response.status_code == 200

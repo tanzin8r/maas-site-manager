@@ -46,6 +46,13 @@ class User(ReadUser):
     id: int
 
 
+class UserLoginRequest(BaseModel):
+    """User login details."""
+
+    username: str
+    password: str
+
+
 class CreateSite(BaseModel):
     """
     A MAAS installation

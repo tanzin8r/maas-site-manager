@@ -265,12 +265,12 @@ async def test_login_fails_with_wrong_password(
 
     fail_response = await user_app_client.post(
         "/login",
-        data={"username": userdata["email"], "password": "incorrect_pass"},
+        json={"username": userdata["email"], "password": "incorrect_pass"},
     )
     assert fail_response.status_code == 401, "Expected authentication error."
 
     fail_response = await user_app_client.post(
-        "/login", data={"username": userdata["email"], "password": "admin"}
+        "/login", json={"username": userdata["email"], "password": "admin"}
     )
     assert fail_response.status_code == 200, "Expected user login."
 
