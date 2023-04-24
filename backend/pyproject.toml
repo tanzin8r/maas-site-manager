@@ -25,6 +25,7 @@ dependencies = [
   "pytz",
   "SQLAlchemy[postgresql_asyncpg]",
   "StrEnum", # emulate enum.StrEnum, which is available in Python3.11
+  "ujson", # faster JSON encoding/decoding (for fastapi)
 ]
 [project.optional-dependencies]
 testing = [
