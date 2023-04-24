@@ -19,7 +19,7 @@ const accessToken = accessTokenFactory.build();
 export const createMockLoginResolver =
   (): ResponseResolver<RestRequest<any, any>, typeof restContext> => async (req, res, ctx) => {
     const { username, password } = await req.body;
-    if (username === "admin" && password === "test") {
+    if (username === "admin@example.com" && password === "admin") {
       return res(ctx.json(accessToken));
     }
     return res(

@@ -15,10 +15,7 @@ export const postLogin = async (data: PostLoginData) => {
     throw Error("Missing required fields");
   }
   try {
-    const response = await api.post(urls.login, {
-      username: data.username,
-      password: data.password,
-    });
+    const response = await api.post(urls.login, data);
     return response.data;
   } catch (error) {
     throw error;
