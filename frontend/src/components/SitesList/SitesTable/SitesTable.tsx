@@ -2,11 +2,12 @@ import { useEffect, useMemo } from "react";
 
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { ColumnDef, Column, Getter, Row } from "@tanstack/react-table";
+import classNames from "classnames";
 import pick from "lodash/fp/pick";
 import useLocalStorageState from "use-local-storage-state";
 
 import AggregatedStats from "./AggregatedStatus";
-import ConnectionInfo from "./ConnectionInfo/ConnectionInfo";
+import ConnectionInfo from "./ConnectionInfo";
 import SitesTableControls from "./SitesTableControls/SitesTableControls";
 
 import type { SitesQueryResult } from "@/api/types";
@@ -123,7 +124,7 @@ const SitesTable = ({
       },
       {
         id: "time",
-        accessorFn: createAccessor("timezone"),
+        accessorFn: createAccessor(["timezone"]),
         header: () => (
           <>
             <div>local time (24hr)</div>
@@ -148,7 +149,7 @@ const SitesTable = ({
         ),
         cell: ({ getValue }) => {
           const { stats } = getValue();
-          return getAllMachines(stats);
+          return stats ? getAllMachines(stats) : null;
         },
       },
       {
@@ -191,8 +192,6 @@ const SitesTable = ({
     enableRowSelection: true,
     enableMultiRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    enableColumnResizing: false,
-    columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
     debugTable: isDev,
     debugHeaders: isDev,
@@ -215,13 +214,6 @@ const SitesTable = ({
                 return (
                   <th className={`${header.column.id}`} colSpan={header.colSpan} key={header.id}>
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getCanResize() && (
-                      <div
-                        className={`resizer ${header.column.getIsResizing() ? "isResizing" : ""}`}
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                      ></div>
-                    )}
                   </th>
                 );
               })}
@@ -236,7 +228,10 @@ const SitesTable = ({
           <tbody>
             {table.getRowModel().rows.map((row) => {
               return (
-                <tr key={row.id}>
+                <tr
+                  className={classNames({ "sites-table-row--muted": row.original.stats?.connection === "unknown" })}
+                  key={row.id}
+                >
                   {row.getVisibleCells().map((cell) => {
                     return (
                       <td className={`${cell.column.id}`} key={cell.id}>

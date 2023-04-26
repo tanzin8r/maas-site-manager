@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/browser";
-import { parseISO } from "date-fns";
+import { formatDistanceToNowStrict, parseISO } from "date-fns";
 import { getTimezoneOffset, format, utcToZonedTime } from "date-fns-tz";
 import * as countries from "i18n-iso-countries";
 import { getName } from "i18n-iso-countries";
@@ -36,6 +36,11 @@ export const customParamSerializer = (params: Record<string, string | number>, q
   );
 };
 
+export const formatDistanceToNow = (dateString: string) =>
+  formatDistanceToNowStrict(parseISO(dateString), {
+    addSuffix: true,
+  });
+
 export const getTimezoneUTCString = (timezone: string, date?: Date | number) => {
   const offset = getTimezoneOffset(timezone, date);
   const sign = offset < 0 ? "-" : "+";
@@ -70,7 +75,7 @@ export const copyToClipboard = (text: string, callback?: (text: string) => void)
     });
 };
 
-export const getAllMachines = (stats?: Stats) => {
+export const getAllMachines = (stats: Stats) => {
   if (!stats) return null;
   return stats.deployed_machines + stats.allocated_machines + stats.ready_machines + stats.error_machines;
 };

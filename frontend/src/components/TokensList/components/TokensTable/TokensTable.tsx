@@ -135,13 +135,6 @@ const TokensTable = ({
             {headerGroup.headers.map((header) => (
               <th colSpan={header.colSpan} key={header.id}>
                 {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                {header.column.getCanResize() && (
-                  <div
-                    className={`resizer ${header.column.getIsResizing() ? "isResizing" : ""}`}
-                    onMouseDown={header.getResizeHandler()}
-                    onTouchStart={header.getResizeHandler()}
-                  ></div>
-                )}
               </th>
             ))}
           </tr>

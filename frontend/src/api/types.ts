@@ -16,14 +16,12 @@ export type Site = {
   id: string;
   name: string;
   url: string; // <full URL including protocol>,
-  connection: Stats["connection"];
-  last_seen: string; // <ISO 8601 date>,
   country: string; // <alpha2 country code>,
   city: string;
   zip: string;
   street: string;
   timezone: string; // IANA time zone name,
-  stats: Stats;
+  stats: Stats | null;
 };
 
 export type PaginatedQueryResult<D extends unknown> = {

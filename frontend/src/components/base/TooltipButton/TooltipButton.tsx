@@ -25,7 +25,7 @@ const TooltipButton = ({
       <Button
         appearance="link"
         aria-label={ariaLabel}
-        className="tooltip-button u-no-border u-no-line-height u-no-margin"
+        className="tooltip-button u-no-border u-no-padding u-no-margin u-align--left"
         hasIcon
         type="button"
         {...buttonProps}

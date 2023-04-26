@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 
 import { useReactTable, flexRender, getCoreRowModel, createColumnHelper } from "@tanstack/react-table";
-import type { Column, Getter, Row, ColumnDef } from "@tanstack/react-table";
+import type { Column, ColumnDef } from "@tanstack/react-table";
 
 import type { EnrollmentRequest } from "@/api/types";
 import docsUrls from "@/base/docsUrls";
@@ -32,11 +32,10 @@ const RequestsTable = ({
 
   const columns = useMemo<EnrollmentRequestsColumnDef[]>(
     () => [
-      {
+      columnHelper.accessor("name", {
         id: "select",
-        accessorKey: "name",
         header: ({ table }) => <SelectAllCheckbox table={table} />,
-        cell: ({ row, getValue }: { row: Row<EnrollmentRequest>; getValue: Getter<EnrollmentRequest["name"]> }) => {
+        cell: ({ row, getValue }) => {
           return (
             <label className="p-checkbox--inline">
               <input
@@ -53,7 +52,7 @@ const RequestsTable = ({
             </label>
           );
         },
-      },
+      }),
       columnHelper.accessor("name", {
         id: "name",
         header: () => <div>Name</div>,

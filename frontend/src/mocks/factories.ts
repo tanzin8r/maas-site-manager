@@ -1,28 +1,30 @@
 import Chance from "chance";
+import { sub } from "date-fns";
 import { Factory } from "fishery";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 
-import type { AccessToken, EnrollmentRequest, PaginatedQueryResult, Site, Token } from "@/api/types";
+import type { AccessToken, EnrollmentRequest, PaginatedQueryResult, Site, Stats, Token } from "@/api/types";
 
-export const connections: Site["connection"][] = ["stable", "lost", "unknown"];
+export const connections: Stats["connection"][] = ["stable", "lost", "unknown"];
 
-export const statsFactory = Factory.define<Site["stats"]>(({ sequence }) => {
+export const statsFactory = Factory.define<Stats>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
+  const now = new Date();
   return {
     deployed_machines: chance.integer({ min: 0, max: 500 }),
     allocated_machines: chance.integer({ min: 0, max: 500 }),
     ready_machines: chance.integer({ min: 0, max: 500 }),
     error_machines: chance.integer({ min: 0, max: 500 }),
-    last_seen: new Date(chance.date({ year: 2023 })).toISOString(),
+    last_seen: new Date(chance.date({ min: sub(now, { minutes: 15 }), max: now })).toISOString(),
     connection: connectionFactory.build(),
   };
 });
 
-export const connectionFactory = Factory.define<Site["connection"]>(({ sequence }) => {
+export const connectionFactory = Factory.define<Stats["connection"]>(({ sequence }) => {
   return uniqueNamesGenerator({
     dictionaries: [connections],
     seed: sequence,
-  }) as Site["connection"];
+  }) as Stats["connection"];
 });
 
 export const siteFactory = Factory.define<Site>(({ sequence }) => {
@@ -38,8 +40,6 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
     id: `${sequence}`,
     name,
     url: `http://${name}.${chance.tld()}`,
-    connection: connectionFactory.build(),
-    last_seen: new Date(chance.date({ year: 2023 })).toISOString(),
     country: chance.country(), // <alpha2 country code>,
     city: chance.city(),
     zip: chance.zip(),

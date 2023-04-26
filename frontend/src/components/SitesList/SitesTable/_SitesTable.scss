@@ -1,20 +1,27 @@
+$connection-status-icon-width: 1.5rem;
+
 .sites-table {
   thead th:first-child {
     width: 3rem;
   }
+  td.connection,
   th.connection {
-    padding-left: 1.5rem;
-  }
-  td.connection {
-    padding-left: 0;
     .connection__text {
-      padding-left: 1.5rem;
+      padding-left: $connection-status-icon-width;
+    }
+  }
+  .sites-table-row--muted {
+    td:not(.name) {
+      &,
+      .tooltip-button {
+        @extend %muted-text;
+      }
     }
   }
   .status-icon {
     display: inline-block;
     position: relative;
-    padding-left: 1.5rem;
+    padding-left: $connection-status-icon-width;
   }
   .status-icon::before {
     content: "\00B7";
