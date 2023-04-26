@@ -79,6 +79,15 @@ export const createMockGetTokensResolver =
     return res(ctx.json(response));
   };
 
+type DeleteTokensResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
+export const createMockDeleteTokensResolver = (): DeleteTokensResponseResolver => async (req, res, ctx) => {
+  const ids = req.body;
+  if (Array.isArray(ids) && ids.length > 0) {
+    return res(ctx.status(204));
+  }
+  return res(ctx.status(400));
+};
+
 export const createMockGetEnrollmentRequestsResolver =
   (enrollmentRequests = enrollmentRequestsList): TokensResponseResolver =>
   (req, res, ctx) => {
@@ -111,6 +120,7 @@ export const postLogin = rest.post(urls.login, createMockLoginResolver());
 export const getSites = rest.get(urls.sites, createMockSitesResolver());
 export const postTokens = rest.post(urls.tokens, createMockTokensResolver());
 export const getTokens = rest.get(urls.tokens, createMockGetTokensResolver());
+export const deleteTokens = rest.delete(urls.tokens, createMockDeleteTokensResolver());
 export const getEnrollmentRequests = rest.get(urls.enrollmentRequests, createMockGetEnrollmentRequestsResolver());
 export const patchEnrollmentRequests = rest.patch(urls.enrollmentRequests, createMockPostEnrollmentRequestsResolver());
 export const allResolvers = [getSites, postTokens, getTokens, getEnrollmentRequests, patchEnrollmentRequests];

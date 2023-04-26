@@ -7,6 +7,7 @@ import {
   getEnrollmentRequests,
   patchEnrollmentRequests,
   postTokens,
+  deleteTokens,
 } from "./resolvers";
 
 export const worker = setupWorker(
@@ -16,4 +17,5 @@ export const worker = setupWorker(
   getEnrollmentRequests,
   patchEnrollmentRequests,
   getTokens,
+  deleteTokens,
 );

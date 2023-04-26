@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { Input } from "@canonical/react-components";
-import type { ColumnDef, Column } from "@tanstack/react-table";
+import type { ColumnDef, Column, Row, Getter } from "@tanstack/react-table";
 import { flexRender, useReactTable, getCoreRowModel } from "@tanstack/react-table";
 import { format, formatDistanceStrict } from "date-fns";
 import pick from "lodash/fp/pick";
@@ -28,7 +27,13 @@ const TokensTable = ({
   isLoading,
 }: Pick<useTokensQueryResult, "data" | "isLoading" | "isFetchedAfterMount">) => {
   const [copiedText, setCopiedText] = useState("");
+  const { rowSelection, setRowSelection } = useAppContext();
   const isTokenCopied = useCallback((token: string) => token === copiedText, [copiedText]);
+
+  // clear table selection on unmount
+  useEffect(() => {
+    return () => setRowSelection({});
+  }, [setRowSelection]);
 
   const resetCopiedText = (timeout = 500) => {
     setTimeout(() => {
@@ -45,16 +50,22 @@ const TokensTable = ({
     () => [
       {
         id: "select",
+        accessorKey: "token",
         header: ({ table }) => <SelectAllCheckbox table={table} />,
-        cell: ({ row }) => (
-          <div>
-            <Input
-              checked={row.getIsSelected()}
-              disabled={!row.getCanSelect()}
-              onChange={row.getToggleSelectedHandler()}
+        cell: ({ row, getValue }: { row: Row<Token>; getValue: Getter<Token["token"]> }) => (
+          <label className="p-checkbox--inline">
+            <input
+              aria-label={`select ${getValue()}`}
+              className="p-checkbox__input"
               type="checkbox"
+              {...{
+                checked: row.getIsSelected(),
+                disabled: !row.getCanSelect(),
+                onChange: row.getToggleSelectedHandler(),
+              }}
             />
-          </div>
+            <span className="p-checkbox__label" />
+          </label>
         ),
       },
       {
@@ -100,12 +111,6 @@ const TokensTable = ({
     ],
     [handleTokenCopy, isTokenCopied],
   );
-  const { rowSelection, setRowSelection } = useAppContext();
-
-  // clear selection on unmount
-  useEffect(() => {
-    return () => setRowSelection({});
-  }, [setRowSelection]);
 
   const noItems = useMemo<Token[]>(() => [], []);
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
-import { Accordion, Button, Col, Row } from "@canonical/react-components";
+import { Accordion, Button, Col, Row, Notification } from "@canonical/react-components";
+import pluralize from "pluralize";
 import { Link } from "react-router-dom";
 
 import TokensTable from "./components/TokensTable/TokensTable";
@@ -10,18 +11,35 @@ import { routesConfig } from "@/base/routesConfig";
 import ExternalLink from "@/components/ExternalLink";
 import PaginationBar from "@/components/base/PaginationBar";
 import { useAppContext } from "@/context";
-import { useTokensQuery } from "@/hooks/api";
+import { useDeleteTokensMutation, useTokensQuery } from "@/hooks/api";
 import usePagination from "@/hooks/usePagination";
 
 const DEFAULT_PAGE_SIZE = 50;
 
 const TokensList = () => {
-  const { setSidebar, rowSelection } = useAppContext();
+  const { setSidebar, rowSelection, setRowSelection } = useAppContext();
   const [totalDataCount, setTotalDataCount] = useState(0);
+  const [deleteNotification, setDeleteNotification] = useState("");
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
     usePagination(DEFAULT_PAGE_SIZE, totalDataCount);
 
-  const { data, isLoading, isFetchedAfterMount } = useTokensQuery({ page: `${debouncedPage}`, size: `${size}` });
+  const { data, isLoading, isFetchedAfterMount, isSuccess } = useTokensQuery({
+    page: `${debouncedPage}`,
+    size: `${size}`,
+  });
+
+  const handleTokenDeleteSuccess = () => {
+    const deletedTokenCount = Object.keys(rowSelection).length;
+    setDeleteNotification(
+      `${deletedTokenCount === 1 ? "An" : ""} ${pluralize(
+        "enrollment token",
+        deletedTokenCount,
+        deletedTokenCount > 1,
+      )} ${deletedTokenCount === 1 ? "was" : "were"} deleted.`,
+    );
+    setRowSelection({});
+  };
+  const tokensDeleteMutation = useDeleteTokensMutation({ onSuccess: handleTokenDeleteSuccess });
 
   useEffect(() => {
     if (data && "total" in data) {
@@ -29,8 +47,22 @@ const TokensList = () => {
     }
   }, [data]);
 
+  const handleTokenDelete = () => {
+    const selectedIds = isSuccess ? Object.keys(rowSelection).map((_, idx) => data.items[idx].id) : [];
+    tokensDeleteMutation.mutate(selectedIds);
+  };
+
   return (
     <section className="tokens-list">
+      {deleteNotification ? (
+        <Row>
+          <Col size={12}>
+            <Notification severity="information" title="Deleted">
+              {deleteNotification}
+            </Notification>
+          </Col>
+        </Row>
+      ) : null}
       <header className="tokens-list-header" id="tokens-list-header">
         <Row>
           <Col size={12}>
@@ -80,7 +112,7 @@ const TokensList = () => {
           <Col size={12}>
             <div className="u-flex u-flex--justify-end">
               <Button disabled={!Object.keys(rowSelection).length}>Export</Button>
-              <Button appearance="negative" disabled={!Object.keys(rowSelection).length}>
+              <Button appearance="negative" disabled={!Object.keys(rowSelection).length} onClick={handleTokenDelete}>
                 Delete
               </Button>
               <Button className="p-button--positive" onClick={() => setSidebar("createToken")} type="button">

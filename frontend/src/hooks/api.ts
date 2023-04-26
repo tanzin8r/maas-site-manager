@@ -10,6 +10,7 @@ import type {
   PostLoginData,
 } from "@/api/handlers";
 import {
+  deleteTokens,
   postLogin,
   patchEnrollmentRequests,
   getEnrollmentRequests,
@@ -40,6 +41,9 @@ export const useTokensQuery = ({ page, size }: GetTokensQueryParams) =>
   });
 
 export const useTokensMutation = () => useMutation(postTokens);
+
+export const useDeleteTokensMutation = (options: UseMutationOptions<unknown, unknown, string[], unknown>) =>
+  useMutation(deleteTokens, options);
 
 export type UseEnrollmentRequestsQueryResult = ReturnType<typeof useRequestsQuery>;
 export const useRequestsQuery = ({ page, size }: GetEnrollmentRequestsQueryParams) =>

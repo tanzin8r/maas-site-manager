@@ -74,6 +74,17 @@ export const getTokens = async (params: GetTokensQueryParams) => {
   }
 };
 
+export const deleteTokens = async (data: string[]) => {
+  if (data.length === 0) {
+    throw Error("No tokens selected");
+  }
+  try {
+    await api.delete(urls.tokens, { data });
+  } catch (error) {
+    throw error;
+  }
+};
+
 export type GetEnrollmentRequestsQueryParams = PaginationParams & {};
 export const getEnrollmentRequests = async (params: GetEnrollmentRequestsQueryParams) => {
   try {
