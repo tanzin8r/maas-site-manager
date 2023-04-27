@@ -1,18 +1,14 @@
 .table-pagination {
   position: relative;
-  margin-right: $sph--x-large;
+  margin: 0 $sph--x-large 0 0;
+  display: flex;
+  gap: $sph--small;
+  align-items: center;
+  list-style: none;
+  padding: 0;
 
   @media screen and (max-width: $breakpoint-small) {
     margin-bottom: $spv--large;
-  }
-
-  ul {
-    display: flex;
-    gap: $sph--small;
-    align-items: center;
-    list-style: none;
-    margin: 0;
-    padding: 0;
   }
 
   button {

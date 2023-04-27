@@ -50,7 +50,7 @@ const TokensTable = ({
     () => [
       {
         id: "select",
-        accessorKey: "token",
+        accessorKey: "value",
         header: ({ table }) => <SelectAllCheckbox table={table} />,
         cell: ({ row, getValue }: { row: Row<Token>; getValue: Getter<Token["value"]> }) => (
           <label className="p-checkbox--inline">

@@ -61,43 +61,37 @@ const TablePagination = ({
 
   return (
     <nav aria-label="pagination" className="table-pagination">
-      <ul>
-        <li>
-          <Button
-            appearance="base"
-            aria-label="previous page"
-            disabled={currentPage === 1 || isLoading}
-            hasIcon
-            onClick={handlePreviousClick}
-          >
-            <Icon className="u__left-rotate" name="chevron-down" />
-          </Button>
-        </li>
-        <strong>Page</strong>
-        <Input
-          aria-label="current page"
-          className="current-page"
-          disabled={isLoading}
-          error={error}
-          min={1}
-          onBlur={handleInputBlur}
-          onChange={handlePageInput}
-          type="number"
-          value={pageNumber}
-        />
-        <strong className="u-no-wrap"> of {totalPages}</strong>
-        <li>
-          <Button
-            appearance="base"
-            aria-label="next page"
-            disabled={currentPage === totalPages || isLoading}
-            hasIcon
-            onClick={handleNextClick}
-          >
-            <Icon className="u__right-rotate" name="chevron-up" />
-          </Button>
-        </li>
-      </ul>
+      <Button
+        appearance="base"
+        aria-label="previous page"
+        disabled={currentPage === 1 || isLoading}
+        hasIcon
+        onClick={handlePreviousClick}
+      >
+        <Icon className="u__left-rotate" name="chevron-down" />
+      </Button>
+      <strong>Page</strong>
+      <Input
+        aria-label="current page"
+        className="current-page"
+        disabled={isLoading}
+        error={error}
+        min={1}
+        onBlur={handleInputBlur}
+        onChange={handlePageInput}
+        type="number"
+        value={pageNumber}
+      />
+      <strong className="u-no-wrap"> of {totalPages}</strong>
+      <Button
+        appearance="base"
+        aria-label="next page"
+        disabled={currentPage === totalPages || isLoading}
+        hasIcon
+        onClick={handleNextClick}
+      >
+        <Icon className="u__right-rotate" name="chevron-up" />
+      </Button>
     </nav>
   );
 };

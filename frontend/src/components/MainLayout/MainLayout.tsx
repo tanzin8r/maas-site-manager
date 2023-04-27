@@ -89,7 +89,7 @@ const MainLayout: React.FC = () => {
       <div className="l-application">
         <Navigation />
         <main className="l-main is-maas-site-manager">
-          <h1 className="u-hide">{getPageTitle(pathname as RoutePath)}</h1>
+          <h1 className="u-visually-hidden">{getPageTitle(pathname as RoutePath)}</h1>
           <div className={classNames("l-main__nav", { "is-open": isSideNavVisible })}>
             <SecondaryNavigation isOpen={!!isSideNavVisible} />
           </div>
