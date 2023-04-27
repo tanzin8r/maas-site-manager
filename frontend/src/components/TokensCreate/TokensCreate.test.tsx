@@ -67,7 +67,7 @@ it("can generate enrolment tokens", async () => {
   expect(tokensMutationMock).toHaveBeenCalledTimes(1);
   expect(tokensMutationMock).toHaveBeenCalledWith({
     amount: 1,
-    expires: "P0Y0M7DT0H0M0S",
+    expires: "P7DT0H0M0S",
   });
 });
 
