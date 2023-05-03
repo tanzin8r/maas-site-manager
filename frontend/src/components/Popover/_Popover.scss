@@ -2,6 +2,8 @@
   @extend %vf-bg--x-light;
   @extend %vf-has-box-shadow;
   @extend %vf-has-round-corners;
+
+  width: 13.5rem;
   z-index: 10;
 }
 %popover-grid {
@@ -9,10 +11,6 @@
   grid-column-gap: $sph--small;
   grid-template-columns: $sph--small 2rem auto;
   padding: $spv--small $spv--large;
-}
-
-.p-popover {
-  width: 13.5rem;
 }
 
 .p-popover__header {
@@ -25,11 +23,11 @@
 
 .p-popover__secondary {
   @extend %popover-grid;
+
   background: $color-light;
 }
 
 .p-popover__separator {
-  grid-column-start: 1;
-  grid-column-end: 4;
+  grid-column: 1 4;
   margin-top: $spv--small;
 }

@@ -1,4 +1,9 @@
 .tokens-table {
+  td,
+  th {
+    vertical-align: middle;
+  }
+
   thead th:first-child {
     width: 3rem;
   }
@@ -29,11 +34,6 @@
     thead th:nth-child(3) {
       width: auto;
     }
-  }
-
-  td,
-  th {
-    vertical-align: middle;
   }
 
   .token-cell {

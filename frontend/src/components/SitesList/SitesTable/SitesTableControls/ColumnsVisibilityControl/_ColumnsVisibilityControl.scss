@@ -1,16 +1,18 @@
 .columns-visibility-checkbox {
-  &:first-of-type label {
-    padding-top: $sph--small;
-  }
   label {
     padding: 0 $sph--large $sph--x-small $sph--large;
     width: 100%;
-    text-indent: 0
+    text-indent: 0;
+  }
+
+  &:first-of-type label {
+    padding-top: $sph--small;
   }
 }
 
 [class^="p-button"].has-icon.columns-visibility-toggle {
   @extend %vf-input-elements;
+
   padding-left: $spv--small;
   text-align: left;
   width: 100%;

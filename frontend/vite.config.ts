@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import AutoImport from "unplugin-auto-import/vite";
 import stylelint from "vite-plugin-stylelint";
+import autoprefixer from "autoprefixer";
 import dotenv from "dotenv";
 import * as path from "path";
 
@@ -23,6 +24,11 @@ export default defineConfig({
     }),
     stylelint(),
   ],
+  css: {
+    postcss: {
+      plugins: [autoprefixer()],
+    },
+  },
   server: { port: Number(process.env.VITE_UI_PORT) },
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },

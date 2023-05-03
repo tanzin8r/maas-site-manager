@@ -1,5 +1,5 @@
 $meter-height: $sp-unit * 1.75;
-$meter-height--small: $sp-unit * 1.5;
+$meter-height-small: $sp-unit * 1.5;
 
 .p-meter {
   margin-bottom: $sp-unit * 1.5;
@@ -40,8 +40,8 @@ $meter-height--small: $sp-unit * 1.5;
   padding-top: $sp-unit * 0.75;
 
   .p-meter__bar {
-    border-radius: $meter-height--small;
-    height: $meter-height--small;
+    border-radius: $meter-height-small;
+    height: $meter-height-small;
     margin-bottom: $sp-unit * 0.75;
   }
 

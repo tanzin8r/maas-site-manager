@@ -4,12 +4,14 @@ $connection-status-icon-width: 1.5rem;
   thead th:first-child {
     width: 3rem;
   }
+
   td.connection,
   th.connection {
     .connection__text {
       padding-left: $connection-status-icon-width;
     }
   }
+
   .sites-table-row--muted {
     td:not(.name) {
       &,
@@ -18,11 +20,13 @@ $connection-status-icon-width: 1.5rem;
       }
     }
   }
+
   .status-icon {
     display: inline-block;
     position: relative;
     padding-left: $connection-status-icon-width;
   }
+
   .status-icon::before {
     content: "\00B7";
     font-size: 5rem;
@@ -31,15 +35,19 @@ $connection-status-icon-width: 1.5rem;
     top: -6px;
     color: transparent;
   }
+
   .status-icon.is-lost::before {
     color: #c7162b;
   }
+
   .status-icon.is-stable::before {
     color: #0e8420;
   }
+
   .status-icon.is-unknown::before {
     color: #cdcdcd;
   }
+
   .p-checkbox.is-label-visually-hidden .p-checkbox__label {
     position: absolute;
     width: 1px;
