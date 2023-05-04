@@ -14,9 +14,10 @@ type Props = {
   hasIcons?: boolean;
   items: NavItem[];
   path: RoutePath;
+  onClick: () => void;
 };
 
-const NavigationItemGroup = ({ group, path }: { group: NavGroup } & Pick<Props, "path">) => {
+const NavigationItemGroup = ({ group, path, onClick }: { group: NavGroup } & Pick<Props, "path" | "onClick">) => {
   const id = useId();
   const hasActiveChild = useMemo(() => {
     for (const navLink of group.navLinks) {
@@ -44,7 +45,7 @@ const NavigationItemGroup = ({ group, path }: { group: NavGroup } & Pick<Props, 
         </span>
         <ul aria-labelledby={`${group.groupTitle}-${id}`} className="p-side-navigation__list">
           {group.navLinks.map((navLink, i) => (
-            <NavigationItem key={i} navLink={navLink} path={path} />
+            <NavigationItem key={i} navLink={navLink} onClick={onClick} path={path} />
           ))}
         </ul>
       </li>
@@ -52,14 +53,14 @@ const NavigationItemGroup = ({ group, path }: { group: NavGroup } & Pick<Props, 
   );
 };
 
-const NavigationList = ({ hideDivider = false, items, path, isDark, hasIcons }: Props): JSX.Element => {
+const NavigationList = ({ hideDivider = false, items, path, isDark, hasIcons, onClick }: Props): JSX.Element => {
   return (
     <div className={classNames({ "is-dark": isDark, "p-side-navigation--icons": hasIcons })}>
       <ul className={classNames("p-side-navigation__list", { "no-divider": hideDivider })}>
         {items.map((item, i) => {
           if (isNavGroup(item)) {
-            return <NavigationItemGroup group={item} key={`${i}-${item.groupTitle}`} path={path} />;
-          } else return <NavigationItem key={`${i}-${item.label}`} navLink={item} path={path} />;
+            return <NavigationItemGroup group={item} key={`${i}-${item.groupTitle}`} onClick={onClick} path={path} />;
+          } else return <NavigationItem key={`${i}-${item.label}`} navLink={item} onClick={onClick} path={path} />;
         })}
       </ul>
     </div>

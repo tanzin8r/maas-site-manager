@@ -38,6 +38,10 @@
 
       button {
         background-color: rgb(255 255 255 / 5%);
+
+        &.b-btn-transparent {
+          background-color: transparent;
+        }
       }
 
       @media only screen and (min-width: ($breakpoint-small + 1)) {

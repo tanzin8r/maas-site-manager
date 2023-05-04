@@ -11,6 +11,7 @@ import { Link } from "@/router";
 type Props = {
   navLink: NavLink;
   path: RoutePath;
+  onClick: () => void;
 };
 
 const LinkContent = ({ navLink }: { navLink: NavLink }) => (
@@ -26,12 +27,13 @@ const LinkContent = ({ navLink }: { navLink: NavLink }) => (
   </>
 );
 
-const NavigationItem = ({ navLink, path }: Props): JSX.Element => {
+const NavigationItem = ({ navLink, path, onClick }: Props): JSX.Element => {
   const id = useId();
   const linkProps = {
     className: "p-side-navigation__link",
     id: `${navLink.label}-${id}`,
     onClick: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+      onClick();
       // removing the focus from the link element after click
       // this allows the side navigation to collapse on mouseleave
       event.currentTarget.blur();

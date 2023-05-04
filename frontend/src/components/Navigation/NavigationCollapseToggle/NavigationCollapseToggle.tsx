@@ -19,7 +19,10 @@ const NavigationCollapseToggle = ({
       <Button
         appearance="base"
         aria-label={`${!isCollapsed ? "collapse" : "expand"} main navigation`}
-        className={classNames("is-dense has-icon is-dark u-no-margin l-navigation-collapse-toggle", className)}
+        className={classNames(
+          "is-dense has-icon is-dark u-no-margin l-navigation-collapse-toggle u-hide--small",
+          className,
+        )}
         onClick={(e) => {
           setIsCollapsed(!isCollapsed);
           // Make sure the button does not have focus

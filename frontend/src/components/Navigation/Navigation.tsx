@@ -7,6 +7,7 @@ import NavigationCollapseToggle from "./NavigationCollapseToggle";
 import NavigationList from "./NavigationList";
 import type { ExternalNavLink, LocalNavLink } from "./types";
 
+import BREAKPOINTS from "@/base/breakpoints";
 import { useLocation } from "@/router";
 
 export const navItems: LocalNavLink[] = [
@@ -48,6 +49,12 @@ const Navigation = ({ isLoggedIn }: NavProps): JSX.Element => {
     }
   }, [isLoggedIn, setIsCollapsed]);
 
+  const handleNavlinkClick = () => {
+    if (window.screen.width <= BREAKPOINTS.small) {
+      setIsCollapsed(true);
+    }
+  };
+
   return (
     <>
       <header aria-label="navigation" className="l-navigation-bar">
@@ -82,18 +89,38 @@ const Navigation = ({ isLoggedIn }: NavProps): JSX.Element => {
                 <NavigationBanner>
                   <div className="l-navigation__controls">
                     <NavigationCollapseToggle isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+                    <Button
+                      appearance="base"
+                      className="is-dark b-btn-transparent u-hide u-no-wrap u-show--small"
+                      onClick={(e) => {
+                        setIsCollapsed(!isCollapsed);
+                        // Make sure the button does not have focus
+                        // .l-navigation remains open with :focus-within
+                        e.stopPropagation();
+                        e.currentTarget.blur();
+                      }}
+                    >
+                      Close menu
+                    </Button>
                   </div>
                 </NavigationBanner>
               </div>
               {isLoggedIn && (
                 <div className="p-panel__content">
-                  <NavigationList hasIcons isDark items={navItems} path={path} />
-                  <NavigationList hasIcons isDark items={settingsNavItems} path={path} />
-                  <NavigationList hasIcons isDark items={navItemsAccount} path={path} />
+                  <NavigationList hasIcons isDark items={navItems} onClick={handleNavlinkClick} path={path} />
+                  <NavigationList hasIcons isDark items={settingsNavItems} onClick={handleNavlinkClick} path={path} />
+                  <NavigationList hasIcons isDark items={navItemsAccount} onClick={handleNavlinkClick} path={path} />
                 </div>
               )}
             </span>
-            <NavigationList hasIcons hideDivider isDark items={navItemsBottom} path={path} />
+            <NavigationList
+              hasIcons
+              hideDivider
+              isDark
+              items={navItemsBottom}
+              onClick={handleNavlinkClick}
+              path={path}
+            />
           </div>
         </div>
       </nav>
