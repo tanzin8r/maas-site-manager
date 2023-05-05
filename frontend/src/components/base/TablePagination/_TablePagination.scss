@@ -1,14 +1,14 @@
 .table-pagination {
   position: relative;
-  margin: 0 $sph--x-large 0 0;
+  margin: 0 $sph--x-large $spv--large 0;
   display: flex;
   gap: $sph--small;
   align-items: center;
   list-style: none;
   padding: 0;
 
-  @media screen and (max-width: $breakpoint-small) {
-    margin-bottom: $spv--large;
+  @media screen and (min-width: $breakpoint-small) {
+    margin-bottom: 0;
   }
 
   button {

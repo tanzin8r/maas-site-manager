@@ -5,18 +5,16 @@
   padding: $spv--small 0;
   margin-bottom: $spv--large;
 
-  @media screen and (max-width: $breakpoint-small) {
-    padding-bottom: $spv--small;
-  }
-
   .pagination-bar__description {
     margin: 0;
     padding: 0;
   }
 
   .pagination-bar__right {
-    @media screen and (max-width: $breakpoint-small) {
-      width: 100%;
+    width: 100%;
+
+    @media screen and (min-width: $breakpoint-small) {
+      width: auto;
     }
   }
 
