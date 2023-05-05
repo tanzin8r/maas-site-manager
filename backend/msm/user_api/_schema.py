@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from ..db.models import (
+    PendingSite,
     Site,
     Token,
 )
@@ -32,6 +33,10 @@ class CreateTokensResponse(BaseModel):
 
 class PaginatedSites(PaginatedResults):
     items: list[Site]
+
+
+class PaginatedPendingSites(PaginatedResults):
+    items: list[PendingSite]
 
 
 class PaginatedTokens(PaginatedResults):

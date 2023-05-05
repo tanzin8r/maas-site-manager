@@ -37,13 +37,16 @@ def create_app(db_dsn: str | None = None) -> FastAPI:
     )
     app.state.db = db
     app.router.add_api_route("/", _handlers.root, methods=["GET"])
+    app.router.add_api_route(
+        "/login", _handlers.login_for_access_token, methods=["POST"]
+    )
+    app.router.add_api_route(
+        "/requests", _handlers.pending_sites, methods=["GET"]
+    )
     app.router.add_api_route("/sites", _handlers.sites, methods=["GET"])
     app.router.add_api_route("/tokens", _handlers.tokens, methods=["GET"])
     app.router.add_api_route(
         "/tokens", _handlers.tokens_post, methods=["POST"]
-    )
-    app.router.add_api_route(
-        "/login", _handlers.login_for_access_token, methods=["POST"]
     )
     app.router.add_api_route(
         "/users/me", _handlers.read_users_me, methods=["GET"]

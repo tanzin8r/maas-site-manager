@@ -244,6 +244,52 @@ async def test_list_sites_with_stats(
 
 
 @pytest.mark.asyncio
+async def test_list_pending_sites(
+    authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
+) -> None:
+    site1 = {
+        "name": "LondonHQ",
+        "city": "London",
+        "country": "gb",
+        "latitude": "51.509865",
+        "longitude": "-0.118092",
+        "note": "the first site",
+        "region": "Blue Fin Bldg",
+        "street": "110 Southwark St",
+        "timezone": "Europe/London",
+        "url": "https://londoncalling.example.com",
+        "accepted": True,
+    }
+    site2 = site1.copy()
+    site2.update(
+        {
+            "name": "BerlinHQ",
+            "timezone": "Europe/Berlin",
+            "city": "Berlin",
+            "country": "de",
+            "accepted": False,
+        }
+    )
+    _, pending_site = await fixture.create("site", [site1, site2])
+
+    response = await authenticated_user_app_client.get("/requests")
+    assert response.status_code == 200
+    assert response.json() == {
+        "page": 1,
+        "size": 20,
+        "total": 1,
+        "items": [
+            {
+                "id": pending_site["id"],
+                "name": pending_site["name"],
+                "url": pending_site["url"],
+                "created": pending_site["created"].isoformat(),
+            },
+        ],
+    }
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("time_format", ["ISO 8601", "Float"])
 async def test_token_time_format(
     time_format: str, authenticated_user_app_client: AuthAsyncClient

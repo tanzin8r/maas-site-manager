@@ -32,6 +32,7 @@ from ._schema import (
     CreateTokensRequest,
     CreateTokensResponse,
     JSONWebToken,
+    PaginatedPendingSites,
     PaginatedSites,
     PaginatedTokens,
     UserLoginRequest,
@@ -49,15 +50,33 @@ async def sites(
     pagination_params: PaginationParams = Depends(pagination_params),
     filter_params: SiteFilterParams = Depends(site_filter_parameters),
 ) -> PaginatedSites:
-    """Return all sites."""
-    total, results = await queries.get_filtered_sites(
+    """Return accepted sites."""
+    total, results = await queries.get_sites(
         session,
         offset=pagination_params.offset,
         limit=pagination_params.size,
-        accepted=True,  # only list accepted sites here
         **filter_params._asdict(),
     )
     return PaginatedSites(
+        total=total,
+        page=pagination_params.page,
+        size=pagination_params.size,
+        items=list(results),
+    )
+
+
+async def pending_sites(
+    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    session: AsyncSession = Depends(db_session),
+    pagination_params: PaginationParams = Depends(pagination_params),
+) -> PaginatedPendingSites:
+    """Return pending sites."""
+    total, results = await queries.get_pending_sites(
+        session,
+        offset=pagination_params.offset,
+        limit=pagination_params.size,
+    )
+    return PaginatedPendingSites(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,

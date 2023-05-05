@@ -28,6 +28,7 @@ from ._tables import (
     User,
 )
 from .models import (
+    PendingSite as PendingSiteSchema,
     Site as SiteSchema,
     Token as TokenSchema,
     UserWithPassword as UserWithPasswordSchema,
@@ -97,7 +98,7 @@ def filters_from_arguments(
     ]
 
 
-async def get_filtered_sites(
+async def get_sites(
     session: AsyncSession,
     offset: int = 0,
     limit: int = MAX_PAGE_SIZE,
@@ -109,7 +110,6 @@ async def get_filtered_sites(
     street: list[str] | None = None,
     timezone: list[str] | None = None,
     url: list[str] | None = None,
-    accepted: bool | None = None,
 ) -> tuple[int, Iterable[SiteSchema]]:
     filters = filters_from_arguments(
         Site,
@@ -122,8 +122,7 @@ async def get_filtered_sites(
         timezone=timezone,
         url=url,
     )
-    if accepted is not None:
-        filters.append(Site.c.accepted == accepted)
+    filters.append(Site.c.accepted == True)  # noqa
     count = (
         await session.execute(
             select(func.count())
@@ -173,6 +172,34 @@ async def get_filtered_sites(
     )
     result = await session.execute(stmt)
     return count, [SiteSchema(**row._asdict()) for row in result.all()]
+
+
+async def get_pending_sites(
+    session: AsyncSession,
+    offset: int = 0,
+    limit: int = MAX_PAGE_SIZE,
+) -> tuple[int, Iterable[PendingSiteSchema]]:
+    filters = [Site.c.accepted == False]  # noqa
+    count = (
+        await session.execute(
+            select(func.count()).select_from(Site).where(*filters)
+        )
+    ).scalar() or 0
+    stmt = (
+        select(
+            Site.c.id,
+            Site.c.name,
+            Site.c.url,
+            Site.c.created,
+        )
+        .select_from(Site)
+        .where(*filters)
+        .order_by(Site.c.id)
+        .limit(limit)
+        .offset(offset)
+    )
+    result = await session.execute(stmt)
+    return count, [PendingSiteSchema(**row._asdict()) for row in result.all()]
 
 
 async def get_tokens(

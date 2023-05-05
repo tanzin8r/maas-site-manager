@@ -38,6 +38,15 @@ class Site(BaseModel):
     stats: SiteData | None
 
 
+class PendingSite(BaseModel):
+    """A pending MAAS site."""
+
+    id: int
+    name: str
+    url: str
+    created: datetime
+
+
 class Token(BaseModel):
     """A registration token for a site."""
 
