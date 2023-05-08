@@ -48,7 +48,7 @@ async def test_root_as_auth(
 
 
 @pytest.mark.asyncio
-async def test_list_sites(
+async def test_sites_get(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site1 = {
@@ -108,7 +108,7 @@ async def test_list_sites(
 
 
 @pytest.mark.asyncio
-async def test_list_sites_only_accepted(
+async def test_sites_get_only_accepted(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site1 = {
@@ -150,7 +150,7 @@ async def test_list_sites_only_accepted(
 
 
 @pytest.mark.asyncio
-async def test_list_sites_filter_timezone(
+async def test_sites_get_filter_timezone(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site1 = {
@@ -192,7 +192,7 @@ async def test_list_sites_filter_timezone(
 
 
 @pytest.mark.asyncio
-async def test_list_sites_with_stats(
+async def test_sites_get_with_stats(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     [site] = await fixture.create(
@@ -244,7 +244,7 @@ async def test_list_sites_with_stats(
 
 
 @pytest.mark.asyncio
-async def test_list_pending_sites(
+async def test_pending_sites_get(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site1 = {
@@ -290,7 +290,7 @@ async def test_list_pending_sites(
 
 
 @pytest.mark.asyncio
-async def test_accept_pending_sites(
+async def test_pending_sites_post_accept(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site = {
@@ -310,7 +310,7 @@ async def test_accept_pending_sites(
 
 
 @pytest.mark.asyncio
-async def test_reject_pending_sites(
+async def test_pending_sites_post_reject(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site = {
@@ -329,7 +329,7 @@ async def test_reject_pending_sites(
 
 
 @pytest.mark.asyncio
-async def test_post_pending_sites_invalid_ids(
+async def test_pending_sites_post_invalid_ids(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     site = {
@@ -371,7 +371,7 @@ async def test_token_time_format(
 
 
 @pytest.mark.asyncio
-async def test_list_tokens(
+async def test_tokens_get(
     authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
 ) -> None:
     tokens = await fixture.create(
@@ -410,7 +410,7 @@ async def test_list_tokens(
 
 
 @pytest.mark.asyncio
-async def test_login_fails_with_wrong_password(
+async def test_login_post_fails_with_wrong_password(
     user_app_client: AsyncClient, fixture: Fixture
 ) -> None:
     phash = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
@@ -435,7 +435,7 @@ async def test_login_fails_with_wrong_password(
 
 
 @pytest.mark.asyncio
-async def test_sites_fails_without_login(
+async def test_sites_get_unauthenticated(
     user_app_client: AsyncClient, fixture: Fixture
 ) -> None:
     site = [
@@ -459,7 +459,7 @@ async def test_sites_fails_without_login(
 
 
 @pytest.mark.asyncio
-async def test_token_fails_without_login(user_app_client: AsyncClient) -> None:
+async def test_token_get_unauthenticated(user_app_client: AsyncClient) -> None:
     seconds = 100
 
     response = await user_app_client.post(

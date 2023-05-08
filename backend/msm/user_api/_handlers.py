@@ -4,11 +4,11 @@ from typing import Annotated
 from fastapi import (
     Depends,
     HTTPException,
+    Request,
     status,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import __version__
 from ..db import (
     db_session,
     queries,
@@ -30,28 +30,29 @@ from ._jwt import (
     get_authenticated_user,
 )
 from ._schema import (
-    CreateTokensRequest,
-    CreateTokensResponse,
-    JSONWebToken,
-    PaginatedPendingSites,
-    PaginatedSites,
-    PaginatedTokens,
-    PendingSitesActionRequest,
-    UserLoginRequest,
+    LoginPostRequest,
+    LoginPostResponse,
+    PendingSitesGetResponse,
+    PendingSitesPostRequest,
+    RootGetResponse,
+    SitesGetResponse,
+    TokensGetResponse,
+    TokensPostRequest,
+    TokensPostResponse,
 )
 
 
-async def root() -> dict[str, str]:
+async def root_get(request: Request) -> RootGetResponse:
     """Root endpoint."""
-    return {"version": __version__}
+    return RootGetResponse(version=request.app.version)
 
 
-async def sites(
+async def sites_get(
     session: Annotated[AsyncSession, Depends(db_session)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
     filter_params: SiteFilterParams = Depends(site_filter_parameters),
-) -> PaginatedSites:
+) -> SitesGetResponse:
     """Return accepted sites."""
     total, results = await queries.get_sites(
         session,
@@ -59,7 +60,7 @@ async def sites(
         limit=pagination_params.size,
         **filter_params._asdict(),
     )
-    return PaginatedSites(
+    return SitesGetResponse(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,
@@ -67,18 +68,18 @@ async def sites(
     )
 
 
-async def pending_sites(
+async def pending_sites_get(
     session: Annotated[AsyncSession, Depends(db_session)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
-) -> PaginatedPendingSites:
+) -> PendingSitesGetResponse:
     """Return pending sites."""
     total, results = await queries.get_pending_sites(
         session,
         offset=pagination_params.offset,
         limit=pagination_params.size,
     )
-    return PaginatedPendingSites(
+    return PendingSitesGetResponse(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,
@@ -89,7 +90,7 @@ async def pending_sites(
 async def pending_sites_post(
     session: Annotated[AsyncSession, Depends(db_session)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
-    action: PendingSitesActionRequest,
+    action: PendingSitesPostRequest,
 ) -> None:
     """Accept or reject pending sites."""
     try:
@@ -107,16 +108,16 @@ async def pending_sites_post(
     return None
 
 
-async def tokens(
+async def tokens_get(
     session: Annotated[AsyncSession, Depends(db_session)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
-) -> PaginatedTokens:
+) -> TokensGetResponse:
     """Return all tokens"""
     total, results = await queries.get_tokens(
         session, pagination_params.offset, pagination_params.size
     )
-    return PaginatedTokens(
+    return TokensGetResponse(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,
@@ -127,8 +128,8 @@ async def tokens(
 async def tokens_post(
     session: Annotated[AsyncSession, Depends(db_session)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
-    create_request: CreateTokensRequest,
-) -> CreateTokensResponse:
+    create_request: TokensPostRequest,
+) -> TokensPostResponse:
     """
     Create one or more tokens.
     Token duration (TTL) is expressed in seconds.
@@ -138,13 +139,13 @@ async def tokens_post(
         create_request.duration,
         count=create_request.count,
     )
-    return CreateTokensResponse(expired=expired, tokens=tokens)
+    return TokensPostResponse(expired=expired, tokens=tokens)
 
 
-async def login_for_access_token(
+async def login_post(
     session: Annotated[AsyncSession, Depends(db_session)],
-    user_login: UserLoginRequest,
-) -> JSONWebToken:
+    user_login: LoginPostRequest,
+) -> LoginPostResponse:
     user = await authenticate_user(
         session, user_login.username, user_login.password
     )
@@ -160,11 +161,12 @@ async def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return JSONWebToken(access_token=access_token, token_type="bearer")
+    return LoginPostResponse(access_token=access_token, token_type="bearer")
 
 
-async def read_users_me(
+async def users_me_get(
     session: Annotated[AsyncSession, Depends(db_session)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
 ) -> User:
+    """Render info about the authenticated user."""
     return authenticated_user

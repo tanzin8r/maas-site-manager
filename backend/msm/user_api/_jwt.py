@@ -24,7 +24,6 @@ from ..db import db_session
 from ..db.models import UserWithPassword
 from ..db.queries import get_user
 from ..settings import SETTINGS
-from ._schema import JSONWebTokenData
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -80,13 +79,12 @@ async def get_authenticated_user(
         payload = jwt.decode(
             token, SETTINGS.secret_key, algorithms=[SETTINGS.algorithm]
         )
-        email: str | None = payload.get("sub")
+        email = payload.get("sub")
         if email is None:
             raise credentials_exception
-        token_data = JSONWebTokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = await get_user(session, email=token_data.email)
+    user = await get_user(session, email=email)
     if user is None:
         raise credentials_exception
     return user

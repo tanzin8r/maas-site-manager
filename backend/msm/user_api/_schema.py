@@ -14,7 +14,19 @@ from ..db.models import (
 from ..schema import PaginatedResults
 
 
-class CreateTokensRequest(BaseModel):
+class RootGetResponse(BaseModel):
+    """Root handler response."""
+
+    version: str
+
+
+class TokensGetResponse(PaginatedResults):
+    """List of existing tokens."""
+
+    items: list[Token]
+
+
+class TokensPostRequest(BaseModel):
     """
     Request to create one or more tokens, with a certain validity,
     expressed in seconds.
@@ -24,51 +36,37 @@ class CreateTokensRequest(BaseModel):
     duration: timedelta
 
 
-class CreateTokensResponse(BaseModel):
+class TokensPostResponse(BaseModel):
     """List of created tokens, along with their duration."""
 
     expired: datetime
     tokens: list[UUID]
 
 
-class PendingSitesActionRequest(BaseModel):
+class SitesGetResponse(PaginatedResults):
+    items: list[Site]
+
+
+class PendingSitesGetResponse(PaginatedResults):
+    items: list[PendingSite]
+
+
+class PendingSitesPostRequest(BaseModel):
     """Request to accept/reject sites."""
 
     ids: list[int]
     accept: bool
 
 
-class PaginatedSites(PaginatedResults):
-    items: list[Site]
-
-
-class PaginatedPendingSites(PaginatedResults):
-    items: list[PendingSite]
-
-
-class PaginatedTokens(PaginatedResults):
-    items: list[Token]
-
-
-class UserLoginRequest(BaseModel):
+class LoginPostRequest(BaseModel):
     """User login request schema."""
 
     username: str
     password: str
 
 
-class JSONWebToken(BaseModel):
-    """
-    A JSON Web Token for authenticating users.
-    """
+class LoginPostResponse(BaseModel):
+    """User login response with JSON Web Token."""
 
     access_token: str
     token_type: str
-
-
-class JSONWebTokenData(BaseModel):
-    """
-    The payload data for a JWT Token
-    """
-
-    email: str

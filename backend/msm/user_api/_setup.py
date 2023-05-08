@@ -36,12 +36,10 @@ def create_app(db_dsn: str | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     app.state.db = db
-    app.router.add_api_route("/", _handlers.root, methods=["GET"])
+    app.router.add_api_route("/", _handlers.root_get, methods=["GET"])
+    app.router.add_api_route("/login", _handlers.login_post, methods=["POST"])
     app.router.add_api_route(
-        "/login", _handlers.login_for_access_token, methods=["POST"]
-    )
-    app.router.add_api_route(
-        "/requests", _handlers.pending_sites, methods=["GET"]
+        "/requests", _handlers.pending_sites_get, methods=["GET"]
     )
     app.router.add_api_route(
         "/requests",
@@ -49,12 +47,12 @@ def create_app(db_dsn: str | None = None) -> FastAPI:
         methods=["POST"],
         status_code=204,
     )
-    app.router.add_api_route("/sites", _handlers.sites, methods=["GET"])
-    app.router.add_api_route("/tokens", _handlers.tokens, methods=["GET"])
+    app.router.add_api_route("/sites", _handlers.sites_get, methods=["GET"])
+    app.router.add_api_route("/tokens", _handlers.tokens_get, methods=["GET"])
     app.router.add_api_route(
         "/tokens", _handlers.tokens_post, methods=["POST"]
     )
     app.router.add_api_route(
-        "/users/me", _handlers.read_users_me, methods=["GET"]
+        "/users/me", _handlers.users_me_get, methods=["GET"]
     )
     return app
