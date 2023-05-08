@@ -8,7 +8,6 @@ from operator import or_
 from typing import Any
 from uuid import UUID
 
-# from passlib.context import CryptContext
 from sqlalchemy import (
     case,
     ColumnOperators,
@@ -21,6 +20,7 @@ from sqlalchemy import (
     update,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import FromClause
 
 from ..schema import MAX_PAGE_SIZE
 from ._tables import (
@@ -43,6 +43,18 @@ class InvalidPendingSites(Exception):
     def __init__(self, ids: Iterable[int]):
         self.ids = sorted(ids)
         super().__init__("Unknown pending sites")
+
+
+async def row_count(
+    session: AsyncSession, what: FromClause, *filters: ColumnOperators
+) -> int:
+    """Count specified entries."""
+    stmt = (
+        select(func.count())
+        .select_from(what)
+        .where(*filters)  # type: ignore[arg-type]
+    )
+    return (await session.execute(stmt)).scalar() or 0
 
 
 async def get_user(
@@ -133,13 +145,7 @@ async def get_sites(
         url=url,
     )
     filters.append(Site.c.accepted == True)  # noqa
-    count = (
-        await session.execute(
-            select(func.count())
-            .select_from(Site)
-            .where(*filters)  # type: ignore[arg-type]
-        )
-    ).scalar() or 0
+    count = await row_count(session, Site, *filters)
     stmt = (
         select(
             Site.c.id,
@@ -190,11 +196,7 @@ async def get_pending_sites(
     limit: int = MAX_PAGE_SIZE,
 ) -> tuple[int, Iterable[PendingSiteSchema]]:
     filters = [Site.c.accepted == False]  # noqa
-    count = (
-        await session.execute(
-            select(func.count()).select_from(Site).where(*filters)
-        )
-    ).scalar() or 0
+    count = await row_count(session, Site, *filters)
     stmt = (
         select(
             Site.c.id,
@@ -245,9 +247,7 @@ async def get_tokens(
     offset: int = 0,
     limit: int = MAX_PAGE_SIZE,
 ) -> tuple[int, Iterable[TokenSchema]]:
-    count = (
-        await session.execute(select(func.count()).select_from(Token))
-    ).scalar() or 0
+    count = await row_count(session, Token)
     result = await session.execute(
         select(
             Token.c.id,
