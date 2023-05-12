@@ -12,7 +12,7 @@ import type {
 import {
   deleteTokens,
   postLogin,
-  patchEnrollmentRequests,
+  postEnrollmentRequests,
   getEnrollmentRequests,
   postTokens,
   getSites,
@@ -104,7 +104,7 @@ export const useEnrollmentRequestsMutation = (
   options: UseMutationOptions<unknown, unknown, PostEnrollmentRequestsData, unknown>,
 ) => {
   const queryClient = useQueryClient();
-  return useMutation(patchEnrollmentRequests, {
+  return useMutation(postEnrollmentRequests, {
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ["requests"] });
       options?.onSuccess?.(...args);

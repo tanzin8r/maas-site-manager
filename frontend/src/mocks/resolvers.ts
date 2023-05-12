@@ -122,5 +122,5 @@ export const postTokens = rest.post(urls.tokens, createMockTokensResolver());
 export const getTokens = rest.get(urls.tokens, createMockGetTokensResolver());
 export const deleteTokens = rest.delete(urls.tokens, createMockDeleteTokensResolver());
 export const getEnrollmentRequests = rest.get(urls.enrollmentRequests, createMockGetEnrollmentRequestsResolver());
-export const patchEnrollmentRequests = rest.patch(urls.enrollmentRequests, createMockPostEnrollmentRequestsResolver());
-export const allResolvers = [getSites, postTokens, getTokens, getEnrollmentRequests, patchEnrollmentRequests];
+export const postEnrollmentRequests = rest.post(urls.enrollmentRequests, createMockPostEnrollmentRequestsResolver());
+export const allResolvers = [getSites, postTokens, getTokens, getEnrollmentRequests, postEnrollmentRequests];

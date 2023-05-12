@@ -100,12 +100,12 @@ export type PostEnrollmentRequestsData = {
   ids: string[];
   accept: boolean;
 };
-export const patchEnrollmentRequests = async (data: PostEnrollmentRequestsData) => {
+export const postEnrollmentRequests = async (data: PostEnrollmentRequestsData) => {
   if (!data?.ids || typeof data?.accept !== "boolean") {
     throw Error("Missing required fields");
   }
   try {
-    const response = await api.patch(urls.enrollmentRequests, data);
+    const response = await api.post(urls.enrollmentRequests, data);
     return response.data;
   } catch (error) {
     throw error;

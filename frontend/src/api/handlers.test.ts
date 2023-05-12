@@ -1,11 +1,11 @@
 import { setupServer } from "msw/node";
 
-import { patchEnrollmentRequests, postTokens } from "./handlers";
+import { postEnrollmentRequests, postTokens } from "./handlers";
 
 import { durationFactory } from "@/mocks/factories";
 import {
   postTokens as postTokensResolver,
-  patchEnrollmentRequests as postEnrollmentRequestsResolver,
+  postEnrollmentRequests as postEnrollmentRequestsResolver,
 } from "@/mocks/resolvers";
 
 const mockServer = setupServer(postTokensResolver, postEnrollmentRequestsResolver);
@@ -35,8 +35,8 @@ describe("postTokens handler", () => {
 describe("postEnrollmentRequests handler", () => {
   it("requires ids and accept values", async () => {
     // @ts-expect-error
-    await expect(patchEnrollmentRequests({})).rejects.toThrowError();
-    await expect(patchEnrollmentRequests({ ids: [], accept: false })).resolves.toEqual("");
-    await expect(patchEnrollmentRequests({ ids: [], accept: true })).resolves.toEqual("");
+    await expect(postEnrollmentRequests({})).rejects.toThrowError();
+    await expect(postEnrollmentRequests({ ids: [], accept: false })).resolves.toEqual("");
+    await expect(postEnrollmentRequests({ ids: [], accept: true })).resolves.toEqual("");
   });
 });
