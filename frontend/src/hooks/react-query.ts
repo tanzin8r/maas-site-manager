@@ -29,14 +29,13 @@ import type {
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 
-// 30 seconds
-const defaultRefetchInterval = 30 * 1000;
+const refetchInterval = Number(import.meta.env.VITE_POLLING_INTERVAL_MS);
 export const useSitesQuery = ({ page, size }: GetSitesQueryParams, queryText?: string) =>
   useQuery<SitesQueryResult>({
     queryKey: ["sites", page, size, queryText],
     queryFn: () => getSites({ page, size }, queryText),
     keepPreviousData: true,
-    refetchInterval: defaultRefetchInterval,
+    refetchInterval,
   });
 
 // return single site data from query cache
@@ -89,7 +88,7 @@ export const useRequestsQuery = ({ page, size }: GetEnrollmentRequestsQueryParam
     queryKey: ["requests", page, size],
     queryFn: () => getEnrollmentRequests({ page, size }),
     keepPreviousData: true,
-    refetchInterval: defaultRefetchInterval,
+    refetchInterval,
   });
 
 export const useRequestsCountQuery = () =>
@@ -97,7 +96,7 @@ export const useRequestsCountQuery = () =>
     queryKey: ["requests", "1", "1"],
     queryFn: () => getEnrollmentRequests({ page: "1", size: "1" }),
     keepPreviousData: true,
-    refetchInterval: defaultRefetchInterval,
+    refetchInterval,
   });
 
 export const useEnrollmentRequestsMutation = (
