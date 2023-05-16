@@ -1,10 +1,9 @@
 import type { Stats } from "@/api/types";
 import Meter, { color } from "@/components/Meter";
 import Popover from "@/components/Popover/Popover";
-import { getAllMachines } from "@/utils";
 
 const AggregatedStatus = ({ stats }: { stats: Stats }) => {
-  const { deployed_machines, allocated_machines, ready_machines, error_machines } = stats;
+  const { deployed_machines, allocated_machines, ready_machines, error_machines, total_machines } = stats;
   return (
     <>
       <div>
@@ -51,7 +50,7 @@ const AggregatedStatus = ({ stats }: { stats: Stats }) => {
               { color: color.link, value: allocated_machines },
               { color: color.linkFaded, value: ready_machines },
             ]}
-            label={`${deployed_machines} of ${getAllMachines(stats)} deployed`}
+            label={`${deployed_machines} of ${total_machines} deployed`}
             labelClassName="u-text--muted"
             small
           />

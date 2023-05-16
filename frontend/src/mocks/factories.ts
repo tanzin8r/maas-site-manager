@@ -10,11 +10,15 @@ export const connections: Stats["connection"][] = ["stable", "lost", "unknown"];
 export const statsFactory = Factory.define<Stats>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
   const now = new Date();
-  return {
+  const machines = {
     deployed_machines: chance.integer({ min: 0, max: 500 }),
     allocated_machines: chance.integer({ min: 0, max: 500 }),
     ready_machines: chance.integer({ min: 0, max: 500 }),
     error_machines: chance.integer({ min: 0, max: 500 }),
+  };
+  return {
+    ...machines,
+    total_machines: Object.values(machines).reduce((acc, val) => acc + val, 0),
     last_seen: new Date(chance.date({ min: sub(now, { minutes: 15 }), max: now })).toISOString(),
     connection: connectionFactory.build(),
   };

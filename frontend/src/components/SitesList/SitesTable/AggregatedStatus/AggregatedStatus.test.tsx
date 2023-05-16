@@ -7,6 +7,7 @@ it("displays correct number of deployed machines", async () => {
   render(
     <AggregatedStats
       stats={statsFactory.build({
+        total_machines: 1000,
         deployed_machines: 100,
         allocated_machines: 200,
         ready_machines: 300,

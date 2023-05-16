@@ -8,6 +8,7 @@ export type Stats = {
   deployed_machines: number;
   ready_machines: number;
   error_machines: number;
+  total_machines: number;
   last_seen: string; // <ISO 8601 date string>
   connection: "stable" | "lost" | "unknown";
 };

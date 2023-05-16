@@ -5,8 +5,6 @@ import * as countries from "i18n-iso-countries";
 import { getName } from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
 
-import type { Stats } from "./api/types";
-
 if (typeof window !== "undefined") {
   countries.registerLocale(en);
 }
@@ -73,9 +71,4 @@ export const copyToClipboard = (text: string, callback?: (text: string) => void)
     .catch((error) => {
       Sentry.captureException(new Error("copy to clipboard failed", { cause: error }));
     });
-};
-
-export const getAllMachines = (stats: Stats) => {
-  if (!stats) return null;
-  return stats.deployed_machines + stats.allocated_machines + stats.ready_machines + stats.error_machines;
 };

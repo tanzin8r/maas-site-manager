@@ -21,7 +21,7 @@ import TooltipButton from "@/components/base/TooltipButton/TooltipButton";
 import { isDev } from "@/constants";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { UseSitesQueryResult } from "@/hooks/react-query";
-import { getAllMachines, getCountryName, getTimezoneUTCString, getTimeInTimezone } from "@/utils";
+import { getCountryName, getTimezoneUTCString, getTimeInTimezone } from "@/utils";
 
 const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>
@@ -172,7 +172,7 @@ const SitesTable = ({
         ),
         cell: ({ getValue }) => {
           const { stats } = getValue();
-          return stats ? getAllMachines(stats) : null;
+          return stats ? stats.total_machines : null;
         },
       },
       {
