@@ -6,7 +6,7 @@ import { Field, Form, Formik } from "formik";
 import pluralize from "pluralize";
 import * as Yup from "yup";
 
-import { useAppContext } from "@/context";
+import { useAppContext, useRowSelectionContext } from "@/context";
 import { useSiteQueryData } from "@/hooks/react-query";
 
 const initialValues = {
@@ -34,7 +34,7 @@ const createHandleValidate =
   };
 
 const RemoveRegions = () => {
-  const { rowSelection } = useAppContext();
+  const { rowSelection } = useRowSelectionContext("sites");
   const { setSidebar } = useAppContext();
   const regionsCount = rowSelection && Object.keys(rowSelection).length;
   const id = useId();

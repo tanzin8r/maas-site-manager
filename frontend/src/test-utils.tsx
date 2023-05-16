@@ -6,7 +6,7 @@ import type { RenderOptions, RenderResult } from "@testing-library/react";
 import { screen, render } from "@testing-library/react";
 
 import apiClient from "@/api";
-import { AppContextProvider, AuthContextProvider } from "@/context";
+import { AppContextProvider, AuthContextProvider, RowSelectionContextProviders } from "@/context";
 import type { MemoryRouterProps } from "@/router";
 import { MemoryRouter } from "@/router";
 
@@ -30,7 +30,9 @@ const makeProvidersWithMemoryRouter =
       <Providers>
         <MemoryRouter {...memoryRouterProps}>
           <AppContextProvider>
-            <AuthContextProvider apiClient={apiClient}>{children}</AuthContextProvider>
+            <AuthContextProvider apiClient={apiClient}>
+              <RowSelectionContextProviders>{children}</RowSelectionContextProviders>
+            </AuthContextProvider>
           </AppContextProvider>
         </MemoryRouter>
       </Providers>

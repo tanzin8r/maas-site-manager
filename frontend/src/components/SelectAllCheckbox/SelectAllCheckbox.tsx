@@ -1,6 +1,7 @@
 import type { RowData, Table } from "@tanstack/react-table";
 
-import { useAppContext } from "@/context";
+import type { TableId } from "@/context/RowSelectionContext";
+import { useRowSelectionContext } from "@/context/RowSelectionContext";
 
 type Props<T> = {
   table: Table<T>;
@@ -16,12 +17,12 @@ const selectAllPageRows = <T extends RowData>(table: Table<T>) =>
     };
   });
 
-function SelectAllCheckbox<T>({ table }: Props<T>) {
+function SelectAllCheckbox<T>({ table, tableId }: Props<T> & { tableId: TableId }) {
   // TODO: remove this workaround once the issue below is fixed
   // https://github.com/TanStack/table/issues/4781
   // manually check if some rows are selected as getIsSomePageRowsSelected
   // returns false if there are any rows selected on other pages
-  const { rowSelection } = useAppContext();
+  const { rowSelection } = useRowSelectionContext(tableId);
   const isSomeRowsSelected = !table.getIsAllPageRowsSelected() && Object.keys(rowSelection).length > 0;
   return (
     <label className="p-checkbox--inline">

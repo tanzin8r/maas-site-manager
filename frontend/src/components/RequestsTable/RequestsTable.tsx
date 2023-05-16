@@ -10,7 +10,7 @@ import ExternalLink from "@/components/ExternalLink";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import TableCaption from "@/components/TableCaption";
 import { isDev } from "@/constants";
-import { useAppContext } from "@/context";
+import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { UseEnrollmentRequestsQueryResult } from "@/hooks/react-query";
 
 export type EnrollmentRequestsColumnDef = ColumnDef<EnrollmentRequest, EnrollmentRequest[keyof EnrollmentRequest]>;
@@ -23,7 +23,7 @@ const RequestsTable = ({
   error,
   isLoading,
 }: Pick<UseEnrollmentRequestsQueryResult, "data" | "error" | "isLoading">) => {
-  const { rowSelection, setRowSelection } = useAppContext();
+  const { rowSelection, setRowSelection } = useRowSelectionContext("requests");
 
   // clear selection on unmount
   useEffect(() => {
@@ -34,7 +34,7 @@ const RequestsTable = ({
     () => [
       columnHelper.accessor("name", {
         id: "select",
-        header: ({ table }) => <SelectAllCheckbox table={table} />,
+        header: ({ table }) => <SelectAllCheckbox table={table} tableId="requests" />,
         cell: ({ row, getValue }) => {
           return (
             <label className="p-checkbox--inline">

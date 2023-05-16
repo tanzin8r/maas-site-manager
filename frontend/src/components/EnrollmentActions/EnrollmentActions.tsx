@@ -2,11 +2,11 @@ import { Button, Notification } from "@canonical/react-components";
 
 import EnrollmentNotification from "./EnrollmentNotification";
 
-import { useAppContext } from "@/context";
+import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import { useEnrollmentRequestsMutation } from "@/hooks/react-query";
 
 const EnrollmentActions: React.FC = () => {
-  const { rowSelection, setRowSelection } = useAppContext();
+  const { rowSelection, setRowSelection } = useRowSelectionContext("requests");
   const selectedIds = Object.keys(rowSelection).map((id) => id);
   const enrollmentRequestsMutation = useEnrollmentRequestsMutation({ onSuccess: () => setRowSelection({}) });
   const isActionDisabled = Object.keys(rowSelection).length === 0 || enrollmentRequestsMutation.isLoading;

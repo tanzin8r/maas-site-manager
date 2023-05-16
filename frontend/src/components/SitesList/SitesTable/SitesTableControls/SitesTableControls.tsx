@@ -4,7 +4,8 @@ import ColumnsVisibilityControl from "./ColumnsVisibilityControl";
 import SitesCount from "./SitesCount";
 
 import type { SitesColumn } from "@/components/SitesList/SitesTable/SitesTable";
-import { useAppContext } from "@/context";
+import { useAppContext } from "@/context/AppContext";
+import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { UseSitesQueryResult } from "@/hooks/react-query";
 
 const SitesTableControls = ({
@@ -19,7 +20,8 @@ const SitesTableControls = ({
   const handleSearchInput = (inputValue: string) => {
     setSearchText(inputValue);
   };
-  const { rowSelection, setSidebar } = useAppContext();
+  const { setSidebar } = useAppContext();
+  const { rowSelection } = useRowSelectionContext("sites");
   const isRemoveDisabled = Object.keys(rowSelection).length <= 0;
 
   return (

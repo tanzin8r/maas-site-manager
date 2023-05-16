@@ -2,14 +2,18 @@ import RemoveRegions from "./index";
 
 import { render, screen, userEvent } from "@/test-utils";
 
-vi.mock("@/context", () => ({
-  useAppContext: () => ({
-    rowSelection: {
-      "1": true,
-      "2": true,
-    },
-  }),
-}));
+vi.mock("@/context", async () => {
+  const actual = await vi.importActual("@/context");
+  return {
+    ...actual!,
+    useRowSelectionContext: () => ({
+      rowSelection: {
+        "1": true,
+        "2": true,
+      },
+    }),
+  };
+});
 
 it("submit button should not be disabled when something has been typed", async () => {
   render(<RemoveRegions />);

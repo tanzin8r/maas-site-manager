@@ -1,6 +1,8 @@
 import "./App.scss";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { RowSelectionContextProviders } from "./context/RowSelectionContext";
+
 import apiClient from "@/api";
 import { AppContextProvider, AuthContextProvider } from "@/context";
 import { createBrowserRouter, RouterProvider } from "@/router";
@@ -14,7 +16,9 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <AppContextProvider>
         <AuthContextProvider apiClient={apiClient}>
-          <RouterProvider router={router} />
+          <RowSelectionContextProviders>
+            <RouterProvider router={router} />
+          </RowSelectionContextProviders>
         </AuthContextProvider>
       </AppContextProvider>
     </QueryClientProvider>

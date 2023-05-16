@@ -9,7 +9,7 @@ import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import TableCaption from "@/components/TableCaption";
 import CopyButton from "@/components/base/CopyButton";
 import TooltipButton from "@/components/base/TooltipButton";
-import { useAppContext } from "@/context";
+import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { useTokensQueryResult } from "@/hooks/react-query";
 import { copyToClipboard, formatDistanceToNow, formatUTCDateString } from "@/utils";
 
@@ -23,7 +23,8 @@ export type TokenColumn = Column<Token, unknown>;
 
 const TokensTable = ({ data, error, isLoading }: Pick<useTokensQueryResult, "data" | "error" | "isLoading">) => {
   const [copiedText, setCopiedText] = useState("");
-  const { rowSelection, setRowSelection } = useAppContext();
+
+  const { rowSelection, setRowSelection } = useRowSelectionContext("tokens");
   const isTokenCopied = useCallback((token: string) => token === copiedText, [copiedText]);
 
   // clear table selection on unmount
@@ -47,7 +48,7 @@ const TokensTable = ({ data, error, isLoading }: Pick<useTokensQueryResult, "dat
       {
         id: "select",
         accessorKey: "value",
-        header: ({ table }) => <SelectAllCheckbox table={table} />,
+        header: ({ table }) => <SelectAllCheckbox table={table} tableId="tokens" />,
         cell: ({ row, getValue }: { row: Row<Token>; getValue: Getter<Token["value"]> }) => (
           <label className="p-checkbox--inline">
             <input

@@ -1,4 +1,3 @@
-import type { PropsWithChildren } from "react";
 import { useEffect } from "react";
 
 import { Col, Row, useOnEscapePressed, usePrevious } from "@canonical/react-components";
@@ -19,21 +18,34 @@ export const sidebarLabels: Record<"removeRegions" | "createToken", string> = {
   createToken: "Generate tokens",
 };
 
-type AsideProps = PropsWithChildren<Pick<ReturnType<typeof useAppContext>, "sidebar" | "setSidebar">>;
-const Aside = ({ children, sidebar, setSidebar, ...props }: AsideProps) => {
+const Aside = () => {
+  const { pathname } = useLocation();
+  const previousPathname = usePrevious(pathname);
+  const { sidebar, setSidebar } = useAppContext();
+
+  // close any open panels on route change
+  useEffect(() => {
+    if (pathname !== previousPathname) {
+      setSidebar(null);
+    }
+  }, [pathname, previousPathname, setSidebar]);
+
   useOnEscapePressed(() => {
     setSidebar(null);
   });
+
   return (
     <aside
       aria-hidden={!sidebar}
+      aria-label={sidebar ? sidebarLabels[sidebar] : undefined}
       className={classNames("l-aside is-maas-site-manager u-padding-top--medium", { "is-collapsed": !sidebar })}
       id="aside-panel"
       role="dialog"
-      {...props}
     >
       <Row>
-        <Col size={12}>{children}</Col>
+        <Col size={12}>
+          {sidebar === "createToken" ? <TokensCreate /> : sidebar === "removeRegions" ? <RemoveRegions /> : null}
+        </Col>
       </Row>
     </aside>
   );
@@ -45,48 +57,29 @@ const getPageTitle = (pathname: RoutePath) => {
 };
 
 const MainLayout: React.FC = () => {
-  const { sidebar, setSidebar } = useAppContext();
   const { pathname } = useLocation();
-  const previousPathname = usePrevious(pathname);
   const { status } = useAuthContext();
   const isLoggedIn = status === "authenticated";
-
-  // close any open panels on route change
-  useEffect(() => {
-    if (pathname !== previousPathname) {
-      setSidebar(null);
-    }
-  }, [pathname, previousPathname, setSidebar]);
-
   const isSideNavVisible = matchPath("/settings/*", pathname);
 
   return (
-    <>
-      <div className="l-application">
-        <Navigation isLoggedIn={isLoggedIn} />
-        <main className="l-main is-maas-site-manager">
-          <h1 className="u-visually-hidden">{getPageTitle(pathname as RoutePath)}</h1>
-          <div className={classNames("l-main__nav", { "is-open": isSideNavVisible })}>
-            <SecondaryNavigation isOpen={!!isSideNavVisible} />
-          </div>
-
-          <div className="l-main__content u-padding-top--medium">
-            <div className="row">
-              <div className="col-12">
-                <Outlet />
-              </div>
+    <div className="l-application">
+      <Navigation isLoggedIn={isLoggedIn} />
+      <main className="l-main is-maas-site-manager">
+        <h1 className="u-visually-hidden">{getPageTitle(pathname as RoutePath)}</h1>
+        <div className={classNames("l-main__nav", { "is-open": isSideNavVisible })}>
+          <SecondaryNavigation isOpen={!!isSideNavVisible} />
+        </div>
+        <div className="l-main__content u-padding-top--medium">
+          <div className="row">
+            <div className="col-12">
+              <Outlet />
             </div>
           </div>
-        </main>
-        <Aside aria-label={sidebar ? sidebarLabels[sidebar] : undefined} setSidebar={setSidebar} sidebar={sidebar}>
-          {!!sidebar && sidebar === "createToken" ? (
-            <TokensCreate />
-          ) : !!sidebar && sidebar === "removeRegions" ? (
-            <RemoveRegions />
-          ) : null}
-        </Aside>
-      </div>
-    </>
+        </div>
+      </main>
+      <Aside />
+    </div>
   );
 };
 

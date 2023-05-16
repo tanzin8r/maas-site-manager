@@ -10,7 +10,7 @@ type ColDef = ColumnDef<unknown, unknown>;
 const columns: ColDef[] = [
   {
     id: "select",
-    header: ({ table }) => <SelectAllCheckbox table={table} />,
+    header: ({ table }) => <SelectAllCheckbox table={table} tableId="sites" />,
     cell: ({ row }) => {
       return (
         <input

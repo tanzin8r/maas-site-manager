@@ -19,7 +19,7 @@ import type { PaginationBarProps } from "@/components/base/PaginationBar/Paginat
 import PaginationBar from "@/components/base/PaginationBar/PaginationBar";
 import TooltipButton from "@/components/base/TooltipButton/TooltipButton";
 import { isDev } from "@/constants";
-import { useAppContext } from "@/context";
+import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { UseSitesQueryResult } from "@/hooks/react-query";
 import { getAllMachines, getCountryName, getTimezoneUTCString, getTimeInTimezone } from "@/utils";
 
@@ -45,8 +45,7 @@ const SitesTable = ({
   const [columnVisibility, setColumnVisibility] = useLocalStorageState("sitesTableColumnVisibility", {
     defaultValue: {},
   });
-
-  const { rowSelection, setRowSelection } = useAppContext();
+  const { rowSelection, setRowSelection } = useRowSelectionContext("sites");
 
   // clear selection on unmount
   useEffect(() => {
@@ -58,7 +57,7 @@ const SitesTable = ({
       {
         id: "select",
         accessorKey: "name",
-        header: ({ table }) => <SelectAllCheckbox table={table} />,
+        header: ({ table }) => <SelectAllCheckbox table={table} tableId="sites" />,
         cell: ({ row, getValue }: { row: Row<Site>; getValue: Getter<Site["name"]> }) => {
           return (
             <label className="p-checkbox--inline">
