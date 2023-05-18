@@ -19,27 +19,17 @@ const TokensList = () => {
   const { setSidebar } = useAppContext();
   const { rowSelection, setRowSelection } = useRowSelectionContext("tokens");
   const [totalDataCount, setTotalDataCount] = useState(0);
-  const [deleteNotification, setDeleteNotification] = useState("");
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
     usePagination(DEFAULT_PAGE_SIZE, totalDataCount);
 
-  const { error, data, isLoading, isSuccess } = useTokensQuery({
+  const { error, data, isLoading } = useTokensQuery({
     page: `${debouncedPage}`,
     size: `${size}`,
   });
 
-  const handleTokenDeleteSuccess = () => {
-    const deletedTokenCount = Object.keys(rowSelection).length;
-    setDeleteNotification(
-      `${deletedTokenCount === 1 ? "An" : ""} ${pluralize(
-        "enrollment token",
-        deletedTokenCount,
-        deletedTokenCount > 1,
-      )} ${deletedTokenCount === 1 ? "was" : "were"} deleted.`,
-    );
-    setRowSelection({});
-  };
-  const tokensDeleteMutation = useDeleteTokensMutation({ onSuccess: handleTokenDeleteSuccess });
+  const tokensDeleteMutation = useDeleteTokensMutation({
+    onSuccess: () => setRowSelection({}),
+  });
 
   useEffect(() => {
     if (data && "total" in data) {
@@ -48,17 +38,33 @@ const TokensList = () => {
   }, [data]);
 
   const handleTokenDelete = () => {
-    const selectedIds = isSuccess ? Object.keys(rowSelection).map((_, idx) => Number(data.items[idx].id)) : [];
+    const selectedIds = Object.keys(rowSelection).map((id) => Number(id));
     tokensDeleteMutation.mutate(selectedIds);
   };
 
+  const deletedTokensCount = tokensDeleteMutation.variables?.length;
   return (
     <section className="tokens-list">
-      {deleteNotification ? (
+      {tokensDeleteMutation.isSuccess && deletedTokensCount ? (
         <Row>
           <Col size={12}>
             <Notification severity="information" title="Deleted">
-              {deleteNotification}
+              {`${deletedTokensCount === 1 ? "An" : ""} ${pluralize(
+                "enrollment token",
+                deletedTokensCount,
+                deletedTokensCount > 1,
+              )} ${deletedTokensCount === 1 ? "was" : "were"} deleted.`}
+            </Notification>
+          </Col>
+        </Row>
+      ) : null}
+      {tokensDeleteMutation.isError ? (
+        <Row>
+          <Col size={12}>
+            <Notification severity="negative" title="Error">
+              {tokensDeleteMutation.error instanceof Error
+                ? tokensDeleteMutation?.error.message
+                : "An error occured while deleting the tokens"}
             </Notification>
           </Col>
         </Row>

@@ -82,6 +82,7 @@ export const createMockGetTokensResolver =
 type DeleteTokensResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
 export const createMockDeleteTokensResolver = (): DeleteTokensResponseResolver => async (req, res, ctx) => {
   const ids = req.body;
+
   if (Array.isArray(ids) && ids.length > 0) {
     return res(ctx.status(204));
   }

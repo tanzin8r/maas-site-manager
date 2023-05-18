@@ -10,10 +10,11 @@ import { createMockDeleteTokensResolver, createMockGetTokensResolver } from "@/m
 import { screen, renderWithMemoryRouter, within, userEvent } from "@/test-utils";
 
 const tokens = tokenFactory.buildList(2);
-const mockServer = setupServer(
+const handlers = [
   rest.get(urls.tokens, createMockGetTokensResolver(tokens)),
   rest.delete(urls.tokens, createMockDeleteTokensResolver()),
-);
+];
+const mockServer = setupServer(...handlers);
 
 beforeAll(() => {
   mockServer.listen();
@@ -94,4 +95,21 @@ it("display a different notification for multiple deletions", async () => {
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));
 
   expect(screen.getByText(/2 enrollment tokens were deleted\./i)).toBeInTheDocument();
+});
+
+it("displays an error notification after failed deletion", async () => {
+  mockServer.resetHandlers(
+    rest.get(urls.tokens, createMockGetTokensResolver(tokens)),
+    rest.delete(urls.tokens, (_req, res, ctx) => res(ctx.status(400))),
+  );
+  renderWithMemoryRouter(<TokensList />);
+
+  await userEvent.click(screen.getAllByRole("checkbox")[1]);
+  await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+
+  expect(
+    screen.getByRole("heading", {
+      name: /error/i,
+    }),
+  ).toBeInTheDocument();
 });
