@@ -17,8 +17,10 @@ if (useMockData) {
 const environment = process.env.NODE_ENV;
 const version = packageInfo.version;
 const release = import.meta.env.VITE_APP_VERSION;
-// eslint-disable-next-line no-console
-console.log(`%cMAAS Site Manager \n${version} ${release}\n${environment}`, "color: #e95420; font-weight: bold;");
+if (environment !== "test") {
+  // eslint-disable-next-line no-console
+  console.log(`%cMAAS Site Manager \n${version} ${release}\n${environment}`, "color: #e95420; font-weight: bold;");
+}
 
 // https://sentry.is.canonical.com/canonical/maas-site-manager/
 Sentry.init({

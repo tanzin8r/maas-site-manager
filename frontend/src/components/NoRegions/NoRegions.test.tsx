@@ -6,13 +6,20 @@ import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";
 import { getByTextContent, renderWithMemoryRouter, screen, waitFor } from "@/test-utils";
 
+const renderComponent = () =>
+  renderWithMemoryRouter(
+    // render inside a table to avoid warnings about invalid DOM nesting
+    <table>
+      <NoRegions />
+    </table>,
+  );
+
 describe("open enrollment requests available", () => {
   const enrollmentRequests = enrollmentRequestFactory.buildList(2);
   const mockServer = createMockGetServer(
     urls.enrollmentRequests,
     createMockGetEnrollmentRequestsResolver(enrollmentRequests),
   );
-
   beforeAll(() => {
     mockServer.listen();
   });
@@ -24,12 +31,11 @@ describe("open enrollment requests available", () => {
   });
 
   it("should display 'no enrolled regions' text", () => {
-    renderWithMemoryRouter(<NoRegions />);
-
+    renderComponent();
     expect(screen.getByText(/no enroled maas regions/i)).toBeInTheDocument();
   });
   it("should display link to enrollment docs", () => {
-    renderWithMemoryRouter(<NoRegions />);
+    renderComponent();
 
     expect(
       screen.getByRole("link", { name: /learn more about the enrolment process in the documentation\./i }),
@@ -37,8 +43,7 @@ describe("open enrollment requests available", () => {
   });
 
   it("should display a link to the request page if there are open requests", async () => {
-    renderWithMemoryRouter(<NoRegions />);
-
+    renderComponent();
     await waitFor(() =>
       expect(
         screen.getByRole("link", {
@@ -49,8 +54,7 @@ describe("open enrollment requests available", () => {
   });
 
   it("should display the amount of open enrollment requests", async () => {
-    renderWithMemoryRouter(<NoRegions />);
-
+    renderComponent();
     await waitFor(() =>
       expect(
         getByTextContent(new RegExp("You have 2 open enrolment requests, inspect them in the Requests page.", "i")),
@@ -77,8 +81,7 @@ describe("no open enrollment requests available", () => {
   });
 
   it("should display a link to the tokens page", async () => {
-    renderWithMemoryRouter(<NoRegions />);
-
+    renderComponent();
     await waitFor(() =>
       expect(
         screen.getByRole("link", {
@@ -89,8 +92,7 @@ describe("no open enrollment requests available", () => {
   });
 
   it("should display a link to enrollment process docs", () => {
-    renderWithMemoryRouter(<NoRegions />);
-
+    renderComponent();
     expect(
       screen.getByRole("link", {
         name: new RegExp("Learn more about the enrolment process in the documentation.", "i"),
