@@ -7,11 +7,13 @@ from ._pagination import (
     pagination_params,
     PaginationParams,
 )
+from ._sorting import SortParam
 
 __all__ = [
     "MAX_PAGE_SIZE",
     "PaginatedResults",
     "PaginationParams",
     "pagination_params",
+    "SortParam",
     "TimeZone",
 ]

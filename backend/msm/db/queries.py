@@ -25,8 +25,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import FromClause
 
-from ..schema import MAX_PAGE_SIZE
-from ..schema._sorting import SortParam
+from ..schema import SortParam
 from ._tables import (
     Site,
     SiteData,
@@ -137,7 +136,7 @@ async def get_sites(
     session: AsyncSession,
     sort_params: list[SortParam],
     offset: int = 0,
-    limit: int = MAX_PAGE_SIZE,
+    limit: int | None = None,
     city: list[str] | None = None,
     country: list[str] | None = None,
     name: list[str] | None = None,
@@ -209,9 +208,10 @@ async def get_sites(
         )
         .where(*filters)  # type: ignore[arg-type]
         .order_by(*order_by)
-        .limit(limit)
         .offset(offset)
     )
+    if limit is not None:
+        stmt = stmt.limit(limit)
     result = await session.execute(stmt)
     return count, [SiteSchema(**row._asdict()) for row in result.all()]
 
@@ -219,7 +219,7 @@ async def get_sites(
 async def get_pending_sites(
     session: AsyncSession,
     offset: int = 0,
-    limit: int = MAX_PAGE_SIZE,
+    limit: int | None = None,
 ) -> tuple[int, Iterable[PendingSiteSchema]]:
     filters = [Site.c.accepted == False]  # noqa
     count = await row_count(session, Site, *filters)
@@ -233,9 +233,10 @@ async def get_pending_sites(
         .select_from(Site)
         .where(*filters)
         .order_by(Site.c.id)
-        .limit(limit)
         .offset(offset)
     )
+    if limit is not None:
+        stmt = stmt.limit(limit)
     result = await session.execute(stmt)
     return count, [PendingSiteSchema(**row._asdict()) for row in result.all()]
 
@@ -271,10 +272,10 @@ async def accept_reject_pending_sites(
 async def get_tokens(
     session: AsyncSession,
     offset: int = 0,
-    limit: int = MAX_PAGE_SIZE,
+    limit: int | None = None,
 ) -> tuple[int, Iterable[TokenSchema]]:
     count = await row_count(session, Token)
-    result = await session.execute(
+    stmt = (
         select(
             Token.c.id,
             Token.c.site_id,
@@ -285,8 +286,10 @@ async def get_tokens(
         .select_from(Token)
         .order_by(Token.c.id)
         .offset(offset)
-        .limit(limit)
     )
+    if limit is not None:
+        stmt = stmt.limit(limit)
+    result = await session.execute(stmt)
     return count, [TokenSchema(**row._asdict()) for row in result.all()]
 
 
