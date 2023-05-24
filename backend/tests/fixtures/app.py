@@ -91,6 +91,7 @@ async def authenticated_user_app_client(
             "full_name": "Admin",
             "password": phash,
         },
+        commit=True,
     )
     async with AuthAsyncClient(app=user_app, base_url="http://test") as client:
         await client.login("admin@example.com", "admin")

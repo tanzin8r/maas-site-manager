@@ -79,25 +79,30 @@ async def session(db: Database) -> AsyncGenerator[AsyncSession, None]:
     """A database session."""
     async with db.session() as session:
         yield session
+        await session.rollback()
 
 
 class Fixture:
     """Helper for creating test fixtures."""
 
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def commit(self) -> None:
+        await self.session.commit()
 
     async def create(
         self,
         table: str,
         data: dict[str, Any] | list[dict[str, Any]] | None = None,
+        commit: bool = False,
     ) -> list[dict[str, Any]]:
-        async with self.db.session() as session:
-            result = await session.execute(
-                METADATA.tables[table].insert().returning("*"), data
-            )
-            await session.commit()
-            return [row._asdict() for row in result]
+        result = await self.session.execute(
+            METADATA.tables[table].insert().returning("*"), data
+        )
+        if commit:
+            await self.session.commit()
+        return [row._asdict() for row in result]
 
     async def get(
         self,
@@ -105,15 +110,14 @@ class Fixture:
         *filters: ColumnOperators,
     ) -> list[dict[str, Any]]:
         """Take a peak what is in there"""
-        async with self.db.session() as session:
-            result = await session.execute(
-                METADATA.tables[table]
-                .select()
-                .where(*filters)  # type: ignore[arg-type]
-            )
-            return [row._asdict() for row in result]
+        result = await self.session.execute(
+            METADATA.tables[table]
+            .select()
+            .where(*filters)  # type: ignore[arg-type]
+        )
+        return [row._asdict() for row in result]
 
 
 @pytest.fixture
-def fixture(db: Database) -> Iterator[Fixture]:
-    yield Fixture(db)
+def fixture(session: AsyncSession) -> Iterator[Fixture]:
+    yield Fixture(session)
