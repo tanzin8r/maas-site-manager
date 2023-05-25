@@ -27,7 +27,7 @@ const createHandleValidate =
   ({ expectedConfirmTextValue }: { expectedConfirmTextValue: string }) =>
   async (values: RemoveRegionsFormValues) => {
     let errors = {};
-    await RemoveRegionsFormSchema.validate(values, { context: { expectedConfirmTextValue } }).catch((error) => {
+    await RemoveRegionsFormSchema.validate(values, { context: { expectedConfirmTextValue } }).catch(() => {
       errors = { confirmText: `Confirmation string is not correct. Expected ${expectedConfirmTextValue}` };
     });
     return errors;

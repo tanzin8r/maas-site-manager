@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   root: true,
-  plugins: ["prettier", "no-relative-import-paths"],
+  plugins: ["unused-imports", "no-relative-import-paths", "prettier"],
   extends: [
     "./.eslintrc-auto-import.json",
     "react-app", // Use the recommended rules from CRA.
@@ -60,11 +60,16 @@ module.exports = {
       },
       rules: {
         "prettier/prettier": "error",
-        "@typescript-eslint/no-unused-vars": [
-          "error",
+        "@typescript-eslint/no-unused-vars": "off",
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
+          "warn",
           {
-            args: "none",
+            vars: "all",
+            varsIgnorePattern: "^_",
+            args: "after-used",
             ignoreRestSiblings: true,
+            argsIgnorePattern: "^_",
           },
         ],
         "no-restricted-syntax": [
