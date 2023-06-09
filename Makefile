@@ -35,6 +35,10 @@ install-frontend-dependencies:
 ci-dep: ci-backend-dep ci-frontend-dep
 .PHONY: ci-dep
 
+ci-dep-docker-prepare: ci-dep # run by the build-env-prepare job
+	chmod -R a+w /var/cache/playwright-browsers /var/cache/yarn || true
+.PHONY: ci-dep-docker-prepare
+
 ci-build: # will run the frontend build targets
 .PHONY: ci-build ci-frontend-build
 
@@ -69,8 +73,8 @@ ci-backend-format:
 # Frontend CI targets
 
 ci-frontend-dep: install-frontend-dependencies
-	env -C frontend yarnpkg install
-	env -C frontend npx --yes playwright install
+	env -C frontend YARN_CACHE_FOLDER=/var/cache/yarn yarnpkg install
+	env -C frontend PLAYWRIGHT_BROWSERS_PATH=/var/cache/playwright-browsers npx --yes playwright install
 .PHONY: ci-frontend-dep
 
 ci-frontend-build:
@@ -86,5 +90,5 @@ ci-frontend-test:
 .PHONY: ci-frontend-test
 
 ci-e2e-test:
-	env -C frontend PLAYWRIGHT_JUNIT_OUTPUT_NAME=../junit-e2e.xml npx playwright test --reporter=junit
+	env -C frontend PLAYWRIGHT_BROWSERS_PATH=/var/cache/playwright-browsers PLAYWRIGHT_JUNIT_OUTPUT_NAME=../junit-e2e.xml npx playwright test --reporter=junit
 .PHONY: ci-e2e-test
