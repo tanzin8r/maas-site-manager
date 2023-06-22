@@ -556,6 +556,76 @@ class TestUsersHandler:
             "items": users,
         }
 
+    async def test_users_delete(
+        self, authenticated_admin_app_client: AuthAsyncClient, fixture: Fixture
+    ) -> None:
+        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
+        users = await fixture.create(
+            "user",
+            [
+                {
+                    "id": 2,
+                    "email": "admin2@example.com",
+                    "username": "admin2",
+                    "full_name": "Another MAAS Admin",
+                    "password": phash2,
+                    "is_admin": False,
+                },
+            ],
+            commit=True,
+        )
+        # the return data does not include passwords
+        for user in users:
+            user.pop("password")
+
+        response = await authenticated_admin_app_client.delete("/users/2")
+        assert response.status_code == 204
+
+        users_response = await authenticated_admin_app_client.get("/users")
+        assert users_response.status_code == 200
+        assert users_response.json() == {
+            "items": [
+                {
+                    "id": 1,
+                    "email": "admin@example.com",
+                    "username": "admin",
+                    "full_name": "Admin",
+                    "is_admin": True,
+                }
+            ],
+            "total": 1,
+            "page": 1,
+            "size": 20,
+        }
+
+    async def test_users_delete_self_fails(
+        self, authenticated_admin_app_client: AuthAsyncClient, fixture: Fixture
+    ) -> None:
+        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
+        users = await fixture.create(
+            "user",
+            [
+                {
+                    "id": 2,
+                    "email": "admin2@example.com",
+                    "username": "admin2",
+                    "full_name": "Another MAAS Admin",
+                    "password": phash2,
+                    "is_admin": False,
+                },
+            ],
+            commit=True,
+        )
+        # the return data does not include passwords
+        for user in users:
+            user.pop("password")
+
+        response = await authenticated_admin_app_client.delete("/users/1")
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": {"message": "Cannot delete the current user."}
+        }
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -569,6 +639,7 @@ class TestUsersHandler:
         ("GET", "/tokens/export"),
         ("GET", "/users/me"),
         ("GET", "/users"),
+        ("DELETE", "/users/{id}"),
     ],
 )
 async def test_handler_auth_required(
@@ -583,9 +654,7 @@ async def test_handler_auth_required(
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "method,url",
-    [
-        ("GET", "/users"),
-    ],
+    [("GET", "/users"), ("DELETE", "/users/{id}")],
 )
 async def test_handler_admin_required(
     authenticated_user_app_client: AuthAsyncClient, method: str, url: str

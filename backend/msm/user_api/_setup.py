@@ -59,4 +59,10 @@ def create_app(db_dsn: str | None = None) -> FastAPI:
         "/users/me", _handlers.users_me_get, methods=["GET"]
     )
     app.router.add_api_route("/users", _handlers.users_get, methods=["GET"])
+    app.router.add_api_route(
+        "/users/{user_id}",
+        _handlers.users_delete,
+        methods=["DELETE"],
+        status_code=204,
+    )
     return app

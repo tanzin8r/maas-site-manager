@@ -211,6 +211,24 @@ async def users_get(
     )
 
 
+async def users_delete(
+    session: Annotated[AsyncSession, Depends(db_session)],
+    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    user_id: int,
+) -> None:
+    """
+    Delete a user from the database.
+    Don't allow a user to delete themselves.
+    """
+    if authenticated_admin.id == user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "Cannot delete the current user."},
+        )
+    await queries.delete_user(session, user_id)
+    return None
+
+
 async def users_me_get(
     session: Annotated[AsyncSession, Depends(db_session)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],

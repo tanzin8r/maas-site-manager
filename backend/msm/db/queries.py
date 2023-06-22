@@ -114,6 +114,11 @@ async def get_users(
     return count, [UserSchema(**row._asdict()) for row in result.all()]
 
 
+async def delete_user(session: AsyncSession, user_id: int) -> None:
+    stmt = delete(User).where(User.c.id == user_id)
+    await session.execute(stmt)
+
+
 def filters_from_arguments(
     table: Table,
     **filter_args: list[Any] | None,
