@@ -33,9 +33,9 @@ describe("parseSearchTextToQueryParams tests", () => {
 
 describe("customParamSerializer", () => {
   it("should serialize params normally if just params are provided", () => {
-    const params = { page: "1", size: "20" };
+    const params = { page: "1", size: "20", sort_by: "name-asc" };
     const serialized = customParamSerializer(params);
-    const expectedResult = "page=1&size=20";
+    const expectedResult = "page=1&size=20&sort_by=name-asc";
     expect(serialized).toBe(expectedResult);
   });
 
@@ -44,6 +44,13 @@ describe("customParamSerializer", () => {
     const serializedQueryText = "country=cuba";
     const serialized = customParamSerializer(params, serializedQueryText);
     const expectedResult = `page=1&size=20&${serializedQueryText}`;
+    expect(serialized).toBe(expectedResult);
+  });
+
+  it("should skip parameters with null values", () => {
+    const params = { page: "1", size: "20", sort_by: null };
+    const serialized = customParamSerializer(params);
+    const expectedResult = `page=1&size=20`;
     expect(serialized).toBe(expectedResult);
   });
 });

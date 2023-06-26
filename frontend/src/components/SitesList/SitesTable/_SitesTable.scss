@@ -1,5 +1,26 @@
 $connection-status-icon-width: 1.5rem;
 
+  .p-button--table-header {
+    @extend %table-header-label;
+
+    color: $color-dark;
+
+    &:hover {
+      color: $color-link;
+      cursor: pointer;
+    }
+
+    [class*="p-icon"] {
+      @include vf-icon-size(0.875rem);
+
+      margin-left: $sp-x-small;
+    }
+  }
+
+  [class*="p-button"].no-background {
+    background-color: transparent;
+  }
+
 .sites-table {
   thead th:first-child,
   tbody td:first-child {

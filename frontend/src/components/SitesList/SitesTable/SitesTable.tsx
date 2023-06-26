@@ -1,7 +1,9 @@
-import { useEffect, useMemo } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import React, { useEffect, useMemo } from "react";
 
+import { Icon } from "@canonical/react-components";
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
-import type { ColumnDef, Column, Getter, Row } from "@tanstack/react-table";
+import type { ColumnDef, Column, Getter, Row, SortingState, Header } from "@tanstack/react-table";
 import classNames from "classnames";
 import pick from "lodash/fp/pick";
 import useLocalStorageState from "use-local-storage-state";
@@ -33,16 +35,28 @@ export type Site = SitesQueryResult["items"][number];
 export type SitesColumnDef = ColumnDef<Site, Partial<Site>>;
 export type SitesColumn = Column<Site, unknown>;
 
+const SortIndicator = ({ header }: { header: Header<Site, Partial<Site>> }) =>
+  ({
+    asc: <Icon aria-label="ascending" name="chevron-up" />,
+    desc: <Icon aria-label="descending" name="chevron-down" />,
+  }[header?.column?.getIsSorted() as string] ?? null);
+
+type SortProps = {
+  sorting: SortingState;
+  setSorting: Dispatch<SetStateAction<SortingState>>;
+};
 const SitesTable = ({
   data,
   isLoading,
   error,
   setSearchText,
   paginationProps,
+  sorting,
+  setSorting,
 }: Pick<UseSitesQueryResult, "data" | "isLoading" | "error"> & {
   setSearchText: (text: string) => void;
   paginationProps: PaginationBarProps;
-}) => {
+} & SortProps) => {
   const [columnVisibility, setColumnVisibility] = useLocalStorageState("sitesTableColumnVisibility", {
     defaultValue: {},
   });
@@ -58,6 +72,7 @@ const SitesTable = ({
       {
         id: "select",
         accessorKey: "name",
+        enableSorting: false,
         header: ({ table }) => <SelectAllCheckbox table={table} tableId="sites" />,
         cell: ({ row, getValue }: { row: Row<Site>; getValue: Getter<Site["name"]> }) => {
           return (
@@ -79,10 +94,14 @@ const SitesTable = ({
       },
       {
         id: "name",
+        accessorKey: "name",
+        enableSorting: true,
         accessorFn: createAccessor(["name", "url", "name_unique"]),
-        header: () => (
+        header: ({ header }) => (
           <>
-            <div>Name</div>
+            <div>
+              Name <SortIndicator header={header} />
+            </div>
             <div className="u-text--muted">URL</div>
           </>
         ),
@@ -113,10 +132,14 @@ const SitesTable = ({
       },
       {
         id: "connection",
+        // TODO: enable sorting once the back-end supports it for this key https://warthogs.atlassian.net/browse/MAASENG-1844
+        enableSorting: false,
         accessorFn: createAccessor("stats"),
-        header: () => (
+        header: ({ header }) => (
           <>
-            <div className="connection__text">connection</div>
+            <div className="connection__text">
+              connection <SortIndicator header={header} />
+            </div>
             <div className="connection__text u-text--muted">last seen</div>
           </>
         ),
@@ -127,10 +150,13 @@ const SitesTable = ({
       },
       {
         id: "address",
+        enableSorting: false,
         accessorFn: createAccessor(["country", "city", "zip", "street"]),
-        header: () => (
+        header: ({ header }) => (
           <>
-            <div>country</div>
+            <div>
+              country <SortIndicator header={header} />
+            </div>
             <div className="u-text--muted">street, city, ZIP</div>
           </>
         ),
@@ -148,6 +174,8 @@ const SitesTable = ({
       },
       {
         id: "time",
+        accessorKey: "timezone",
+        enableSorting: false,
         accessorFn: createAccessor(["timezone"]),
         header: () => (
           <>
@@ -165,11 +193,13 @@ const SitesTable = ({
       },
       {
         id: "machines",
+        // TODO: enable sorting once the back-end supports it for this key https://warthogs.atlassian.net/browse/MAASENG-1844
+        enableSorting: false,
         accessorFn: createAccessor("stats"),
-        header: () => (
-          <>
-            <div>machines</div>
-          </>
+        header: ({ header }) => (
+          <div>
+            machines <SortIndicator header={header} />
+          </div>
         ),
         cell: ({ getValue }) => {
           const { stats } = getValue();
@@ -178,6 +208,7 @@ const SitesTable = ({
       },
       {
         id: "status",
+        enableSorting: false,
         accessorFn: createAccessor("stats"),
         header: () => (
           <>
@@ -208,7 +239,9 @@ const SitesTable = ({
         pageIndex,
         pageSize,
       },
+      sorting,
     },
+    onSortingChange: setSorting,
     getRowId: (row) => row.id,
     manualPagination: true,
     pageCount,
@@ -217,6 +250,8 @@ const SitesTable = ({
     enableMultiRowSelection: true,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
+    manualSorting: true,
+    enableSorting: true,
     debugTable: isDev,
     debugHeaders: isDev,
     debugColumns: isDev,
@@ -237,7 +272,14 @@ const SitesTable = ({
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <th className={`${header.column.id}`} colSpan={header.colSpan} key={header.id}>
+                  <th
+                    className={classNames(header.column.id, {
+                      "p-button--table-header": header?.column?.getCanSort(),
+                    })}
+                    colSpan={header.colSpan}
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 );

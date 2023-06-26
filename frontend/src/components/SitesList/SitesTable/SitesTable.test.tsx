@@ -25,6 +25,8 @@ const paginationProps = {
 const commonProps = {
   error: undefined,
   isLoading: false,
+  sorting: [],
+  setSorting: vi.fn(),
   paginationProps: {
     ...paginationProps,
   },
@@ -86,6 +88,7 @@ it("displays correctly paginated results", () => {
   const items = siteFactory.buildList(pageLength);
   renderWithMemoryRouter(
     <SitesTable
+      {...commonProps}
       data={sitesQueryResultFactory.build({ items, total: 100, page: 1, size: pageLength })}
       error={undefined}
       isLoading={false}
@@ -109,6 +112,7 @@ it("displays correct local time", () => {
   const item = siteFactory.build({ timezone: "Europe/London" });
   renderWithMemoryRouter(
     <SitesTable
+      {...commonProps}
       data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
       error={undefined}
       isLoading={false}
@@ -127,6 +131,7 @@ it("displays full name of the country", () => {
   const item = siteFactory.build({ country: "GB" });
   renderWithMemoryRouter(
     <SitesTable
+      {...commonProps}
       data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
       error={undefined}
       isLoading={false}
@@ -212,4 +217,37 @@ it("displays a pagination bar with the table", () => {
   expect(screen.getByText(/Showing 2 out of 2 MAAS Regions/i)).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /next page/i })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /previous page/i })).toBeInTheDocument();
+});
+
+it("displays sort direction label", async () => {
+  const items = siteFactory.buildList(2);
+  const { rerender } = renderWithMemoryRouter(
+    <SitesTable {...commonProps} data={sitesQueryResultFactory.build({ items, total: 2, page: 1, size: 10 })} />,
+  );
+  const nameDescending = ["columnheader", { name: /Name descending/i }] as const;
+  const nameAscending = ["columnheader", { name: /Name ascending/i }] as const;
+
+  expect(screen.getByRole("columnheader", { name: /Name/i })).toBeInTheDocument();
+  expect(screen.queryByRole(...nameDescending)).not.toBeInTheDocument();
+  expect(screen.queryByRole(...nameAscending)).not.toBeInTheDocument();
+
+  rerender(
+    <SitesTable
+      {...commonProps}
+      data={sitesQueryResultFactory.build({ items, total: 2, page: 1, size: 10 })}
+      sorting={[{ id: "name", desc: true }]}
+    />,
+  );
+
+  expect(screen.getByRole(...nameDescending)).toBeInTheDocument();
+
+  rerender(
+    <SitesTable
+      {...commonProps}
+      data={sitesQueryResultFactory.build({ items, total: 2, page: 1, size: 10 })}
+      sorting={[{ id: "name", desc: false }]}
+    />,
+  );
+
+  expect(screen.getByRole(...nameAscending)).toBeInTheDocument();
 });

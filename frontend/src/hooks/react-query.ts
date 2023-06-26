@@ -30,10 +30,10 @@ import type {
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 
 const refetchInterval = Number(import.meta.env.VITE_POLLING_INTERVAL_MS);
-export const useSitesQuery = ({ page, size }: GetSitesQueryParams, queryText?: string) =>
+export const useSitesQuery = ({ page, size, sort_by }: GetSitesQueryParams, queryText?: string) =>
   useQuery<SitesQueryResult>({
-    queryKey: ["sites", page, size, queryText],
-    queryFn: () => getSites({ page, size }, queryText),
+    queryKey: ["sites", page, size, sort_by, queryText],
+    queryFn: () => getSites({ page, size, sort_by }, queryText),
     keepPreviousData: true,
     refetchInterval,
   });

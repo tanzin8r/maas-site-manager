@@ -55,6 +55,11 @@ it("can hide and unhide columns", async () => {
   expect(screen.getByRole("columnheader", { name: /Connection/i })).toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("button", { name: "Columns" }));
+
+  [/Connection/i, /Address/i, /Time/i, /Machines/i, /Status/i].forEach((name) => {
+    expect(screen.getByRole("checkbox", { name })).toBeInTheDocument();
+  });
+
   await userEvent.click(screen.getByRole("checkbox", { name: /Connection/i }));
 
   expect(screen.getByRole("checkbox", { name: "4 out of 5 selected" })).toBeInTheDocument();

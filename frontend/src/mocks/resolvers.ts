@@ -3,7 +3,7 @@ import type { RestRequest, restContext, ResponseResolver } from "msw";
 
 import { siteFactory, tokenFactory, enrollmentRequestFactory, accessTokenFactory } from "./factories";
 
-import type { GetSitesQueryParams, PostTokensData } from "@/api/handlers";
+import type { GetSitesQueryParams, PostTokensData, SortDirection, SortKey } from "@/api/handlers";
 import urls from "@/api/urls";
 import { isDev } from "@/constants";
 
@@ -29,14 +29,27 @@ export const createMockLoginResolver =
     );
   };
 
-type SitesResponseResolver = ResponseResolver<RestRequest<never, GetSitesQueryParams>, typeof restContext>;
+type SitesResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
 export const createMockSitesResolver =
   (sites = sitesList): SitesResponseResolver =>
   (req, res, ctx) => {
     const searchParams = new URLSearchParams(req.url.search);
     const page = Number(searchParams.get("page"));
     const size = Number(searchParams.get("size"));
-    const itemsPage = sites.slice((page - 1) * size, page * size);
+    // sort items
+    const items = [...sites];
+    const sortBy = searchParams.get("sort_by") as GetSitesQueryParams["sort_by"];
+    if (sortBy) {
+      const [field, order] = sortBy.split("-") as [SortKey, SortDirection];
+      items.sort((a, b) => {
+        if (order === "asc") {
+          return a[field] > b[field] ? 1 : -1;
+        }
+        return a[field] < b[field] ? 1 : -1;
+      });
+    }
+    const itemsPage = items.slice((page - 1) * size, page * size);
+
     const response = {
       items: itemsPage,
       page,
@@ -46,7 +59,7 @@ export const createMockSitesResolver =
     return res(ctx.json(response));
   };
 
-type TokensResponseResolver = ResponseResolver<RestRequest<PostTokensData>, typeof restContext>;
+type TokensResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
 export const createMockTokensResolver = (): TokensResponseResolver => async (req, res, ctx) => {
   let items;
   const { amount, duration } = await req.json();

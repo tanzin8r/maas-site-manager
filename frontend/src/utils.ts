@@ -26,10 +26,12 @@ export const parseSearchTextToQueryParams = (text: string) => {
   return parsedText;
 };
 
-export const customParamSerializer = (params: Record<string, string | number>, queryText?: string) => {
+export const customParamSerializer = (params: Record<string, string | number | null>, queryText?: string) => {
   return (
+    // skip undefined values for specified keys
     Object.entries(Object.assign({}, params))
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .filter(([_key, value]) => !!value)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value!)}`)
       .join("&") + `${queryText ? "&" + queryText : ""}`
   );
 };

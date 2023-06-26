@@ -31,7 +31,14 @@ export type PaginationParams = {
   size: string;
 };
 
-export type GetSitesQueryParams = PaginationParams & {};
+export type SortKey = "name";
+export type SortDirection = "asc" | "desc";
+export type SortBy = `${SortKey}-${SortDirection}` | null;
+export type SortingParams = {
+  sort_by: SortBy;
+};
+
+export type GetSitesQueryParams = PaginationParams & SortingParams & {};
 export const getSites = async (params: GetSitesQueryParams, queryText?: string) => {
   try {
     const response = await api.get(urls.sites, {

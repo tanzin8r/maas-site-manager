@@ -27,7 +27,7 @@ afterAll(() => {
 });
 
 it("should return sites", async () => {
-  const { result } = renderHook(() => useSitesQuery({ page: "1", size: "2" }), { wrapper: Providers });
+  const { result } = renderHook(() => useSitesQuery({ page: "1", size: "2", sort_by: null }), { wrapper: Providers });
 
   await waitFor(() => expect(result.current.isFetchedAfterMount).toBe(true));
 

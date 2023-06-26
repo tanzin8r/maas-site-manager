@@ -1,6 +1,6 @@
 import LoginForm from "./LoginForm";
 
-import { renderWithMemoryRouter, screen, userEvent } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/test-utils";
 
 describe("LoginForm", () => {
   it("renders", () => {
@@ -28,9 +28,9 @@ describe("LoginForm", () => {
 
     await userEvent.type(passwordInput, "test");
     await userEvent.clear(passwordInput);
-    await userEvent.click(screen.getByRole("form"));
+    await userEvent.tab();
 
-    expect(screen.getByText(/Please enter a password/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/Please enter a password/)).toBeInTheDocument());
   });
 
   it("disables the 'Login' button if a username and password are not present", async () => {
