@@ -17,3 +17,9 @@ it("highlights an active navigation item correctly settings secondary navigation
   expect(screen.getByRole("heading", { level: 2, name: /Settings/i })).toBeInTheDocument();
   expect(screen.getByRole("link", { current: "page" })).toHaveTextContent(routesConfig.requests.title);
 });
+
+it("displays 'Account' title on account page", () => {
+  renderWithMemoryRouter(<SecondaryNavigation />, { initialEntries: [routesConfig.account.path] });
+
+  expect(screen.getByRole("heading", { level: 2, name: /account/i })).toBeInTheDocument();
+});

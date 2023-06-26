@@ -2,6 +2,8 @@ import RequireLogin from "./RequireLogin";
 
 import MainLayout from "@/components/MainLayout";
 import NotFound from "@/pages/404";
+import Account from "@/pages/account";
+import Password from "@/pages/account/password";
 import Login from "@/pages/login";
 import Logout from "@/pages/logout";
 import Requests from "@/pages/requests";
@@ -55,6 +57,24 @@ export const routes = createRoutesFromElements(
           </RequireLogin>
         }
         path="requests"
+      />
+    </Route>
+    <Route
+      element={
+        <RequireLogin>
+          <Account />
+        </RequireLogin>
+      }
+      path="account"
+    >
+      <Route element={<RequireLogin />} index loader={() => redirect("/account/password")} />
+      <Route
+        element={
+          <RequireLogin>
+            <Password />
+          </RequireLogin>
+        }
+        path="password"
       />
     </Route>
     <Route path="users" />

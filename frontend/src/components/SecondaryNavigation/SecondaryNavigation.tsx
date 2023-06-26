@@ -1,6 +1,7 @@
 import classNames from "classnames";
 
 import type { RoutePath } from "@/base/routesConfig";
+import useSecondaryNavContext from "@/hooks/useSecondaryNavContext";
 import { matchPath, Link, useLocation } from "@/router";
 import type { Location } from "@/router";
 
@@ -96,13 +97,55 @@ export const secondaryNavItems: NavItem[] = [
   },
 ];
 
-export const SecondaryNavigation = ({ isOpen }: { isOpen?: boolean }) => {
+export type SecondaryNavContext = "settings" | "account";
+
+export type SecondaryNavInfoType = {
+  [key in SecondaryNavContext]: {
+    title: string;
+    navItems: NavItem[];
+  };
+};
+
+type SecondaryNavigationProps = {
+  isOpen?: boolean;
+};
+
+const secondaryNavInfo: SecondaryNavInfoType = {
+  settings: {
+    title: "Settings",
+    navItems: [
+      {
+        label: "Enrollment",
+        items: [
+          { path: "/settings/tokens", label: "Tokens" },
+          {
+            path: "/settings/requests",
+            label: "Requests",
+          },
+        ],
+      },
+    ],
+  },
+  account: {
+    title: "Account",
+    navItems: [
+      {
+        label: "",
+        items: [{ path: "/account/password", label: "Password" }],
+      },
+    ],
+  },
+};
+
+export const SecondaryNavigation = ({ isOpen }: SecondaryNavigationProps) => {
+  const context = useSecondaryNavContext();
+  const { title, navItems } = secondaryNavInfo[context];
   return (
     <div className={classNames("p-side-navigation is-maas-site-manager is-dark", { "is-open": isOpen })}>
       <nav className="p-side-navigation__drawer u-padding-top--medium">
-        <h2 className="p-side-navigation__title p-heading--4 p-panel__logo-name">Settings</h2>
+        <h2 className="p-side-navigation__title p-heading--4 p-panel__logo-name">{title}</h2>
         <ul className="p-side-navigation__list">
-          {secondaryNavItems.map((item) => (
+          {navItems.map((item) => (
             <SideNavigationItem item={item} key={item.label} />
           ))}
         </ul>

@@ -60,7 +60,7 @@ const MainLayout: React.FC = () => {
   const { pathname } = useLocation();
   const { status } = useAuthContext();
   const isLoggedIn = status === "authenticated";
-  const isSideNavVisible = matchPath("/settings/*", pathname);
+  const isSideNavVisible = matchPath("/settings/*", pathname) || matchPath("/account/*", pathname);
 
   return (
     <div className="l-application">

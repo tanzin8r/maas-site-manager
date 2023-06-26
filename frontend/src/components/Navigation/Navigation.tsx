@@ -26,7 +26,10 @@ export const settingsNavItems: LocalNavLink[] = [
   },
 ];
 
-const navItemsAccount: LocalNavLink[] = [{ label: "Log out", url: "/logout" }];
+const navItemsAccount: LocalNavLink[] = [
+  { label: "User", url: "/account", icon: "user" },
+  { label: "Log out", url: "/logout" },
+];
 
 export const navItemsBottom: ExternalNavLink[] = [
   { external: true, icon: "information", label: "Documentation", url: "https://maas.io/docs" },
