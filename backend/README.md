@@ -62,7 +62,7 @@ PostgreSQL instance (installed via `make install-dependencies).
 Make sure to set the following environment variables when starting the app:
 
 ```
-export POSTGRES_HOST="locahost"  # change if PostgreSQL is running elsewhere
+export POSTGRES_HOST="localhost"  # change if PostgreSQL is running elsewhere
 export POSTGRES_PORT=5432
 export POSTGRES_DB="postgres"  # default for postgres docker image
 export POSTGRES_USER="postgres"  # default for postgres docker image

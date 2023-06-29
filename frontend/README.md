@@ -18,7 +18,7 @@ Setup local environment variables
 cp .env.development .env.local.development
 ```
 
-Set `VITE_USE_MOCK_DATA` to `false` in `.env.local.development`.
+Set `VITE_USE_MOCK_DATA` to `false` in `.env.development.local`.
 
 Start the backend
 [MAAS Site Manager Backend Readme](/backend/README.md).
