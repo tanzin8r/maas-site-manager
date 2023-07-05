@@ -75,8 +75,8 @@ junit_logging = "all"
 junit_suite_name = "maas-site-manager backend tests"
 
 [tool.mypy]
-ignore_missing_imports = true
 install_types = true
+junit_xml = "../junit-mypy.xml"
 non_interactive = true
 plugins = [
   "pydantic.mypy"
