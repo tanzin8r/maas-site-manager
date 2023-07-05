@@ -471,7 +471,7 @@ class TestLoginHandler:
         await fixture.create("user", userdata, commit=True)
         response = await user_app_client.post(
             "/login",
-            json={"username": userdata["email"], "password": "admin"},
+            json={"email": userdata["email"], "password": "admin"},
         )
         assert response.status_code == 200
         assert response.json()["token_type"] == "bearer"
@@ -491,7 +491,7 @@ class TestLoginHandler:
 
         fail_response = await user_app_client.post(
             "/login",
-            json={"username": userdata["email"], "password": "incorrect_pass"},
+            json={"email": userdata["email"], "password": "incorrect_pass"},
         )
         assert fail_response.status_code == 401
 
@@ -529,7 +529,7 @@ class TestUsersHandler:
 
         response = await user_app_client.post(
             "/login",
-            json={"username": "admin@example.com", "password": "admin"},
+            json={"email": "admin@example.com", "password": "admin"},
         )
         assert response.status_code == 200
 

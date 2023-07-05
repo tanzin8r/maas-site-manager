@@ -20,7 +20,7 @@ from .._jwt import (
 class LoginPostRequest(BaseModel):
     """User login request schema."""
 
-    username: str
+    email: str
     password: str
 
 
@@ -36,7 +36,7 @@ async def post(
     user_login: LoginPostRequest,
 ) -> LoginPostResponse:
     user = await authenticate_user(
-        session, user_login.username, user_login.password
+        session, user_login.email, user_login.password
     )
     if not user:
         raise HTTPException(
