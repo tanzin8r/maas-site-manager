@@ -17,9 +17,9 @@ def create_app(db_dsn: str | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-        await db.connect()
+        await db.setup()
         yield
-        await db.disconnect()
+        await db.dispose()
 
     db = Database(db_dsn)
     app = FastAPI(

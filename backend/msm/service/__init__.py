@@ -1,4 +1,4 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from ._site import (
     InvalidPendingSites,
@@ -11,10 +11,10 @@ from ._user import UserService
 class ServiceCollection:
     """Provide all services."""
 
-    def __init__(self, session: AsyncSession):
-        self.sites = SiteService(session)
-        self.tokens = TokenService(session)
-        self.users = UserService(session)
+    def __init__(self, connection: AsyncConnection):
+        self.sites = SiteService(connection)
+        self.tokens = TokenService(connection)
+        self.users = UserService(connection)
 
 
 __all__ = [

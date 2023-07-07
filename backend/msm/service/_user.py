@@ -49,7 +49,7 @@ class UserService(Service):
                     )
                 )
             )
-        count = await queries.row_count(self.session, User, *filters)
+        count = await queries.row_count(self.conn, User, *filters)
         stmt = (
             select(
                 User.c.id,
@@ -65,7 +65,7 @@ class UserService(Service):
         )
         if limit is not None:
             stmt = stmt.limit(limit)
-        result = await self.session.execute(stmt)
+        result = await self.conn.execute(stmt)
         return count, [models.User(**row._asdict()) for row in result.all()]
 
     async def get_by_email(self, email: str) -> models.UserWithPassword | None:
@@ -82,13 +82,13 @@ class UserService(Service):
             .select_from(User)
             .where(User.c.email == email)
         )
-        if result := await self.session.execute(stmt):
+        if result := await self.conn.execute(stmt):
             if user := result.one_or_none():
                 return models.UserWithPassword(**user._asdict())
         return None
 
     async def create(self, user_details: models.UserCreate) -> models.User:
-        result = await self.session.execute(
+        result = await self.conn.execute(
             insert(User).returning(
                 User.c.id,
                 User.c.email,
@@ -102,7 +102,7 @@ class UserService(Service):
         return models.User(**user._asdict())
 
     async def id_exists(self, user_id: int) -> bool:
-        search = await self.session.execute(
+        search = await self.conn.execute(
             select(User.c.id).select_from(User).filter(User.c.id == user_id)
         )
         return search.first() is not None
@@ -125,7 +125,7 @@ class UserService(Service):
             )
         if exclude_id is not None:
             user_filter = and_(user_filter, User.c.id != exclude_id)
-        search = await self.session.execute(
+        search = await self.conn.execute(
             select(User.c.id).select_from(User).filter(user_filter)
         )
         return search.first() is not None
@@ -138,7 +138,7 @@ class UserService(Service):
         stmt = (
             update(User).where(User.c.id == user_id).values(password=password)
         )
-        await self.session.execute(stmt)
+        await self.conn.execute(stmt)
 
     async def update(
         self, user_id: int, details: models.UserUpdate
@@ -155,9 +155,9 @@ class UserService(Service):
                 User.c.is_admin,
             )
         )
-        result = await self.session.execute(patch_stmt)
+        result = await self.conn.execute(patch_stmt)
         return models.User(**result.one()._asdict())
 
     async def delete(self, user_id: int) -> None:
         stmt = delete(User).where(User.c.id == user_id)
-        await self.session.execute(stmt)
+        await self.conn.execute(stmt)

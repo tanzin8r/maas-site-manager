@@ -3,12 +3,12 @@ from sqlalchemy import (
     func,
     select,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql.expression import FromClause
 
 
 async def row_count(
-    session: AsyncSession, what: FromClause, *filters: ColumnOperators
+    conn: AsyncConnection, what: FromClause, *filters: ColumnOperators
 ) -> int:
     """Count specified entries."""
     stmt = (
@@ -16,4 +16,4 @@ async def row_count(
         .select_from(what)
         .where(*filters)  # type: ignore[arg-type]
     )
-    return (await session.execute(stmt)).scalar() or 0
+    return (await conn.execute(stmt)).scalar() or 0

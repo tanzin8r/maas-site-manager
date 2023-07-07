@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.service._user import UserService
 
@@ -9,7 +9,7 @@ from ..fixtures.db import Fixture
 @pytest.mark.asyncio
 class TestUserService:
     async def test_id_exists(
-        self, fixture: Fixture, session: AsyncSession
+        self, fixture: Fixture, db_connection: AsyncConnection
     ) -> None:
         phash1 = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
         users = await fixture.create(
@@ -25,7 +25,7 @@ class TestUserService:
             ],
             commit=True,
         )
-        service = UserService(session)
+        service = UserService(db_connection)
         assert await service.id_exists(users[0]["id"])
         assert not await service.id_exists(-1)
 
@@ -42,7 +42,7 @@ class TestUserService:
     async def test_exists(
         self,
         fixture: Fixture,
-        session: AsyncSession,
+        db_connection: AsyncConnection,
         email: str,
         username: str,
         exists: bool,
@@ -60,7 +60,7 @@ class TestUserService:
             [user_details],
             commit=True,
         )
-        service = UserService(session)
+        service = UserService(db_connection)
         assert await service.exists(email=email, username=username) == exists
 
     @pytest.mark.parametrize(
@@ -75,7 +75,7 @@ class TestUserService:
     async def test_exists_exclude_id(
         self,
         fixture: Fixture,
-        session: AsyncSession,
+        db_connection: AsyncConnection,
         email: str,
         username: str,
     ) -> None:
@@ -92,7 +92,7 @@ class TestUserService:
             [user_details],
             commit=True,
         )
-        service = UserService(session)
+        service = UserService(db_connection)
         assert not await service.exists(
             email=email, username=username, exclude_id=user["id"]
         )

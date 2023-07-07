@@ -8,26 +8,20 @@ from fastapi import (
     Depends,
     Request,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from ..service import ServiceCollection
 
 
-async def db_session(request: Request) -> AsyncIterator[AsyncSession]:
-    """Context manager to run a section with a DB session."""
-    async with request.app.state.db.session() as session:
-        async with session.begin():
-            try:
-                yield session
-            except Exception:
-                await session.rollback()
-                raise
-            else:
-                await session.commit()
+async def db_connection(request: Request) -> AsyncIterator[AsyncConnection]:
+    """Provide a DB connection to execute queries, within a transaction."""
+    async with request.app.state.db.engine.connect() as conn:
+        async with conn.begin():
+            yield conn
 
 
 def services(
-    session: Annotated[AsyncSession, Depends(db_session)]
+    connection: Annotated[AsyncConnection, Depends(db_connection)]
 ) -> Iterator[ServiceCollection]:
     """Provide the ServiceCollection to access services."""
-    yield ServiceCollection(session)
+    yield ServiceCollection(connection)

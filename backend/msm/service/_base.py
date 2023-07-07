@@ -1,8 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 
 class Service:
     """Base class for services."""
 
-    def __init__(self, session: AsyncSession):
-        self.session = session
+    def __init__(self, connection: AsyncConnection):
+        self.conn = connection

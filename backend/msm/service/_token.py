@@ -21,7 +21,7 @@ class TokenService(Service):
         """Create tokens, returning their expiration and UUIDs."""
         created = datetime.utcnow()
         expired = created + duration
-        result = await self.session.execute(
+        result = await self.conn.execute(
             Token.insert().returning(Token.c.value),
             [
                 {
@@ -38,7 +38,7 @@ class TokenService(Service):
         offset: int = 0,
         limit: int | None = None,
     ) -> tuple[int, list[models.Token]]:
-        count = await queries.row_count(self.session, Token)
+        count = await queries.row_count(self.conn, Token)
         stmt = (
             select(
                 Token.c.id,
@@ -53,11 +53,11 @@ class TokenService(Service):
         )
         if limit is not None:
             stmt = stmt.limit(limit)
-        result = await self.session.execute(stmt)
+        result = await self.conn.execute(stmt)
         return count, [models.Token(**row._asdict()) for row in result.all()]
 
     async def get_active(self) -> list[models.Token]:
-        result = await self.session.execute(
+        result = await self.conn.execute(
             select(
                 Token.c.id,
                 Token.c.site_id,

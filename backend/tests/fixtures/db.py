@@ -1,7 +1,7 @@
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import (
     Any,
-    AsyncGenerator,
     Iterator,
 )
 
@@ -12,7 +12,7 @@ from sqlalchemy import (
     ColumnOperators,
     create_engine,
 )
-from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
 from msm.db.tables import METADATA
@@ -67,27 +67,29 @@ def db(
     with engine.connect() as conn:
         with conn.begin():
             METADATA.create_all(conn)
-        yield Database(db_setup.async_dsn)
+    yield Database(db_setup.async_dsn)
+    with engine.connect() as conn:
         with conn.begin():
             METADATA.drop_all(conn)
 
 
 @pytest.fixture
-async def session(db: Database) -> AsyncGenerator[AsyncSession, None]:
-    """A database session."""
-    async with db.session() as session:
-        yield session
-        await session.rollback()
+async def db_connection(db: Database) -> AsyncIterator[AsyncConnection]:
+    """The database connection."""
+    async with db.engine.connect() as conn:
+        conn.begin()
+        yield conn
+        await conn.rollback()
 
 
 class Fixture:
     """Helper for creating test fixtures."""
 
-    def __init__(self, session: AsyncSession):
-        self.session = session
+    def __init__(self, conn: AsyncConnection):
+        self.conn = conn
 
     async def commit(self) -> None:
-        await self.session.commit()
+        await self.conn.commit()
 
     async def create(
         self,
@@ -95,11 +97,11 @@ class Fixture:
         data: dict[str, Any] | list[dict[str, Any]] | None = None,
         commit: bool = False,
     ) -> list[dict[str, Any]]:
-        result = await self.session.execute(
+        result = await self.conn.execute(
             METADATA.tables[table].insert().returning("*"), data
         )
         if commit:
-            await self.session.commit()
+            await self.conn.commit()
         return [row._asdict() for row in result]
 
     async def get(
@@ -108,7 +110,7 @@ class Fixture:
         *filters: ColumnOperators,
     ) -> list[dict[str, Any]]:
         """Take a peak what is in there"""
-        result = await self.session.execute(
+        result = await self.conn.execute(
             METADATA.tables[table]
             .select()
             .where(*filters)  # type: ignore[arg-type]
@@ -117,5 +119,5 @@ class Fixture:
 
 
 @pytest.fixture
-def fixture(session: AsyncSession) -> Iterator[Fixture]:
-    yield Fixture(session)
+def fixture(db_connection: AsyncConnection) -> Iterator[Fixture]:
+    yield Fixture(db_connection)

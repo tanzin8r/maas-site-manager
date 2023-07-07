@@ -65,7 +65,7 @@ def user_app(
 ) -> Iterable[FastAPI]:
     """The API for users."""
     app = create_app(db.dsn)
-    app.state.db._engine.echo = request.config.getoption("sqlalchemy_debug")
+    app.state.db.engine.echo = request.config.getoption("sqlalchemy_debug")
     yield app
 
 

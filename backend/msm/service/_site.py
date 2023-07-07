@@ -62,7 +62,7 @@ class SiteService(Service):
         )
         filters.append(Site.c.accepted == True)  # noqa
         order_by = queries.order_by_from_arguments(sort_params=sort_params)
-        count = await queries.row_count(self.session, Site, *filters)
+        count = await queries.row_count(self.conn, Site, *filters)
         connection_lost_timedelta = datetime.utcnow() - timedelta(
             seconds=SETTINGS.lost_connection_threshold_seconds
         )
@@ -131,7 +131,7 @@ class SiteService(Service):
         )
         if limit is not None:
             stmt = stmt.limit(limit)
-        result = await self.session.execute(stmt)
+        result = await self.conn.execute(stmt)
         return count, [models.Site(**row._asdict()) for row in result.all()]
 
     async def get_pending(
@@ -141,7 +141,7 @@ class SiteService(Service):
     ) -> tuple[int, list[models.PendingSite]]:
         """Return pending sites."""
         filters = [Site.c.accepted == False]  # noqa
-        count = await queries.row_count(self.session, Site, *filters)
+        count = await queries.row_count(self.conn, Site, *filters)
         stmt = (
             select(
                 Site.c.id,
@@ -156,7 +156,7 @@ class SiteService(Service):
         )
         if limit is not None:
             stmt = stmt.limit(limit)
-        result = await self.session.execute(stmt)
+        result = await self.conn.execute(stmt)
         return count, [
             models.PendingSite(**row._asdict()) for row in result.all()
         ]
@@ -176,19 +176,19 @@ class SiteService(Service):
                 Site.c.accepted == False,  # noqa
             )
         )
-        result = await self.session.execute(stmt)
+        result = await self.conn.execute(stmt)
         pending_ids = set(row[0] for row in result.all())
         if unknown_ids := site_ids - pending_ids:
             raise InvalidPendingSites(unknown_ids)
 
         if accept:
-            await self.session.execute(
+            await self.conn.execute(
                 update(Site)
                 .where(Site.c.id.in_(site_ids))
                 .values(accepted=True)
             )
         else:
-            await self.session.execute(
+            await self.conn.execute(
                 delete(Site).where(Site.c.id.in_(site_ids))
             )
         return None
