@@ -7,9 +7,7 @@ from uuid import UUID
 
 from fastapi import Depends
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...db import queries
 from ...db.models import (
     Token,
     User,
@@ -19,8 +17,9 @@ from ...schema import (
     pagination_params,
     PaginationParams,
 )
+from ...service import ServiceCollection
 from .._csv import CSVResponse
-from .._dependencies import db_session
+from .._dependencies import services
 from .._jwt import get_authenticated_user
 
 
@@ -31,13 +30,13 @@ class TokensGetResponse(PaginatedResults):
 
 
 async def get(
-    session: Annotated[AsyncSession, Depends(db_session)],
+    services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
 ) -> TokensGetResponse:
     """Return all tokens"""
-    total, results = await queries.get_tokens(
-        session, pagination_params.offset, pagination_params.size
+    total, results = await services.tokens.get(
+        pagination_params.offset, pagination_params.size
     )
     return TokensGetResponse(
         total=total,
@@ -65,7 +64,7 @@ class TokensPostResponse(BaseModel):
 
 
 async def post(
-    session: Annotated[AsyncSession, Depends(db_session)],
+    services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     create_request: TokensPostRequest,
 ) -> TokensPostResponse:
@@ -73,8 +72,7 @@ async def post(
     Create one or more tokens.
     Token duration (TTL) is expressed in seconds.
     """
-    expired, tokens = await queries.create_tokens(
-        session,
+    expired, tokens = await services.tokens.create(
         create_request.duration,
         count=create_request.count,
     )
@@ -82,8 +80,8 @@ async def post(
 
 
 async def export_get(
-    session: Annotated[AsyncSession, Depends(db_session)],
+    services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
 ) -> CSVResponse:
-    tokens = await queries.get_active_tokens(session)
+    tokens = await services.tokens.get_active()
     return CSVResponse(content=tokens)

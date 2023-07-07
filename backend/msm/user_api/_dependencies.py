@@ -1,7 +1,16 @@
 from collections.abc import AsyncIterator
+from typing import (
+    Annotated,
+    Iterator,
+)
 
-from fastapi import Request
+from fastapi import (
+    Depends,
+    Request,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..service import ServiceCollection
 
 
 async def db_session(request: Request) -> AsyncIterator[AsyncSession]:
@@ -15,3 +24,10 @@ async def db_session(request: Request) -> AsyncIterator[AsyncSession]:
                 raise
             else:
                 await session.commit()
+
+
+def services(
+    session: Annotated[AsyncSession, Depends(db_session)]
+) -> Iterator[ServiceCollection]:
+    """Provide the ServiceCollection to access services."""
+    yield ServiceCollection(session)

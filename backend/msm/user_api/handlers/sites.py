@@ -14,7 +14,6 @@ from ...db.models import (
     Site,
     User,
 )
-from ...db.queries import InvalidPendingSites
 from ...schema import (
     PaginatedResults,
     pagination_params,
@@ -112,7 +111,7 @@ async def pending_post(
             action.ids,
             action.accept,
         )
-    except InvalidPendingSites as error:
+    except queries.InvalidPendingSites as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": str(error), "ids": error.ids},
