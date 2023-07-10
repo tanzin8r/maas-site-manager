@@ -24,7 +24,7 @@ classifiers = [
 dependencies = [
   "fastapi",
   "passlib[bcrypt]",
-  "pydantic[email]",
+  "pydantic[email]<2",
   "python-jose[cryptography]",
   "python-multipart",
   "pytz",
