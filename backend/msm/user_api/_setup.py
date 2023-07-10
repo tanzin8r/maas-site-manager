@@ -10,24 +10,23 @@ from ..db import Database
 from ..settings import SETTINGS
 
 
-def create_app(db_dsn: str | None = None) -> FastAPI:
+def create_app(database: Database | None) -> FastAPI:
     """Create the FastAPI WSGI application."""
-    if db_dsn is None:
-        db_dsn = str(SETTINGS.db_dsn)
+    db = database or Database(str(SETTINGS.db_dsn))
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-        await db.setup()
+        await db.ensure_schema()
         yield
-        await db.dispose()
+        await db.engine.dispose()
 
-    db = Database(db_dsn)
     app = FastAPI(
         title="MAAS Site Manager",
         name=PACKAGE.name,
         version=PACKAGE.version,
         lifespan=lifespan,
     )
+    app.state.db = db
     app.add_middleware(
         CORSMiddleware,
         allow_origins=SETTINGS.allowed_origins,
@@ -35,7 +34,6 @@ def create_app(db_dsn: str | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.state.db = db
     app.router.add_api_route("/", handlers.root.get, methods=["GET"])
 
     app.router.add_api_route("/login", handlers.login.post, methods=["POST"])

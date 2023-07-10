@@ -8,10 +8,7 @@ from typing import (
 import pytest
 from pytest_postgresql.executor import PostgreSQLExecutor
 from pytest_postgresql.janitor import DatabaseJanitor
-from sqlalchemy import (
-    ColumnOperators,
-    create_engine,
-)
+from sqlalchemy import ColumnOperators
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
@@ -58,19 +55,15 @@ def db_setup(postgresql_proc: PostgreSQLExecutor) -> Iterator[TestDSN]:
 
 
 @pytest.fixture
-def db(
+async def db(
     request: pytest.FixtureRequest, db_setup: TestDSN
-) -> Iterator[Database]:
+) -> AsyncIterator[Database]:
     """Set up the database schema."""
     echo = request.config.getoption("sqlalchemy_debug")
-    engine = create_engine(db_setup.sync_dsn, echo=echo)
-    with engine.connect() as conn:
-        with conn.begin():
-            METADATA.create_all(conn)
-    yield Database(db_setup.async_dsn)
-    with engine.connect() as conn:
-        with conn.begin():
-            METADATA.drop_all(conn)
+    db = Database(db_setup.async_dsn, echo=echo)
+    await db.ensure_schema()
+    yield db
+    await db.drop_schema()
 
 
 @pytest.fixture

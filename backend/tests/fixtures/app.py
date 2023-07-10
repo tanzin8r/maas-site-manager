@@ -60,13 +60,9 @@ class AuthAsyncClient(AsyncClient):
 
 
 @pytest.fixture
-def user_app(
-    request: pytest.FixtureRequest, db: Database
-) -> Iterable[FastAPI]:
+def user_app(db: Database) -> Iterable[FastAPI]:
     """The API for users."""
-    app = create_app(db.dsn)
-    app.state.db.engine.echo = request.config.getoption("sqlalchemy_debug")
-    yield app
+    yield create_app(database=db)
 
 
 @pytest.fixture
