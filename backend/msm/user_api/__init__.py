@@ -10,7 +10,7 @@ from ..db import Database
 from ..settings import SETTINGS
 
 
-def create_app(database: Database | None) -> FastAPI:
+def create_app(database: Database | None = None) -> FastAPI:
     """Create the FastAPI WSGI application."""
     db = database or Database(str(SETTINGS.db_dsn))
 
