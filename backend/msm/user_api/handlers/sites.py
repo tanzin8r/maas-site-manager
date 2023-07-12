@@ -70,6 +70,22 @@ async def get(
     )
 
 
+async def get_id(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    site_id: int,
+) -> Site:
+    """
+    Select a specific site by id
+    """
+    if site := await services.sites.get_by_id(site_id):
+        return site
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail={"message": "Site does not exist."},
+    )
+
+
 class PendingSitesGetResponse(PaginatedResults):
     items: list[PendingSite]
 

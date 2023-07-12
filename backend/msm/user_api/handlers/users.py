@@ -81,6 +81,23 @@ async def get(
     )
 
 
+async def get_id(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    user_id: int,
+) -> User:
+    """
+    Select a specific user by id
+    """
+
+    if user := await services.users.get_by_id(user_id):
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail={"message": "User does not exist."},
+    )
+
+
 class UsersPostRequest(BaseModel):
     """
     Request to create a User.
@@ -175,7 +192,7 @@ async def patch(
 
     if not await services.users.id_exists(user_id):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail={"message": "User does not exist."},
         )
 

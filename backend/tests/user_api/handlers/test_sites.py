@@ -194,6 +194,37 @@ class TestSitesHandler:
             == ConnectionStatus.LOST
         )
 
+    async def test_get_by_id(
+        self, authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
+    ) -> None:
+        await fixture.create(
+            "site",
+            [site_details(city="Milan", country="IT")],
+            commit=True,
+        )
+        await fixture.create(
+            "site",
+            [site_details(city="Paris", country="FR")],
+            commit=True,
+        )
+        await fixture.create(
+            "site", [site_details(city="Rome", country="IT")], commit=True
+        )
+        await fixture.create(
+            "site", [site_details(city="London", country="GB")], commit=True
+        )
+
+        site_id = -1
+        response = await authenticated_user_app_client.get(f"/sites/{site_id}")
+        assert response.status_code == 404
+        assert response.json()["detail"]["message"] == "Site does not exist."
+
+        site_id = 2
+        response = await authenticated_user_app_client.get(f"/sites/{site_id}")
+        assert response.status_code == 200
+        assert response.json()["city"] == "Paris"
+        assert response.json()["country"] == "FR"
+
     @pytest.mark.parametrize(
         "query_params, expected_result",
         [

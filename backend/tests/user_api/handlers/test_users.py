@@ -256,6 +256,75 @@ class TestUsersGetHandler:
             "items": users,
         }
 
+    async def test_get_by_id(
+        self, authenticated_admin_app_client: AuthAsyncClient, fixture: Fixture
+    ) -> None:
+        async def create_user(
+            username: str,
+            password: str,
+            email: str,
+            full_name: str,
+            is_admin: bool = False,
+        ) -> None:
+            await fixture.create(
+                "user",
+                {
+                    "email": email,
+                    "username": username,
+                    "full_name": full_name,
+                    "password": get_password_hash(password),
+                    "confirm_password": get_password_hash(password),
+                    "is_admin": is_admin,
+                },
+                commit=True,
+            )
+
+        await create_user(
+            "proxima",
+            "password1",
+            "proxima@maas-site-manager.example.com",
+            "Proxima Centauri b",
+        )
+        await create_user(
+            "trappist",
+            "password2",
+            "trappist@maas-site-manager.example.com",
+            "Trappist 1 e",
+            True,
+        )
+        await create_user(
+            "hatp13",
+            "password3",
+            "hatp13@example.com",
+            "HAT-P-13 b",
+        )
+        await create_user(
+            "alphacen",
+            "password4",
+            "alphacen@example.com",
+            "Rigel Kentaurus",
+        )
+
+        user_id = -1
+        response = await authenticated_admin_app_client.get(
+            f"/users/{user_id}"
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"]["message"] == "User does not exist."
+
+        user_id = 2
+        response = await authenticated_admin_app_client.get(
+            f"/users/{user_id}"
+        )
+        assert response.status_code == 200
+        assert response.json() == {
+            "id": 2,
+            "full_name": "Proxima Centauri b",
+            "username": "proxima",
+            "email": "proxima@maas-site-manager.example.com",
+            "is_admin": False,
+        }
+
 
 @pytest.mark.asyncio
 class TestUsersPostHandler:
@@ -534,7 +603,7 @@ class TestUsersPatchHandler:
         response = await authenticated_admin_app_client.patch(
             "/users/10", json={"full_name": "ghost_in_the_test"}
         )
-        assert response.status_code == 422
+        assert response.status_code == 404
         assert response.json()["detail"]["message"] == "User does not exist."
 
     @pytest.mark.parametrize(

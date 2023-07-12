@@ -48,6 +48,9 @@ def create_app(database: Database | None = None) -> FastAPI:
         status_code=204,
     )
     app.router.add_api_route("/sites", handlers.sites.get, methods=["GET"])
+    app.router.add_api_route(
+        "/sites/{site_id}", handlers.sites.get_id, methods=["GET"]
+    )
 
     app.router.add_api_route("/tokens", handlers.tokens.get, methods=["GET"])
     app.router.add_api_route("/tokens", handlers.tokens.post, methods=["POST"])
@@ -66,6 +69,9 @@ def create_app(database: Database | None = None) -> FastAPI:
     )
     app.router.add_api_route("/users", handlers.users.get, methods=["GET"])
     app.router.add_api_route("/users", handlers.users.post, methods=["POST"])
+    app.router.add_api_route(
+        "/users/{user_id}", handlers.users.get_id, methods=["GET"]
+    )
     app.router.add_api_route(
         "/users/{user_id}", handlers.users.patch, methods=["PATCH"]
     )

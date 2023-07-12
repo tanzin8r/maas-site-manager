@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from msm.db.models import User
 from msm.service._user import UserService
 
 from ..fixtures.db import Fixture
@@ -95,4 +96,36 @@ class TestUserService:
         service = UserService(db_connection)
         assert not await service.exists(
             email=email, username=username, exclude_id=user["id"]
+        )
+
+    @pytest.mark.parametrize(
+        "id,exists",
+        [
+            (1, True),
+            (-1, False),
+        ],
+    )
+    async def test_get_by_id(
+        self,
+        fixture: Fixture,
+        db_connection: AsyncConnection,
+        id: int,
+        exists: bool,
+    ) -> None:
+        phash1 = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
+        user_details = {
+            "email": "admin@example.com",
+            "username": "admin",
+            "full_name": "Admin",
+            "password": phash1,
+            "is_admin": True,
+        }
+        [user] = await fixture.create(
+            "user",
+            [user_details],
+            commit=True,
+        )
+        service = UserService(db_connection)
+        assert await service.get_by_id(id) == (
+            User(**user) if exists else None
         )

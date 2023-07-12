@@ -87,6 +87,25 @@ class UserService(Service):
                 return models.UserWithPassword(**user._asdict())
         return None
 
+    async def get_by_id(self, id: int) -> models.User | None:
+        """Gets a user by id."""
+        stmt = (
+            select(
+                User.c.id,
+                User.c.email,
+                User.c.username,
+                User.c.full_name,
+                User.c.password,
+                User.c.is_admin,
+            )
+            .select_from(User)
+            .where(User.c.id == id)
+        )
+        if result := await self.conn.execute(stmt):
+            if user := result.one_or_none():
+                return models.User(**user._asdict())
+        return None
+
     async def create(self, user_details: models.UserCreate) -> models.User:
         result = await self.conn.execute(
             insert(User).returning(
