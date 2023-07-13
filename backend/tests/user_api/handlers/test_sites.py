@@ -37,7 +37,6 @@ class TestSitesHandler:
                 site_details(city="London"),
                 site_details(name="BerlinHQ", city="Berlin"),
             ],
-            commit=True,
         )
         for site in sites:
             site["connection_status"] = ConnectionStatus.UNKNOWN
@@ -82,7 +81,6 @@ class TestSitesHandler:
                 site_details(),
                 site_details(name="BerlinHQ", accepted=False),
             ],
-            commit=True,
         )
         created_site["stats"] = None
         created_site["connection_status"] = ConnectionStatus.UNKNOWN
@@ -107,7 +105,6 @@ class TestSitesHandler:
                 site_details(timezone="Europe/London"),
                 site_details(name="BerlinHQ", timezone="Europe/Berlin"),
             ],
-            commit=True,
         )
         created_site["stats"] = None
         created_site["connection_status"] = ConnectionStatus.UNKNOWN
@@ -127,7 +124,7 @@ class TestSitesHandler:
     async def test_get_with_stats(
         self, authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
     ) -> None:
-        [site] = await fixture.create("site", [site_details()], commit=True)
+        [site] = await fixture.create("site", [site_details()])
         [site_data] = await fixture.create(
             "site_data",
             [
@@ -141,7 +138,6 @@ class TestSitesHandler:
                     "last_seen": datetime.utcnow(),
                 }
             ],
-            commit=True,
         )
         del site_data["id"]
         del site_data["site_id"]
@@ -184,7 +180,6 @@ class TestSitesHandler:
                     ),
                 },
             ],
-            commit=True,
         )
 
         page = await authenticated_user_app_client.get("/sites")
@@ -200,18 +195,14 @@ class TestSitesHandler:
         await fixture.create(
             "site",
             [site_details(city="Milan", country="IT")],
-            commit=True,
         )
         await fixture.create(
             "site",
             [site_details(city="Paris", country="FR")],
-            commit=True,
         )
+        await fixture.create("site", [site_details(city="Rome", country="IT")])
         await fixture.create(
-            "site", [site_details(city="Rome", country="IT")], commit=True
-        )
-        await fixture.create(
-            "site", [site_details(city="London", country="GB")], commit=True
+            "site", [site_details(city="London", country="GB")]
         )
 
         site_id = -1
@@ -257,18 +248,14 @@ class TestSitesHandler:
         await fixture.create(
             "site",
             [site_details(city="Milan", country="IT")],
-            commit=True,
         )
         await fixture.create(
             "site",
             [site_details(city="Paris", country="FR")],
-            commit=True,
         )
+        await fixture.create("site", [site_details(city="Rome", country="IT")])
         await fixture.create(
-            "site", [site_details(city="Rome", country="IT")], commit=True
-        )
-        await fixture.create(
-            "site", [site_details(city="London", country="GB")], commit=True
+            "site", [site_details(city="London", country="GB")]
         )
 
         response = await authenticated_user_app_client.get(
@@ -287,7 +274,7 @@ class TestSitesHandler:
         query_params: str,
     ) -> None:
         await fixture.create(
-            "site", [site_details(city="Milan", country="IT")], commit=True
+            "site", [site_details(city="Milan", country="IT")]
         )
 
         # not sortable
@@ -308,7 +295,6 @@ class TestPendingSitesHandler:
                 site_details(),
                 site_details(name="BerlinHQ", accepted=False),
             ],
-            commit=True,
         )
 
         response = await authenticated_user_app_client.get("/requests")
@@ -331,7 +317,7 @@ class TestPendingSitesHandler:
         self, authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
     ) -> None:
         [pending_site] = await fixture.create(
-            "site", [site_details(accepted=False)], commit=True
+            "site", [site_details(accepted=False)]
         )
 
         response = await authenticated_user_app_client.post(
@@ -346,7 +332,7 @@ class TestPendingSitesHandler:
         self, authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
     ) -> None:
         [pending_site] = await fixture.create(
-            "site", [site_details(accepted=False)], commit=True
+            "site", [site_details(accepted=False)]
         )
 
         response = await authenticated_user_app_client.post(
@@ -359,7 +345,7 @@ class TestPendingSitesHandler:
     async def test_post_invalid_ids(
         self, authenticated_user_app_client: AuthAsyncClient, fixture: Fixture
     ) -> None:
-        [site] = await fixture.create("site", [site_details()], commit=True)
+        [site] = await fixture.create("site", [site_details()])
         # unknown IDs and IDs for non-pending sites are invalid
         ids = [site["id"], 10000]
         response = await authenticated_user_app_client.post(

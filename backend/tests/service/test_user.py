@@ -24,7 +24,6 @@ class TestUserService:
                     "is_admin": True,
                 }
             ],
-            commit=True,
         )
         service = UserService(db_connection)
         assert await service.id_exists(users[0]["id"])
@@ -59,7 +58,6 @@ class TestUserService:
         await fixture.create(
             "user",
             [user_details],
-            commit=True,
         )
         service = UserService(db_connection)
         assert await service.exists(email=email, username=username) == exists
@@ -91,7 +89,6 @@ class TestUserService:
         [user] = await fixture.create(
             "user",
             [user_details],
-            commit=True,
         )
         service = UserService(db_connection)
         assert not await service.exists(
@@ -120,11 +117,7 @@ class TestUserService:
             "password": phash1,
             "is_admin": True,
         }
-        [user] = await fixture.create(
-            "user",
-            [user_details],
-            commit=True,
-        )
+        [user] = await fixture.create("user", [user_details])
         service = UserService(db_connection)
         assert await service.get_by_id(id) == (
             User(**user) if exists else None

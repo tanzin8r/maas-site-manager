@@ -14,7 +14,7 @@ async def test_post(user_app_client: AsyncClient, fixture: Fixture) -> None:
         "password": phash,
         "is_admin": True,
     }
-    await fixture.create("user", userdata, commit=True)
+    await fixture.create("user", userdata)
     response = await user_app_client.post(
         "/login",
         json={"email": userdata["email"], "password": "admin"},
@@ -35,7 +35,7 @@ async def test_post_fails_with_wrong_password(
         "password": phash,
         "is_admin": True,
     }
-    await fixture.create("user", userdata, commit=True)
+    await fixture.create("user", userdata)
 
     fail_response = await user_app_client.post(
         "/login",

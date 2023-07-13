@@ -61,7 +61,6 @@ class TestUsersGetHandler:
                     "is_admin": False,
                 },
             ],
-            commit=True,
         )
         # the return data does not include passwords
         for user in users:
@@ -157,7 +156,6 @@ class TestUsersGetHandler:
                     "confirm_password": get_password_hash(password),
                     "is_admin": is_admin,
                 },
-                commit=True,
             )
 
         await create_user(
@@ -217,7 +215,6 @@ class TestUsersGetHandler:
                     "is_admin": False,
                 }
             ],
-            commit=True,
         )
 
         # not sortable
@@ -239,7 +236,6 @@ class TestUsersGetHandler:
                 "password": phash2,
                 "is_admin": False,
             },
-            commit=True,
         )
         # the return data does not include passwords
         for user in users:
@@ -276,7 +272,6 @@ class TestUsersGetHandler:
                     "confirm_password": get_password_hash(password),
                     "is_admin": is_admin,
                 },
-                commit=True,
             )
 
         await create_user(
@@ -563,11 +558,7 @@ class TestUsersPatchHandler:
             "is_admin": True,
         }
         new_details = {"is_admin": False}
-        await fixture.create(
-            "user",
-            [user_details],
-            commit=True,
-        )
+        await fixture.create("user", [user_details])
         response = await authenticated_admin_app_client.patch(
             "/users/2", json=new_details
         )
@@ -624,11 +615,8 @@ class TestUsersPatchHandler:
             "password": phash2,
             "is_admin": True,
         }
-        await fixture.create(
-            "user",
-            [user_details],
-            commit=True,
-        )
+        await fixture.create("user", [user_details])
+
         response = await authenticated_admin_app_client.patch(
             "/users/2", json=new_details
         )
@@ -656,7 +644,6 @@ class TestUsersDeleteHandler:
                     "password": phash2,
                 },
             ],
-            commit=True,
         )
 
         response = await authenticated_admin_app_client.delete("/users/2")
@@ -694,7 +681,6 @@ class TestUsersDeleteHandler:
                     "is_admin": False,
                 },
             ],
-            commit=True,
         )
 
         response = await authenticated_admin_app_client.delete("/users/1")
@@ -759,11 +745,7 @@ class TestUsersMePatchHandler:
             "password": phash2,
             "is_admin": True,
         }
-        await fixture.create(
-            "user",
-            [user_details],
-            commit=True,
-        )
+        await fixture.create("user", [user_details])
         response = await authenticated_admin_app_client.patch(
             "/users/me", json=new_details
         )

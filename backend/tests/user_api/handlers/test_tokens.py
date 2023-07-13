@@ -67,7 +67,6 @@ async def test_tokens_get(
                 ),
             },
         ],
-        commit=True,
     )
     for token in tokens:
         token["expired"] = token["expired"].isoformat()

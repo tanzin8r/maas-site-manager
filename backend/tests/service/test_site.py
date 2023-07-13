@@ -29,11 +29,7 @@ class TestSiteService:
             "url": "https://londoncalling.example.com",
             "accepted": True,
         }
-        [site] = await fixture.create(
-            "site",
-            [site_details],
-            commit=True,
-        )
+        [site] = await fixture.create("site", [site_details])
         site |= {"connection_status": "unknown"}
         service = SiteService(db_connection)
         assert await service.get_by_id(id) == (

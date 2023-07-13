@@ -1,6 +1,10 @@
+from contextlib import contextmanager
 from typing import (
+    Any,
     AsyncIterable,
+    Callable,
     Iterable,
+    Iterator,
 )
 
 from fastapi import FastAPI
@@ -9,12 +13,26 @@ from httpx import (
     Response,
 )
 import pytest
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
 from msm.user_api import create_app
 from msm.user_api._jwt import get_password_hash
 
 from .db import Fixture
+
+
+@contextmanager
+def override_dependencies(
+    app: FastAPI,
+    dependencies_map: dict[Callable[..., Any], Callable[..., Any]],
+) -> Iterator[None]:
+    """Context manager to override app dependencies in tests."""
+    for orig_func, override_func in dependencies_map.items():
+        app.dependency_overrides[orig_func] = override_func
+    yield
+    for orig_func in dependencies_map:
+        del app.dependency_overrides[orig_func]
 
 
 class AuthAsyncClient(AsyncClient):
@@ -60,9 +78,18 @@ class AuthAsyncClient(AsyncClient):
 
 
 @pytest.fixture
-def user_app(db: Database) -> Iterable[FastAPI]:
+def user_app(
+    db: Database, db_connection: AsyncConnection
+) -> Iterable[FastAPI]:
     """The API for users."""
-    yield create_app(database=db)
+
+    from msm.user_api._dependencies import db_connection as orig_db_connection
+
+    deps_map = {orig_db_connection: lambda: db_connection}
+
+    app = create_app(database=db)
+    with override_dependencies(app, deps_map):
+        yield app
 
 
 @pytest.fixture
@@ -87,7 +114,6 @@ async def authenticated_user_app_client(
             "password": get_password_hash(password),
             "is_admin": False,
         },
-        commit=True,
     )
     async with AuthAsyncClient(app=user_app, base_url="http://test") as client:
         await client.login("admin@example.com", password)
@@ -109,7 +135,6 @@ async def authenticated_admin_app_client(
             "password": get_password_hash(password),
             "is_admin": True,
         },
-        commit=True,
     )
     async with AuthAsyncClient(app=user_app, base_url="http://test") as client:
         await client.login("admin@example.com", password)
