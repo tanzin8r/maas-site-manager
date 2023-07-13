@@ -1,6 +1,9 @@
+from typing import Any
+
 from sqlalchemy import (
     delete,
     insert,
+    Select,
     select,
     update,
 )
@@ -51,14 +54,7 @@ class UserService(Service):
             )
         count = await queries.row_count(self.conn, User, *filters)
         stmt = (
-            select(
-                User.c.id,
-                User.c.email,
-                User.c.username,
-                User.c.full_name,
-                User.c.is_admin,
-            )
-            .select_from(User)
+            self._select_statement()
             .where(*filters)  # type: ignore[arg-type]
             .order_by(*order_by)
             .offset(offset)
@@ -70,17 +66,8 @@ class UserService(Service):
 
     async def get_by_email(self, email: str) -> models.UserWithPassword | None:
         """Gets a user by email."""
-        stmt = (
-            select(
-                User.c.id,
-                User.c.email,
-                User.c.username,
-                User.c.full_name,
-                User.c.password,
-                User.c.is_admin,
-            )
-            .select_from(User)
-            .where(User.c.email == email)
+        stmt = self._select_statement(include_password=True).where(
+            User.c.email == email
         )
         if result := await self.conn.execute(stmt):
             if user := result.one_or_none():
@@ -89,17 +76,8 @@ class UserService(Service):
 
     async def get_by_id(self, id: int) -> models.User | None:
         """Gets a user by id."""
-        stmt = (
-            select(
-                User.c.id,
-                User.c.email,
-                User.c.username,
-                User.c.full_name,
-                User.c.password,
-                User.c.is_admin,
-            )
-            .select_from(User)
-            .where(User.c.id == id)
+        stmt = self._select_statement(include_password=True).where(
+            User.c.id == id
         )
         if result := await self.conn.execute(stmt):
             if user := result.one_or_none():
@@ -180,3 +158,15 @@ class UserService(Service):
     async def delete(self, user_id: int) -> None:
         stmt = delete(User).where(User.c.id == user_id)
         await self.conn.execute(stmt)
+
+    def _select_statement(self, include_password: bool = False) -> Select[Any]:
+        fields = [
+            User.c.id,
+            User.c.email,
+            User.c.username,
+            User.c.full_name,
+            User.c.is_admin,
+        ]
+        if include_password:
+            fields.append(User.c.password)
+        return select(*fields).select_from(User)
