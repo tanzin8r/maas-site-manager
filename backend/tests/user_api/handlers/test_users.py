@@ -4,7 +4,7 @@ from typing import Any
 from httpx import Response
 import pytest
 
-from msm.user_api._jwt import get_password_hash
+from msm.user_api._auth import get_password_hash
 
 from ...fixtures.client import Client
 from ...fixtures.db import Fixture

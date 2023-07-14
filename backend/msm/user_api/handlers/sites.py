@@ -23,12 +23,12 @@ from ...service import (
     InvalidPendingSites,
     ServiceCollection,
 )
+from .._auth import get_authenticated_user
 from .._dependencies import services
 from .._forms import (
     site_filter_parameters,
     SiteFilterParams,
 )
-from .._jwt import get_authenticated_user
 
 site_sort_parameters = SortParamParser(
     fields=[

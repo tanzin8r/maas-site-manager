@@ -18,9 +18,9 @@ from ...schema import (
     PaginationParams,
 )
 from ...service import ServiceCollection
+from .._auth import get_authenticated_user
 from .._csv import CSVResponse
 from .._dependencies import services
-from .._jwt import get_authenticated_user
 
 
 class TokensGetResponse(PaginatedResults):

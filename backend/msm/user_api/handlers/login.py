@@ -1,4 +1,3 @@
-from datetime import timedelta
 from typing import Annotated
 
 from fastapi import (
@@ -8,13 +7,10 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
+from ...jwt import create_token
 from ...service import ServiceCollection
-from ...settings import SETTINGS
+from .._auth import authenticate_user
 from .._dependencies import services
-from .._jwt import (
-    authenticate_user,
-    create_access_token,
-)
 
 
 class LoginPostRequest(BaseModel):
@@ -44,10 +40,5 @@ async def post(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(
-        minutes=SETTINGS.access_token_expire_minutes
-    )
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
+    access_token = create_token(user.email)
     return LoginPostResponse(access_token=access_token, token_type="bearer")

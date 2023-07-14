@@ -1,11 +1,4 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
-from typing import (
-    Annotated,
-    Any,
-)
+from typing import Annotated
 
 from fastapi import (
     Depends,
@@ -13,18 +6,17 @@ from fastapi import (
     status,
 )
 from fastapi.security import OAuth2PasswordBearer
-from jose import (
-    jwt,
-    JWTError,
-)
 from passlib.context import CryptContext
 
 from ..db.models import UserWithPassword
+from ..jwt import (
+    InvalidToken,
+    validate_token,
+)
 from ..service import (
     ServiceCollection,
     UserService,
 )
-from ..settings import SETTINGS
 from ._dependencies import services
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -36,20 +28,6 @@ def get_password_hash(password: str) -> str:
     Get a hash for a password
     """
     return str(pwd_context.hash(password))
-
-
-def create_access_token(
-    data: dict[str, Any], expires_delta: timedelta | None = None
-) -> str:
-    to_encode = data.copy()
-    if not expires_delta:
-        expires_delta = timedelta(minutes=15)
-    expire = datetime.utcnow() + expires_delta
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
-        to_encode, SETTINGS.secret_key, algorithm=SETTINGS.algorithm
-    )
-    return str(encoded_jwt)
 
 
 async def authenticate_user(
@@ -73,13 +51,8 @@ async def get_authenticated_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(
-            token, SETTINGS.secret_key, algorithms=[SETTINGS.algorithm]
-        )
-        email = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except JWTError:
+        email = validate_token(token)
+    except InvalidToken:
         raise credentials_exception
     user = await services.users.get_by_email(email)
     if user is None:

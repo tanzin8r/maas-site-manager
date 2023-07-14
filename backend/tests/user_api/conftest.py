@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
 from msm.user_api import create_app
-from msm.user_api._jwt import get_password_hash
+from msm.user_api._auth import get_password_hash
 
 from ..fixtures.app import override_dependencies
 from ..fixtures.client import Client

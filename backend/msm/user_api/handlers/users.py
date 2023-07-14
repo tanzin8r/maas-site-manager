@@ -29,16 +29,16 @@ from ...schema import (
     SortParamParser,
 )
 from ...service import ServiceCollection
-from .._dependencies import services
-from .._forms import (
-    user_filter_params,
-    UserFilterParams,
-)
-from .._jwt import (
+from .._auth import (
     authenticate_user,
     get_authenticated_admin,
     get_authenticated_user,
     get_password_hash,
+)
+from .._dependencies import services
+from .._forms import (
+    user_filter_params,
+    UserFilterParams,
 )
 
 user_sort_params = SortParamParser(
