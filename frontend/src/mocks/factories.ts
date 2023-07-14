@@ -3,16 +3,7 @@ import { sub, add } from "date-fns";
 import { Factory } from "fishery";
 import { uniqueNamesGenerator, adjectives, colors, animals, starWars } from "unique-names-generator";
 
-import type {
-  AccessToken,
-  CurrentUser,
-  EnrollmentRequest,
-  PaginatedQueryResult,
-  Site,
-  Stats,
-  Token,
-  User,
-} from "@/api/types";
+import type { AccessToken, EnrollmentRequest, PaginatedQueryResult, Site, Stats, Token, User } from "@/api/types";
 
 export const connections: Stats["connection"][] = ["stable", "lost", "unknown"];
 
@@ -71,16 +62,17 @@ export const userFactory = Factory.define<User>(({ sequence }) => {
     length: 1,
     seed: sequence,
   });
-  const username = `${full_name.replace(/\s/g, "")}${chance.integer({ min: 1, max: 99 })}`;
-  const email = `${username}@galactic-republic.gov`.toLowerCase();
+  // .replace("é", "e") <-- This is to make sure usernames and email addresses are valid.
+  const username = `${full_name.replace(/\s/g, "").replace("é", "e")}${chance.integer({ min: 1, max: 99 })}`;
+  const email = `${username}@galactic-republic.gov`.toLowerCase().replace("é", "e");
   const is_admin = chance.bool();
 
   return {
+    id: sequence,
     full_name,
     username,
     email,
     is_admin,
-    id: sequence,
   };
 });
 
@@ -127,16 +119,5 @@ export const enrollmentRequestFactory = Factory.define<EnrollmentRequest>(({ seq
     name,
     url: `http://${name}.${chance.tld()}`,
     created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>
-  };
-});
-
-export const currentUserFactory = Factory.define<CurrentUser>(({ sequence }) => {
-  const chance = new Chance(`maas-${sequence}`);
-  return {
-    id: 1,
-    full_name: chance.name(),
-    username: chance.word({ length: 8 }),
-    is_admin: chance.bool(),
-    email: chance.email(),
   };
 });

@@ -53,14 +53,6 @@ export type EnrollmentRequest = {
 
 export type EnrollmentRequestsQueryResult = PaginatedQueryResult<EnrollmentRequest>;
 
-export type CurrentUser = {
-  id: number;
-  email: string;
-  full_name?: string;
-  is_admin: boolean;
-  username: string;
-};
-
 export type User = {
   id: number;
   full_name: string;
@@ -69,4 +61,4 @@ export type User = {
   is_admin: boolean;
 };
 
-export type UserQueryResult = PaginatedQueryResult<User>;
+export type UsersQueryResult = PaginatedQueryResult<User>;

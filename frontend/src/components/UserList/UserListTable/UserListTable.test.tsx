@@ -1,7 +1,7 @@
 import UserListTable from "./UserListTable";
 
 import { userFactory, usersQueryResultFactory } from "@/mocks/factories";
-import { render, screen, within } from "@/test-utils";
+import { renderWithMemoryRouter, screen, within } from "@/test-utils";
 
 describe("UserListTable", () => {
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe("UserListTable", () => {
   });
 
   it("renders an empty users table", () => {
-    render(
+    renderWithMemoryRouter(
       <UserListTable
         data={usersQueryResultFactory.build()}
         error={undefined}
@@ -28,7 +28,7 @@ describe("UserListTable", () => {
   });
 
   it("renders a spinner while loading", () => {
-    render(
+    renderWithMemoryRouter(
       <UserListTable
         data={usersQueryResultFactory.build()}
         error={undefined}
@@ -43,7 +43,7 @@ describe("UserListTable", () => {
 
   it("shows errors if present", () => {
     const errorMessage = "There has been an error!";
-    render(
+    renderWithMemoryRouter(
       <UserListTable
         data={usersQueryResultFactory.build()}
         error={errorMessage}
@@ -58,7 +58,7 @@ describe("UserListTable", () => {
 
   it("renders rows with details for each user", () => {
     const items = userFactory.buildList(5);
-    render(
+    renderWithMemoryRouter(
       <UserListTable
         data={usersQueryResultFactory.build({ items, total: 1, page: 1, size: 1 })}
         error={undefined}
@@ -89,7 +89,7 @@ describe("UserListTable", () => {
     const pageLength = 50;
     const items = userFactory.buildList(pageLength);
 
-    render(
+    renderWithMemoryRouter(
       <UserListTable
         data={usersQueryResultFactory.build({ items, total: 100, page: 1, size: pageLength })}
         error={undefined}
@@ -105,7 +105,7 @@ describe("UserListTable", () => {
 
   it("displays the correct sort direction label", () => {
     const items = userFactory.buildList(2);
-    const { rerender } = render(
+    const { rerender } = renderWithMemoryRouter(
       <UserListTable
         data={usersQueryResultFactory.build({ items, total: 2, page: 1, size: 10 })}
         error={undefined}

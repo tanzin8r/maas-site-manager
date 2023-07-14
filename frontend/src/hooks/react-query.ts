@@ -23,6 +23,7 @@ import {
   updateUser,
   getUsers,
   addUser,
+  getUser,
 } from "@/api/handlers";
 import type {
   SitesQueryResult,
@@ -31,10 +32,10 @@ import type {
   AccessToken,
   Token,
   Site,
-  CurrentUser,
-  UserQueryResult,
+  UsersQueryResult,
   User,
 } from "@/api/types";
+import type { SelectedUserId } from "@/context/UserSelectionContext";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 
@@ -65,11 +66,15 @@ export const useSiteQueryData = (id: Site["id"]): Site | null => {
 
 export type useUsersQueryResult = ReturnType<typeof useUsersQuery>;
 export const useUsersQuery = ({ page, size, sort_by }: GetUsersQueryParams, searchText?: string) =>
-  useQuery<UserQueryResult>({
+  useQuery<UsersQueryResult>({
     queryKey: ["users", page, size, sort_by, searchText],
     queryFn: () => getUsers({ page, size, sort_by }, searchText),
     keepPreviousData: true,
   });
+
+export type useUserQueryResult = ReturnType<typeof useUserQuery>;
+export const useUserQuery = ({ id, enabled }: { id: SelectedUserId; enabled: boolean }) =>
+  useQuery<User>({ queryKey: ["users", id], queryFn: () => getUser(id as number), keepPreviousData: true, enabled });
 
 export type useTokensQueryResult = ReturnType<typeof useTokensQuery>;
 export const useTokensQuery = ({ page, size }: GetTokensQueryParams) =>
@@ -133,7 +138,7 @@ export type ApiError = AxiosError<{
 export type LoginError = ApiError;
 export const useLoginMutation = (): UseMutationResult<AccessToken, LoginError, PostLoginData> => useMutation(postLogin);
 
-export const useCurrentUserQuery = () => useQuery<CurrentUser>({ queryKey: ["me"], queryFn: getCurrentUser });
+export const useCurrentUserQuery = () => useQuery<User>({ queryKey: ["me"], queryFn: getCurrentUser });
 
 export const useUpdateUserMutation = (
   options?: Omit<UseMutationOptions<any, unknown, UpdateUserPayload, unknown>, "mutationFn">,

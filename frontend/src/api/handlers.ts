@@ -96,6 +96,15 @@ export const getUsers = async (params: GetUsersQueryParams, searchText?: string)
   }
 };
 
+export const getUser = async (id: User["id"]) => {
+  try {
+    const response = await api.get(`${urls.users}/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const deleteTokens = async (data: Token["id"][]) => {
   if (data.length === 0) {
     throw Error("No tokens selected");
@@ -142,13 +151,7 @@ export const getCurrentUser = async () => {
   }
 };
 
-export type UserUpdateData = {
-  full_name: string;
-  username: string;
-  email: string;
-  password: string;
-  is_admin: boolean;
-};
+export type UserUpdateData = Omit<User, "id"> & { password: string; confirm_password: string };
 
 export type UpdateUserPayload = {
   userId: number;

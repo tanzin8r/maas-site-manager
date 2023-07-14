@@ -4,10 +4,10 @@ import type { FormikHelpers } from "formik";
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 
-import type { CurrentUser } from "@/api/types";
+import type { User } from "@/api/types";
 import { useCurrentUserQuery, useUpdateUserMutation } from "@/hooks/react-query";
 
-type PersonalDetailsUpdateFormValues = Pick<CurrentUser, "email" | "full_name" | "username">;
+type PersonalDetailsUpdateFormValues = Pick<User, "email" | "full_name" | "username">;
 const PersonalDetailsUpdateSchema = Yup.object().shape({
   username: Yup.string().required("Username is required"),
   full_name: Yup.string(),
@@ -24,11 +24,11 @@ const PersonalDetailsUpdate = () => {
     full_name: "",
     email: "",
   });
-  const queryCliient = useQueryClient();
+  const queryClient = useQueryClient();
   const { data, isSuccess } = useCurrentUserQuery();
   const updateUser = useUpdateUserMutation({
     onSuccess(data) {
-      queryCliient.setQueryData(["me"], () => data);
+      queryClient.setQueryData(["me"], () => data);
     },
   });
 

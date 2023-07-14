@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import { Button, Icon } from "@canonical/react-components";
+import { Button, Icon, Tooltip } from "@canonical/react-components";
 import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 import type { SortingState, Column, ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
@@ -10,7 +10,10 @@ import type { User } from "@/api/types";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import TableCaption from "@/components/TableCaption/TableCaption";
 import SortIndicator from "@/components/base/SortIndicator";
-import type { useUsersQueryResult } from "@/hooks/react-query";
+import { useAppLayoutContext } from "@/context";
+import { useUserSelectionContext } from "@/context/UserSelectionContext";
+import { useCurrentUserQuery, type useUsersQueryResult } from "@/hooks/react-query";
+import { useNavigate } from "@/router";
 
 const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>
@@ -33,6 +36,11 @@ const UserListTable = ({
   sorting,
 }: Pick<useUsersQueryResult, "data" | "error" | "isLoading"> & SortProps) => {
   const [isShowingFullName, setIsShowingFullName] = useState(false);
+  const { setSelectedUserId } = useUserSelectionContext();
+  const { setSidebar } = useAppLayoutContext();
+  const { data: currentUser } = useCurrentUserQuery();
+  const currentUsername = currentUser?.username;
+  const navigate = useNavigate();
 
   const columns = useMemo<UserColumnDef[]>(
     () => [
@@ -116,28 +124,47 @@ const UserListTable = ({
       },
       {
         id: "actions",
-        accessorKey: "username",
-        accessorFn: createAccessor("username"),
+        accessorKey: ["username", "id"],
+        accessorFn: createAccessor(["username", "id"]),
         enableSorting: false,
         header: () => <div>Actions</div>,
         cell: ({ getValue }) => {
-          const username = getValue().username as string;
+          const { username, id } = getValue();
           const editLabel = `Edit ${username}`;
           const deleteLabel = `Delete ${username}`;
           return (
             <div>
-              <Button appearance="base" aria-label={editLabel} className="is-dense u-table-cell-padding-overlap">
+              <Button
+                appearance="base"
+                aria-label={editLabel}
+                className="is-dense u-table-cell-padding-overlap"
+                onClick={() => {
+                  if (username !== currentUsername) {
+                    setSelectedUserId(id);
+                    setSidebar("editUser");
+                  } else {
+                    navigate("/account/details");
+                  }
+                }}
+              >
                 <Icon name="edit" />
               </Button>
-              <Button appearance="base" aria-label={deleteLabel} className="is-dense u-table-cell-padding-overlap">
-                <Icon name="delete" />
-              </Button>
+              <Tooltip message={currentUsername === username ? "You cannot delete your own user." : null}>
+                <Button
+                  appearance="base"
+                  aria-label={deleteLabel}
+                  className="is-dense u-table-cell-padding-overlap"
+                  disabled={currentUsername === username}
+                >
+                  <Icon name="delete" />
+                </Button>
+              </Tooltip>
             </div>
           );
         },
       },
     ],
-    [isShowingFullName],
+    [currentUsername, isShowingFullName, navigate, setSelectedUserId, setSidebar],
   );
 
   const noItems = useMemo<User[]>(() => [], []);

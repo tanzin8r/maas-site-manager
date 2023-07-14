@@ -9,11 +9,14 @@ import DocumentTitle from "@/components/DocumentTitle/DocumentTitle";
 import Navigation from "@/components/Navigation";
 import RemoveRegions from "@/components/RemoveRegions";
 import SecondaryNavigation from "@/components/SecondaryNavigation";
+import UserForm from "@/components/UserForm";
 import { useAppLayoutContext, useAuthContext } from "@/context";
 import TokensCreate from "@/pages/tokens/create";
 import { matchPath, Outlet, useLocation } from "@/router";
 
-export const sidebarLabels: Record<"removeRegions" | "createToken", string> = {
+export const sidebarLabels: Record<"removeRegions" | "createToken" | "addUser" | "editUser", string> = {
+  addUser: "Add user",
+  editUser: "Edit user",
   removeRegions: "Remove regions",
   createToken: "Generate tokens",
 };
@@ -44,7 +47,15 @@ const Aside = () => {
     >
       <Row>
         <Col size={12}>
-          {sidebar === "createToken" ? <TokensCreate /> : sidebar === "removeRegions" ? <RemoveRegions /> : null}
+          {sidebar === "createToken" ? (
+            <TokensCreate />
+          ) : sidebar === "removeRegions" ? (
+            <RemoveRegions />
+          ) : sidebar === "addUser" ? (
+            <UserForm type="add" />
+          ) : sidebar === "editUser" ? (
+            <UserForm type="edit" />
+          ) : null}
         </Col>
       </Row>
     </aside>

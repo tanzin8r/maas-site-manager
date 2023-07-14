@@ -1,14 +1,19 @@
+import { rest } from "msw";
+
 import UserList from "./UserList";
 
 import urls from "@/api/urls";
 import { userFactory } from "@/mocks/factories";
-import { createMockGetUsersResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
-import { renderWithMemoryRouter, screen, userEvent, waitFor, within } from "@/test-utils";
+import { createMockCurrentUserResolver, createMockGetUsersResolver } from "@/mocks/resolvers";
+import * as router from "@/router";
+import { renderWithMemoryRouter, screen, setupServer, userEvent, waitFor, within } from "@/test-utils";
 
 const userWithoutFullName = userFactory.build({ full_name: "" });
 const users = [...userFactory.buildList(2), userWithoutFullName];
-const mockServer = createMockGetServer(urls.users, createMockGetUsersResolver(users));
+const mockServer = setupServer(
+  rest.get(urls.users, createMockGetUsersResolver(users)),
+  rest.get(urls.currentUser, createMockCurrentUserResolver(users[0])),
+);
 
 describe("UserList", () => {
   beforeAll(() => {
@@ -64,7 +69,8 @@ describe("UserList", () => {
       .getAllByRole("row")
       .forEach((row, i) => {
         // If a full name is set, it should be displayed. Otherwise, display a dash
-        expect(within(row).getAllByRole("cell")[0]).toHaveTextContent(users[i].full_name ? users[i].full_name : "—");
+        const fullName = users[i].full_name as string;
+        expect(within(row).getAllByRole("cell")[0]).toHaveTextContent(fullName ? fullName : "—");
       });
   });
 
@@ -95,5 +101,23 @@ describe("UserList", () => {
 
     expect(screen.getByRole(...emailAscending)).toBeInTheDocument();
     expect(screen.queryByRole(...emailDescending)).not.toBeInTheDocument();
+  });
+
+  it("redirects to personal details if a user tries to edit themselves", async () => {
+    const navigate = vi.fn();
+    vi.spyOn(router, "useNavigate").mockImplementation(() => navigate);
+    renderWithMemoryRouter(<UserList />, { initialEntries: [{ pathname: "/settings/users", key: "testkey" }] });
+
+    await userEvent.click(screen.getByRole("button", { name: `Edit ${users[0].username}` }));
+
+    expect(navigate).toHaveBeenCalledWith("/account/details");
+  });
+
+  it("displays a tooltip if a user tries to delete themselves", async () => {
+    renderWithMemoryRouter(<UserList />);
+
+    await userEvent.click(screen.getByRole("button", { name: `Delete ${users[0].username}` }));
+
+    expect(screen.getByRole("tooltip", { name: "You cannot delete your own user." })).toBeInTheDocument();
   });
 });

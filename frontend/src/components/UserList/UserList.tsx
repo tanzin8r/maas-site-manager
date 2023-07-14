@@ -1,7 +1,7 @@
 import { SearchBox } from "@canonical/react-components";
 import type { SortingState } from "@tanstack/react-table";
 
-import UserListTable from "./UserListTable/UserListTable";
+import UserListTable from "./UserListTable";
 
 import type { SortBy, UserSortKey } from "@/api/handlers";
 import PaginationBar from "@/components/base/PaginationBar/PaginationBar";
@@ -58,8 +58,7 @@ const UserList = () => {
           />
         </div>
         <div className="u-flex u-flex--justify-end">
-          {/* TODO: Change `null` to "addUser" https://warthogs.atlassian.net/browse/MAASENG-1869 */}
-          <button onClick={() => setSidebar(null)} type="button">
+          <button onClick={() => setSidebar("addUser")} type="button">
             Add user
           </button>
         </div>
