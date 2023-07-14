@@ -10,6 +10,7 @@ from ..fixtures.client import Client
         ("GET", "/requests"),
         ("POST", "/requests"),
         ("GET", "/sites"),
+        ("GET", "/sites/{id}"),
         ("GET", "/tokens"),
         ("POST", "/tokens"),
         ("GET", "/tokens/export"),
@@ -18,6 +19,7 @@ from ..fixtures.client import Client
         ("GET", "/users/me"),
         ("PATCH", "/users/me"),
         ("POST", "/users/me/password"),
+        ("GET", "/users/{id}"),
         ("PATCH", "/users/{id}"),
         ("DELETE", "/users/{id}"),
     ],
@@ -37,6 +39,7 @@ async def test_handler_auth_required(
     [
         ("GET", "/users"),
         ("POST", "/users"),
+        ("GET", "/users/{id}"),
         ("DELETE", "/users/{id}"),
         ("PATCH", "/users/{id}"),
     ],
