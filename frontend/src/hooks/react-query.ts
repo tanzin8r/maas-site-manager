@@ -22,6 +22,7 @@ import {
   getCurrentUser,
   updateUser,
   getUsers,
+  addUser,
 } from "@/api/handlers";
 import type {
   SitesQueryResult,
@@ -32,6 +33,7 @@ import type {
   Site,
   CurrentUser,
   UserQueryResult,
+  User,
 } from "@/api/types";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
@@ -136,3 +138,7 @@ export const useCurrentUserQuery = () => useQuery<CurrentUser>({ queryKey: ["me"
 export const useUpdateUserMutation = (
   options?: Omit<UseMutationOptions<any, unknown, UpdateUserPayload, unknown>, "mutationFn">,
 ) => useMutation(updateUser, options);
+
+export const useAddUserMutation = (
+  options?: Omit<UseMutationOptions<any, unknown, Omit<User, "id">, unknown>, "mutationFn">,
+) => useMutation(addUser, options);

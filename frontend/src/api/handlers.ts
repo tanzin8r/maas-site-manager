@@ -1,5 +1,5 @@
 import api from "./api";
-import type { Token } from "./types";
+import type { Token, User } from "./types";
 import urls from "./urls";
 
 import { customParamSerializer, customParamWithSearchTextSerializer } from "@/utils";
@@ -158,6 +158,15 @@ export type UpdateUserPayload = {
 export const updateUser = async (data: UpdateUserPayload) => {
   try {
     const response = await api.patch(`${urls.users}/${data.userId}`, data.userData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const addUser = async (data: Omit<User, "id">) => {
+  try {
+    const response = await api.post(urls.users, data);
     return response.data;
   } catch (error) {
     throw error;

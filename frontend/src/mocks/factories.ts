@@ -80,6 +80,7 @@ export const userFactory = Factory.define<User>(({ sequence }) => {
     username,
     email,
     is_admin,
+    id: sequence,
   };
 });
 

@@ -18,7 +18,7 @@ import type {
   SitesSortKey,
   UserSortKey,
 } from "@/api/handlers";
-import type { CurrentUser } from "@/api/types";
+import type { CurrentUser, User } from "@/api/types";
 import urls from "@/api/urls";
 import { isDev } from "@/constants";
 
@@ -192,6 +192,13 @@ export const createMockUpdateUserResolver = (): UpdateUserResponseResolver => as
   return res(ctx.status(200), ctx.json(user));
 };
 
+type AddUserResponseResolver = ResponseResolver<RestRequest<User>, typeof restContext>;
+export const createMockAddUserResolver = (): AddUserResponseResolver => async (req, res, ctx) => {
+  const { username, full_name, email, is_admin } = req.body;
+  const newUser = userFactory.build({ username, full_name, email, is_admin });
+  return res(ctx.status(201), ctx.json(newUser));
+};
+
 export const postLogin = rest.post(urls.login, createMockLoginResolver());
 export const getSites = rest.get(urls.sites, createMockSitesResolver());
 export const postTokens = rest.post(urls.tokens, createMockTokensResolver());
@@ -202,6 +209,7 @@ export const getEnrollmentRequests = rest.get(urls.enrollmentRequests, createMoc
 export const postEnrollmentRequests = rest.post(urls.enrollmentRequests, createMockPostEnrollmentRequestsResolver());
 export const getCurrentUser = rest.get(urls.currentUser, createMockCurrentUserResolver());
 export const updateUser = rest.patch(`${urls.users}/:id`, createMockUpdateUserResolver());
+export const addUser = rest.post(urls.users, createMockAddUserResolver());
 export const allResolvers = [
   getSites,
   postTokens,
@@ -211,4 +219,5 @@ export const allResolvers = [
   getCurrentUser,
   updateUser,
   getUsers,
+  addUser,
 ];

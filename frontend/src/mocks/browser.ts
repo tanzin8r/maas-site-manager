@@ -11,6 +11,7 @@ import {
   deleteTokens,
   getCurrentUser,
   updateUser,
+  addUser,
 } from "./resolvers";
 
 export const worker = setupWorker(
@@ -24,4 +25,5 @@ export const worker = setupWorker(
   deleteTokens,
   getCurrentUser,
   updateUser,
+  addUser,
 );

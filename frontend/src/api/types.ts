@@ -62,6 +62,7 @@ export type CurrentUser = {
 };
 
 export type User = {
+  id: number;
   full_name: string;
   username: string;
   email: string;
