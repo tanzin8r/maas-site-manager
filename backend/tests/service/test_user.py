@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.db.models import User
+from msm.db.models import UserWithPassword
 from msm.service._user import UserService
 
 from ..fixtures.db import Fixture
@@ -120,5 +120,5 @@ class TestUserService:
         [user] = await fixture.create("user", [user_details])
         service = UserService(db_connection)
         assert await service.get_by_id(id) == (
-            User(**user) if exists else None
+            UserWithPassword(**user) if exists else None
         )

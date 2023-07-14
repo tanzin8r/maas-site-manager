@@ -45,19 +45,18 @@ async def get_authenticated_user(
     services: Annotated[ServiceCollection, Depends(services)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> UserWithPassword | None:
-    credentials_exception = HTTPException(
+    auth_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        email = validate_token(token)
-    except InvalidToken:
-        raise credentials_exception
-    user = await services.users.get_by_email(email)
-    if user is None:
-        raise credentials_exception
-    return user
+        user_id = validate_token(token)
+        if user := await services.users.get_by_id(int(user_id)):
+            return user
+    except (InvalidToken, ValueError):
+        raise auth_error
+    raise auth_error
 
 
 async def get_authenticated_admin(
