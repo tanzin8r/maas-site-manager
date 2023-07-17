@@ -2,7 +2,6 @@ from pydantic import (
     BaseModel,
     EmailStr,
     Field,
-    SecretStr,
 )
 
 
@@ -14,13 +13,6 @@ class User(BaseModel):
     username: str
     full_name: str
     is_admin: bool
-
-
-class UserWithPassword(User):
-    """A user with its password."""
-
-    # use password.get_secret_value() to retrieve the value
-    password: SecretStr = Field(min_length=8, max_length=100)
 
 
 class UserCreate(BaseModel):

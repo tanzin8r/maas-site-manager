@@ -18,7 +18,7 @@ from ..fixtures.client import Client
         ("POST", "/users"),
         ("GET", "/users/me"),
         ("PATCH", "/users/me"),
-        ("POST", "/users/me/password"),
+        ("PATCH", "/users/me/password"),
         ("GET", "/users/{id}"),
         ("PATCH", "/users/{id}"),
         ("DELETE", "/users/{id}"),

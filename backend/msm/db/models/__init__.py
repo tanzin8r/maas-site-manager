@@ -9,7 +9,6 @@ from ._user import (
     User,
     UserCreate,
     UserUpdate,
-    UserWithPassword,
 )
 
 __all__ = [
@@ -21,5 +20,4 @@ __all__ = [
     "User",
     "UserCreate",
     "UserUpdate",
-    "UserWithPassword",
 ]

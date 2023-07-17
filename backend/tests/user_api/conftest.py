@@ -8,8 +8,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
+from msm.password import hash_password
 from msm.user_api import create_app
-from msm.user_api._auth import get_password_hash
 
 from ..fixtures.app import override_dependencies
 from ..fixtures.client import Client
@@ -49,7 +49,7 @@ async def user_client(
             "email": email,
             "username": "admin",
             "full_name": "Admin",
-            "password": get_password_hash(password),
+            "password": hash_password(password),
             "is_admin": False,
         },
     )
@@ -71,7 +71,7 @@ async def admin_client(
             "email": email,
             "username": "admin",
             "full_name": "Admin",
-            "password": get_password_hash(password),
+            "password": hash_password(password),
             "is_admin": True,
         },
     )

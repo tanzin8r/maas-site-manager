@@ -4,7 +4,7 @@ from typing import Any
 from httpx import Response
 import pytest
 
-from msm.user_api._auth import get_password_hash
+from msm.password import hash_password
 
 from ...fixtures.client import Client
 from ...fixtures.db import Fixture
@@ -36,8 +36,6 @@ def random_sample_dict(
 @pytest.mark.asyncio
 class TestUsersGetHandler:
     async def test_get(self, app_client: Client, fixture: Fixture) -> None:
-        phash1 = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
-        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
         users = await fixture.create(
             "user",
             [
@@ -45,14 +43,14 @@ class TestUsersGetHandler:
                     "email": "admin@example.com",
                     "username": "admin",
                     "full_name": "Admin",
-                    "password": phash1,
+                    "password": hash_password("secret1"),
                     "is_admin": True,
                 },
                 {
                     "email": "user@example.com",
                     "username": "user",
                     "full_name": "MAAS User",
-                    "password": phash2,
+                    "password": hash_password("secret2"),
                     "is_admin": False,
                 },
             ],
@@ -63,7 +61,7 @@ class TestUsersGetHandler:
 
         response = await app_client.post(
             "/login",
-            json={"email": "admin@example.com", "password": "admin"},
+            json={"email": "admin@example.com", "password": "secret1"},
         )
         assert response.status_code == 200
 
@@ -147,8 +145,8 @@ class TestUsersGetHandler:
                     "email": email,
                     "username": username,
                     "full_name": full_name,
-                    "password": get_password_hash(password),
-                    "confirm_password": get_password_hash(password),
+                    "password": hash_password(password),
+                    "confirm_password": hash_password(password),
                     "is_admin": is_admin,
                 },
             )
@@ -203,8 +201,8 @@ class TestUsersGetHandler:
                     "email": "proxima@maas-site-manager.example.com",
                     "username": "proxima",
                     "full_name": "Proxima Centauri b",
-                    "password": get_password_hash("password"),
-                    "confirm_password": get_password_hash("password"),
+                    "password": hash_password("password"),
+                    "confirm_password": hash_password("password"),
                     "is_admin": False,
                 }
             ],
@@ -219,14 +217,13 @@ class TestUsersGetHandler:
     async def test_pagination(
         self, admin_client: Client, fixture: Fixture
     ) -> None:
-        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
         users = await fixture.create(
             "user",
             {
                 "email": "user@example.com",
                 "username": "user",
                 "full_name": "MAAS User",
-                "password": phash2,
+                "password": hash_password("secret"),
                 "is_admin": False,
             },
         )
@@ -259,8 +256,8 @@ class TestUsersGetHandler:
                     "email": email,
                     "username": username,
                     "full_name": full_name,
-                    "password": get_password_hash(password),
-                    "confirm_password": get_password_hash(password),
+                    "password": hash_password(password),
+                    "confirm_password": hash_password(password),
                     "is_admin": is_admin,
                 },
             )
@@ -402,7 +399,7 @@ class TestUsersPostHandler:
 class TestUsersMePasswordPostHandler:
     async def test_password_change(self, user_client: Client) -> None:
         new_password = "new_admin_password"
-        response = await user_client.post(
+        response = await user_client.patch(
             "/users/me/password",
             json={
                 "current_password": "admin",
@@ -414,7 +411,7 @@ class TestUsersMePasswordPostHandler:
 
     async def test_password_too_short(self, user_client: Client) -> None:
         short_pass = "new"
-        response = await user_client.post(
+        response = await user_client.patch(
             "/users/me/password",
             json={
                 "current_password": "admin",
@@ -431,7 +428,7 @@ class TestUsersMePasswordPostHandler:
     async def test_password_too_long(self, user_client: Client) -> None:
         long_pass = "new" * 40
 
-        response = await user_client.post(
+        response = await user_client.patch(
             "/users/me/password",
             json={
                 "current_password": "admin",
@@ -450,7 +447,7 @@ class TestUsersMePasswordPostHandler:
         user_client: Client,
     ) -> None:
         new_password = "new_admin_password"
-        response = await user_client.post(
+        response = await user_client.patch(
             "/users/me/password",
             json={
                 "current_password": "wrong_password",
@@ -468,7 +465,7 @@ class TestUsersMePasswordPostHandler:
         self,
         user_client: Client,
     ) -> None:
-        response = await user_client.post(
+        response = await user_client.patch(
             "/users/me/password",
             json={},
         )
@@ -516,12 +513,11 @@ class TestUsersPatchHandler:
     async def test_demote_admin(
         self, admin_client: Client, fixture: Fixture
     ) -> None:
-        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
         user_details = {
             "email": "admin2@example.com",
             "username": "admin2",
             "full_name": "Another MAAS Admin",
-            "password": phash2,
+            "password": hash_password("secret"),
             "is_admin": True,
         }
         new_details = {"is_admin": False}
@@ -564,12 +560,11 @@ class TestUsersPatchHandler:
         fixture: Fixture,
         new_details: dict[str, str],
     ) -> None:
-        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
         user_details = {
             "email": "admin2@example.com",
             "username": "admin2",
             "full_name": "Another MAAS Admin",
-            "password": phash2,
+            "password": hash_password("secret"),
             "is_admin": True,
         }
         await fixture.create("user", [user_details])
@@ -587,7 +582,6 @@ class TestUsersDeleteHandler:
     async def test_delete(
         self, admin_client: Client, fixture: Fixture
     ) -> None:
-        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
         await fixture.create(
             "user",
             [
@@ -596,7 +590,7 @@ class TestUsersDeleteHandler:
                     "username": "user",
                     "full_name": "MAAS User",
                     "is_admin": False,
-                    "password": phash2,
+                    "password": hash_password("secret"),
                 },
             ],
         )
@@ -624,7 +618,6 @@ class TestUsersDeleteHandler:
     async def test_delete_self_fails(
         self, admin_client: Client, fixture: Fixture
     ) -> None:
-        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
         await fixture.create(
             "user",
             [
@@ -632,7 +625,7 @@ class TestUsersDeleteHandler:
                     "email": "user@example.com",
                     "username": "user",
                     "full_name": "MAAS User",
-                    "password": phash2,
+                    "password": hash_password("secret"),
                     "is_admin": False,
                 },
             ],
@@ -684,12 +677,11 @@ class TestUsersMePatchHandler:
         fixture: Fixture,
         new_details: dict[str, str],
     ) -> None:
-        phash2 = "$2b$12$iEPLFcNocyeUDgu2ywDVGeFHyrksI89bzSvdAwvU1N4zYFtofme3S"
         user_details = {
             "email": "admin2@example.com",
             "username": "admin2",
             "full_name": "Another MAAS Admin",
-            "password": phash2,
+            "password": hash_password("secret"),
             "is_admin": True,
         }
         await fixture.create("user", [user_details])

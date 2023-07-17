@@ -17,6 +17,10 @@ from ..db import (
     queries,
 )
 from ..db.tables import User
+from ..password import (
+    hash_password,
+    verify_password,
+)
 from ..schema import SortParam
 from ._base import Service
 
@@ -64,27 +68,26 @@ class UserService(Service):
         result = await self.conn.execute(stmt)
         return count, [models.User(**row._asdict()) for row in result.all()]
 
-    async def get_by_email(self, email: str) -> models.UserWithPassword | None:
+    async def get_by_email(self, email: str) -> models.User | None:
         """Gets a user by email."""
-        stmt = self._select_statement(include_password=True).where(
-            User.c.email == email
-        )
+        stmt = self._select_statement().where(User.c.email == email)
         if result := await self.conn.execute(stmt):
             if user := result.one_or_none():
-                return models.UserWithPassword(**user._asdict())
+                return models.User(**user._asdict())
         return None
 
-    async def get_by_id(self, id: int) -> models.UserWithPassword | None:
+    async def get_by_id(self, id: int) -> models.User | None:
         """Gets a user by id."""
-        stmt = self._select_statement(include_password=True).where(
-            User.c.id == id
-        )
+        stmt = self._select_statement().where(User.c.id == id)
         if result := await self.conn.execute(stmt):
             if user := result.one_or_none():
-                return models.UserWithPassword(**user._asdict())
+                return models.User(**user._asdict())
         return None
 
-    async def create(self, user_details: models.UserCreate) -> models.User:
+    async def create(self, details: models.UserCreate) -> models.User:
+        data = details.dict()
+        if password := data.get("password"):
+            data["password"] = hash_password(password)
         result = await self.conn.execute(
             insert(User).returning(
                 User.c.id,
@@ -93,7 +96,7 @@ class UserService(Service):
                 User.c.full_name,
                 User.c.is_admin,
             ),
-            [user_details.dict()],
+            [data],
         )
         user = result.one()
         return models.User(**user._asdict())
@@ -132,18 +135,24 @@ class UserService(Service):
         user_id: int,
         password: str,
     ) -> None:
+        hashed_password = hash_password(password)
         stmt = (
-            update(User).where(User.c.id == user_id).values(password=password)
+            update(User)
+            .where(User.c.id == user_id)
+            .values(password=hashed_password)
         )
         await self.conn.execute(stmt)
 
     async def update(
         self, user_id: int, details: models.UserUpdate
     ) -> models.User:
-        patch_stmt = (
+        data = details.dict()
+        if password := data.get("password"):
+            data["password"] = hash_password(password)
+        stmt = (
             update(User)
             .where(User.c.id == user_id)
-            .values({k: v for k, v in details.dict().items() if v is not None})
+            .values({k: v for k, v in data.items() if v is not None})
             .returning(
                 User.c.id,
                 User.c.email,
@@ -152,8 +161,20 @@ class UserService(Service):
                 User.c.is_admin,
             )
         )
-        result = await self.conn.execute(patch_stmt)
+        result = await self.conn.execute(stmt)
         return models.User(**result.one()._asdict())
+
+    async def password_matches(self, user_id: int, password: str) -> bool:
+        stmt = (
+            select(User.c.password)
+            .select_from(User)
+            .where(User.c.id == user_id)
+        )
+        if result := await self.conn.execute(stmt):
+            if row := result.one_or_none():
+                hashed_password = row[0]
+                return verify_password(password, hashed_password)
+        return False
 
     async def delete(self, user_id: int) -> None:
         stmt = delete(User).where(User.c.id == user_id)

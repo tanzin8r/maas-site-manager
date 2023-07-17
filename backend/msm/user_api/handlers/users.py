@@ -33,7 +33,6 @@ from .._auth import (
     authenticate_user,
     get_authenticated_admin,
     get_authenticated_user,
-    get_password_hash,
 )
 from .._dependencies import services
 from .._forms import (
@@ -117,21 +116,11 @@ class UsersPostRequest(BaseModel):
         return values
 
 
-class UsersPostResponse(BaseModel):
-    """Created user."""
-
-    id: int
-    email: str
-    username: str
-    full_name: str
-    is_admin: bool
-
-
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
     request: UsersPostRequest,
-) -> UsersPostResponse:
+) -> User:
     """
     Create a user.
     """
@@ -142,15 +131,7 @@ async def post(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": "Email or Username already in use."},
         )
-    user = await services.users.create(
-        UserCreate(
-            **(
-                request.dict()
-                | {"password": get_password_hash(request.password)}
-            )
-        ),
-    )
-    return UsersPostResponse(**user.dict())
+    return await services.users.create(UserCreate(**request.dict()))
 
 
 class UsersPatchRequest(BaseModel):
@@ -206,10 +187,9 @@ async def patch(
             detail={"message": "Email or Username already in use."},
         )
 
-    user = await services.users.update(
+    return await services.users.update(
         user_id, UserUpdate(**patch_request.dict())
     )
-    return user
 
 
 async def delete(
@@ -275,7 +255,7 @@ async def me_patch(
     return user
 
 
-class UsersPasswordPostRequest(BaseModel):
+class UsersPasswordPatchRequest(BaseModel):
     """User password change schema."""
 
     current_password: str
@@ -289,10 +269,10 @@ class UsersPasswordPostRequest(BaseModel):
         return values
 
 
-async def password_post(
+async def password_patch(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
-    post_request: UsersPasswordPostRequest,
+    post_request: UsersPasswordPatchRequest,
 ) -> None:
     """Modify the users password."""
     if await authenticate_user(
@@ -300,7 +280,7 @@ async def password_post(
     ):
         await services.users.update_password(
             authenticated_user.id,
-            get_password_hash(post_request.new_password),
+            post_request.new_password,
         )
         return None
     raise HTTPException(

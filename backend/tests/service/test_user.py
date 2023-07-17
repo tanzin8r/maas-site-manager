@@ -1,32 +1,44 @@
+from typing import (
+    AsyncIterator,
+    Iterator,
+)
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.db.models import UserWithPassword
+from msm.db.models import User
+from msm.password import hash_password
 from msm.service._user import UserService
 
 from ..fixtures.db import Fixture
 
 
+@pytest.fixture
+def service(db_connection: AsyncConnection) -> Iterator[UserService]:
+    yield UserService(db_connection)
+
+
+@pytest.fixture
+async def user(fixture: Fixture) -> AsyncIterator[User]:
+    [user] = await fixture.create(
+        "user",
+        [
+            {
+                "email": "admin@example.com",
+                "username": "admin",
+                "full_name": "Admin",
+                "password": hash_password("secret"),
+                "is_admin": True,
+            }
+        ],
+    )
+    yield User(**user)
+
+
 @pytest.mark.asyncio
 class TestUserService:
-    async def test_id_exists(
-        self, fixture: Fixture, db_connection: AsyncConnection
-    ) -> None:
-        phash1 = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
-        users = await fixture.create(
-            "user",
-            [
-                {
-                    "email": "admin@example.com",
-                    "username": "admin",
-                    "full_name": "Admin",
-                    "password": phash1,
-                    "is_admin": True,
-                }
-            ],
-        )
-        service = UserService(db_connection)
-        assert await service.id_exists(users[0]["id"])
+    async def test_id_exists(self, user: User, service: UserService) -> None:
+        assert await service.id_exists(user.id)
         assert not await service.id_exists(-1)
 
     @pytest.mark.parametrize(
@@ -41,25 +53,13 @@ class TestUserService:
     )
     async def test_exists(
         self,
+        user: User,
+        service: UserService,
         fixture: Fixture,
-        db_connection: AsyncConnection,
         email: str,
         username: str,
         exists: bool,
     ) -> None:
-        phash1 = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
-        user_details = {
-            "email": "admin@example.com",
-            "username": "admin",
-            "full_name": "Admin",
-            "password": phash1,
-            "is_admin": True,
-        }
-        await fixture.create(
-            "user",
-            [user_details],
-        )
-        service = UserService(db_connection)
         assert await service.exists(email=email, username=username) == exists
 
     @pytest.mark.parametrize(
@@ -73,26 +73,13 @@ class TestUserService:
     )
     async def test_exists_exclude_id(
         self,
-        fixture: Fixture,
-        db_connection: AsyncConnection,
+        user: User,
+        service: UserService,
         email: str,
         username: str,
     ) -> None:
-        phash1 = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
-        user_details = {
-            "email": "admin@example.com",
-            "username": "admin",
-            "full_name": "Admin",
-            "password": phash1,
-            "is_admin": True,
-        }
-        [user] = await fixture.create(
-            "user",
-            [user_details],
-        )
-        service = UserService(db_connection)
         assert not await service.exists(
-            email=email, username=username, exclude_id=user["id"]
+            email=email, username=username, exclude_id=user.id
         )
 
     @pytest.mark.parametrize(
@@ -104,21 +91,26 @@ class TestUserService:
     )
     async def test_get_by_id(
         self,
-        fixture: Fixture,
-        db_connection: AsyncConnection,
+        user: User,
+        service: UserService,
         id: int,
         exists: bool,
     ) -> None:
-        phash1 = "$2b$12$F5sgrhRNtWAOehcoVO.XK.oSvupmcg8.0T2jCHOTg15M8N8LrpRwS"
-        user_details = {
-            "email": "admin@example.com",
-            "username": "admin",
-            "full_name": "Admin",
-            "password": phash1,
-            "is_admin": True,
-        }
-        [user] = await fixture.create("user", [user_details])
-        service = UserService(db_connection)
-        assert await service.get_by_id(id) == (
-            UserWithPassword(**user) if exists else None
-        )
+        assert await service.get_by_id(id) == (user if exists else None)
+
+    async def test_password_matches(
+        self,
+        user: User,
+        service: UserService,
+    ) -> None:
+        assert await service.password_matches(user.id, "secret")
+        assert not await service.password_matches(user.id, "other-secret")
+
+    async def test_update_password(
+        self,
+        user: User,
+        service: UserService,
+    ) -> None:
+        new_password = "new-secret"
+        await service.update_password(user.id, new_password)
+        assert await service.password_matches(user.id, new_password)
