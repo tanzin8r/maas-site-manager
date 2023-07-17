@@ -4,9 +4,10 @@ import { Field, Form, Formik } from "formik";
 import { isEqual } from "lodash";
 import * as Yup from "yup";
 
+import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
 import { useUserSelectionContext } from "@/context/UserSelectionContext";
-import { useUpdateUserMutation, useUserQuery } from "@/hooks/react-query";
+import { useAddUserMutation, useUpdateUserMutation, useUserQuery } from "@/hooks/react-query";
 
 const baseInitialValues = {
   username: "",
@@ -79,6 +80,15 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
     },
   });
 
+  const addUser = useAddUserMutation({
+    onSuccess(data) {
+      queryClient.setQueryData(["user"], () => data);
+      resetForm();
+    },
+  });
+
+  const isMutationLoading = addUser.isLoading || updateUser.isLoading;
+
   useEffect(() => {
     if (type === "edit" && user) {
       setInitialValues({
@@ -110,7 +120,9 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
           userData: { ...userData, password: values.password, confirm_password: values.confirm_password },
         });
       }
-    } // TODO: Implement functionality for adding users https://warthogs.atlassian.net/browse/MAASENG-1870
+    } else {
+      addUser.mutate(values);
+    }
   };
 
   return (
@@ -120,12 +132,17 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
       </h3>
       {error ? (
         <Notification severity="negative" title="Error while fetching user">
-          {error instanceof Error ? error.message : "An unknown error has occurred."}
+          <ErrorMessage error={error} />
         </Notification>
       ) : null}
       {updateUser.isError && (
         <Notification severity="negative" title="Error while editing user">
-          {updateUser.error instanceof Error ? updateUser.error.message : "An unknown error has occurred."}
+          <ErrorMessage error={updateUser.error} />
+        </Notification>
+      )}
+      {addUser.isError && (
+        <Notification severity="negative" title="Error while adding user">
+          <ErrorMessage error={addUser.error} />
         </Notification>
       )}
       {type === "edit" && (isEqual(initialValues, baseInitialValues) || isLoading) ? (
@@ -202,8 +219,8 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
                 </Button>
                 <ActionButton
                   appearance="positive"
-                  disabled={!dirty || !isValid || isSubmitting}
-                  loading={isSubmitting}
+                  disabled={!dirty || !isValid || isSubmitting || isMutationLoading}
+                  loading={isSubmitting || isMutationLoading}
                   type="submit"
                 >
                   {type === "add" ? "Add user" : "Save"}

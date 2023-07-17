@@ -106,8 +106,7 @@ describe("UserForm", () => {
     render(<UserForm type="add" />);
 
     // 151 characters long, max is 150
-    const tooLong =
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    const tooLong = "A".repeat(151);
 
     await userEvent.type(screen.getByRole("textbox", { name: "Username" }), tooLong);
     await userEvent.tab();
@@ -151,8 +150,7 @@ describe("UserForm", () => {
     render(<UserForm type="add" />);
 
     // 101 characters long, max is 100
-    const tooLong =
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    const tooLong = "A".repeat(101);
 
     await userEvent.type(screen.getByLabelText("Password"), tooLong);
     await userEvent.tab();
