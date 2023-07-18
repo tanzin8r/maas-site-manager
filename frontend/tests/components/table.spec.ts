@@ -27,7 +27,7 @@ for (const pageWithTable of pagesWithTable) {
     page,
   }) => {
     await page.goto(pageWithTable.path);
-    const selectAll = await page.getByRole("checkbox", { name: /select all/i });
+    const selectAll = page.getByRole("checkbox", { name: /select all/i });
     const tableBodyCheckboxes = await page.locator("tbody").getByRole("checkbox").all();
     // click a single item on the first page
     await page.locator("tbody").getByRole("checkbox").first().click({ force: true });
@@ -50,7 +50,7 @@ for (const pageWithTable of pagesWithTable) {
     page,
   }) => {
     await page.goto(pageWithTable.path);
-    const selectAll = await page.getByRole("checkbox", { name: /select all/i });
+    const selectAll = page.getByRole("checkbox", { name: /select all/i });
     const tableBodyCheckboxes = await page.locator("tbody").getByRole("checkbox").all();
     // select all items on the first page
     await selectAll.click({ force: true });

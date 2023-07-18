@@ -11,15 +11,15 @@ test.beforeEach(async ({ page }) => {
 
 test("can open and close token generate form", async ({ page }) => {
   await page.getByRole("button", { name: /Generate tokens/i }).click();
-  expect(page.getByRole("form", { name: /Generate new enrolment tokens/i })).toBeVisible();
+  await expect(page.getByRole("form", { name: /Generate new enrolment tokens/i })).toBeVisible();
   await page.getByRole("button", { name: /Cancel/i }).click();
   await expect(page.getByRole("form", { name: /Generate new enrolment tokens/i })).toBeHidden();
 });
 
 test("can close token generate dialog using Escape key", async ({ page }) => {
   await page.getByRole("button", { name: /Generate tokens/i }).click();
-  const dialog = await page.getByRole("dialog", { name: /generate tokens/i });
-  expect(dialog).toBeVisible();
+  const dialog = page.getByRole("dialog", { name: /generate tokens/i });
+  await expect(dialog).toBeVisible();
   await dialog.press("Escape");
   await expect(dialog).toBeHidden();
 });
@@ -29,6 +29,7 @@ test("token create form is closed when navigating away", async ({ page }) => {
   await expect(page.getByRole("form", { name: /Generate new enrolment tokens/i })).toBeVisible();
 
   const mobileBanner = await page.getByRole("banner", { name: /navigation/i }).isVisible();
+  // eslint-disable-next-line playwright/no-conditional-in-test
   if (mobileBanner) {
     await page
       .getByRole("banner", { name: /navigation/ })

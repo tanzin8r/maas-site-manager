@@ -41,7 +41,7 @@ it("displays populated sites table", async () => {
 
 it("disables the 'remove' button if no rows are selected", async () => {
   renderWithMemoryRouter(<SitesList />);
-  expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
+  await expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
 });
 
 it("enables the 'remove' button if some rows are selected", async () => {

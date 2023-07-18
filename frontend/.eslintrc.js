@@ -9,6 +9,7 @@ module.exports = {
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:import/typescript",
+    "plugin:playwright/recommended",
     "eslint-config-prettier", // Ensure this is last in the list.
   ],
   parserOptions: {
@@ -19,6 +20,9 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
+    // vanilla framework often hides default inputs and displays styled ones instead
+    // because of this we need to use use force option to allow interacting with hidden fields
+    "playwright/no-force-option": "off",
     "prettier/prettier": "error",
     "no-relative-import-paths/no-relative-import-paths": [
       "warn",

@@ -11,10 +11,10 @@ test.beforeEach(async ({ page }) => {
 
 test("can open and close the 'Add user' form", async ({ page }) => {
   await page.getByRole("button", { name: "Add user" }).click();
-  expect(page.getByRole("form", { name: "Add user" })).toBeVisible();
+  await expect(page.getByRole("form", { name: "Add user" })).toBeVisible();
 
   await page.getByRole("button", { name: "Cancel" }).click();
-  expect(page.getByRole("form", { name: "Add user" })).not.toBeVisible();
+  await expect(page.getByRole("form", { name: "Add user" })).toBeHidden();
 });
 
 test("can open and close the 'Edit user' form", async ({ page }) => {
@@ -23,32 +23,33 @@ test("can open and close the 'Edit user' form", async ({ page }) => {
   const formTitle = await rowToEdit.getByRole("cell").nth(0).textContent();
 
   await rowToEdit.getByRole("button", { name: `Edit ${formTitle}` }).click();
-  expect(page.getByRole("form", { name: `Edit ${formTitle}` })).toBeVisible();
+  await expect(page.getByRole("form", { name: `Edit ${formTitle}` })).toBeVisible();
 
   await page.getByRole("button", { name: "Cancel" }).click();
-  expect(page.getByRole("form", { name: `Edit ${formTitle}` })).not.toBeVisible();
+  await expect(page.getByRole("form", { name: `Edit ${formTitle}` })).toBeHidden();
 });
 
 // TODO: Enable this test https://warthogs.atlassian.net/browse/MAASENG-1875
+// eslint-disable-next-line playwright/no-skipped-test
 test.skip("can open and close the 'Delete user' form", async ({ page }) => {
   const rows = page.getByRole("rowgroup");
   const rowToDelete = rows.nth(1).getByRole("row").nth(0);
   const formTitle = await rowToDelete.getByRole("cell").nth(0).textContent();
 
   await rowToDelete.getByRole("button", { name: `Delete ${formTitle}` }).click();
-  expect(page.getByRole("form", { name: `Delete ${formTitle}` })).toBeVisible();
+  await expect(page.getByRole("form", { name: `Delete ${formTitle}` })).toBeVisible();
 
   await page.getByRole("button", { name: "Cancel" }).click();
-  expect(page.getByRole("form", { name: `Delete ${formTitle}` })).not.toBeVisible();
+  await expect(page.getByRole("form", { name: `Delete ${formTitle}` })).toBeHidden();
 });
 
 test("can close forms using the escape key", async ({ page }) => {
   await page.getByRole("button", { name: "Add user" }).click();
   const form = page.getByRole("form", { name: "Add user" });
-  expect(page.getByRole("form", { name: "Add user" })).toBeVisible();
+  await expect(page.getByRole("form", { name: "Add user" })).toBeVisible();
 
   await form.press("Escape");
-  expect(page.getByRole("form", { name: "Add user" })).not.toBeVisible();
+  await expect(page.getByRole("form", { name: "Add user" })).toBeHidden();
 });
 
 test("closes the form after editing a user", async ({ page }) => {
@@ -57,11 +58,11 @@ test("closes the form after editing a user", async ({ page }) => {
   const formTitle = await rowToEdit.getByRole("cell").nth(0).textContent();
 
   await rowToEdit.getByRole("button", { name: `Edit ${formTitle}` }).click();
-  expect(page.getByRole("form", { name: `Edit ${formTitle}` })).toBeVisible();
+  await expect(page.getByRole("form", { name: `Edit ${formTitle}` })).toBeVisible();
 
   await page.getByRole("textbox", { name: "Username" }).type("12345");
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("form", { name: `Edit ${formTitle}` })).not.toBeVisible();
+  await expect(page.getByRole("form", { name: `Edit ${formTitle}` })).toBeHidden();
 });
 
 test("closes the form when navigating away", async ({ page }) => {
@@ -69,6 +70,7 @@ test("closes the form when navigating away", async ({ page }) => {
   await expect(page.getByRole("form", { name: /Add user/i })).toBeVisible();
 
   const mobileBanner = await page.getByRole("banner", { name: /navigation/i }).isVisible();
+  // eslint-disable-next-line playwright/no-conditional-in-test
   if (mobileBanner) {
     await page
       .getByRole("banner", { name: /navigation/ })
@@ -83,5 +85,5 @@ test("closes the form when navigating away", async ({ page }) => {
     .click();
 
   await page.goBack();
-  await expect(page.getByRole("form", { name: /Add user/i })).not.toBeVisible();
+  await expect(page.getByRole("form", { name: /Add user/i })).toBeHidden();
 });

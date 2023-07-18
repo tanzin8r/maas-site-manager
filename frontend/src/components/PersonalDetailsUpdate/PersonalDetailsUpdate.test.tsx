@@ -53,9 +53,9 @@ describe("PersonalDetailsUpdate", () => {
     expect(screen.getByText("Email address is required")).toBeInTheDocument();
   });
 
-  it("disables submit button on mount", () => {
+  it("disables submit button on mount", async () => {
     render(<PersonalDetailsUpdate />);
-    expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+    await expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
   });
 
   it("displays email validation error for invalid input", async () => {
@@ -79,18 +79,18 @@ describe("PersonalDetailsUpdate", () => {
     await userEvent.type(usernameInput, "test");
     await userEvent.type(emailInput, "mail@example.com");
 
-    expect(screen.getByRole("button", { name: /save/i })).not.toBeDisabled();
+    await expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
   });
 
-  it("renders page with prefilled inputs", () => {
+  it("renders page with prefilled inputs", async () => {
     render(<PersonalDetailsUpdate />);
 
-    expect(
+    await expect(
       screen.getByRole("textbox", {
         name: /username/i,
       }),
     ).toHaveValue("admin");
-    expect(
+    await expect(
       screen.getByRole("textbox", {
         name: /email address/i,
       }),

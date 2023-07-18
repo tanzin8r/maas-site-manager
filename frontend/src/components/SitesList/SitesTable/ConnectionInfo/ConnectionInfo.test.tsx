@@ -16,11 +16,11 @@ afterEach(() => {
 });
 
 connections.forEach((connection) => {
-  it(`displays correct connection status icon and label for ${connection} connection`, () => {
+  it(`displays correct connection status icon and label for ${connection} connection`, async () => {
     const { container } = render(<ConnectionInfo connection={connection} />);
     expect(screen.getByText(connectionLabels[connection])).toBeInTheDocument();
     // eslint-disable-next-line testing-library/no-container
-    expect(container.querySelector(".status-icon")).toHaveClass(connectionIcons[connection]);
+    await expect(container.querySelector(".status-icon")).toHaveClass(connectionIcons[connection]);
   });
 });
 

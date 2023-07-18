@@ -5,6 +5,7 @@ import { adminAuthFile } from "./constants";
 
 const a11yTest = async ({ title, path }: { title: string; path: string }) =>
   await test(`${title} page does not have any automatically detectable accessibility issues`, async ({ page }) => {
+    // eslint-disable-next-line playwright/no-networkidle
     await page.goto(path, { waitUntil: "networkidle" });
     // verify the correct page has been displayed
     await expect(page).toHaveTitle(new RegExp(title));

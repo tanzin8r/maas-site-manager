@@ -12,10 +12,10 @@ describe("PasswordUpdate", () => {
     expect(screen.getByLabelText("New password (again)")).toBeInTheDocument();
   });
 
-  it("submit button is disabled on page mount", () => {
+  it("submit button is disabled on page mount", async () => {
     render(<PasswordUpdate />);
 
-    expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+    await expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
   });
 
   it("Input helper texts are displayed", () => {
@@ -62,17 +62,17 @@ describe("PasswordUpdate", () => {
 
     // fill current password field
     await userEvent.type(currentPasswordField, "currentPassword");
-    expect(submitBtn).toBeDisabled();
+    await expect(submitBtn).toBeDisabled();
     // fill new password field
     await userEvent.type(newPasswordField, "newPassword");
-    expect(submitBtn).toBeDisabled();
+    await expect(submitBtn).toBeDisabled();
     // fill confirm password field with different password
     await userEvent.type(confirmPasswordField, "differentPassword");
-    expect(submitBtn).toBeDisabled();
+    await expect(submitBtn).toBeDisabled();
 
     // fill confirm password field with same as new password field
     await userEvent.clear(confirmPasswordField);
     await userEvent.type(confirmPasswordField, "newPassword");
-    expect(submitBtn).not.toBeDisabled();
+    await expect(submitBtn).toBeEnabled();
   });
 });

@@ -12,9 +12,9 @@ for (const pageWithTable of pagesWithPagination) {
     test(`${pageWithTable.title} page`, async ({ page }) => {
       await page.goto(pageWithTable.path);
 
-      const currentPage = await page.getByRole("spinbutton", { name: /current page/i });
-      const nextPage = await page.getByRole("button", { name: /next page/i });
-      const previousPage = await page.getByRole("button", { name: /previous page/i });
+      const currentPage = page.getByRole("spinbutton", { name: /current page/i });
+      const nextPage = page.getByRole("button", { name: /next page/i });
+      const previousPage = page.getByRole("button", { name: /previous page/i });
 
       await expect(currentPage).toHaveValue("1");
       await nextPage.click();

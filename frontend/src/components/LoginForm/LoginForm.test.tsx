@@ -40,16 +40,16 @@ describe("LoginForm", () => {
     const passwordInput = screen.getByLabelText("Password");
     const loginButton = screen.getByRole("button", { name: "Login" });
 
-    expect(loginButton).toBeDisabled();
+    await expect(loginButton).toBeDisabled();
 
     await userEvent.type(emailInput, "uname@provider.com");
-    expect(loginButton).toBeDisabled();
+    await expect(loginButton).toBeDisabled();
 
     await userEvent.clear(emailInput);
     await userEvent.type(passwordInput, "pword");
-    expect(loginButton).toBeDisabled();
+    await expect(loginButton).toBeDisabled();
 
     await userEvent.type(emailInput, "uname@provider.com");
-    expect(loginButton).not.toBeDisabled();
+    await expect(loginButton).toBeEnabled();
   });
 });

@@ -17,7 +17,7 @@ it("should render pagination component correctly", () => {
   expect(screen.getByRole("navigation", { name: /pagination/i })).toBeInTheDocument();
 });
 
-it("should render previous button as disabled on first page", () => {
+it("should render previous button as disabled on first page", async () => {
   render(
     <TablePagination
       currentPage={1}
@@ -29,10 +29,10 @@ it("should render previous button as disabled on first page", () => {
       totalItems={50}
     />,
   );
-  expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
+  await expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
 });
 
-it("should render next button as disabled on last page", () => {
+it("should render next button as disabled on last page", async () => {
   render(
     <TablePagination
       currentPage={1}
@@ -44,7 +44,7 @@ it("should render next button as disabled on last page", () => {
       totalItems={1}
     />,
   );
-  expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+  await expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
 });
 
 it("next and previous buttons work as expected", async () => {
@@ -70,7 +70,7 @@ it("next and previous buttons work as expected", async () => {
   expect(onNextClick).toHaveBeenCalled();
 });
 
-it("should have a numeric input showing the current page", () => {
+it("should have a numeric input showing the current page", async () => {
   const currentPage = 1;
   render(
     <TablePagination
@@ -84,10 +84,10 @@ it("should have a numeric input showing the current page", () => {
     />,
   );
 
-  expect(screen.getByRole("spinbutton", { name: /current page/i })).toHaveValue(currentPage);
+  await expect(screen.getByRole("spinbutton", { name: /current page/i })).toHaveValue(currentPage);
 });
 
-it("disables numeric input and buttons when data is loading", () => {
+it("disables numeric input and buttons when data is loading", async () => {
   render(
     <TablePagination
       currentPage={1}
@@ -100,9 +100,9 @@ it("disables numeric input and buttons when data is loading", () => {
     />,
   );
 
-  expect(screen.getByRole("spinbutton", { name: /current page/i })).toBeDisabled();
-  expect(screen.getByRole("button", { name: /previous page/i })).toBeDisabled();
-  expect(screen.getByRole("button", { name: /next page/i })).toBeDisabled();
+  await expect(screen.getByRole("spinbutton", { name: /current page/i })).toBeDisabled();
+  await expect(screen.getByRole("button", { name: /previous page/i })).toBeDisabled();
+  await expect(screen.getByRole("button", { name: /next page/i })).toBeDisabled();
 });
 
 it("displays an error message when input out of range", async () => {
@@ -141,5 +141,5 @@ it("returns input to original page value on blur when invalid value is inputted"
   await userEvent.clear(numInput);
   await userEvent.type(numInput, "42");
   await userEvent.click(document.body);
-  expect(numInput).toHaveValue(currentPage);
+  await expect(numInput).toHaveValue(currentPage);
 });
