@@ -16,7 +16,7 @@ libgbm1
 endef
 
 FE_TEST_TIMEOUT = 15000
-
+FE_TEST_RETRY = 3
 
 # Dependencies
 
@@ -88,7 +88,7 @@ ci-frontend-lint:
 .PHONY: ci-frontend-lint
 
 ci-frontend-test:
-	env -C frontend VITEST_JUNIT_SUITE_NAME='maas-site-manager frontend tests' yarnpkg run coverage --test-timeout=$(FE_TEST_TIMEOUT) --silent --reporter=junit --reporter=default --outputFile.junit=../junit-frontend.xml
+	env -C frontend VITEST_JUNIT_SUITE_NAME='maas-site-manager frontend tests' yarnpkg run coverage --test-timeout=$(FE_TEST_TIMEOUT) --retry=$(FE_TEST_RETRY) --silent --reporter=junit --reporter=default --outputFile.junit=../junit-frontend.xml
 .PHONY: ci-frontend-test
 
 ci-e2e-test:

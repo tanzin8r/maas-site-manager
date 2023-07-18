@@ -3,10 +3,10 @@ import react from "@vitejs/plugin-react-swc";
 import AutoImport from "unplugin-auto-import/vite";
 import stylelint from "vite-plugin-stylelint";
 import autoprefixer from "autoprefixer";
-import dotenv from "dotenv";
+import { config } from "dotenv";
 import * as path from "path";
 
-dotenv.config({ path: "../.env" });
+config({ path: "../.env" });
 
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString();
 

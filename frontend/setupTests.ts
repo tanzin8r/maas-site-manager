@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import { config } from "dotenv";
 import { expect, afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
 import matchers from "@testing-library/jest-dom/matchers";
@@ -6,7 +6,7 @@ import { fetch, Request, Response } from "@remix-run/web-fetch";
 import { TextEncoder as NodeTextEncoder, TextDecoder as NodeTextDecoder } from "util";
 import { AbortSignal as NodeAbortSignal, AbortController as NodeAbortController } from "abort-controller";
 
-dotenv.config({ path: "../.env" });
+config({ path: "../.env" });
 
 // extends Vitest's expect method with methods from react-testing-library
 expect.extend(matchers);

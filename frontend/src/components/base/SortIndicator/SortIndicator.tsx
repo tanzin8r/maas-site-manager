@@ -7,6 +7,6 @@ export const SortIndicator = ({ header }: { header: Header<User, Partial<User>> 
   ({
     asc: <Icon aria-label="ascending" name="chevron-up" />,
     desc: <Icon aria-label="descending" name="chevron-down" />,
-  }[header?.column?.getIsSorted() as string] ?? null);
+  })[header?.column?.getIsSorted() as string] ?? null;
 
 export default SortIndicator;
