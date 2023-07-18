@@ -4,14 +4,14 @@ from .fixtures.db import (
     db,
     db_connection,
     db_setup,
-    fixture,
 )
+from .fixtures.factory import factory
 
 __all__ = [
     "db",
     "db_connection",
     "db_setup",
-    "fixture",
+    "factory",
 ]
 
 

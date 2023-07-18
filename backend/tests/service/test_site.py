@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from msm.db.models import Site
 from msm.service._site import SiteService
 
-from ..fixtures.db import Fixture
+from ..fixtures.factory import Factory
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,7 @@ class TestSiteService:
     )
     async def test_get_by_id(
         self,
-        fixture: Fixture,
+        factory: Factory,
         db_connection: AsyncConnection,
         id: int,
         exists: bool,
@@ -29,7 +29,7 @@ class TestSiteService:
             "url": "https://londoncalling.example.com",
             "accepted": True,
         }
-        [site] = await fixture.create("site", [site_details])
+        [site] = await factory.create("site", [site_details])
         site |= {"connection_status": "unknown"}
         service = SiteService(db_connection)
         assert await service.get_by_id(id) == (

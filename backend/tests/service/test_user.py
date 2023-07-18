@@ -10,7 +10,7 @@ from msm.db.models import User
 from msm.password import hash_password
 from msm.service._user import UserService
 
-from ..fixtures.db import Fixture
+from ..fixtures.factory import Factory
 
 
 @pytest.fixture
@@ -19,8 +19,8 @@ def service(db_connection: AsyncConnection) -> Iterator[UserService]:
 
 
 @pytest.fixture
-async def user(fixture: Fixture) -> AsyncIterator[User]:
-    [user] = await fixture.create(
+async def user(factory: Factory) -> AsyncIterator[User]:
+    [user] = await factory.create(
         "user",
         [
             {
@@ -55,7 +55,6 @@ class TestUserService:
         self,
         user: User,
         service: UserService,
-        fixture: Fixture,
         email: str,
         username: str,
         exists: bool,

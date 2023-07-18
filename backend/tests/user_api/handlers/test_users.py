@@ -5,7 +5,7 @@ from msm.db.models import User
 from msm.password import hash_password
 
 from ...fixtures.client import Client
-from ...fixtures.db import Fixture
+from ...fixtures.factory import Factory
 
 
 @pytest.mark.asyncio
@@ -15,7 +15,7 @@ class TestUsersGetHandler:
         api_admin: User,
         api_user: User,
         admin_client: Client,
-        fixture: Fixture,
+        factory: Factory,
     ) -> None:
         user_list = await admin_client.get("/users")
         assert user_list.status_code == 200
@@ -72,7 +72,7 @@ class TestUsersGetHandler:
     async def test_with_params(
         self,
         admin_client: Client,
-        fixture: Fixture,
+        factory: Factory,
         query_params: str,
         expected_result: list[str],
     ) -> None:
@@ -86,7 +86,7 @@ class TestUsersGetHandler:
             full_name: str,
             is_admin: bool = False,
         ) -> None:
-            await fixture.create(
+            await factory.create(
                 "user",
                 {
                     "email": email,
@@ -138,10 +138,10 @@ class TestUsersGetHandler:
     async def test_with_invalid_params(
         self,
         admin_client: Client,
-        fixture: Fixture,
+        factory: Factory,
         sort_by: str,
     ) -> None:
-        await fixture.create(
+        await factory.create(
             "user",
             [
                 {
@@ -162,9 +162,9 @@ class TestUsersGetHandler:
         assert response.status_code == 400
 
     async def test_pagination(
-        self, admin_client: Client, fixture: Fixture
+        self, admin_client: Client, factory: Factory
     ) -> None:
-        users = await fixture.create(
+        users = await factory.create(
             "user",
             {
                 "email": "user@example.com",
@@ -188,7 +188,7 @@ class TestUsersGetHandler:
         }
 
     async def test_get_by_id(
-        self, admin_client: Client, fixture: Fixture
+        self, admin_client: Client, factory: Factory
     ) -> None:
         async def create_user(
             username: str,
@@ -197,7 +197,7 @@ class TestUsersGetHandler:
             full_name: str,
             is_admin: bool = False,
         ) -> None:
-            await fixture.create(
+            await factory.create(
                 "user",
                 {
                     "email": email,
@@ -445,9 +445,9 @@ class TestUsersPatchHandler:
         assert response.json() == user_details
 
     async def test_demote_admin(
-        self, admin_client: Client, fixture: Fixture
+        self, admin_client: Client, factory: Factory
     ) -> None:
-        [user] = await fixture.create(
+        [user] = await factory.create(
             "user",
             [
                 {
@@ -502,7 +502,7 @@ class TestUsersPatchHandler:
     async def test_duplicate_user(
         self,
         admin_client: Client,
-        fixture: Fixture,
+        factory: Factory,
         new_details: dict[str, str],
     ) -> None:
         user_details = {
@@ -512,7 +512,7 @@ class TestUsersPatchHandler:
             "password": hash_password("secret"),
             "is_admin": True,
         }
-        [user] = await fixture.create("user", [user_details])
+        [user] = await factory.create("user", [user_details])
         user_id = user["id"]
 
         response = await admin_client.patch(
@@ -528,9 +528,9 @@ class TestUsersPatchHandler:
 @pytest.mark.asyncio
 class TestUsersDeleteHandler:
     async def test_delete(
-        self, api_admin: User, admin_client: Client, fixture: Fixture
+        self, api_admin: User, admin_client: Client, factory: Factory
     ) -> None:
-        [user] = await fixture.create(
+        [user] = await factory.create(
             "user",
             [
                 {
@@ -559,7 +559,7 @@ class TestUsersDeleteHandler:
         }
 
     async def test_delete_self_fails(
-        self, api_admin: User, admin_client: Client, fixture: Fixture
+        self, api_admin: User, admin_client: Client, factory: Factory
     ) -> None:
         response = await admin_client.delete(f"/users/{api_admin.id}")
         assert response.status_code == 400
@@ -592,7 +592,7 @@ class TestUsersMePatchHandler:
     async def test_duplicate_user(
         self,
         admin_client: Client,
-        fixture: Fixture,
+        factory: Factory,
         new_details: dict[str, str],
     ) -> None:
         user_details = {
@@ -602,7 +602,7 @@ class TestUsersMePatchHandler:
             "password": hash_password("secret"),
             "is_admin": True,
         }
-        await fixture.create("user", [user_details])
+        await factory.create("user", [user_details])
         response = await admin_client.patch("/users/me", json=new_details)
         assert response.status_code == 400
         assert (

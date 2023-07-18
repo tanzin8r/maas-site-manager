@@ -15,7 +15,7 @@ from msm.user_api import create_app
 
 from ..fixtures.app import override_dependencies
 from ..fixtures.client import Client
-from ..fixtures.db import Fixture
+from ..fixtures.factory import Factory
 
 
 @pytest.fixture
@@ -40,12 +40,12 @@ async def app_client(api_app: FastAPI) -> AsyncIterator[Client]:
 
 def make_user_fixture(
     username: str, is_admin: bool = False
-) -> Callable[[Fixture], AsyncIterator[User]]:
+) -> Callable[[Factory], AsyncIterator[User]]:
     """Return a fixture for an API user."""
 
     @pytest.fixture
-    async def api_user_fixture(fixture: Fixture) -> AsyncIterator[User]:
-        [user] = await fixture.create(
+    async def api_user_fixture(factory: Factory) -> AsyncIterator[User]:
+        [user] = await factory.create(
             "user",
             {
                 "username": username,

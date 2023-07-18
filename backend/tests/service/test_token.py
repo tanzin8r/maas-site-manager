@@ -9,13 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.service._token import TokenService
 
-from ..fixtures.db import Fixture
+from ..fixtures.factory import Factory
 
 
 @pytest.mark.asyncio
 class TestTokenService:
     async def test_create(
-        self, fixture: Fixture, db_connection: AsyncConnection
+        self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
         now = datetime.utcnow()
         duration = timedelta(minutes=10)
@@ -25,11 +25,11 @@ class TestTokenService:
         assert expiration > now + duration
 
     async def test_get_active_tokens(
-        self, fixture: Fixture, db_connection: AsyncConnection
+        self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
         now = datetime.utcnow()
         uuid1, uuid2, uuid3 = [uuid.uuid4() for _ in range(3)]
-        _, t2, t3 = await fixture.create(
+        _, t2, t3 = await factory.create(
             "token",
             [
                 {

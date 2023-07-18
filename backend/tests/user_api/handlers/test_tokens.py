@@ -6,7 +6,7 @@ from datetime import (
 import pytest
 
 from ...fixtures.client import Client
-from ...fixtures.db import Fixture
+from ...fixtures.factory import Factory
 
 
 def duration_format(delta: timedelta, time_format: str) -> str:
@@ -40,8 +40,8 @@ async def test_token_time_format(
 
 
 @pytest.mark.asyncio
-async def test_tokens_get(user_client: Client, fixture: Fixture) -> None:
-    tokens = await fixture.create(
+async def test_tokens_get(user_client: Client, factory: Factory) -> None:
+    tokens = await factory.create(
         "token",
         [
             {

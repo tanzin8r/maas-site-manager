@@ -11,7 +11,7 @@ from msm.db.models import ConnectionStatus
 from msm.settings import SETTINGS
 
 from ...fixtures.client import Client
-from ...fixtures.db import Fixture
+from ...fixtures.factory import Factory
 
 
 def site_details(**extra_details: Any) -> dict[str, Any]:
@@ -28,8 +28,8 @@ def site_details(**extra_details: Any) -> dict[str, Any]:
 
 @pytest.mark.asyncio
 class TestSitesHandler:
-    async def test_get(self, user_client: Client, fixture: Fixture) -> None:
-        sites = await fixture.create(
+    async def test_get(self, user_client: Client, factory: Factory) -> None:
+        sites = await factory.create(
             "site",
             [
                 site_details(city="London"),
@@ -67,9 +67,9 @@ class TestSitesHandler:
         }
 
     async def test_get_only_accepted(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        created_site, _ = await fixture.create(
+        created_site, _ = await factory.create(
             "site",
             [
                 site_details(),
@@ -91,9 +91,9 @@ class TestSitesHandler:
         }
 
     async def test_get_filter_timezone(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        [created_site, _] = await fixture.create(
+        [created_site, _] = await factory.create(
             "site",
             [
                 site_details(timezone="Europe/London"),
@@ -114,10 +114,10 @@ class TestSitesHandler:
         }
 
     async def test_get_with_stats(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        [site] = await fixture.create("site", [site_details()])
-        [site_data] = await fixture.create(
+        [site] = await factory.create("site", [site_details()])
+        [site_data] = await factory.create(
             "site_data",
             [
                 {
@@ -150,10 +150,10 @@ class TestSitesHandler:
         }
 
     async def test_get_connection_status(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        [site] = await fixture.create("site", [site_details()])
-        await fixture.create(
+        [site] = await factory.create("site", [site_details()])
+        await factory.create(
             "site_data",
             [
                 {
@@ -182,18 +182,18 @@ class TestSitesHandler:
         )
 
     async def test_get_by_id(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        await fixture.create(
+        await factory.create(
             "site",
             [site_details(city="Milan", country="IT")],
         )
-        await fixture.create(
+        await factory.create(
             "site",
             [site_details(city="Paris", country="FR")],
         )
-        await fixture.create("site", [site_details(city="Rome", country="IT")])
-        await fixture.create(
+        await factory.create("site", [site_details(city="Rome", country="IT")])
+        await factory.create(
             "site", [site_details(city="London", country="GB")]
         )
 
@@ -230,23 +230,23 @@ class TestSitesHandler:
     async def test_get_with_sorting(
         self,
         user_client: Client,
-        fixture: Fixture,
+        factory: Factory,
         query_params: str,
         expected_result: list[str],
     ) -> None:
         def extract_cities(resp: Response) -> list[str]:
             return [site["city"] for site in resp.json()["items"]]
 
-        await fixture.create(
+        await factory.create(
             "site",
             [site_details(city="Milan", country="IT")],
         )
-        await fixture.create(
+        await factory.create(
             "site",
             [site_details(city="Paris", country="FR")],
         )
-        await fixture.create("site", [site_details(city="Rome", country="IT")])
-        await fixture.create(
+        await factory.create("site", [site_details(city="Rome", country="IT")])
+        await factory.create(
             "site", [site_details(city="London", country="GB")]
         )
 
@@ -260,10 +260,10 @@ class TestSitesHandler:
     async def test_get_with_invalid_sorting(
         self,
         user_client: Client,
-        fixture: Fixture,
+        factory: Factory,
         query_params: str,
     ) -> None:
-        await fixture.create(
+        await factory.create(
             "site", [site_details(city="Milan", country="IT")]
         )
 
@@ -274,8 +274,8 @@ class TestSitesHandler:
 
 @pytest.mark.asyncio
 class TestPendingSitesHandler:
-    async def test_get(self, user_client: Client, fixture: Fixture) -> None:
-        _, pending_site = await fixture.create(
+    async def test_get(self, user_client: Client, factory: Factory) -> None:
+        _, pending_site = await factory.create(
             "site",
             [
                 site_details(),
@@ -300,9 +300,9 @@ class TestPendingSitesHandler:
         }
 
     async def test_post_accept(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        [pending_site] = await fixture.create(
+        [pending_site] = await factory.create(
             "site", [site_details(accepted=False)]
         )
 
@@ -311,13 +311,13 @@ class TestPendingSitesHandler:
             json={"ids": [pending_site["id"]], "accept": True},
         )
         assert response.status_code == 204
-        [created_site] = await fixture.get("site")
+        [created_site] = await factory.get("site")
         assert created_site["accepted"]
 
     async def test_post_reject(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        [pending_site] = await fixture.create(
+        [pending_site] = await factory.create(
             "site", [site_details(accepted=False)]
         )
 
@@ -326,12 +326,12 @@ class TestPendingSitesHandler:
             json={"ids": [pending_site["id"]], "accept": False},
         )
         assert response.status_code == 204
-        assert await fixture.get("site") == []
+        assert await factory.get("site") == []
 
     async def test_post_invalid_ids(
-        self, user_client: Client, fixture: Fixture
+        self, user_client: Client, factory: Factory
     ) -> None:
-        [site] = await fixture.create("site", [site_details()])
+        [site] = await factory.create("site", [site_details()])
         # unknown IDs and IDs for non-pending sites are invalid
         ids = [site["id"], 10000]
         response = await user_client.post(
