@@ -1,5 +1,6 @@
 from typing import (
     AsyncIterator,
+    Callable,
     Iterator,
 )
 
@@ -8,6 +9,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
+from msm.db.models import User
 from msm.password import hash_password
 from msm.user_api import create_app
 
@@ -36,46 +38,50 @@ async def app_client(api_app: FastAPI) -> AsyncIterator[Client]:
         yield client
 
 
+def make_user_fixture(
+    username: str, is_admin: bool = False
+) -> Callable[[Fixture], AsyncIterator[User]]:
+    """Return a fixture for an API user."""
+
+    @pytest.fixture
+    async def api_user_fixture(fixture: Fixture) -> AsyncIterator[User]:
+        [user] = await fixture.create(
+            "user",
+            {
+                "username": username,
+                "email": f"{username}@example.com",
+                "full_name": username.capitalize(),
+                "password": hash_password(username),
+                "is_admin": is_admin,
+            },
+        )
+        yield User(**user)
+
+    return api_user_fixture
+
+
+API_USER_NAME = "user"
+API_ADMIN_NAME = "admin"
+
+api_user = make_user_fixture(API_USER_NAME, is_admin=False)
+api_admin = make_user_fixture(API_ADMIN_NAME, is_admin=True)
+
+
 @pytest.fixture
 async def user_client(
-    api_app: FastAPI, fixture: Fixture
+    api_app: FastAPI, api_user: User
 ) -> AsyncIterator[Client]:
-    """Authenticated Client for the user API."""
-    email = "admin@example.com"
-    password = "admin"
-    await fixture.create(
-        "user",
-        {
-            "email": email,
-            "username": "admin",
-            "full_name": "Admin",
-            "password": hash_password(password),
-            "is_admin": False,
-        },
-    )
+    """Authenticated client for the API user."""
     async with Client(app=api_app, base_url="http://test") as client:
-        await client.login(email, password)
+        await client.login(api_user.email, api_user.username)
         yield client
 
 
 @pytest.fixture
 async def admin_client(
-    api_app: FastAPI, fixture: Fixture
+    api_app: FastAPI, api_admin: User
 ) -> AsyncIterator[Client]:
-    """Authenticated Client for the user API."""
-    email = "admin@example.com"
-    password = "admin"
-    await fixture.create(
-        "user",
-        {
-            "email": email,
-            "username": "admin",
-            "full_name": "Admin",
-            "password": hash_password(password),
-            "is_admin": True,
-        },
-    )
-
+    """Authenticated client for the API admin."""
     async with Client(app=api_app, base_url="http://test") as client:
-        await client.login(email, password)
+        await client.login(api_admin.email, api_admin.username)
         yield client

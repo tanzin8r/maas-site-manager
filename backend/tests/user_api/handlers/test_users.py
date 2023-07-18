@@ -1,84 +1,31 @@
-import random
-from typing import Any
-
 from httpx import Response
 import pytest
 
+from msm.db.models import User
 from msm.password import hash_password
 
 from ...fixtures.client import Client
 from ...fixtures.db import Fixture
 
 
-def random_sample_dict(
-    dictionary: dict[str, Any], requires: dict[str, dict[str, Any]] = {}
-) -> dict[str, Any]:
-    """
-    Generate a random subset of ${dictionary}.
-    If any keys in ${requires} are present in the sample,
-    the corresponding dict will also be included.
-    """
-    sample = dict(
-        [
-            (k, dictionary[k])
-            for k in random.choices(
-                list(dictionary.keys()),
-                k=random.randint(1, len(dictionary)),
-            )
-        ]
-    )
-    for k, v in requires.items():
-        if k in sample:
-            sample |= v
-    return sample
-
-
 @pytest.mark.asyncio
 class TestUsersGetHandler:
-    async def test_get(self, app_client: Client, fixture: Fixture) -> None:
-        users = await fixture.create(
-            "user",
-            [
-                {
-                    "email": "admin@example.com",
-                    "username": "admin",
-                    "full_name": "Admin",
-                    "password": hash_password("secret1"),
-                    "is_admin": True,
-                },
-                {
-                    "email": "user@example.com",
-                    "username": "user",
-                    "full_name": "MAAS User",
-                    "password": hash_password("secret2"),
-                    "is_admin": False,
-                },
-            ],
-        )
-        # the return data does not include passwords
-        for user in users:
-            user.pop("password")
-
-        response = await app_client.post(
-            "/login",
-            json={"email": "admin@example.com", "password": "secret1"},
-        )
-        assert response.status_code == 200
-
-        user_list = await app_client.get(
-            "/users",
-            headers={
-                "Authorization": " ".join(
-                    [
-                        response.json()["token_type"].capitalize(),
-                        response.json()["access_token"],
-                    ]
-                )
-            },
-        )
+    async def test_get(
+        self,
+        api_admin: User,
+        api_user: User,
+        admin_client: Client,
+        fixture: Fixture,
+    ) -> None:
+        user_list = await admin_client.get("/users")
         assert user_list.status_code == 200
-        assert user_list.json()["total"] == len(users)
-        assert user_list.json()["items"] == users
+        users = [
+            api_admin.dict(),
+            api_user.dict(),
+        ]
+        user_details = user_list.json()
+        assert user_details["total"] == len(users)
+        assert user_details["items"] == users
 
     @pytest.mark.parametrize(
         "query_params, expected_result",
@@ -402,7 +349,7 @@ class TestUsersMePasswordPostHandler:
         response = await user_client.patch(
             "/users/me/password",
             json={
-                "current_password": "admin",
+                "current_password": "user",
                 "new_password": new_password,
                 "confirm_password": new_password,
             },
@@ -414,7 +361,7 @@ class TestUsersMePasswordPostHandler:
         response = await user_client.patch(
             "/users/me/password",
             json={
-                "current_password": "admin",
+                "current_password": "user",
                 "new_password": short_pass,
                 "confirm_password": short_pass,
             },
@@ -431,7 +378,7 @@ class TestUsersMePasswordPostHandler:
         response = await user_client.patch(
             "/users/me/password",
             json={
-                "current_password": "admin",
+                "current_password": "user",
                 "new_password": long_pass,
                 "confirm_password": long_pass,
             },
@@ -486,51 +433,47 @@ class TestUsersMePasswordPostHandler:
 
 @pytest.mark.asyncio
 class TestUsersPatchHandler:
-    async def test_patch(self, admin_client: Client) -> None:
-        old_details = {
-            "id": 1,
-            "email": "admin@example.com",
-            "username": "admin",
-            "full_name": "Admin",
-            "password": "admin",
-            "confirm_password": "",
-            "is_admin": True,
-        }
-        new_details = random_sample_dict(
-            {
-                "username": "admin3",
-            },
-            requires={"password": {"confirm_password": "New Password"}},
+    async def test_patch(self, api_user: User, admin_client: Client) -> None:
+        old_details = api_user.dict()
+        new_details = {"email": "newemail@example.com"}
+        response = await admin_client.patch(
+            f"/users/{api_user.id}", json=new_details
         )
-        response = await admin_client.patch("/users/1", json=new_details)
 
         user_details = old_details | new_details
-        user_details.pop("password")
-        user_details.pop("confirm_password")
         assert response.status_code == 200
         assert response.json() == user_details
 
     async def test_demote_admin(
         self, admin_client: Client, fixture: Fixture
     ) -> None:
-        user_details = {
-            "email": "admin2@example.com",
-            "username": "admin2",
-            "full_name": "Another MAAS Admin",
-            "password": hash_password("secret"),
-            "is_admin": True,
-        }
-        new_details = {"is_admin": False}
-        await fixture.create("user", [user_details])
-        response = await admin_client.patch("/users/2", json=new_details)
-        user_details |= new_details | {"id": 2}
-        user_details.pop("password")
-        assert response.status_code == 200
-        assert response.json() == user_details
+        [user] = await fixture.create(
+            "user",
+            [
+                {
+                    "email": "admin2@example.com",
+                    "username": "admin2",
+                    "full_name": "Another MAAS Admin",
+                    "password": hash_password("secret"),
+                    "is_admin": True,
+                }
+            ],
+        )
+        user.pop("password")
+        user_id = user["id"]
 
-    async def test_demote_self_admin(self, admin_client: Client) -> None:
+        new_details = {"is_admin": False}
         response = await admin_client.patch(
-            "/users/1", json={"is_admin": False}
+            f"/users/{user_id}", json=new_details
+        )
+        assert response.status_code == 200
+        assert response.json() == user | new_details
+
+    async def test_demote_self_admin(
+        self, api_admin: User, admin_client: Client
+    ) -> None:
+        response = await admin_client.patch(
+            f"/users/{api_admin.id}", json={"is_admin": False}
         )
         assert response.status_code == 403
         assert (
@@ -538,14 +481,16 @@ class TestUsersPatchHandler:
             == "Admin users cannot demote themselves."
         )
 
-    async def test_missing_fields(self, admin_client: Client) -> None:
-        response = await admin_client.patch("/users/1", json={})
+    async def test_missing_fields(
+        self, api_admin: User, admin_client: Client
+    ) -> None:
+        response = await admin_client.patch(f"/users/{api_admin.id}", json={})
         assert response.status_code == 422
         assert response.json()["detail"]["message"] == "Request body empty."
 
     async def test_nonexistent_user(self, admin_client: Client) -> None:
         response = await admin_client.patch(
-            "/users/10", json={"full_name": "ghost_in_the_test"}
+            "/users/10000000", json={"full_name": "ghost_in_the_test"}
         )
         assert response.status_code == 404
         assert response.json()["detail"]["message"] == "User does not exist."
@@ -567,9 +512,12 @@ class TestUsersPatchHandler:
             "password": hash_password("secret"),
             "is_admin": True,
         }
-        await fixture.create("user", [user_details])
+        [user] = await fixture.create("user", [user_details])
+        user_id = user["id"]
 
-        response = await admin_client.patch("/users/2", json=new_details)
+        response = await admin_client.patch(
+            f"/users/{user_id}", json=new_details
+        )
         assert response.status_code == 400
         assert (
             response.json()["detail"]["message"]
@@ -580,9 +528,9 @@ class TestUsersPatchHandler:
 @pytest.mark.asyncio
 class TestUsersDeleteHandler:
     async def test_delete(
-        self, admin_client: Client, fixture: Fixture
+        self, api_admin: User, admin_client: Client, fixture: Fixture
     ) -> None:
-        await fixture.create(
+        [user] = await fixture.create(
             "user",
             [
                 {
@@ -594,21 +542,16 @@ class TestUsersDeleteHandler:
                 },
             ],
         )
+        user_id = user["id"]
 
-        response = await admin_client.delete("/users/2")
+        response = await admin_client.delete(f"/users/{user_id}")
         assert response.status_code == 204
 
         users_response = await admin_client.get("/users")
         assert users_response.status_code == 200
         assert users_response.json() == {
             "items": [
-                {
-                    "id": 1,
-                    "email": "admin@example.com",
-                    "username": "admin",
-                    "full_name": "Admin",
-                    "is_admin": True,
-                }
+                api_admin.dict(),
             ],
             "total": 1,
             "page": 1,
@@ -616,22 +559,9 @@ class TestUsersDeleteHandler:
         }
 
     async def test_delete_self_fails(
-        self, admin_client: Client, fixture: Fixture
+        self, api_admin: User, admin_client: Client, fixture: Fixture
     ) -> None:
-        await fixture.create(
-            "user",
-            [
-                {
-                    "email": "user@example.com",
-                    "username": "user",
-                    "full_name": "MAAS User",
-                    "password": hash_password("secret"),
-                    "is_admin": False,
-                },
-            ],
-        )
-
-        response = await admin_client.delete("/users/1")
+        response = await admin_client.delete(f"/users/{api_admin.id}")
         assert response.status_code == 400
         assert (
             response.json()["detail"]["message"]
@@ -641,21 +571,9 @@ class TestUsersDeleteHandler:
 
 @pytest.mark.asyncio
 class TestUsersMePatchHandler:
-    async def test_patch(self, user_client: Client) -> None:
-        old_details = {
-            "id": 1,
-            "email": "admin@example.com",
-            "username": "admin",
-            "full_name": "Admin",
-            "is_admin": False,
-        }
-        new_details = random_sample_dict(
-            {
-                "username": "admin3",
-                "full_name": "New Admin",
-                "email": "admin3@example.com",
-            },
-        )
+    async def test_patch(self, api_user: User, user_client: Client) -> None:
+        old_details = api_user.dict()
+        new_details = {"email": "new-email@example.com"}
         response = await user_client.patch("/users/me", json=new_details)
 
         assert response.status_code == 200
