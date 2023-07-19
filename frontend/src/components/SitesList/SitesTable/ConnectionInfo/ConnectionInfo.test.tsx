@@ -20,7 +20,7 @@ connections.forEach((connection) => {
     const { container } = render(<ConnectionInfo connection={connection} />);
     expect(screen.getByText(connectionLabels[connection])).toBeInTheDocument();
     // eslint-disable-next-line testing-library/no-container
-    await expect(container.querySelector(".status-icon")).toHaveClass(connectionIcons[connection]);
+    expect(container.querySelector(".status-icon")).toHaveClass(connectionIcons[connection]);
   });
 });
 

@@ -41,11 +41,11 @@ it("prefills data for a user when editing", async () => {
   });
 
   await waitFor(async () => {
-    await expect(screen.getByRole("textbox", { name: "Username" })).toHaveValue(user.username);
+    expect(screen.getByRole("textbox", { name: "Username" })).toHaveValue(user.username);
   });
-  await expect(screen.getByRole("textbox", { name: "Full name (optional)" })).toHaveValue(user.full_name);
-  await expect(screen.getByRole("textbox", { name: "Email address" })).toHaveValue(user.email);
-  await expect(screen.getByRole("checkbox", { name: "MAAS Site Manager administrator" })).toBeChecked();
+  expect(screen.getByRole("textbox", { name: "Full name (optional)" })).toHaveValue(user.full_name);
+  expect(screen.getByRole("textbox", { name: "Email address" })).toHaveValue(user.email);
+  expect(screen.getByRole("checkbox", { name: "MAAS Site Manager administrator" })).toBeChecked();
 });
 
 it("enables the submit button only when values have been changed while editing", async () => {
@@ -53,12 +53,12 @@ it("enables the submit button only when values have been changed while editing",
 
   // Wait for form to load
   await waitFor(async () => {
-    await expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
   await userEvent.clear(screen.getByRole("textbox", { name: "Full name (optional)" }));
 
-  await expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
 });
 
 it("makes the confirm_password field required if the password field has been filled in while editing", async () => {
@@ -84,18 +84,18 @@ it("requires the password fields when adding a user", () => {
 it("enables the submit button when all required fields are filled in and valid when editing a user", async () => {
   render(<UserForm type="add" />);
 
-  await expect(screen.getByRole("button", { name: "Add user" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Add user" })).toBeDisabled();
 
   await userEvent.type(screen.getByRole("textbox", { name: "Username" }), "user1");
   await userEvent.type(screen.getByRole("textbox", { name: "Email address" }), "user1@example.com");
   await userEvent.type(screen.getByLabelText("Password"), "testpassword");
 
   // Ensure form is still disabled
-  await expect(screen.getByRole("button", { name: "Add user" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Add user" })).toBeDisabled();
 
   await userEvent.type(screen.getByLabelText("Password (again)"), "testpassword");
 
-  await expect(screen.getByRole("button", { name: "Add user" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Add user" })).toBeEnabled();
 });
 
 it("displays an error if a username with invalid characters is entered", async () => {

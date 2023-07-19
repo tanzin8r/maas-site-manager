@@ -39,7 +39,7 @@ it("displays navigation", () => {
 
 it("is collapsed by default", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn />);
-  await expect(screen.getByRole("navigation")).toHaveClass("is-collapsed");
+  expect(screen.getByRole("navigation")).toHaveClass("is-collapsed");
 });
 
 it("persists collapsed state", async () => {
@@ -47,30 +47,30 @@ it("persists collapsed state", async () => {
 
   const primaryNavigation = screen.getByRole("navigation");
   await userEvent.click(screen.getByRole("button", { name: "expand main navigation" }));
-  await expect(primaryNavigation).toHaveClass("is-pinned");
+  expect(primaryNavigation).toHaveClass("is-pinned");
 
   rerender(<Navigation isLoggedIn />);
 
-  await expect(primaryNavigation).toHaveClass("is-pinned");
+  expect(primaryNavigation).toHaveClass("is-pinned");
 });
 
 it("links to the documentation at the bottom of the nav", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn />);
 
-  await expect(screen.getByRole("link", { name: "Documentation" })).toHaveAttribute("href", "https://maas.io/docs");
+  expect(screen.getByRole("link", { name: "Documentation" })).toHaveAttribute("href", "https://maas.io/docs");
 });
 
 it("links to MAAS discourse at the bottom of the nav", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn />);
 
-  await expect(screen.getByRole("link", { name: "Community" })).toHaveAttribute("href", "https://discourse.maas.io/");
+  expect(screen.getByRole("link", { name: "Community" })).toHaveAttribute("href", "https://discourse.maas.io/");
 });
 
 it.skip("links to the bug report page at the bottom of the nav", async () => {
   // TODO: Enable this test once a bug report link is available https://warthogs.atlassian.net/browse/MAASENG-1588
   renderWithMemoryRouter(<Navigation isLoggedIn />);
 
-  await expect(screen.getByRole("link", { name: "Report a bug" })).toHaveAttribute("href", "");
+  expect(screen.getByRole("link", { name: "Report a bug" })).toHaveAttribute("href", "");
 });
 
 it("removes focus from the current element after clicking the link", async () => {
@@ -79,7 +79,7 @@ it("removes focus from the current element after clicking the link", async () =>
   const navigationLinks = screen.getAllByRole("link");
   for (const link of navigationLinks) {
     await userEvent.click(link);
-    await expect(link).not.toHaveFocus();
+    expect(link).not.toHaveFocus();
   }
 });
 
@@ -100,7 +100,7 @@ it("does not display in-app navigation links when logged out", () => {
 it("should be collapsed on user logout", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn={false} />);
 
-  await expect(screen.getByRole("navigation")).toHaveClass("is-collapsed");
+  expect(screen.getByRole("navigation")).toHaveClass("is-collapsed");
 });
 
 it("removes focus from the current element after clicking the link", async () => {
@@ -108,7 +108,7 @@ it("removes focus from the current element after clicking the link", async () =>
   const navigationLinks = screen.getAllByRole("link");
   for (const link of navigationLinks) {
     await userEvent.click(link);
-    await expect(link).not.toHaveFocus();
+    expect(link).not.toHaveFocus();
   }
 });
 

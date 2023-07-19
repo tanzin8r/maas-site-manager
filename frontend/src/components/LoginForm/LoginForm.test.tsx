@@ -39,15 +39,15 @@ it("disables the 'Login' button if a username and password are not present", asy
   const passwordInput = screen.getByLabelText("Password");
   const loginButton = screen.getByRole("button", { name: "Login" });
 
-  await expect(loginButton).toBeDisabled();
+  expect(loginButton).toBeDisabled();
 
   await userEvent.type(emailInput, "uname@provider.com");
-  await expect(loginButton).toBeDisabled();
+  expect(loginButton).toBeDisabled();
 
   await userEvent.clear(emailInput);
   await userEvent.type(passwordInput, "pword");
-  await expect(loginButton).toBeDisabled();
+  expect(loginButton).toBeDisabled();
 
   await userEvent.type(emailInput, "uname@provider.com");
-  await expect(loginButton).toBeEnabled();
+  expect(loginButton).toBeEnabled();
 });

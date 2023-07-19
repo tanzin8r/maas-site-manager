@@ -28,7 +28,7 @@ it("can override default props", async () => {
   const button = screen.getByRole("button");
   await userEvent.click(button);
 
-  await expect(button).toHaveClass("p-button--negative has-icon button-class");
-  await expect(screen.getByTestId("icon")).toHaveClass("icon-class p-icon--warning");
-  await expect(screen.getByTestId("tooltip-portal")).toHaveClass("p-tooltip--btm-left is-detached tooltip-class");
+  expect(button).toHaveClass("p-button--negative has-icon button-class");
+  expect(screen.getByTestId("icon")).toHaveClass("icon-class p-icon--warning");
+  expect(screen.getByTestId("tooltip-portal")).toHaveClass("p-tooltip--btm-left is-detached tooltip-class");
 });

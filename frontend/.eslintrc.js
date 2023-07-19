@@ -9,7 +9,6 @@ module.exports = {
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:import/typescript",
-    "plugin:playwright/recommended",
     "eslint-config-prettier", // Ensure this is last in the list.
   ],
   parserOptions: {
@@ -20,9 +19,6 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
-    // vanilla framework often hides default inputs and displays styled ones instead
-    // because of this we need to use use force option to allow interacting with hidden fields
-    "playwright/no-force-option": "off",
     "prettier/prettier": "error",
     "no-relative-import-paths/no-relative-import-paths": [
       "warn",
@@ -169,6 +165,8 @@ module.exports = {
       plugins: ["no-only-tests"],
       rules: {
         "no-only-tests/no-only-tests": "error",
+        "testing-library/await-async-query": "error",
+        "testing-library/no-await-sync-query": "error",
         "testing-library/prefer-find-by": "off",
         "testing-library/prefer-explicit-assert": "error",
         "testing-library/prefer-user-event": [
@@ -183,12 +181,13 @@ module.exports = {
       },
     },
     {
-      files: ["cypress/**/*.spec.[jt]s?(x)"],
-      extends: ["plugin:cypress/recommended", "plugin:prettier/recommended"],
-      plugins: ["cypress", "no-only-tests"],
+      files: ["tests/**/*.[jt]s?(x)"],
+      extends: ["plugin:playwright/recommended"],
       rules: {
+        // vanilla framework often hides default inputs and displays styled ones instead
+        // because of this we need to use use force option to allow interacting with hidden fields
+        "playwright/no-force-option": "off",
         "no-only-tests/no-only-tests": "error",
-        "cypress/no-force": "warn",
         "prettier/prettier": "error",
       },
     },

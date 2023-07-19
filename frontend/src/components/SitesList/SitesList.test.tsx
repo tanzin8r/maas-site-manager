@@ -41,7 +41,7 @@ it("displays populated sites table", async () => {
 
 it("disables the 'remove' button if no rows are selected", async () => {
   renderWithMemoryRouter(<SitesList />);
-  await expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
 });
 
 it("enables the 'remove' button if some rows are selected", async () => {
@@ -101,9 +101,9 @@ it("toggles select all checkbox on click", async () => {
   renderWithMemoryRouter(<SitesList />);
 
   const checkbox = screen.getByRole("checkbox", { name: /select all/i });
-  await expect(checkbox).not.toBeChecked();
+  expect(checkbox).not.toBeChecked();
 
   await userEvent.click(checkbox);
 
-  await expect(checkbox).toBeChecked();
+  expect(checkbox).toBeChecked();
 });

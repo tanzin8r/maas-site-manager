@@ -30,7 +30,7 @@ const mockClientRect = ({
 it("can be made small", async () => {
   render(<Meter data={[]} small />);
 
-  await expect(screen.getByTestId(testIds.container)).toHaveClass("p-meter--small");
+  expect(screen.getByTestId(testIds.container)).toHaveClass("p-meter--small");
 });
 
 it("can be given a label", () => {

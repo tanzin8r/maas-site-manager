@@ -29,7 +29,7 @@ it("should render previous button as disabled on first page", async () => {
       totalItems={50}
     />,
   );
-  await expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
 });
 
 it("should render next button as disabled on last page", async () => {
@@ -44,7 +44,7 @@ it("should render next button as disabled on last page", async () => {
       totalItems={1}
     />,
   );
-  await expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
 });
 
 it("next and previous buttons work as expected", async () => {
@@ -84,7 +84,7 @@ it("should have a numeric input showing the current page", async () => {
     />,
   );
 
-  await expect(screen.getByRole("spinbutton", { name: /current page/i })).toHaveValue(currentPage);
+  expect(screen.getByRole("spinbutton", { name: /current page/i })).toHaveValue(currentPage);
 });
 
 it("disables numeric input and buttons when data is loading", async () => {
@@ -100,9 +100,9 @@ it("disables numeric input and buttons when data is loading", async () => {
     />,
   );
 
-  await expect(screen.getByRole("spinbutton", { name: /current page/i })).toBeDisabled();
-  await expect(screen.getByRole("button", { name: /previous page/i })).toBeDisabled();
-  await expect(screen.getByRole("button", { name: /next page/i })).toBeDisabled();
+  expect(screen.getByRole("spinbutton", { name: /current page/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /previous page/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /next page/i })).toBeDisabled();
 });
 
 it("displays an error message when input out of range", async () => {
@@ -141,5 +141,5 @@ it("returns input to original page value on blur when invalid value is inputted"
   await userEvent.clear(numInput);
   await userEvent.type(numInput, "42");
   await userEvent.click(document.body);
-  await expect(numInput).toHaveValue(currentPage);
+  expect(numInput).toHaveValue(currentPage);
 });
