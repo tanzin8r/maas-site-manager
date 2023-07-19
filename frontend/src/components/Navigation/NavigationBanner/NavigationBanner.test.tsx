@@ -3,14 +3,12 @@ import NavigationBanner from "./NavigationBanner";
 import { BrowserRouter } from "@/router";
 import { screen, render } from "@/test-utils";
 
-describe("Navigation Banner", () => {
-  it("displays a link to the homepage", () => {
-    render(
-      <BrowserRouter>
-        <NavigationBanner />
-      </BrowserRouter>,
-    );
+it("displays a link to the homepage", () => {
+  render(
+    <BrowserRouter>
+      <NavigationBanner />
+    </BrowserRouter>,
+  );
 
-    expect(screen.getByRole("link", { name: /Homepage/ })).toBeInTheDocument();
-  });
+  expect(screen.getByRole("link", { name: /Homepage/ })).toBeInTheDocument();
 });

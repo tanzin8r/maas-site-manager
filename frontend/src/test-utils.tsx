@@ -10,16 +10,16 @@ import { AppLayoutContextProvider, AuthContextProvider, RowSelectionContextProvi
 import type { MemoryRouterProps } from "@/router";
 import { MemoryRouter } from "@/router";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // in tests any unsuccessful query should fail immediately without retrying
-      retry: false,
-    },
-  },
-});
-
 const Providers = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        // in tests any unsuccessful query should fail immediately without retrying
+        retry: false,
+      },
+    },
+  });
+
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 };
 

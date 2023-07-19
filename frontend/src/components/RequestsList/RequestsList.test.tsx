@@ -28,35 +28,53 @@ afterAll(() => {
 
 it("action buttons are disabled if no row is selected", async () => {
   renderWithMemoryRouter(<RequestsList />);
+
   await expect(screen.getByRole("button", { name: /Accept/i })).toBeDisabled();
   await expect(screen.getByRole("button", { name: /Deny/i })).toBeDisabled();
 });
 
 it("action buttons are enabled if some rows are selected", async () => {
   renderWithMemoryRouter(<RequestsList />);
+
   await userEvent.click(screen.getByRole("checkbox", { name: /select all/i }));
+
   await waitFor(() => expect(screen.getByRole("button", { name: /Accept/i })).toBeEnabled());
   await expect(screen.getByRole("button", { name: /Deny/i })).toBeEnabled();
 });
 
 it("displays a notification and clears selection if a region has been accepted", async () => {
   renderWithMemoryRouter(<RequestsList />);
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+  // Loading spinner also has "alert" role, wait for page content to load fully.
+  await waitFor(() => {
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   const requestCheckbox = screen.getByRole("checkbox", { name: `select ${enrollmentRequest.name}` });
   await userEvent.click(requestCheckbox);
+
   await expect(requestCheckbox).toBeChecked();
+
   await userEvent.click(screen.getByRole("button", { name: /Accept/i }));
-  expect(await screen.findByRole("alert")).toBeInTheDocument();
+
+  expect(screen.getByRole("alert")).toBeInTheDocument();
   await expect(requestCheckbox).not.toBeChecked();
 });
 
 it("displays a notification and clears selection if a region has been denied", async () => {
   renderWithMemoryRouter(<RequestsList />);
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+  await waitFor(() => {
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   const requestCheckbox = screen.getByRole("checkbox", { name: `select ${enrollmentRequest.name}` });
   await userEvent.click(requestCheckbox);
+
   await expect(requestCheckbox).toBeChecked();
+
   await userEvent.click(screen.getByRole("button", { name: /Deny/i }));
+
   expect(await screen.findByRole("alert")).toBeInTheDocument();
   await expect(requestCheckbox).not.toBeChecked();
 });

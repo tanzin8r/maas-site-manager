@@ -17,10 +17,8 @@ afterAll(() => {
   mockServer.close();
 });
 
-describe("mock post tokens server", () => {
-  it("returns list of tokens", async () => {
-    const amount = 1;
-    const result = await axios.post(urls.tokens, { duration: durationFactory.build(), amount });
-    expect(result.data.items).toHaveLength(amount);
-  });
+it("returns list of tokens", async () => {
+  const amount = 1;
+  const result = await axios.post(urls.tokens, { duration: durationFactory.build(), amount });
+  expect(result.data.items).toHaveLength(amount);
 });

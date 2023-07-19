@@ -47,8 +47,13 @@ it("should display table with tokens", async () => {
     .forEach((row, idx) => expect(row).toHaveTextContent(new RegExp(tokens[idx].value, "i")));
 });
 
-it("should display a token count description", () => {
+it("should display a token count description", async () => {
   renderWithMemoryRouter(<TokensList />);
+
+  // Wait for data to load
+  await waitFor(() => {
+    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
+  });
 
   expect(screen.getByText(new RegExp(`showing 2 out of 2 tokens`, "i"))).toBeInTheDocument();
 });
@@ -76,6 +81,11 @@ it("disables the Export button if no rows are selected", async () => {
 it("displays a notification after a successful single deletion", async () => {
   renderWithMemoryRouter(<TokensList />);
 
+  // Wait for data to load
+  await waitFor(() => {
+    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
+  });
+
   await userEvent.click(screen.getAllByRole("checkbox")[1]);
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));
 
@@ -89,27 +99,42 @@ it("displays a notification after a successful single deletion", async () => {
 
 it("display a different notification for multiple deletions", async () => {
   renderWithMemoryRouter(<TokensList />);
+
+  // Wait for data to load
+  await waitFor(() => {
+    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
+  });
+
   const checkboxes = screen.getAllByRole("checkbox");
   await userEvent.click(checkboxes[1]);
   await userEvent.click(checkboxes[2]);
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));
 
-  expect(screen.getByText(/2 enrollment tokens were deleted\./i)).toBeInTheDocument();
+  await waitFor(() => {
+    expect(screen.getByText(/2 enrollment tokens were deleted\./i)).toBeInTheDocument();
+  });
 });
 
 it("displays an error notification after failed deletion", async () => {
   mockServer.resetHandlers(
     rest.get(urls.tokens, createMockGetTokensResolver(tokens)),
-    rest.delete(urls.tokens, (_req, res, ctx) => res(ctx.status(400))),
+    rest.delete(urls.tokens, (_req, res, ctx) => res(ctx.status(400, "BAD REQUEST"))),
   );
   renderWithMemoryRouter(<TokensList />);
+
+  // Wait for data to load
+  await waitFor(() => {
+    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
+  });
 
   await userEvent.click(screen.getAllByRole("checkbox")[1]);
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));
 
-  expect(
-    screen.getByRole("heading", {
-      name: /error/i,
-    }),
-  ).toBeInTheDocument();
+  await waitFor(() => {
+    expect(
+      screen.getByRole("heading", {
+        name: /error/i,
+      }),
+    ).toBeInTheDocument();
+  });
 });
