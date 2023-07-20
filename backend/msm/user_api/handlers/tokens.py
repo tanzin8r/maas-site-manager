@@ -21,7 +21,7 @@ from ...schema import (
     PaginationParams,
 )
 from ...service import ServiceCollection
-from .._auth import get_authenticated_user
+from .._auth import authenticated_user
 from .._csv import CSVResponse
 from .._dependencies import services
 
@@ -37,7 +37,7 @@ class TokensGetResponse(PaginatedResults):
 @router.get("/tokens")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
 ) -> TokensGetResponse:
     """Return all tokens"""
@@ -72,7 +72,7 @@ class TokensPostResponse(BaseModel):
 @router.post("/tokens")
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     create_request: TokensPostRequest,
 ) -> TokensPostResponse:
     """
@@ -89,7 +89,7 @@ async def post(
 @router.get("/tokens/export")
 async def get_export(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
 ) -> CSVResponse:
     tokens = await services.tokens.get_active()
     return CSVResponse(content=tokens)

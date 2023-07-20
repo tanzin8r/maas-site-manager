@@ -32,7 +32,7 @@ async def authenticate_user(
     return None
 
 
-async def get_authenticated_user(
+async def authenticated_user(
     services: Annotated[ServiceCollection, Depends(services)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User | None:
@@ -50,11 +50,11 @@ async def get_authenticated_user(
     raise auth_error
 
 
-async def get_authenticated_admin(
+async def authenticated_admin(
     services: Annotated[ServiceCollection, Depends(services)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User | None:
-    if user := await get_authenticated_user(services, token):
+    if user := await authenticated_user(services, token):
         if not user.is_admin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -24,7 +24,7 @@ from ...service import (
     InvalidPendingSites,
     ServiceCollection,
 )
-from .._auth import get_authenticated_user
+from .._auth import authenticated_user
 from .._dependencies import services
 from .._forms import (
     site_filter_parameters,
@@ -54,7 +54,7 @@ class SitesGetResponse(PaginatedResults):
 @router.get("/sites")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
     filter_params: SiteFilterParams = Depends(site_filter_parameters),
     sort_params: list[SortParam] = Depends(site_sort_parameters),
@@ -77,7 +77,7 @@ async def get(
 @router.get("/sites/{site_id}")
 async def get_id(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     site_id: int,
 ) -> Site:
     """
@@ -98,7 +98,7 @@ class PendingSitesGetResponse(PaginatedResults):
 @router.get("/requests")
 async def get_requests(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
 ) -> PendingSitesGetResponse:
     """Return pending sites."""
@@ -124,7 +124,7 @@ class PendingSitesPostRequest(BaseModel):
 @router.post("/requests", status_code=204)
 async def post_requests(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     action: PendingSitesPostRequest,
 ) -> None:
     """Accept or reject pending sites."""

@@ -32,8 +32,8 @@ from ...schema import (
 from ...service import ServiceCollection
 from .._auth import (
     authenticate_user,
-    get_authenticated_admin,
-    get_authenticated_user,
+    authenticated_admin,
+    authenticated_user,
 )
 from .._dependencies import services
 from .._forms import (
@@ -62,7 +62,7 @@ class UsersGetResponse(PaginatedResults):
 @router.get("/users")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    authenticated_admin: Annotated[User, Depends(authenticated_admin)],
     pagination_params: PaginationParams = Depends(pagination_params),
     filter_params: UserFilterParams = Depends(user_filter_params),
     sort_params: list[SortParam] = Depends(user_sort_params),
@@ -87,7 +87,7 @@ async def get(
 @router.get("/users/me")
 async def get_me(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
 ) -> User:
     """Render info about the authenticated user."""
     return authenticated_user
@@ -104,7 +104,7 @@ class UsersPatchMeRequest(BaseModel):
 @router.patch("/users/me")
 async def patch_me(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     patch_request: UsersPatchMeRequest,
 ) -> User:
     """Update the details for a user"""
@@ -148,7 +148,7 @@ class UsersPasswordPatchRequest(BaseModel):
 @router.patch("/users/me/password")
 async def patch_me_password(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[User, Depends(get_authenticated_user)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
     post_request: UsersPasswordPatchRequest,
 ) -> None:
     """Modify the users password."""
@@ -169,7 +169,7 @@ async def patch_me_password(
 @router.get("/users/{user_id}")
 async def get_id(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    authenticated_admin: Annotated[User, Depends(authenticated_admin)],
     user_id: int,
 ) -> User:
     """
@@ -206,7 +206,7 @@ class UsersPostRequest(BaseModel):
 @router.post("/users")
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    authenticated_admin: Annotated[User, Depends(authenticated_admin)],
     request: UsersPostRequest,
 ) -> User:
     """
@@ -242,7 +242,7 @@ class UsersPatchRequest(BaseModel):
 @router.patch("/users/{user_id}")
 async def patch(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    authenticated_admin: Annotated[User, Depends(authenticated_admin)],
     user_id: int,
     patch_request: UsersPatchRequest,
 ) -> User:
@@ -284,7 +284,7 @@ async def patch(
 @router.delete("/users/{user_id}", status_code=204)
 async def delete(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    authenticated_admin: Annotated[User, Depends(authenticated_admin)],
     user_id: int,
 ) -> None:
     """
