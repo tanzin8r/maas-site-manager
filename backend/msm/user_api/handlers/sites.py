@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import (
+    APIRouter,
     Depends,
     HTTPException,
     status,
@@ -30,6 +31,8 @@ from .._forms import (
     SiteFilterParams,
 )
 
+router = APIRouter()
+
 site_sort_parameters = SortParamParser(
     fields=[
         "name",
@@ -48,6 +51,7 @@ class SitesGetResponse(PaginatedResults):
     items: list[Site]
 
 
+@router.get("/sites")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
@@ -70,6 +74,7 @@ async def get(
     )
 
 
+@router.get("/sites/{site_id}")
 async def get_id(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
@@ -90,7 +95,8 @@ class PendingSitesGetResponse(PaginatedResults):
     items: list[PendingSite]
 
 
-async def pending_get(
+@router.get("/requests")
+async def get_requests(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     pagination_params: PaginationParams = Depends(pagination_params),
@@ -115,7 +121,8 @@ class PendingSitesPostRequest(BaseModel):
     accept: bool
 
 
-async def pending_post(
+@router.post("/requests", status_code=204)
+async def post_requests(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     action: PendingSitesPostRequest,

@@ -4,6 +4,7 @@ from typing import (
 )
 
 from fastapi import (
+    APIRouter,
     Depends,
     HTTPException,
     status,
@@ -40,6 +41,8 @@ from .._forms import (
     UserFilterParams,
 )
 
+router = APIRouter()
+
 user_sort_params = SortParamParser(
     fields=[
         "email",
@@ -56,6 +59,7 @@ class UsersGetResponse(PaginatedResults):
     items: list[User]
 
 
+@router.get("/users")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
@@ -80,137 +84,8 @@ async def get(
     )
 
 
-async def get_id(
-    services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
-    user_id: int,
-) -> User:
-    """
-    Select a specific user by id
-    """
-
-    if user := await services.users.get_by_id(user_id):
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail={"message": "User does not exist."},
-    )
-
-
-class UsersPostRequest(BaseModel):
-    """
-    Request to create a User.
-    """
-
-    full_name: str
-    username: str
-    email: str
-    password: str = Field(min_length=8, max_length=100)
-    confirm_password: str = Field(min_length=8, max_length=100)
-    is_admin: bool = False
-
-    @root_validator
-    def passwords_match(cls, values: Any) -> Any:
-        if values.get("password") != values.get("confirm_password"):
-            raise ValueError("Provided passwords do not match.")
-        return values
-
-
-async def post(
-    services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
-    request: UsersPostRequest,
-) -> User:
-    """
-    Create a user.
-    """
-    if await services.users.exists(
-        email=request.email, username=request.username
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Email or Username already in use."},
-        )
-    return await services.users.create(UserCreate(**request.dict()))
-
-
-class UsersPatchRequest(BaseModel):
-    """User Edit Details request schema."""
-
-    full_name: str | None = None
-    username: str | None = None
-    email: str | None = None
-    password: str | None = Field(min_length=8, max_length=100)
-    confirm_password: str | None = Field(min_length=8, max_length=100)
-    is_admin: bool | None = None
-
-    @root_validator
-    def passwords_match(cls, values: Any) -> Any:
-        if values.get("password") != values.get("confirm_password"):
-            raise ValueError("Provided passwords do not match.")
-        return values
-
-
-async def patch(
-    services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
-    user_id: int,
-    patch_request: UsersPatchRequest,
-) -> User:
-    """Admin Update the details for a user"""
-
-    if user_id == authenticated_admin.id and patch_request.is_admin is False:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={"message": "Admin users cannot demote themselves."},
-        )
-
-    if all(v is None for v in patch_request.dict().values()):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={"message": "Request body empty."},
-        )
-
-    if not await services.users.id_exists(user_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={"message": "User does not exist."},
-        )
-
-    if await services.users.exists(
-        email=patch_request.email,
-        username=patch_request.username,
-        exclude_id=user_id,
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Email or Username already in use."},
-        )
-
-    return await services.users.update(
-        user_id, UserUpdate(**patch_request.dict())
-    )
-
-
-async def delete(
-    services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
-    user_id: int,
-) -> None:
-    """
-    Delete a user from the database.
-    Don't allow a user to delete themselves.
-    """
-    if authenticated_admin.id == user_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Cannot delete the current user."},
-        )
-    await services.users.delete(user_id)
-    return None
-
-
-async def me_get(
+@router.get("/users/me")
+async def get_me(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
 ) -> User:
@@ -226,7 +101,8 @@ class UsersPatchMeRequest(BaseModel):
     email: str | None = None
 
 
-async def me_patch(
+@router.patch("/users/me")
+async def patch_me(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     patch_request: UsersPatchMeRequest,
@@ -269,7 +145,8 @@ class UsersPasswordPatchRequest(BaseModel):
         return values
 
 
-async def password_patch(
+@router.patch("/users/me/password")
+async def patch_me_password(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
     post_request: UsersPasswordPatchRequest,
@@ -287,3 +164,137 @@ async def password_patch(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail={"message": "Incorrect password for user."},
     )
+
+
+@router.get("/users/{user_id}")
+async def get_id(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    user_id: int,
+) -> User:
+    """
+    Select a specific user by id
+    """
+
+    if user := await services.users.get_by_id(user_id):
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail={"message": "User does not exist."},
+    )
+
+
+class UsersPostRequest(BaseModel):
+    """
+    Request to create a User.
+    """
+
+    full_name: str
+    username: str
+    email: str
+    password: str = Field(min_length=8, max_length=100)
+    confirm_password: str = Field(min_length=8, max_length=100)
+    is_admin: bool = False
+
+    @root_validator
+    def passwords_match(cls, values: Any) -> Any:
+        if values.get("password") != values.get("confirm_password"):
+            raise ValueError("Provided passwords do not match.")
+        return values
+
+
+@router.post("/users")
+async def post(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    request: UsersPostRequest,
+) -> User:
+    """
+    Create a user.
+    """
+    if await services.users.exists(
+        email=request.email, username=request.username
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "Email or Username already in use."},
+        )
+    return await services.users.create(UserCreate(**request.dict()))
+
+
+class UsersPatchRequest(BaseModel):
+    """User Edit Details request schema."""
+
+    full_name: str | None = None
+    username: str | None = None
+    email: str | None = None
+    password: str | None = Field(min_length=8, max_length=100)
+    confirm_password: str | None = Field(min_length=8, max_length=100)
+    is_admin: bool | None = None
+
+    @root_validator
+    def passwords_match(cls, values: Any) -> Any:
+        if values.get("password") != values.get("confirm_password"):
+            raise ValueError("Provided passwords do not match.")
+        return values
+
+
+@router.patch("/users/{user_id}")
+async def patch(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    user_id: int,
+    patch_request: UsersPatchRequest,
+) -> User:
+    """Admin Update the details for a user"""
+
+    if user_id == authenticated_admin.id and patch_request.is_admin is False:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"message": "Admin users cannot demote themselves."},
+        )
+
+    if all(v is None for v in patch_request.dict().values()):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"message": "Request body empty."},
+        )
+
+    if not await services.users.id_exists(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "User does not exist."},
+        )
+
+    if await services.users.exists(
+        email=patch_request.email,
+        username=patch_request.username,
+        exclude_id=user_id,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "Email or Username already in use."},
+        )
+
+    return await services.users.update(
+        user_id, UserUpdate(**patch_request.dict())
+    )
+
+
+@router.delete("/users/{user_id}", status_code=204)
+async def delete(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_admin: Annotated[User, Depends(get_authenticated_admin)],
+    user_id: int,
+) -> None:
+    """
+    Delete a user from the database.
+    Don't allow a user to delete themselves.
+    """
+    if authenticated_admin.id == user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "Cannot delete the current user."},
+        )
+    await services.users.delete(user_id)
+    return None

@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import (
+    APIRouter,
     Depends,
     HTTPException,
     status,
@@ -11,6 +12,8 @@ from ...jwt import create_token
 from ...service import ServiceCollection
 from .._auth import authenticate_user
 from .._dependencies import services
+
+router = APIRouter()
 
 
 class LoginPostRequest(BaseModel):
@@ -27,6 +30,7 @@ class LoginPostResponse(BaseModel):
     token_type: str
 
 
+@router.post("/login")
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
     user_login: LoginPostRequest,

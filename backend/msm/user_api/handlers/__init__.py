@@ -6,4 +6,10 @@ from . import (
     users,
 )
 
-__all__ = ["login", "root", "sites", "tokens", "users"]
+API_ROUTERS = [
+    root.router,
+    login.router,
+    sites.router,
+    tokens.router,
+    users.router,
+]

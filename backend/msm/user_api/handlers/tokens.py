@@ -5,7 +5,10 @@ from datetime import (
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import (
+    APIRouter,
+    Depends,
+)
 from pydantic import BaseModel
 
 from ...db.models import (
@@ -22,6 +25,8 @@ from .._auth import get_authenticated_user
 from .._csv import CSVResponse
 from .._dependencies import services
 
+router = APIRouter()
+
 
 class TokensGetResponse(PaginatedResults):
     """List of existing tokens."""
@@ -29,6 +34,7 @@ class TokensGetResponse(PaginatedResults):
     items: list[Token]
 
 
+@router.get("/tokens")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
@@ -63,6 +69,7 @@ class TokensPostResponse(BaseModel):
     tokens: list[UUID]
 
 
+@router.post("/tokens")
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
@@ -79,7 +86,8 @@ async def post(
     return TokensPostResponse(expired=expired, tokens=tokens)
 
 
-async def export_get(
+@router.get("/tokens/export")
+async def get_export(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(get_authenticated_user)],
 ) -> CSVResponse:
