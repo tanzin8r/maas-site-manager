@@ -41,36 +41,20 @@ async def test_token_time_format(
 
 @pytest.mark.asyncio
 async def test_tokens_get(user_client: Client, factory: Factory) -> None:
-    tokens = await factory.create(
-        "token",
-        [
-            {
-                "site_id": None,
-                "value": "c54e5ba6-d214-40dd-b601-01ebb1019c07",
-                "expired": datetime.fromisoformat(
-                    "2023-02-23T09:09:51.103703"
-                ),
-                "created": datetime.fromisoformat(
-                    "2023-02-22T03:14:15.926535"
-                ),
-            },
-            {
-                "site_id": None,
-                "value": "b67c449e-fcf6-4014-887d-909859f9fb70",
-                "expired": datetime.fromisoformat(
-                    "2023-02-23T11:28:54.382456"
-                ),
-                "created": datetime.fromisoformat(
-                    "2023-02-22T03:14:15.926535"
-                ),
-            },
-        ],
-    )
+    tokens = [
+        await factory.make_Token(),
+        await factory.make_Token(),
+    ]
+
+    expected = []
     for token in tokens:
-        token["expired"] = token["expired"].isoformat()
-        token["created"] = token["created"].isoformat()
-        token["value"] = str(token["value"])
+        entry = token.dict()
+        entry["expired"] = token.expired.isoformat()
+        entry["created"] = token.created.isoformat()
+        entry["value"] = str(token.value)
+        expected.append(entry)
+
     response = await user_client.get("/tokens")
     assert response.status_code == 200
-    assert response.json()["total"] == 2
-    assert response.json()["items"] == tokens
+    assert response.json()["total"] == len(expected)
+    assert response.json()["items"] == expected

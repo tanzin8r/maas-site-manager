@@ -7,7 +7,6 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import User
-from msm.password import hash_password
 from msm.service._user import UserService
 
 from ..fixtures.factory import Factory
@@ -20,19 +19,7 @@ def service(db_connection: AsyncConnection) -> Iterator[UserService]:
 
 @pytest.fixture
 async def user(factory: Factory) -> AsyncIterator[User]:
-    [user] = await factory.create(
-        "user",
-        [
-            {
-                "email": "admin@example.com",
-                "username": "admin",
-                "full_name": "Admin",
-                "password": hash_password("secret"),
-                "is_admin": True,
-            }
-        ],
-    )
-    yield User(**user)
+    yield await factory.make_User(username="admin", password="secret")
 
 
 @pytest.mark.asyncio

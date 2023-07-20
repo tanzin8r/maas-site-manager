@@ -27,25 +27,11 @@ class TestTokenService:
     async def test_get_active_tokens(
         self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
-        now = datetime.utcnow()
         uuid1, uuid2, uuid3 = [uuid.uuid4() for _ in range(3)]
-        _, t2, t3 = await factory.create(
-            "token",
-            [
-                {
-                    "value": uuid1,
-                    "expired": now - timedelta(hours=1),
-                },
-                {
-                    "value": uuid2,
-                    "expired": now + timedelta(hours=1),
-                },
-                {
-                    "value": uuid3,
-                    "expired": now + timedelta(hours=2),
-                },
-            ],
-        )
+        await factory.make_Token(value=uuid1, lifetime=timedelta(hours=-1))
+        await factory.make_Token(value=uuid2, lifetime=timedelta(hours=1))
+        await factory.make_Token(value=uuid3, lifetime=timedelta(hours=2))
+
         service = TokenService(db_connection)
         assert [token.value for token in await service.get_active()] == [
             uuid2,

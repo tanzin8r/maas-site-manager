@@ -53,7 +53,8 @@ def db_setup(postgresql_proc: PostgreSQLExecutor) -> Iterator[TestDSN]:
 
 @pytest.fixture
 async def db(
-    request: pytest.FixtureRequest, db_setup: TestDSN
+    request: pytest.FixtureRequest,
+    db_setup: TestDSN,
 ) -> AsyncIterator[Database]:
     """Set up the database schema."""
     echo = request.config.getoption("sqlalchemy_debug")

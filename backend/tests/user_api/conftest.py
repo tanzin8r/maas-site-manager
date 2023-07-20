@@ -1,6 +1,5 @@
 from typing import (
     AsyncIterator,
-    Callable,
     Iterator,
 )
 
@@ -10,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
 from msm.db.models import User
-from msm.password import hash_password
 from msm.user_api import create_app
 
 from ..fixtures.app import override_dependencies
@@ -38,33 +36,20 @@ async def app_client(api_app: FastAPI) -> AsyncIterator[Client]:
         yield client
 
 
-def make_user_fixture(
-    username: str, is_admin: bool = False
-) -> Callable[[Factory], AsyncIterator[User]]:
-    """Return a fixture for an API user."""
-
-    @pytest.fixture
-    async def api_user_fixture(factory: Factory) -> AsyncIterator[User]:
-        [user] = await factory.create(
-            "user",
-            {
-                "username": username,
-                "email": f"{username}@example.com",
-                "full_name": username.capitalize(),
-                "password": hash_password(username),
-                "is_admin": is_admin,
-            },
-        )
-        yield User(**user)
-
-    return api_user_fixture
-
-
 API_USER_NAME = "user"
 API_ADMIN_NAME = "admin"
 
-api_user = make_user_fixture(API_USER_NAME, is_admin=False)
-api_admin = make_user_fixture(API_ADMIN_NAME, is_admin=True)
+
+@pytest.fixture
+async def api_user(factory: Factory) -> AsyncIterator[User]:
+    """An API user (without admin rights)."""
+    yield await factory.make_User(username=API_USER_NAME, is_admin=False)
+
+
+@pytest.fixture
+async def api_admin(factory: Factory) -> AsyncIterator[User]:
+    """An API administrator)."""
+    yield await factory.make_User(username=API_ADMIN_NAME, is_admin=True)
 
 
 @pytest.fixture

@@ -1,8 +1,6 @@
-from httpx import Response
 import pytest
 
 from msm.db.models import User
-from msm.password import hash_password
 
 from ...fixtures.client import Client
 from ...fixtures.factory import Factory
@@ -76,56 +74,31 @@ class TestUsersGetHandler:
         query_params: str,
         expected_result: list[str],
     ) -> None:
-        def extract_users(resp: Response) -> list[str]:
-            return [user["username"] for user in resp.json()["items"]]
-
-        async def create_user(
-            username: str,
-            password: str,
-            email: str,
-            full_name: str,
-            is_admin: bool = False,
-        ) -> None:
-            await factory.create(
-                "user",
-                {
-                    "email": email,
-                    "username": username,
-                    "full_name": full_name,
-                    "password": hash_password(password),
-                    "confirm_password": hash_password(password),
-                    "is_admin": is_admin,
-                },
-            )
-
-        await create_user(
-            "proxima",
-            "password1",
-            "proxima@maas-site-manager.example.com",
-            "Proxima Centauri b",
+        await factory.make_User(
+            username="proxima",
+            email="proxima@maas-site-manager.example.com",
+            full_name="Proxima Centauri b",
         )
-        await create_user(
-            "trappist",
-            "password2",
-            "trappist@maas-site-manager.example.com",
-            "Trappist 1 e",
-            True,
+        await factory.make_User(
+            username="trappist",
+            email="trappist@maas-site-manager.example.com",
+            full_name="Trappist 1 e",
+            is_admin=True,
         )
-        await create_user(
-            "hatp13",
-            "password3",
-            "hatp13@example.com",
-            "HAT-P-13 b",
+        await factory.make_User(
+            username="hatp13",
+            email="hatp13@example.com",
+            full_name="HAT-P-13 b",
         )
-        await create_user(
-            "alphacen",
-            "password4",
-            "alphacen@example.com",
-            "Rigel Kentaurus",
+        await factory.make_User(
+            username="alphacen",
+            email="alphacen@example.com",
+            full_name="Rigel Kentaurus",
         )
 
         response = await admin_client.get("/users", params=query_params)
-        assert extract_users(response) == expected_result
+        usernames = [user["username"] for user in response.json()["items"]]
+        assert usernames == expected_result
 
     @pytest.mark.parametrize(
         "sort_by",
@@ -141,21 +114,6 @@ class TestUsersGetHandler:
         factory: Factory,
         sort_by: str,
     ) -> None:
-        await factory.create(
-            "user",
-            [
-                {
-                    "email": "proxima@maas-site-manager.example.com",
-                    "username": "proxima",
-                    "full_name": "Proxima Centauri b",
-                    "password": hash_password("password"),
-                    "confirm_password": hash_password("password"),
-                    "is_admin": False,
-                }
-            ],
-        )
-
-        # not sortable
         response = await admin_client.get(
             "/users", params={"sort_by": sort_by}
         )
@@ -164,19 +122,7 @@ class TestUsersGetHandler:
     async def test_pagination(
         self, admin_client: Client, factory: Factory
     ) -> None:
-        users = await factory.create(
-            "user",
-            {
-                "email": "user@example.com",
-                "username": "user",
-                "full_name": "MAAS User",
-                "password": hash_password("secret"),
-                "is_admin": False,
-            },
-        )
-        # the return data does not include passwords
-        for user in users:
-            user.pop("password")
+        user = await factory.make_User()
 
         paginated = await admin_client.get("/users?page=2&size=1")
         assert paginated.status_code == 200
@@ -184,72 +130,23 @@ class TestUsersGetHandler:
             "page": 2,
             "size": 1,
             "total": 2,
-            "items": users,
+            "items": [
+                user.dict(),
+            ],
         }
 
     async def test_get_by_id(
         self, admin_client: Client, factory: Factory
     ) -> None:
-        async def create_user(
-            username: str,
-            password: str,
-            email: str,
-            full_name: str,
-            is_admin: bool = False,
-        ) -> None:
-            await factory.create(
-                "user",
-                {
-                    "email": email,
-                    "username": username,
-                    "full_name": full_name,
-                    "password": hash_password(password),
-                    "confirm_password": hash_password(password),
-                    "is_admin": is_admin,
-                },
-            )
+        user = await factory.make_User()
 
-        await create_user(
-            "proxima",
-            "password1",
-            "proxima@maas-site-manager.example.com",
-            "Proxima Centauri b",
-        )
-        await create_user(
-            "trappist",
-            "password2",
-            "trappist@maas-site-manager.example.com",
-            "Trappist 1 e",
-            True,
-        )
-        await create_user(
-            "hatp13",
-            "password3",
-            "hatp13@example.com",
-            "HAT-P-13 b",
-        )
-        await create_user(
-            "alphacen",
-            "password4",
-            "alphacen@example.com",
-            "Rigel Kentaurus",
-        )
-
-        user_id = -1
-        response = await admin_client.get(f"/users/{user_id}")
+        response = await admin_client.get(f"/users/{user.id + 100}")
         assert response.status_code == 404
         assert response.json()["detail"]["message"] == "User does not exist."
 
-        user_id = 2
-        response = await admin_client.get(f"/users/{user_id}")
+        response = await admin_client.get(f"/users/{user.id}")
         assert response.status_code == 200
-        assert response.json() == {
-            "id": 2,
-            "full_name": "Proxima Centauri b",
-            "username": "proxima",
-            "email": "proxima@maas-site-manager.example.com",
-            "is_admin": False,
-        }
+        assert response.json() == user.dict()
 
 
 @pytest.mark.asyncio
@@ -267,7 +164,9 @@ class TestUsersPostHandler:
             | {"password": "password", "confirm_password": "password"},
         )
         assert response.status_code == 200
-        assert response.json() == user_details | {"id": 2}
+        result = response.json()
+        result.pop("id")
+        assert result == user_details
 
     async def test_missing_fields(self, admin_client: Client) -> None:
         response = await admin_client.post(
@@ -447,27 +346,13 @@ class TestUsersPatchHandler:
     async def test_demote_admin(
         self, admin_client: Client, factory: Factory
     ) -> None:
-        [user] = await factory.create(
-            "user",
-            [
-                {
-                    "email": "admin2@example.com",
-                    "username": "admin2",
-                    "full_name": "Another MAAS Admin",
-                    "password": hash_password("secret"),
-                    "is_admin": True,
-                }
-            ],
-        )
-        user.pop("password")
-        user_id = user["id"]
-
+        user = await factory.make_User(is_admin=True)
         new_details = {"is_admin": False}
         response = await admin_client.patch(
-            f"/users/{user_id}", json=new_details
+            f"/users/{user.id}", json=new_details
         )
         assert response.status_code == 200
-        assert response.json() == user | new_details
+        assert response.json() == user.dict() | new_details
 
     async def test_demote_self_admin(
         self, api_admin: User, admin_client: Client
@@ -505,18 +390,10 @@ class TestUsersPatchHandler:
         factory: Factory,
         new_details: dict[str, str],
     ) -> None:
-        user_details = {
-            "email": "admin2@example.com",
-            "username": "admin2",
-            "full_name": "Another MAAS Admin",
-            "password": hash_password("secret"),
-            "is_admin": True,
-        }
-        [user] = await factory.create("user", [user_details])
-        user_id = user["id"]
+        user = await factory.make_User()
 
         response = await admin_client.patch(
-            f"/users/{user_id}", json=new_details
+            f"/users/{user.id}", json=new_details
         )
         assert response.status_code == 400
         assert (
@@ -530,33 +407,11 @@ class TestUsersDeleteHandler:
     async def test_delete(
         self, api_admin: User, admin_client: Client, factory: Factory
     ) -> None:
-        [user] = await factory.create(
-            "user",
-            [
-                {
-                    "email": "user@example.com",
-                    "username": "user",
-                    "full_name": "MAAS User",
-                    "is_admin": False,
-                    "password": hash_password("secret"),
-                },
-            ],
-        )
-        user_id = user["id"]
-
-        response = await admin_client.delete(f"/users/{user_id}")
+        user = await factory.make_User()
+        response = await admin_client.delete(f"/users/{user.id}")
         assert response.status_code == 204
-
-        users_response = await admin_client.get("/users")
-        assert users_response.status_code == 200
-        assert users_response.json() == {
-            "items": [
-                api_admin.dict(),
-            ],
-            "total": 1,
-            "page": 1,
-            "size": 20,
-        }
+        response = await admin_client.get(f"/users/{user.id}")
+        assert response.status_code == 404
 
     async def test_delete_self_fails(
         self, api_admin: User, admin_client: Client, factory: Factory
@@ -595,14 +450,7 @@ class TestUsersMePatchHandler:
         factory: Factory,
         new_details: dict[str, str],
     ) -> None:
-        user_details = {
-            "email": "admin2@example.com",
-            "username": "admin2",
-            "full_name": "Another MAAS Admin",
-            "password": hash_password("secret"),
-            "is_admin": True,
-        }
-        await factory.create("user", [user_details])
+        await factory.make_User(username="admin2", email="admin2@example.com")
         response = await admin_client.patch("/users/me", json=new_details)
         assert response.status_code == 400
         assert (

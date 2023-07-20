@@ -23,15 +23,9 @@ class TestSiteService:
         id: int,
         exists: bool,
     ) -> None:
-        site_details = {
-            "name": "LondonHQ",
-            "name_unique": True,
-            "url": "https://londoncalling.example.com",
-            "accepted": True,
-        }
-        [site] = await factory.create("site", [site_details])
-        site |= {"connection_status": "unknown"}
+        site = await factory.make_Site()
+        details = site.dict() | {"connection_status": "unknown"}
         service = SiteService(db_connection)
         assert await service.get_by_id(id) == (
-            Site(**site) if exists else None
+            Site(**details) if exists else None
         )

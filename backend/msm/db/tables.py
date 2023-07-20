@@ -29,7 +29,7 @@ Site = Table(
     Column("region", Text),
     Column("street", Text),
     Column("timezone", Text),
-    Column("url", Text),
+    Column("url", Text, nullable=False),
     Column("accepted", Boolean, nullable=False, index=True, default=False),
     Column("created", DateTime, nullable=False, default=datetime.utcnow),
 )
