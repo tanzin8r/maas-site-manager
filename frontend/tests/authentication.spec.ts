@@ -24,7 +24,7 @@ protectedPages.forEach(({ path }) => {
 test("user is redirected to enrolled sites list after login", async ({ page }) => {
   await page.goto(routesConfig.login.path);
   await login({ page });
-  await expect(page).toHaveURL(routesConfig.sites.path);
+  await expect(page).toHaveURL(routesConfig.sitesList.path);
 });
 
 test("user is redirected to the URL they wanted to visit", async ({ page }) => {

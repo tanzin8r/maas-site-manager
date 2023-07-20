@@ -1,1 +1,26 @@
+@use "sass:math";
 @import "leaflet";
+
+$grid-margin-small: map_get($grid-margin-widths, small);
+$grid-margin-default: map_get($grid-margin-widths, default);
+
+.map {
+    height: 100vh;
+    position: relative;
+    background: #fff;
+    width: calc(100% + #{2 * $grid-margin-small});
+
+    @media (min-width: $threshold-4-6-col) {
+        width: calc(100% + #{2 * $grid-margin-default});
+    }
+
+    /*  negative values to break out of .row and l-main__content */
+    margin-top:  -#{$spv--medium};
+    margin-left: -#{$grid-margin-small};
+    margin-right: -#{$grid-margin-small};
+
+    @media (min-width: $threshold-4-6-col) {
+        margin-left: -#{$grid-margin-default};
+        margin-right: -#{$grid-margin-default};
+    }
+}

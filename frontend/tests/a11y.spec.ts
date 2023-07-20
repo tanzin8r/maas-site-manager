@@ -16,7 +16,7 @@ const a11yTest = async ({ title, path }: { title: string; path: string }) =>
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
 
-    expect(accessibilityScanResults.violations).toEqual([]);
+    await expect(accessibilityScanResults.violations).toEqual([]);
   });
 
 test.describe("protected routes", () => {

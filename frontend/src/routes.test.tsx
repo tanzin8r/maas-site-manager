@@ -24,7 +24,7 @@ it("redirects to the default route", async () => {
   render(<RouterProvider router={router} />);
 
   expect(router.state.location.pathname).toEqual("/");
-  await waitFor(() => expect(router.state.location.pathname).toEqual("/sites"));
+  await waitFor(() => expect(router.state.location.pathname).toEqual("/sites/list"));
 });
 
 pages.forEach(({ title, path }) => {

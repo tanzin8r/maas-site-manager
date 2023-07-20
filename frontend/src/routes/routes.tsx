@@ -9,7 +9,9 @@ import Logout from "@/pages/logout";
 import PersonalDetails from "@/pages/personalDetails";
 import Requests from "@/pages/requests";
 import Settings from "@/pages/settings";
-import SitesList from "@/pages/sites";
+import Sites from "@/pages/sites";
+import List from "@/pages/sites/list";
+import Map from "@/pages/sites/map";
 import Tokens from "@/pages/tokens/tokens";
 import Users from "@/pages/users";
 import { createRoutesFromElements, Route, redirect } from "@/router";
@@ -30,11 +32,31 @@ export const routes = createRoutesFromElements(
     <Route
       element={
         <RequireLogin>
-          <SitesList />
+          <Sites />
         </RequireLogin>
       }
       path="sites"
-    />
+    >
+      <Route index loader={() => redirect("/sites/list")} />
+      <Route
+        element={
+          <RequireLogin>
+            <List />
+          </RequireLogin>
+        }
+        index
+        path="list"
+      />
+      <Route
+        element={
+          <RequireLogin>
+            <Map />
+          </RequireLogin>
+        }
+        index
+        path="map"
+      />
+    </Route>
     <Route
       element={
         <RequireLogin>

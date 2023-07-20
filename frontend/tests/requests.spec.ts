@@ -15,5 +15,5 @@ test("goes to the regions page if the user clicks on the regions link", async ({
   await page.getByRole("button", { name: /Accept/i }).click();
   await expect(page.getByRole("alert").getByText(/Accepted enrolment request for [0-9]+ MAAS regions/i)).toBeVisible();
   await page.getByRole("button", { name: /Go to Regions/i }).click();
-  await page.waitForURL(routesConfig.sites.path);
+  await page.waitForURL(routesConfig.sitesList.path);
 });

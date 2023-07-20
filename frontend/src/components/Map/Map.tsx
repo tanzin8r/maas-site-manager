@@ -9,9 +9,9 @@ const Map = ({ id = "map-container" }: MapContainerProps) => {
         paddingTopLeft: [50, 0],
       }}
       center={[0, 0]}
+      className="map"
       id={id}
-      style={{ height: "500px", width: "100%" }}
-      zoom={2}
+      zoom={3}
     >
       <TileLayer data-testid="tile-layer" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
     </MapContainer>
