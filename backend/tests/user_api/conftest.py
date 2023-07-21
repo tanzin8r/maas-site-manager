@@ -1,23 +1,17 @@
+from contextlib import asynccontextmanager
 from typing import (
     AsyncIterator,
-    Awaitable,
-    Callable,
     Iterator,
 )
 
-from fastapi import (
-    FastAPI,
-    Request,
-    Response,
-)
+from fastapi import FastAPI
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
 
 from msm.db import Database
 from msm.db.models import User
 from msm.user_api import create_app
+from msm.user_api._middleware import TransactionMiddleware
 
 from ..fixtures.client import Client
 from ..fixtures.factory import Factory
@@ -27,17 +21,10 @@ from ..fixtures.factory import Factory
 def transaction_middleware_class(
     db_connection: AsyncConnection,
 ) -> Iterator[type]:
-    class ConnectionReusingTransactionMiddleware(BaseHTTPMiddleware):
-        def __init__(self, app: ASGIApp, db: Database):
-            super().__init__(app)
-
-        async def dispatch(
-            self,
-            request: Request,
-            call_next: Callable[[Request], Awaitable[Response]],
-        ) -> Response:
-            request.state.conn = db_connection
-            return await call_next(request)
+    class ConnectionReusingTransactionMiddleware(TransactionMiddleware):
+        @asynccontextmanager
+        async def get_connection(self) -> AsyncIterator[AsyncConnection]:
+            yield db_connection
 
     yield ConnectionReusingTransactionMiddleware
 
