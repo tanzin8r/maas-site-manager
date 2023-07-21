@@ -6,8 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .. import PACKAGE
 from ..db import Database
+from ..middleware import (
+    DatabaseMetricsMiddleware,
+    TransactionMiddleware,
+)
 from ..settings import SETTINGS
-from ._middleware import TransactionMiddleware
 from .handlers import API_ROUTERS
 
 
@@ -37,6 +40,7 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(DatabaseMetricsMiddleware, db=db)
     app.add_middleware(transaction_middleware_class, db=db)
 
     for router in API_ROUTERS:

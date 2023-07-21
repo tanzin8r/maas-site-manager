@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import (
     AsyncIterator,
@@ -10,6 +11,7 @@ from pytest_postgresql.janitor import DatabaseJanitor
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
+from msm.middleware import TransactionMiddleware
 
 TEST_DB_NAME = "msm"
 
@@ -71,3 +73,15 @@ async def db_connection(db: Database) -> AsyncIterator[AsyncConnection]:
         conn.begin()
         yield conn
         await conn.rollback()
+
+
+@pytest.fixture
+def transaction_middleware_class(
+    db_connection: AsyncConnection,
+) -> Iterator[type]:
+    class ConnectionReusingTransactionMiddleware(TransactionMiddleware):
+        @asynccontextmanager
+        async def get_connection(self) -> AsyncIterator[AsyncConnection]:
+            yield db_connection
+
+    yield ConnectionReusingTransactionMiddleware

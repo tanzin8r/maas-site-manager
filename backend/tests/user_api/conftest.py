@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from typing import (
     AsyncIterator,
     Iterator,
@@ -6,27 +5,13 @@ from typing import (
 
 from fastapi import FastAPI
 import pytest
-from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
 from msm.db.models import User
 from msm.user_api import create_app
-from msm.user_api._middleware import TransactionMiddleware
 
 from ..fixtures.client import Client
 from ..fixtures.factory import Factory
-
-
-@pytest.fixture
-def transaction_middleware_class(
-    db_connection: AsyncConnection,
-) -> Iterator[type]:
-    class ConnectionReusingTransactionMiddleware(TransactionMiddleware):
-        @asynccontextmanager
-        async def get_connection(self) -> AsyncIterator[AsyncConnection]:
-            yield db_connection
-
-    yield ConnectionReusingTransactionMiddleware
 
 
 @pytest.fixture
