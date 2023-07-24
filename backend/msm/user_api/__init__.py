@@ -3,6 +3,10 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import (
+    CollectorRegistry,
+    REGISTRY,
+)
 
 from .. import PACKAGE
 from ..db import Database
@@ -11,12 +15,14 @@ from ..middleware import (
     TransactionMiddleware,
 )
 from ..settings import SETTINGS
+from ._prometheus import instrument_prometheus
 from .handlers import API_ROUTERS
 
 
 def create_app(
     database: Database | None = None,
     transaction_middleware_class: type = TransactionMiddleware,
+    prometheus_registry: CollectorRegistry = REGISTRY,
 ) -> FastAPI:
     """Create the FastAPI WSGI application."""
     db = database or Database(str(SETTINGS.db_dsn))
@@ -45,4 +51,7 @@ def create_app(
 
     for router in API_ROUTERS:
         app.include_router(router)
+
+    instrument_prometheus(app, prometheus_registry)
+
     return app

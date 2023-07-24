@@ -4,6 +4,7 @@ from typing import (
 )
 
 from fastapi import FastAPI
+from prometheus_client import CollectorRegistry
 import pytest
 
 from msm.db import Database
@@ -20,7 +21,9 @@ def api_app(
 ) -> Iterator[FastAPI]:
     """The API for users."""
     yield create_app(
-        database=db, transaction_middleware_class=transaction_middleware_class
+        database=db,
+        transaction_middleware_class=transaction_middleware_class,
+        prometheus_registry=CollectorRegistry(),
     )
 
 

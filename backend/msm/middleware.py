@@ -78,7 +78,8 @@ class DatabaseMetricsMiddleware(BaseHTTPMiddleware):
         conn = request.state.conn.sync_connection
         event.listen(conn, "before_cursor_execute", before)
         event.listen(conn, "after_cursor_execute", after)
-        response = await call_next(request)
-        event.remove(conn, "before_cursor_execute", before)
-        event.remove(conn, "after_cursor_execute", after)
-        return response
+        try:
+            return await call_next(request)
+        finally:
+            event.remove(conn, "before_cursor_execute", before)
+            event.remove(conn, "after_cursor_execute", after)

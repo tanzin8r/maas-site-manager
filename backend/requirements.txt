@@ -27,7 +27,9 @@ email-validator==2.0.0.post2
 exceptiongroup==1.1.2
     # via anyio
 fastapi==0.100.0
-    # via msm (pyproject.toml)
+    # via
+    #   msm (pyproject.toml)
+    #   prometheus-fastapi-instrumentator
 greenlet==2.0.2
     # via sqlalchemy
 h11==0.14.0
@@ -39,6 +41,10 @@ idna==3.4
     #   anyio
     #   email-validator
 passlib[bcrypt]==1.7.4
+    # via msm (pyproject.toml)
+prometheus-client==0.17.1
+    # via prometheus-fastapi-instrumentator
+prometheus-fastapi-instrumentator==6.1.0
     # via msm (pyproject.toml)
 pyasn1==0.5.0
     # via
