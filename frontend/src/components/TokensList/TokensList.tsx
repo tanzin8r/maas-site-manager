@@ -5,9 +5,9 @@ import pluralize from "pluralize";
 
 import TokensTable from "./components/TokensTable/TokensTable";
 
-import docsUrls from "@/base/docsUrls";
 import ExternalLink from "@/components/ExternalLink";
 import PaginationBar from "@/components/base/PaginationBar";
+import docsUrls from "@/config/docsUrls";
 import { useAppLayoutContext } from "@/context";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import { useDeleteTokensMutation, useTokensQuery } from "@/hooks/react-query";

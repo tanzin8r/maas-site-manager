@@ -7,7 +7,7 @@ import urls from "@/api/urls";
 import { UserSelectionContext } from "@/context/UserSelectionContext";
 import { userFactory } from "@/mocks/factories";
 import { createMockGetUserResolver } from "@/mocks/resolvers";
-import { render, screen, setupServer, userEvent, waitFor } from "@/test-utils";
+import { render, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
 const user = userFactory.build({ is_admin: true });
 const mockServer = setupServer(rest.get(`${urls.users}/:id`, createMockGetUserResolver([user])));

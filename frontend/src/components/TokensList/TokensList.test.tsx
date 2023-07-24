@@ -7,7 +7,7 @@ import TokensList from "./TokensList";
 import urls from "@/api/urls";
 import { tokenFactory } from "@/mocks/factories";
 import { createMockDeleteTokensResolver, createMockGetTokensResolver } from "@/mocks/resolvers";
-import { screen, renderWithMemoryRouter, within, userEvent } from "@/test-utils";
+import { screen, renderWithMemoryRouter, within, userEvent } from "@/utils/test-utils";
 
 const tokens = tokenFactory.buildList(2);
 const handlers = [

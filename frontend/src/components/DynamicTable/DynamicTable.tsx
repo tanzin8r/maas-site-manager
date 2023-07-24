@@ -3,7 +3,7 @@ import { useState, useEffect, useLayoutEffect } from "react";
 
 import classNames from "classnames";
 
-import BREAKPOINTS from "@/base/breakpoints";
+import BREAKPOINTS from "@/config/breakpoints";
 
 const DynamicTable = ({ className, children, ...props }: PropsWithChildren<{ className?: string }>) => {
   return (

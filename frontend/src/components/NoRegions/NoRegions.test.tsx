@@ -6,7 +6,7 @@ import urls from "@/api/urls";
 import { enrollmentRequestFactory } from "@/mocks/factories";
 import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";
-import { getByTextContent, renderWithMemoryRouter, screen, waitFor } from "@/test-utils";
+import { getByTextContent, renderWithMemoryRouter, screen, waitFor } from "@/utils/test-utils";
 
 const renderComponent = () =>
   renderWithMemoryRouter(

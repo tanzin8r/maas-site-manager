@@ -9,7 +9,7 @@ import Navigation, { navItemsBottom, navItems, settingsNavItems } from "./Naviga
 
 import urls from "@/api/urls";
 import { createMockCurrentUserResolver } from "@/mocks/resolvers";
-import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const mockServer = setupServer(rest.get(urls.currentUser, createMockCurrentUserResolver()));
 

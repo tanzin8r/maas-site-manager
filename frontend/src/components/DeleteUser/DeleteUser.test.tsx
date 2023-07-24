@@ -7,7 +7,7 @@ import urls from "@/api/urls";
 import { UserSelectionContext } from "@/context";
 import { userFactory } from "@/mocks/factories";
 import { createMockDeleteUserResolver, createMockGetUserResolver } from "@/mocks/resolvers";
-import { render, screen, userEvent, waitFor } from "@/test-utils";
+import { render, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const mockUser = userFactory.build({ username: "abc123", id: 2 });
 

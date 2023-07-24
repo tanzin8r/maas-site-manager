@@ -2,11 +2,11 @@ import { useId } from "react";
 
 import { Icon } from "@canonical/react-components";
 
-import type { RoutePath } from "@/base/routesConfig";
 import ExternalLink from "@/components/ExternalLink/ExternalLink";
 import type { NavLink } from "@/components/Navigation/types";
 import { isSelected } from "@/components/Navigation/utils";
-import { Link } from "@/router";
+import type { RoutePath } from "@/config/routes";
+import { Link } from "@/utils/router";
 
 type Props = {
   navLink: NavLink;

@@ -2,9 +2,9 @@ import classNames from "classnames";
 import get from "lodash/get";
 
 import type { Stats } from "@/api/types";
-import docsUrls from "@/base/docsUrls";
 import ExternalLink from "@/components/ExternalLink";
 import TooltipButton from "@/components/base/TooltipButton";
+import docsUrls from "@/config/docsUrls";
 import { formatDistanceToNow } from "@/utils";
 
 export const connectionIcons: Record<Stats["connection"], string> = {

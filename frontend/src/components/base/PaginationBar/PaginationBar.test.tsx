@@ -1,6 +1,6 @@
 import PaginationBar from "./PaginationBar";
 
-import { render, screen } from "@/test-utils";
+import { render, screen } from "@/utils/test-utils";
 
 it("should render the PaginationBar component correctly", () => {
   render(

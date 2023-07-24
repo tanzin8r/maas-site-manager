@@ -1,6 +1,6 @@
 import useDebouncedValue from "./useDebouncedValue";
 
-import { act, renderHook } from "@/test-utils";
+import { act, renderHook } from "@/utils/test-utils";
 
 beforeEach(() => {
   vi.useFakeTimers();

@@ -1,6 +1,6 @@
 import Placeholder from "./Placeholder";
 
-import { render, screen } from "@/test-utils";
+import { render, screen } from "@/utils/test-utils";
 
 it("always hides placeholder text passed as a text prop", async () => {
   const { rerender } = render(<Placeholder text="Placeholder text" />);

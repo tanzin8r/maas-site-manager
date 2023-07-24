@@ -1,7 +1,7 @@
 import useSecondaryNavContext from "./useSecondaryNavContext";
 
-import * as router from "@/router";
-import { renderHook } from "@/test-utils";
+import * as router from "@/utils/router";
+import { renderHook } from "@/utils/test-utils";
 
 afterAll(() => {
   vi.restoreAllMocks();

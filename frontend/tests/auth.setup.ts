@@ -1,4 +1,4 @@
-import { routesConfig } from "@/base/routesConfig";
+import { routesConfig } from "@/config/routes";
 import { expect, test as setup } from "@playwright/test";
 import { adminAuthFile } from "./constants";
 

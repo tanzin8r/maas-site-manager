@@ -1,9 +1,9 @@
 import classNames from "classnames";
 
-import type { RoutePath } from "@/base/routesConfig";
+import type { RoutePath } from "@/config/routes";
 import useSecondaryNavContext from "@/hooks/useSecondaryNavContext";
-import { matchPath, Link, useLocation } from "@/router";
-import type { Location } from "@/router";
+import { matchPath, Link, useLocation } from "@/utils/router";
+import type { Location } from "@/utils/router";
 
 export type NavItem = {
   label: string;

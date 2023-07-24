@@ -6,7 +6,7 @@ import RequestsList from "./RequestsList";
 import urls from "@/api/urls";
 import { enrollmentRequestFactory } from "@/mocks/factories";
 import { createMockGetEnrollmentRequestsResolver, postEnrollmentRequests } from "@/mocks/resolvers";
-import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const enrollmentRequest = enrollmentRequestFactory.build({ name: "new-maas-site" });
 const enrollmentRequests = [enrollmentRequest, ...enrollmentRequestFactory.buildList(2)];

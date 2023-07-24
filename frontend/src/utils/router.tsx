@@ -20,7 +20,7 @@ import {
   redirect as baseRedirect,
 } from "react-router-dom";
 
-import type { RoutePath } from "@/base/routesConfig";
+import type { RoutePath } from "@/config/routes";
 
 export type Path = Partial<Exclude<BasePath, "pathname"> & { pathname: RoutePath }>;
 export type To = RoutePath | Path;

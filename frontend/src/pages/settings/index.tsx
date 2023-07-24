@@ -1,4 +1,4 @@
-import { Outlet } from "@/router";
+import { Outlet } from "@/utils/router";
 
 const Settings = () => {
   return <Outlet />;

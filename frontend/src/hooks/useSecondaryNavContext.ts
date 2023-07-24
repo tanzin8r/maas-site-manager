@@ -1,5 +1,5 @@
 import type { SecondaryNavContext } from "@/components/SecondaryNavigation/SecondaryNavigation";
-import { useLocation } from "@/router";
+import { useLocation } from "@/utils/router";
 
 export default function useSecondaryNavContext() {
   let context: SecondaryNavContext = "settings";

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright"; // 1
-import { protectedPages, publicPages } from "@/base/routesConfig";
+import { protectedPages, publicPages } from "@/config/routes";
 import { adminAuthFile } from "./constants";
 
 const a11yTest = async ({ title, path }: { title: string; path: string }) =>

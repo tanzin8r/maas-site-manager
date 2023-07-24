@@ -2,8 +2,8 @@
 
 import DynamicTable from "./DynamicTable";
 
-import BREAKPOINTS from "@/base/breakpoints";
-import { render, fireEvent, waitFor, act } from "@/test-utils";
+import BREAKPOINTS from "@/config/breakpoints";
+import { render, fireEvent, waitFor, act } from "@/utils/test-utils";
 
 const offset = 100;
 

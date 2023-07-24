@@ -13,7 +13,7 @@ import SortIndicator from "@/components/base/SortIndicator";
 import { useAppLayoutContext } from "@/context";
 import { useUserSelectionContext } from "@/context/UserSelectionContext";
 import { useCurrentUserQuery, type useUsersQueryResult } from "@/hooks/react-query";
-import { useNavigate } from "@/router";
+import { useNavigate } from "@/utils/router";
 
 const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>

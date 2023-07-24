@@ -3,18 +3,18 @@ import { useEffect } from "react";
 import { Col, Row, useOnEscapePressed, usePrevious } from "@canonical/react-components";
 import classNames from "classnames";
 
-import { routesConfig } from "@/base/routesConfig";
-import type { RoutePath } from "@/base/routesConfig";
 import DeleteUser from "@/components/DeleteUser";
 import DocumentTitle from "@/components/DocumentTitle/DocumentTitle";
 import Navigation from "@/components/Navigation";
 import RemoveRegions from "@/components/RemoveRegions";
 import SecondaryNavigation from "@/components/SecondaryNavigation";
 import UserForm from "@/components/UserForm";
+import type { RoutePath } from "@/config/routes";
+import { routesConfig } from "@/config/routes";
 import { useAppLayoutContext, useAuthContext } from "@/context";
 import type { Sidebar } from "@/context/AppLayoutContext";
 import TokensCreate from "@/pages/tokens/create";
-import { matchPath, Outlet, useLocation } from "@/router";
+import { matchPath, Outlet, useLocation } from "@/utils/router";
 
 export const sidebarLabels: Record<NonNullable<Sidebar>, string> = {
   addUser: "Add user",

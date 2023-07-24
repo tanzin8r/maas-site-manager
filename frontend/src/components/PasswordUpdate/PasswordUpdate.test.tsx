@@ -1,6 +1,6 @@
 import PasswordUpdate from "./PasswordUpdate";
 
-import { render, screen, userEvent } from "@/test-utils";
+import { render, screen, userEvent } from "@/utils/test-utils";
 
 it("should render password update form", () => {
   render(<PasswordUpdate />);

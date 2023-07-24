@@ -1,6 +1,6 @@
 import Popover from "./Popover";
 
-import { render, screen, userEvent } from "@/test-utils";
+import { render, screen, userEvent } from "@/utils/test-utils";
 
 it("renders popover content when focused", async () => {
   render(<Popover content={<span>popover content</span>}>child text</Popover>);

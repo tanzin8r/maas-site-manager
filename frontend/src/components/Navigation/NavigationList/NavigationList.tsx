@@ -3,10 +3,10 @@ import { useId, useMemo } from "react";
 import { Icon } from "@canonical/react-components";
 import classNames from "classnames";
 
-import type { RoutePath } from "@/base/routesConfig";
 import NavigationItem from "@/components/Navigation/NavigationItem/NavigationItem";
 import type { NavGroup, NavItem } from "@/components/Navigation/types";
 import { isNavGroup, isSelected } from "@/components/Navigation/utils";
+import type { RoutePath } from "@/config/routes";
 
 type Props = {
   hideDivider?: boolean;

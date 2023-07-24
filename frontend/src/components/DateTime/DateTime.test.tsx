@@ -3,7 +3,7 @@ import * as timezoneMock from "timezone-mock";
 
 import DateTime from "./DateTime";
 
-import { render, screen } from "@/test-utils";
+import { render, screen } from "@/utils/test-utils";
 
 beforeEach(() => {
   vi.useFakeTimers();

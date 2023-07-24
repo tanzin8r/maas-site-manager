@@ -7,9 +7,9 @@ import NavigationCollapseToggle from "./NavigationCollapseToggle";
 import NavigationList from "./NavigationList";
 import type { ExternalNavLink, LocalNavLink } from "./types";
 
-import BREAKPOINTS from "@/base/breakpoints";
+import BREAKPOINTS from "@/config/breakpoints";
 import { useCurrentUserQuery } from "@/hooks/react-query";
-import { useLocation } from "@/router";
+import { useLocation } from "@/utils/router";
 
 export const navItems: LocalNavLink[] = [
   {

@@ -7,7 +7,7 @@ import { useSitesQuery, useTokensQuery, useUsersQuery } from "./react-query";
 import urls from "@/api/urls";
 import { siteFactory, tokenFactory, userFactory } from "@/mocks/factories";
 import { createMockGetTokensResolver, createMockGetUsersResolver, createMockSitesResolver } from "@/mocks/resolvers";
-import { Providers } from "@/test-utils";
+import { Providers } from "@/utils/test-utils";
 
 const sitesData = siteFactory.buildList(2);
 const tokensData = tokenFactory.buildList(2);

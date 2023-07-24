@@ -4,7 +4,7 @@ import urls from "@/api/urls";
 import { enrollmentRequestFactory, siteFactory, sitesQueryResultFactory, statsFactory } from "@/mocks/factories";
 import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";
-import { renderWithMemoryRouter, screen, within } from "@/test-utils";
+import { renderWithMemoryRouter, screen, within } from "@/utils/test-utils";
 
 const enrollmentRequests = enrollmentRequestFactory.buildList(2);
 const mockServer = createMockGetServer(

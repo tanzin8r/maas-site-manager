@@ -1,7 +1,7 @@
 import AggregatedStats from "./AggregatedStatus";
 
 import { statsFactory } from "@/mocks/factories";
-import { render, screen, userEvent } from "@/test-utils";
+import { render, screen, userEvent } from "@/utils/test-utils";
 
 it("displays correct number of deployed machines", async () => {
   render(

@@ -6,7 +6,7 @@ import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 
 import { useAuthContext } from "@/context";
-import { useNavigate, useSearchParams } from "@/router";
+import { useNavigate, useSearchParams } from "@/utils/router";
 
 const initialValues = {
   email: "",

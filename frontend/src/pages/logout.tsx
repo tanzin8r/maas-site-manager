@@ -1,5 +1,5 @@
 import { useAuthContext } from "@/context";
-import { useNavigate } from "@/router";
+import { useNavigate } from "@/utils/router";
 
 const Logout = () => {
   const navigate = useNavigate();

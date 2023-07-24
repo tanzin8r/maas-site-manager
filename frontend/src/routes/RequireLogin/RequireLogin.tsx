@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { useAuthContext } from "@/context";
-import { createSearchParams, useLocation, useNavigate } from "@/router";
+import { createSearchParams, useLocation, useNavigate } from "@/utils/router";
 
 const RequireLogin = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation();

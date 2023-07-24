@@ -1,6 +1,6 @@
 import TooltipButton from "./TooltipButton";
 
-import { userEvent, render, screen } from "@/test-utils";
+import { userEvent, render, screen } from "@/utils/test-utils";
 
 it("renders with default options correctly", async () => {
   const message = "Hi, I'm a tooltip!";

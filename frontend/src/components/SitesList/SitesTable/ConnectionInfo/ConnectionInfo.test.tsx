@@ -3,7 +3,7 @@ import * as timezoneMock from "timezone-mock";
 import ConnectionInfo, { connectionIcons, connectionLabels } from "./ConnectionInfo";
 
 import { connections } from "@/mocks/factories";
-import { render, screen } from "@/test-utils";
+import { render, screen } from "@/utils/test-utils";
 
 beforeEach(() => {
   vi.useFakeTimers();

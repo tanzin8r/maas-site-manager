@@ -1,4 +1,4 @@
-import { protectedPages, routesConfig } from "@/base/routesConfig";
+import { protectedPages, routesConfig } from "@/config/routes";
 import { test, expect, Page } from "@playwright/test";
 import { admin } from "./constants";
 

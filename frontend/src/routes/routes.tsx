@@ -14,7 +14,7 @@ import List from "@/pages/sites/list";
 import Map from "@/pages/sites/map";
 import Tokens from "@/pages/tokens/tokens";
 import Users from "@/pages/users";
-import { createRoutesFromElements, Route, redirect } from "@/router";
+import { createRoutesFromElements, Route, redirect } from "@/utils/router";
 
 export const routes = createRoutesFromElements(
   <Route element={<MainLayout />} path="/">

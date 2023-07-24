@@ -1,9 +1,8 @@
-import { allResolvers } from "./mocks/resolvers";
-
-import { pages } from "@/base/routesConfig";
-import { createMemoryRouter, RouterProvider } from "@/router";
+import { pages } from "@/config/routes";
+import { allResolvers } from "@/mocks/resolvers";
 import routes from "@/routes";
-import { render, screen, waitFor, setupServer } from "@/test-utils";
+import { createMemoryRouter, RouterProvider } from "@/utils/router";
+import { render, screen, waitFor, setupServer } from "@/utils/test-utils";
 
 const mockServer = setupServer(...allResolvers);
 

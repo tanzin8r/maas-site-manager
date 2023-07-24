@@ -1,6 +1,6 @@
 import CopyButton from "./CopyButton";
 
-import { render, screen, userEvent } from "@/test-utils";
+import { render, screen, userEvent } from "@/utils/test-utils";
 
 it("should render a copy button", () => {
   const text = "sample-text";

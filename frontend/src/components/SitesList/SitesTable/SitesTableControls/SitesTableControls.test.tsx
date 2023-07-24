@@ -1,6 +1,6 @@
 import SitesTableControls from "./SitesTableControls";
 
-import { render, screen } from "@/test-utils";
+import { render, screen } from "@/utils/test-utils";
 
 it("displays correct total number of sites", () => {
   render(

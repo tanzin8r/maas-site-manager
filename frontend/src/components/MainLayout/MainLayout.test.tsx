@@ -3,7 +3,7 @@ import { setupServer } from "msw/node";
 import MainLayout from "./MainLayout";
 
 import { allResolvers } from "@/mocks/resolvers";
-import { renderWithMemoryRouter, screen, waitFor } from "@/test-utils";
+import { renderWithMemoryRouter, screen, waitFor } from "@/utils/test-utils";
 
 const mockServer = setupServer(...allResolvers);
 

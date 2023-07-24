@@ -1,6 +1,6 @@
 import Map from "./Map";
 
-import { render, screen } from "@/test-utils";
+import { render, screen } from "@/utils/test-utils";
 
 it("renders the map with controls", async () => {
   render(<Map id="map-container" />);

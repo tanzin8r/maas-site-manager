@@ -1,7 +1,7 @@
 import NavigationBanner from "./NavigationBanner";
 
-import { BrowserRouter } from "@/router";
-import { screen, render } from "@/test-utils";
+import { BrowserRouter } from "@/utils/router";
+import { screen, render } from "@/utils/test-utils";
 
 it("displays a link to the homepage", () => {
   render(

@@ -4,7 +4,7 @@ import urls from "@/api/urls";
 import { siteFactory } from "@/mocks/factories";
 import { createMockSitesResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";
-import { renderWithMemoryRouter, screen, userEvent, waitFor, within } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor, within } from "@/utils/test-utils";
 
 const sites = siteFactory.buildList(2);
 const mockServer = createMockGetServer(urls.sites, createMockSitesResolver(sites));

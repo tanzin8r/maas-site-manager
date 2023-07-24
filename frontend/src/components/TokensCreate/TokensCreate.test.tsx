@@ -6,7 +6,7 @@ import TokensCreate from "./TokensCreate";
 import urls from "@/api/urls";
 import type * as apiHooks from "@/hooks/react-query";
 import { createMockTokensResolver } from "@/mocks/resolvers";
-import { renderWithMemoryRouter, screen, userEvent } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent } from "@/utils/test-utils";
 
 const mockServer = setupServer(rest.post(urls.tokens, createMockTokensResolver()));
 

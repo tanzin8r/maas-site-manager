@@ -5,7 +5,7 @@ import PersonalDetailsUpdate from "./PersonalDetailsUpdate";
 
 import urls from "@/api/urls";
 import { createMockCurrentUserResolver, createMockUpdateUserResolver } from "@/mocks/resolvers";
-import { render, screen, userEvent, waitFor } from "@/test-utils";
+import { render, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const mockServer = setupServer(
   rest.get(urls.currentUser, createMockCurrentUserResolver()),

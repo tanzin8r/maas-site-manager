@@ -6,7 +6,7 @@ import UserListTable from "./UserListTable";
 import urls from "@/api/urls";
 import { userFactory, usersQueryResultFactory } from "@/mocks/factories";
 import { createMockCurrentUserResolver } from "@/mocks/resolvers";
-import { renderWithMemoryRouter, screen, within } from "@/test-utils";
+import { renderWithMemoryRouter, screen, within } from "@/utils/test-utils";
 
 const mockServer = setupServer(rest.get(urls.currentUser, createMockCurrentUserResolver()));
 

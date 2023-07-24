@@ -1,7 +1,7 @@
 import EnrollmentActions from "./EnrollmentActions";
 
 import type * as apiHooks from "@/hooks/react-query";
-import { render, screen, within } from "@/test-utils";
+import { render, screen, within } from "@/utils/test-utils";
 
 const enrollmentRequestsMutationMock = vi.fn();
 

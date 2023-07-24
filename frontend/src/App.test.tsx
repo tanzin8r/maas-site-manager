@@ -2,7 +2,7 @@
 import App from "./App";
 
 import { allResolvers } from "@/mocks/resolvers";
-import { waitFor, render, setupServer } from "@/test-utils";
+import { waitFor, render, setupServer } from "@/utils/test-utils";
 
 const mockServer = setupServer(...allResolvers);
 beforeAll(() => {

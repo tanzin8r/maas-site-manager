@@ -1,8 +1,8 @@
-import docsUrls from "@/base/docsUrls";
 import ExternalLink from "@/components/ExternalLink";
 import TableCaption from "@/components/TableCaption";
+import docsUrls from "@/config/docsUrls";
 import { useRequestsCountQuery } from "@/hooks/react-query";
-import { Link } from "@/router";
+import { Link } from "@/utils/router";
 
 const NoRegions = () => {
   const { data, isSuccess } = useRequestsCountQuery();

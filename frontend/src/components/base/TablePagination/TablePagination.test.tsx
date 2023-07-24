@@ -1,6 +1,6 @@
 import TablePagination from "./TablePagination";
 
-import { render, screen, userEvent } from "@/test-utils";
+import { render, screen, userEvent } from "@/utils/test-utils";
 
 it("should render pagination component correctly", () => {
   render(

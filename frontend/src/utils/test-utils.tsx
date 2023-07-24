@@ -7,8 +7,8 @@ import { screen, render } from "@testing-library/react";
 
 import apiClient from "@/api";
 import { AppLayoutContextProvider, AuthContextProvider, RowSelectionContextProviders } from "@/context";
-import type { MemoryRouterProps } from "@/router";
-import { MemoryRouter } from "@/router";
+import type { MemoryRouterProps } from "@/utils/router";
+import { MemoryRouter } from "@/utils/router";
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({

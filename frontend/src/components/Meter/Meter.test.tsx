@@ -1,6 +1,6 @@
 import Meter, { defaultSeparatorColor, testIds } from "./Meter";
 
-import { render, screen } from "@/test-utils";
+import { render, screen } from "@/utils/test-utils";
 
 const mockClientRect = ({
   bottom = 0,

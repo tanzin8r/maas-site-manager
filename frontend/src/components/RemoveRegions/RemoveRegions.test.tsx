@@ -1,6 +1,6 @@
 import RemoveRegions from "./index";
 
-import { render, screen, userEvent } from "@/test-utils";
+import { render, screen, userEvent } from "@/utils/test-utils";
 
 vi.mock("@/context", async () => {
   const actual = await vi.importActual("@/context");

@@ -1,6 +1,6 @@
 import LoginForm from "./LoginForm";
 
-import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 it("renders", () => {
   renderWithMemoryRouter(<LoginForm />);

@@ -1,7 +1,7 @@
 import SecondaryNavigation from "./SecondaryNavigation";
 
-import { routesConfig } from "@/base/routesConfig";
-import { renderWithMemoryRouter, screen } from "@/test-utils";
+import { routesConfig } from "@/config/routes";
+import { renderWithMemoryRouter, screen } from "@/utils/test-utils";
 
 it("renders settings secondary navigation", async () => {
   renderWithMemoryRouter(<SecondaryNavigation />);

@@ -1,7 +1,7 @@
 import type { NavLink, NavItem, NavGroup } from "./types";
 
-import type { RoutePath } from "@/base/routesConfig";
-import { matchPath } from "@/router";
+import type { RoutePath } from "@/config/routes";
+import { matchPath } from "@/utils/router";
 
 export const isSelected = (path: RoutePath, link: NavLink): boolean => {
   if (link.external) {

@@ -4,12 +4,12 @@ import { useReactTable, flexRender, getCoreRowModel, createColumnHelper } from "
 import type { Column, ColumnDef } from "@tanstack/react-table";
 
 import type { EnrollmentRequest } from "@/api/types";
-import docsUrls from "@/base/docsUrls";
 import DateTime from "@/components/DateTime";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import ExternalLink from "@/components/ExternalLink";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import TableCaption from "@/components/TableCaption";
+import docsUrls from "@/config/docsUrls";
 import { isDev } from "@/constants";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { UseEnrollmentRequestsQueryResult } from "@/hooks/react-query";

@@ -1,8 +1,8 @@
 import RequestsTable from "./RequestsTable";
 
 import { enrollmentRequestFactory, enrollmentRequestQueryResultFactory } from "@/mocks/factories";
-import { renderWithMemoryRouter, screen, within } from "@/test-utils";
 import { formatUTCDateString } from "@/utils";
+import { renderWithMemoryRouter, screen, within } from "@/utils/test-utils";
 
 it("displays a loading text", () => {
   const { rerender } = renderWithMemoryRouter(

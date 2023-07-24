@@ -1,5 +1,5 @@
 @use "sass:math";
-@import "@/settings";
+@import "@/styles/settings";
 @import "vanilla-framework";
 @include vf-base;
 
@@ -54,9 +54,9 @@
 @include vf-l-application-panels;
 @include vf-l-full-width;
 @include vf-l-site;
-@import "@/utils";
-@import "@/patterns_icons";
-@import "@/patterns_typography";
+@import "@/styles/utils";
+@import "@/styles/patterns_icons";
+@import "@/styles/patterns_typography";
 
 // components styles
 @import "@/components/MainLayout/MainLayout";

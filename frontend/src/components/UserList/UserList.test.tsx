@@ -5,8 +5,8 @@ import UserList from "./UserList";
 import urls from "@/api/urls";
 import { userFactory } from "@/mocks/factories";
 import { createMockCurrentUserResolver, createMockGetUsersResolver } from "@/mocks/resolvers";
-import * as router from "@/router";
-import { renderWithMemoryRouter, screen, setupServer, userEvent, waitFor, within } from "@/test-utils";
+import * as router from "@/utils/router";
+import { renderWithMemoryRouter, screen, setupServer, userEvent, waitFor, within } from "@/utils/test-utils";
 
 const userWithoutFullName = userFactory.build({ full_name: "" });
 const users = [...userFactory.buildList(2), userWithoutFullName];

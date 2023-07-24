@@ -1,6 +1,6 @@
 import usePagination from "./usePagination";
 
-import { renderHook, act } from "@/test-utils";
+import { renderHook, act } from "@/utils/test-utils";
 
 const samplePageSize = 50;
 const sampleTotalCount = 200;

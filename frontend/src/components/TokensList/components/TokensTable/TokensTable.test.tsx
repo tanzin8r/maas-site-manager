@@ -2,7 +2,7 @@ import TokensTable from "./TokensTable";
 
 import type { Token } from "@/api/types";
 import { tokenFactory } from "@/mocks/factories";
-import { render, screen, within } from "@/test-utils";
+import { render, screen, within } from "@/utils/test-utils";
 
 beforeEach(() => {
   vi.useFakeTimers();

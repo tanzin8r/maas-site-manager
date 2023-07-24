@@ -1,4 +1,4 @@
-import type { RoutePath } from "@/base/routesConfig";
+import type { RoutePath } from "@/config/routes";
 
 type BaseNavLink = {
   adminOnly?: boolean;
