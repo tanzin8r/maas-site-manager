@@ -10,7 +10,6 @@ export type Stats = {
   error_machines: number;
   total_machines: number;
   last_seen: string; // <ISO 8601 date string>
-  connection: "stable" | "lost" | "unknown";
 };
 
 export type Site = {
@@ -23,6 +22,7 @@ export type Site = {
   zip: string;
   street: string;
   timezone: string; // IANA time zone name,
+  connection_status: "stable" | "lost" | "unknown";
   stats: Stats | null;
 };
 

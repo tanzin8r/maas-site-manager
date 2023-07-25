@@ -25,6 +25,7 @@ import {
   addUser,
   getUser,
   deleteUser,
+  getSite,
 } from "@/api/handlers";
 import type {
   SitesQueryResult,
@@ -48,6 +49,9 @@ export const useSitesQuery = ({ page, size, sort_by }: GetSitesQueryParams, quer
     keepPreviousData: true,
     refetchInterval,
   });
+
+export const useSiteQuery = (id: Site["id"]) =>
+  useQuery<Site>({ queryKey: ["sites", id], queryFn: () => getSite(id), keepPreviousData: true });
 
 // return single site data from query cache
 export const useSiteQueryData = (id: Site["id"]): Site | null => {

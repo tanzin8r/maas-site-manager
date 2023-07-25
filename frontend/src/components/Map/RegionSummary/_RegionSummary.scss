@@ -1,0 +1,68 @@
+.region-summary {
+  padding: 1rem;
+  margin: 0;
+
+  .p-card__title{
+    font-size: small;
+    font-weight: 1rem;
+    text-transform: uppercase;
+    line-height: normal;
+    padding: 0;
+    margin: 0;
+    color: $colors--light-theme--text-muted;
+  }
+
+  .region-summary__header{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+
+    .region-summary__name {
+      padding-top: 0.25rem;
+      margin: 0;
+    }
+    
+    .region-summary__button--edit {
+      position: relative;
+      align-self: end;
+      margin: 0;
+      bottom: 1rem;
+    }
+  }
+
+
+  .region-summary__url {
+    padding-top: 0;
+    margin: 0;
+  }
+  
+  .region-summary__table {
+    margin: 0;
+
+    td{
+      padding: 0.75rem 0 0.5rem;
+    }
+
+    .region-summary__table-item {
+      width: 35%;
+    }
+
+    .region-summary__last-seen {
+      padding-left: 0.5rem;
+      overflow-wrap: nowrap;
+    }
+
+    .p-meter__bar {
+      margin: 0;
+    }
+
+    .status-icon {
+      right: 1.5rem;
+      padding-left: $connection-status-icon-width;
+    }
+
+    .status-icon::before {
+      top: 0.25rem;
+    }
+  }
+}

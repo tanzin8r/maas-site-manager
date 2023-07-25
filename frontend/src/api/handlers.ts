@@ -1,5 +1,5 @@
 import api from "./api";
-import type { Token, User } from "./types";
+import type { Site, Token, User } from "./types";
 import urls from "./urls";
 
 import { customParamSerializer, customParamWithSearchTextSerializer } from "@/utils";
@@ -50,6 +50,15 @@ export const getSites = async (params: GetSitesQueryParams, queryText?: string) 
         serialize: (params) => customParamSerializer(params, queryText),
       },
     });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSite = async (id: Site["id"]) => {
+  try {
+    const response = await api.get(`${urls.sites}/${id}`);
     return response.data;
   } catch (error) {
     throw error;

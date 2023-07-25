@@ -2,7 +2,7 @@ import type { Stats } from "@/api/types";
 import Meter, { color } from "@/components/Meter";
 import Popover from "@/components/Popover/Popover";
 
-const AggregatedStatus = ({ stats }: { stats: Stats }) => {
+const AggregatedStatus = ({ stats, hideLabel }: { stats: Stats; hideLabel?: boolean }) => {
   const { deployed_machines, allocated_machines, ready_machines, error_machines, total_machines } = stats;
   return (
     <>
@@ -44,13 +44,14 @@ const AggregatedStatus = ({ stats }: { stats: Stats }) => {
           }
         >
           <Meter
+            aria-label={`${deployed_machines} of ${total_machines} deployed`}
             className="u-no-margin--bottom u-no-padding"
             data={[
               { color: "black", value: deployed_machines },
               { color: color.link, value: allocated_machines },
               { color: color.linkFaded, value: ready_machines },
             ]}
-            label={`${deployed_machines} of ${total_machines} deployed`}
+            label={hideLabel ? undefined : `${deployed_machines} of ${total_machines} deployed`}
             labelClassName="u-text--muted"
             small
           />

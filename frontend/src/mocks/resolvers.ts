@@ -11,7 +11,7 @@ import type {
   SitesSortKey,
   UserSortKey,
 } from "@/api/handlers";
-import type { User } from "@/api/types";
+import type { Site, User } from "@/api/types";
 import urls from "@/api/urls";
 import { isDev } from "@/constants";
 
@@ -66,6 +66,16 @@ export const createMockSitesResolver =
     };
 
     return res(ctx.json(response));
+  };
+
+type SiteResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
+export const createMockSiteResolver =
+  (sites = sitesList): SiteResponseResolver =>
+  (req, res, ctx) => {
+    const id = req.params.id as string;
+
+    const site = sites.find((site: Site) => site.id === id);
+    return res(ctx.json(site));
   };
 
 type TokensResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
@@ -217,6 +227,7 @@ export const createMockDeleteUserResolver = (): DeleteUserResponseResolver => as
 
 export const postLogin = rest.post(urls.login, createMockLoginResolver());
 export const getSites = rest.get(urls.sites, createMockSitesResolver());
+export const getSite = rest.get(`${urls.sites}/:id`, createMockSiteResolver());
 export const postTokens = rest.post(urls.tokens, createMockTokensResolver());
 export const getTokens = rest.get(urls.tokens, createMockGetTokensResolver());
 export const deleteTokens = rest.delete(urls.tokens, createMockDeleteTokensResolver());
@@ -230,6 +241,7 @@ export const addUser = rest.post(urls.users, createMockAddUserResolver());
 export const deleteUser = rest.delete(`${urls.users}/:id`, createMockDeleteUserResolver());
 export const allResolvers = [
   getSites,
+  getSite,
   postTokens,
   getTokens,
   getEnrollmentRequests,

@@ -1,26 +1,26 @@
 import classNames from "classnames";
 import get from "lodash/get";
 
-import type { Stats } from "@/api/types";
+import type { Site, Stats } from "@/api/types";
 import ExternalLink from "@/components/ExternalLink";
 import TooltipButton from "@/components/base/TooltipButton";
 import docsUrls from "@/config/docsUrls";
 import { formatDistanceToNow } from "@/utils";
 
-export const connectionIcons: Record<Stats["connection"], string> = {
+export const connectionIcons: Record<Site["connection_status"], string> = {
   stable: "is-stable",
   lost: "is-lost",
   unknown: "is-unknown",
 } as const;
-export const connectionLabels: Record<Stats["connection"], string> = {
+export const connectionLabels: Record<Site["connection_status"], string> = {
   stable: "Stable",
   lost: "Lost",
   unknown: "Waiting for first",
 } as const;
 
-type ConnectionInfoProps = { connection: Stats["connection"]; lastSeen?: Stats["last_seen"] };
+type ConnectionInfoProps = { connection: Site["connection_status"]; lastSeen?: Stats["last_seen"] };
 
-const getLastSeenText = ({ connection, lastSeen }: ConnectionInfoProps) => {
+export const getLastSeenText = ({ connection, lastSeen }: ConnectionInfoProps) => {
   if (!lastSeen) {
     return null;
   }

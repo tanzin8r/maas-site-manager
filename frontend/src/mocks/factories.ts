@@ -5,7 +5,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals, starWars } from "uni
 
 import type { AccessToken, EnrollmentRequest, PaginatedQueryResult, Site, Stats, Token, User } from "@/api/types";
 
-export const connections: Stats["connection"][] = ["stable", "lost", "unknown"];
+export const connections: Site["connection_status"][] = ["stable", "lost", "unknown"];
 
 export const statsFactory = Factory.define<Stats>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
@@ -20,15 +20,14 @@ export const statsFactory = Factory.define<Stats>(({ sequence }) => {
     ...machines,
     total_machines: Object.values(machines).reduce((acc, val) => acc + val, 0),
     last_seen: new Date(chance.date({ min: sub(now, { minutes: 15 }), max: now })).toISOString(),
-    connection: connectionFactory.build(),
   };
 });
 
-export const connectionFactory = Factory.define<Stats["connection"]>(({ sequence }) => {
+export const connectionFactory = Factory.define<Site["connection_status"]>(({ sequence }) => {
   return uniqueNamesGenerator({
     dictionaries: [connections],
     seed: sequence,
-  }) as Stats["connection"];
+  }) as Site["connection_status"];
 });
 
 export const siteFactory = Factory.define<Site>(({ sequence }) => {
@@ -50,6 +49,7 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
     zip: chance.zip(),
     street: chance.address(),
     timezone: chance.timezone().utc[0],
+    connection_status: connectionFactory.build(),
     stats: statsFactory.build(),
   };
 });

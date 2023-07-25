@@ -128,7 +128,7 @@ const SitesTable = ({
         id: "connection",
         // TODO: enable sorting once the back-end supports it for this key https://warthogs.atlassian.net/browse/MAASENG-1844
         enableSorting: false,
-        accessorFn: createAccessor("stats"),
+        accessorFn: createAccessor(["stats", "connection_status"]),
         header: ({ header }) => (
           <>
             <div className="connection__text">
@@ -138,8 +138,10 @@ const SitesTable = ({
           </>
         ),
         cell: ({ getValue }) => {
-          const { stats } = getValue();
-          return stats ? <ConnectionInfo connection={stats.connection} lastSeen={stats.last_seen} /> : null;
+          const { stats, connection_status } = getValue();
+          return stats && connection_status ? (
+            <ConnectionInfo connection={connection_status} lastSeen={stats.last_seen} />
+          ) : null;
         },
       },
       {
@@ -296,7 +298,7 @@ const SitesTable = ({
             {table.getRowModel().rows.map((row) => {
               return (
                 <tr
-                  className={classNames({ "sites-table-row--muted": row.original.stats?.connection === "unknown" })}
+                  className={classNames({ "sites-table-row--muted": row.original.connection_status === "unknown" })}
                   key={row.id}
                 >
                   {row.getVisibleCells().map((cell) => {

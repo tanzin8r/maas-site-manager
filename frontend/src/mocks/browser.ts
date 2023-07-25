@@ -3,6 +3,7 @@ import { setupWorker } from "msw";
 import {
   postLogin,
   getSites,
+  getSite,
   getTokens,
   getUsers,
   getEnrollmentRequests,
@@ -19,6 +20,7 @@ import {
 export const worker = setupWorker(
   postLogin,
   getSites,
+  getSite,
   getUsers,
   postTokens,
   getEnrollmentRequests,
