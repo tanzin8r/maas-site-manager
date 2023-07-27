@@ -22,13 +22,13 @@ def query_metrics(
     queries_total = Counter(
         "db_queries_total",
         "Total number of database queries per request",
-        labelnames=("handler", "method"),
+        labelnames=("method", "handler", "status"),
         registry=registry,
     )
     queries_duration = Histogram(
         "db_queries_duration_seconds",
         "Latency of database queries per request in seconds",
-        labelnames=("handler", "method"),
+        labelnames=("method", "handler", "status"),
         buckets=(0.001, 0.005, 0.01, 0.1, 0.25, 0.5, 1.0),
         registry=registry,
     )
@@ -36,10 +36,14 @@ def query_metrics(
     def instrumentation(info: metrics.Info) -> None:
         request = info.request
         queries_total.labels(
-            handler=info.modified_handler, method=info.method
+            method=info.method,
+            handler=info.modified_handler,
+            status=info.modified_status,
         ).inc(request.state.query_metrics["count"])
         queries_duration.labels(
-            handler=info.modified_handler, method=info.method
+            method=info.method,
+            handler=info.modified_handler,
+            status=info.modified_status,
         ).observe(request.state.query_metrics["latency"])
 
     return instrumentation
