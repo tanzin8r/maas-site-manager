@@ -1,4 +1,5 @@
 from typing import (
+    Annotated,
     NamedTuple,
     Sequence,
 )
@@ -6,7 +7,7 @@ from typing import (
 from fastapi import Query
 from pydantic import (
     BaseModel,
-    Field,
+    conint,
 )
 
 DEFAULT_PAGE_SIZE = 20
@@ -19,9 +20,9 @@ class PaginatedResults(BaseModel):
     Derived classes should overwrite the items property
     """
 
-    total: int = Field(min=0)
-    page: int = Field(min=0)
-    size: int = Field(min=0, max=MAX_PAGE_SIZE)
+    total: Annotated[int, conint(ge=0)]
+    page: Annotated[int, conint(ge=0)]
+    size: Annotated[int, conint(ge=0, le=MAX_PAGE_SIZE)]
     items: Sequence[BaseModel]
 
 
