@@ -214,6 +214,20 @@ class TestSitesHandler:
         response = await user_client.get("/sites", params=query_params)
         assert response.status_code == 400
 
+    async def test_get_coordinates(
+        self,
+        user_client: Client,
+        factory: Factory,
+    ) -> None:
+        site1 = await factory.make_Site(latitude="10", longitude="-1")
+        site2 = await factory.make_Site(latitude="20", longitude="-2")
+        response = await user_client.get("/sites/coordinates")
+        assert response.status_code == 200
+        assert response.json() == [
+            {"id": site1.id, "latitude": "10", "longitude": "-1"},
+            {"id": site2.id, "latitude": "20", "longitude": "-2"},
+        ]
+
 
 @pytest.mark.asyncio
 class TestPendingSitesHandler:

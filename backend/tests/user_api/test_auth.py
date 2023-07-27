@@ -10,6 +10,7 @@ from ..fixtures.client import Client
         ("GET", "/requests"),
         ("POST", "/requests"),
         ("GET", "/sites"),
+        ("GET", "/sites/coordinates"),
         ("GET", "/sites/{id}"),
         ("GET", "/tokens"),
         ("POST", "/tokens"),

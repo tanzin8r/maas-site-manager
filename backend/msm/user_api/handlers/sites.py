@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from ...db.models import (
     PendingSite,
     Site,
+    SiteCoordinates,
     User,
 )
 from ...schema import (
@@ -72,6 +73,14 @@ async def get(
         size=pagination_params.size,
         items=list(results),
     )
+
+
+@router.get("/sites/coordinates")
+async def get_coordinates(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[User, Depends(authenticated_user)],
+) -> list[SiteCoordinates]:
+    return await services.sites.get_coordinates()
 
 
 @router.get("/sites/{site_id}")

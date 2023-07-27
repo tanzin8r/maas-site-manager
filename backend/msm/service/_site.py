@@ -114,6 +114,22 @@ class SiteService(Service):
             models.PendingSite(**row._asdict()) for row in result.all()
         ]
 
+    async def get_coordinates(self) -> list[models.SiteCoordinates]:
+        """Return coordinates for all sites."""
+        stmt = (
+            select(
+                Site.c.id,
+                Site.c.latitude,
+                Site.c.longitude,
+            )
+            .select_from(Site)
+            .where(Site.c.accepted == True)  # noqa
+        )
+        result = await self.conn.execute(stmt)
+        return [
+            models.SiteCoordinates(**row._asdict()) for row in result.all()
+        ]
+
     async def accept_reject_pending(
         self,
         ids: list[int],

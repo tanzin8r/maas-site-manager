@@ -47,6 +47,14 @@ class Site(BaseModel):
     stats: SiteData | None = None
 
 
+class SiteCoordinates(BaseModel):
+    """Coordinates for a MAAS site."""
+
+    id: int
+    latitude: str | None = None
+    longitude: str | None = None
+
+
 class PendingSite(BaseModel):
     """A pending MAAS site."""
 
