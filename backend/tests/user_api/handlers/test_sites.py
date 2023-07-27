@@ -19,18 +19,18 @@ from ...fixtures.factory import Factory
 
 
 def site_details(site: Site, stats: SiteData | None = None) -> dict[str, Any]:
-    data = site.dict()
+    data = site.model_dump()
     data["connection_status"] = data["connection_status"].value
     if stats is None:
         data["stats"] = None
     else:
-        data["stats"] = stats.dict()
+        data["stats"] = stats.model_dump()
         data["stats"]["last_seen"] = data["stats"]["last_seen"].isoformat()
     return data
 
 
 def pending_site_details(site: PendingSite) -> dict[str, Any]:
-    data = site.dict()
+    data = site.model_dump()
     data["created"] = data["created"].isoformat()
     return data
 

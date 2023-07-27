@@ -14,7 +14,7 @@ class CSVResponse(Response):
         if not content:
             return b""
 
-        model_fields = list(content[0].__fields__)
+        model_fields = list(content[0].model_fields)
         stream = StringIO()
 
         writer = csv.writer(stream)

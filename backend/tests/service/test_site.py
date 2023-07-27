@@ -24,7 +24,7 @@ class TestSiteService:
         exists: bool,
     ) -> None:
         site = await factory.make_Site()
-        details = site.dict() | {"connection_status": "unknown"}
+        details = site.model_dump() | {"connection_status": "unknown"}
         service = SiteService(db_connection)
         assert await service.get_by_id(id) == (
             Site(**details) if exists else None

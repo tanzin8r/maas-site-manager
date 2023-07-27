@@ -12,7 +12,7 @@ from fastapi import (
 from pydantic import (
     BaseModel,
     Field,
-    root_validator,
+    model_validator,
 )
 
 from ...db.models import (
@@ -109,7 +109,7 @@ async def patch_me(
 ) -> User:
     """Update the details for a user"""
 
-    if all(v is None for v in patch_request.dict().values()):
+    if all(v is None for v in patch_request.model_dump().values()):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={"message": "Request body empty."},
@@ -126,7 +126,7 @@ async def patch_me(
         )
 
     user = await services.users.update(
-        authenticated_user.id, UserUpdate(**patch_request.dict())
+        authenticated_user.id, UserUpdate(**patch_request.model_dump())
     )
     return user
 
@@ -138,7 +138,7 @@ class UsersPasswordPatchRequest(BaseModel):
     new_password: str = Field(min_length=8, max_length=100)
     confirm_password: str = Field(min_length=8, max_length=100)
 
-    @root_validator
+    @model_validator(mode="before")
     def passwords_match(cls, values: Any) -> Any:
         if values.get("new_password") != values.get("confirm_password"):
             raise ValueError("Provided passwords do not match.")
@@ -196,7 +196,7 @@ class UsersPostRequest(BaseModel):
     confirm_password: str = Field(min_length=8, max_length=100)
     is_admin: bool = False
 
-    @root_validator
+    @model_validator(mode="before")
     def passwords_match(cls, values: Any) -> Any:
         if values.get("password") != values.get("confirm_password"):
             raise ValueError("Provided passwords do not match.")
@@ -219,7 +219,7 @@ async def post(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": "Email or Username already in use."},
         )
-    return await services.users.create(UserCreate(**request.dict()))
+    return await services.users.create(UserCreate(**request.model_dump()))
 
 
 class UsersPatchRequest(BaseModel):
@@ -228,11 +228,13 @@ class UsersPatchRequest(BaseModel):
     full_name: str | None = None
     username: str | None = None
     email: str | None = None
-    password: str | None = Field(min_length=8, max_length=100)
-    confirm_password: str | None = Field(min_length=8, max_length=100)
+    password: str | None = Field(default=None, min_length=8, max_length=100)
+    confirm_password: str | None = Field(
+        default=None, min_length=8, max_length=100
+    )
     is_admin: bool | None = None
 
-    @root_validator
+    @model_validator(mode="before")
     def passwords_match(cls, values: Any) -> Any:
         if values.get("password") != values.get("confirm_password"):
             raise ValueError("Provided passwords do not match.")
@@ -254,7 +256,7 @@ async def patch(
             detail={"message": "Admin users cannot demote themselves."},
         )
 
-    if all(v is None for v in patch_request.dict().values()):
+    if all(v is None for v in patch_request.model_dump().values()):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={"message": "Request body empty."},
@@ -277,7 +279,7 @@ async def patch(
         )
 
     return await services.users.update(
-        user_id, UserUpdate(**patch_request.dict())
+        user_id, UserUpdate(**patch_request.model_dump())
     )
 
 

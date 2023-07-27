@@ -85,7 +85,7 @@ class UserService(Service):
         return None
 
     async def create(self, details: models.UserCreate) -> models.User:
-        data = details.dict()
+        data = details.model_dump()
         if password := data.get("password"):
             data["password"] = hash_password(password)
         result = await self.conn.execute(
@@ -146,7 +146,7 @@ class UserService(Service):
     async def update(
         self, user_id: int, details: models.UserUpdate
     ) -> models.User:
-        data = details.dict()
+        data = details.model_dump()
         if password := data.get("password"):
             data["password"] = hash_password(password)
         stmt = (
