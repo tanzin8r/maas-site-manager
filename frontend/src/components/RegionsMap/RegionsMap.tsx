@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import SitesHiddenButton from "../Map/SitesHiddenButton/SitesHiddenButton";
+
 import type { SitesSortKey, SortBy } from "@/api/handlers";
 import Map from "@/components/Map";
 import SitesTableControls from "@/components/SitesList/SitesTable/SitesTableControls/SitesTableControls";
@@ -30,6 +32,7 @@ const RegionsMap = () => {
       <section aria-label="regions map">
         <Map />
       </section>
+      <SitesHiddenButton />
     </div>
   );
 };

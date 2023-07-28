@@ -1,0 +1,15 @@
+.sites-hidden-btn-container {
+  bottom: 5rem;
+  right: -1rem;
+  position: absolute;
+  z-index: #{$map-base-z-index + 1};
+
+  .sites-hidden-btn {
+    border-color: map.get($colors-light-theme--tinted-borders, "caution");
+    background-color: map.get($colors-light-theme--tinted-backgrounds, "caution", "default");
+  }
+}
+
+.sites-hidden-message {
+  display: block;
+}
