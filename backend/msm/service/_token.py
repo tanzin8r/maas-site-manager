@@ -2,6 +2,7 @@ from datetime import (
     datetime,
     timedelta,
 )
+from typing import Iterable
 from uuid import UUID
 
 from sqlalchemy import select
@@ -17,7 +18,7 @@ from ._base import Service
 class TokenService(Service):
     async def create(
         self, duration: timedelta, count: int = 1
-    ) -> tuple[datetime, list[UUID]]:
+    ) -> tuple[datetime, Iterable[UUID]]:
         """Create tokens, returning their expiration and UUIDs."""
         created = datetime.utcnow()
         expired = created + duration
@@ -31,13 +32,13 @@ class TokenService(Service):
                 for _ in range(count)
             ],
         )
-        return expired, [row[0] for row in result]
+        return expired, (row[0] for row in result)
 
     async def get(
         self,
         offset: int = 0,
         limit: int | None = None,
-    ) -> tuple[int, list[models.Token]]:
+    ) -> tuple[int, Iterable[models.Token]]:
         count = await queries.row_count(self.conn, Token)
         stmt = (
             select(
@@ -54,9 +55,9 @@ class TokenService(Service):
         if limit is not None:
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
-        return count, [models.Token(**row._asdict()) for row in result.all()]
+        return count, self.objects_from_result(models.Token, result)
 
-    async def get_active(self) -> list[models.Token]:
+    async def get_active(self) -> Iterable[models.Token]:
         result = await self.conn.execute(
             select(
                 Token.c.id,
@@ -69,4 +70,4 @@ class TokenService(Service):
             .where(Token.c.expired > datetime.utcnow())
             .order_by(Token.c.id)
         )
-        return [models.Token(**row._asdict()) for row in result.all()]
+        return self.objects_from_result(models.Token, result)

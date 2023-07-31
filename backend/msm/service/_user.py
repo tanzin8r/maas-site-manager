@@ -1,4 +1,7 @@
-from typing import Any
+from typing import (
+    Any,
+    Iterable,
+)
 
 from sqlalchemy import (
     delete,
@@ -36,7 +39,7 @@ class UserService(Service):
         username: list[str] | None = None,
         full_name: list[str] | None = None,
         is_admin: list[str] | None = None,
-    ) -> tuple[int, list[models.User]]:
+    ) -> tuple[int, Iterable[models.User]]:
         filters = queries.filters_from_arguments(
             User,
             email=email,
@@ -66,7 +69,7 @@ class UserService(Service):
         if limit is not None:
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
-        return count, [models.User(**row._asdict()) for row in result.all()]
+        return count, self.objects_from_result(models.User, result)
 
     async def get_by_email(self, email: str) -> models.User | None:
         """Gets a user by email."""

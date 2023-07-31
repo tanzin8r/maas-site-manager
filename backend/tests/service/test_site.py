@@ -43,7 +43,7 @@ class TestSiteService:
         # pending site is not included
         await factory.make_PendingSite()
         service = SiteService(db_connection)
-        assert await service.get_coordinates() == [
+        assert list(await service.get_coordinates()) == [
             SiteCoordinates(id=site1.id, latitude="10", longitude="-1"),
             SiteCoordinates(id=site2.id, latitude="20", longitude="-2"),
         ]

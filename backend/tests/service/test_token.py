@@ -21,7 +21,7 @@ class TestTokenService:
         duration = timedelta(minutes=10)
         service = TokenService(db_connection)
         expiration, uuids = await service.create(duration=duration, count=10)
-        assert len(uuids) == 10
+        assert len(list(uuids)) == 10
         assert expiration > now + duration
 
     async def test_get_active_tokens(

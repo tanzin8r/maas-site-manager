@@ -80,7 +80,7 @@ async def get(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,
-        items=list(results),
+        items=results,
     )
 
 

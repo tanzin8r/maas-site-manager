@@ -28,8 +28,6 @@ __all__ = [
 #
 # See https://github.com/pydantic/pydantic/issues/6761 for the Pydantic bug.
 #
-
-
 @pytest.fixture(autouse=True)
 def override_datetime_isoformat(
     monkeypatch: pytest.MonkeyPatch,
@@ -38,7 +36,7 @@ def override_datetime_isoformat(
         def isoformat(self) -> str:  # type: ignore
             return super().isoformat().rstrip("0")
 
-        def fromisoformat(self, datestring: str):  # type: ignore
+        def fromisoformat(cls, datestring: str):  # type: ignore
             if "." in datestring:
                 _, decimal = datestring.rsplit(".", 1)
                 missing_digits = 6 - len(decimal)

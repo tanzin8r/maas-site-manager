@@ -1,5 +1,6 @@
 import csv
 from io import StringIO
+from typing import Iterable
 
 from fastapi import Response
 from pydantic import BaseModel
@@ -10,15 +11,16 @@ class CSVResponse(Response):
 
     media_type = "text/csv"
 
-    def render(self, content: list[BaseModel]) -> bytes:
+    def render(self, content: Iterable[BaseModel]) -> bytes:
         if not content:
             return b""
 
-        model_fields = list(content[0].model_fields)
-        stream = StringIO()
+        entries = list(content)
+        model_fields = list(entries[0].model_fields)
 
+        stream = StringIO()
         writer = csv.writer(stream)
         writer.writerow(model_fields)
-        for entry in content:
+        for entry in entries:
             writer.writerow((value for key, value in entry))
         return stream.getvalue().encode()

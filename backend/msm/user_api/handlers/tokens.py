@@ -48,7 +48,7 @@ async def get(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,
-        items=list(results),
+        items=results,
     )
 
 
@@ -83,7 +83,7 @@ async def post(
         create_request.duration,
         count=create_request.count,
     )
-    return TokensPostResponse(expired=expired, tokens=tokens)
+    return TokensPostResponse(expired=expired, tokens=list(tokens))
 
 
 @router.get("/tokens/export")

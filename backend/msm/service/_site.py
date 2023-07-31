@@ -52,7 +52,7 @@ class SiteService(Service):
         street: list[str] | None = None,
         timezone: list[str] | None = None,
         url: list[str] | None = None,
-    ) -> tuple[int, list[models.Site]]:
+    ) -> tuple[int, Iterable[models.Site]]:
         """Return accepted sites, with optional filtering."""
         filters = queries.filters_from_arguments(
             Site,
@@ -77,7 +77,7 @@ class SiteService(Service):
         if limit is not None:
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
-        return count, [models.Site(**row._asdict()) for row in result.all()]
+        return count, self.objects_from_result(models.Site, result)
 
     async def get_by_id(self, id: int) -> models.Site | None:
         """Gets a Site by id."""
@@ -91,7 +91,7 @@ class SiteService(Service):
         self,
         offset: int = 0,
         limit: int | None = None,
-    ) -> tuple[int, list[models.PendingSite]]:
+    ) -> tuple[int, Iterable[models.PendingSite]]:
         """Return pending sites."""
         filters = [Site.c.accepted == False]  # noqa
         count = await queries.row_count(self.conn, Site, *filters)
@@ -110,11 +110,9 @@ class SiteService(Service):
         if limit is not None:
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
-        return count, [
-            models.PendingSite(**row._asdict()) for row in result.all()
-        ]
+        return count, self.objects_from_result(models.PendingSite, result)
 
-    async def get_coordinates(self) -> list[models.SiteCoordinates]:
+    async def get_coordinates(self) -> Iterable[models.SiteCoordinates]:
         """Return coordinates for all sites."""
         stmt = (
             select(
@@ -126,9 +124,7 @@ class SiteService(Service):
             .where(Site.c.accepted == True)  # noqa
         )
         result = await self.conn.execute(stmt)
-        return [
-            models.SiteCoordinates(**row._asdict()) for row in result.all()
-        ]
+        return self.objects_from_result(models.SiteCoordinates, result)
 
     async def accept_reject_pending(
         self,

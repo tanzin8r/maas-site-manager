@@ -1,4 +1,7 @@
-from typing import Annotated
+from typing import (
+    Annotated,
+    Iterable,
+)
 
 from fastapi import (
     APIRouter,
@@ -71,7 +74,7 @@ async def get(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,
-        items=list(results),
+        items=results,
     )
 
 
@@ -79,7 +82,7 @@ async def get(
 async def get_coordinates(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
-) -> list[SiteCoordinates]:
+) -> Iterable[SiteCoordinates]:
     return await services.sites.get_coordinates()
 
 
@@ -119,7 +122,7 @@ async def get_requests(
         total=total,
         page=pagination_params.page,
         size=pagination_params.size,
-        items=list(results),
+        items=results,
     )
 
 
