@@ -1,0 +1,29 @@
+.site-marker {
+  @include vf-transition(transform, snap, out);
+
+  transform-origin: bottom center;
+
+  &:hover {
+    transform: scale(1.25);
+  }
+
+  .site-marker__body {
+    fill: $color-brand;
+    stroke: $color-light;
+  }
+  
+  .site-marker__circle {
+    fill: $color-light;
+  }
+
+  &.is-selected {
+    .site-marker__body {
+      stroke: black;
+      stroke-width: 0.125rem;
+    }
+
+    .site-marker__circle {
+      fill: black;
+    }
+  }
+}
