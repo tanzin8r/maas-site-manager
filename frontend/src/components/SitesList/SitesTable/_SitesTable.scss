@@ -25,6 +25,11 @@
     width: 3rem;
   }
 
+  thead th:last-child,
+  tbody td:last-child {
+    width: 7rem;
+  }
+
   td.connection,
   th.connection {
     .connection__text {
@@ -38,6 +43,15 @@
       .tooltip-button {
         @extend %muted-text;
       }
+    }
+  }
+
+  .sites-table-row:hover {
+    @include vf-transition($property: #{background}, $duration: fast);
+    background-color: $colors--light-theme--background-hover;
+
+    .table-actions {
+      opacity: 1;
     }
   }
 

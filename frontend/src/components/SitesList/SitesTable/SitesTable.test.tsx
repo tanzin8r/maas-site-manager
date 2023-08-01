@@ -251,3 +251,26 @@ it("displays sort direction label", async () => {
 
   expect(screen.getByRole(...nameAscending)).toBeInTheDocument();
 });
+
+it("displays action buttons on each row", () => {
+  const items = siteFactory.buildList(1);
+  renderWithMemoryRouter(
+    <SitesTable
+      {...commonProps}
+      data={sitesQueryResultFactory.build({ items, total: 1, page: 1, size: 1 })}
+      paginationProps={{
+        ...paginationProps,
+      }}
+    />,
+  );
+
+  expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
+
+  const tableBody = screen.getAllByRole("rowgroup")[1];
+  within(tableBody)
+    .getAllByRole("row")
+    .forEach((_row) => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
+    });
+});

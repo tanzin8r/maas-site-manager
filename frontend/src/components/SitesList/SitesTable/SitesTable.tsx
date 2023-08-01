@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import React, { useEffect, useMemo } from "react";
 
+import { Button, Icon } from "@canonical/react-components";
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { ColumnDef, Column, Getter, Row, SortingState } from "@tanstack/react-table";
 import classNames from "classnames";
@@ -21,6 +22,7 @@ import LocalTime from "@/components/base/LocalTime/LocalTime";
 import type { PaginationBarProps } from "@/components/base/PaginationBar/PaginationBar";
 import PaginationBar from "@/components/base/PaginationBar/PaginationBar";
 import SortIndicator from "@/components/base/SortIndicator";
+import TableActions from "@/components/base/TableActions";
 import TooltipButton from "@/components/base/TooltipButton/TooltipButton";
 import { isDev } from "@/constants";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
@@ -217,6 +219,23 @@ const SitesTable = ({
           return stats ? <AggregatedStats stats={stats} /> : null;
         },
       },
+      {
+        id: "actions",
+        accessorKey: "id",
+        accessorFn: createAccessor("id"),
+        enableSorting: false,
+        header: () => (
+          <div className="u-align--right">
+            {/* TODO: Add aria-label: columns after removing columns button from SiteControl https://warthogs.atlassian.net/browse/MAASENG-2014 */}
+            <Button appearance="base" aria-label="actions column" className="is-dense" hasIcon>
+              <Icon name="settings" />
+            </Button>
+          </div>
+        ),
+        cell: () => {
+          return <TableActions className="u-align--right" hasBorder onDelete={() => {}} onEdit={() => {}} />;
+        },
+      },
     ],
     [],
   );
@@ -299,7 +318,10 @@ const SitesTable = ({
             {table.getRowModel().rows.map((row) => {
               return (
                 <tr
-                  className={classNames({ "sites-table-row--muted": row.original.connection_status === "unknown" })}
+                  className={classNames(
+                    { "sites-table-row--muted": row.original.connection_status === "unknown" },
+                    "sites-table-row",
+                  )}
                   key={row.id}
                 >
                   {row.getVisibleCells().map((cell) => {

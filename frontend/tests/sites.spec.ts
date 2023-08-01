@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("can hide table columns", async ({ page }) => {
-  const columnsCount = 7;
+  const columnsCount = 8;
   const columnHeaders = page.locator("th");
   await expect(columnHeaders).toHaveCount(columnsCount);
   await expect(columnHeaders).toHaveText([
@@ -21,6 +21,7 @@ test("can hide table columns", async ({ page }) => {
     /local time/i,
     /machines/i,
     /aggregated status/i,
+    "",
   ]);
   await page.getByRole("button", { name: "Columns" }).click();
   await page.getByLabel("submenu").getByRole("checkbox", { name: "connection" }).click({ force: true });
@@ -28,7 +29,15 @@ test("can hide table columns", async ({ page }) => {
   const updatedColumnHeaders = page.locator("th");
   await expect(updatedColumnHeaders).toHaveCount(columnsCount - 1);
 
-  await expect(columnHeaders).toHaveText(["", /name/i, /country/i, /local time/i, /machines/i, /aggregated status/i]);
+  await expect(columnHeaders).toHaveText([
+    "",
+    /name/i,
+    /country/i,
+    /local time/i,
+    /machines/i,
+    /aggregated status/i,
+    "",
+  ]);
 
   await page.reload();
 
@@ -42,6 +51,7 @@ test("can hide table columns", async ({ page }) => {
     /local time/i,
     /machines/i,
     /aggregated status/i,
+    "",
   ]);
 });
 
