@@ -48,7 +48,7 @@ def validate_token(token: str) -> str:
     expiration = payload.get("exp")
     if (
         not expiration
-        or datetime.fromtimestamp(expiration) < datetime.utcnow()
+        or datetime.utcfromtimestamp(expiration) < datetime.utcnow()
     ):
         raise InvalidToken()
     return cast(str, subject)

@@ -25,7 +25,7 @@ class TestCreateToken:
         )
         assert payload["sub"] == subject
         assert payload["iss"] == "MAAS site manager"
-        assert datetime.fromtimestamp(
+        assert datetime.utcfromtimestamp(
             payload["exp"]
         ) < datetime.utcnow() + timedelta(minutes=TOKEN_DURATION_MINUTES)
 
@@ -36,7 +36,7 @@ class TestCreateToken:
             token, SETTINGS.token_secret_key, algorithms=["HS256"]
         )
         assert (
-            datetime.fromtimestamp(payload["exp"])
+            datetime.utcfromtimestamp(payload["exp"])
             < datetime.utcnow() + duration
         )
 
@@ -66,6 +66,6 @@ class TestValidateToken:
             validate_token(str(encoded))
 
     def test_expired(self) -> None:
-        token = create_token("subject", duration=timedelta())
+        token = create_token("subject", duration=timedelta(days=-1))
         with pytest.raises(InvalidToken):
             validate_token(token)
