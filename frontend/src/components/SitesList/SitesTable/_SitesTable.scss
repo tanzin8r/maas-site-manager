@@ -1,23 +1,23 @@
-  .p-button--table-header {
-    @extend %table-header-label;
+.p-button--table-header {
+  @extend %table-header-label;
 
-    color: $color-dark;
+  color: $color-dark;
 
-    &:hover {
-      color: $color-link;
-      cursor: pointer;
-    }
-
-    [class*="p-icon"] {
-      @include vf-icon-size(0.875rem);
-
-      margin-left: $sp-x-small;
-    }
+  &:hover {
+    color: $color-link;
+    cursor: pointer;
   }
 
-  [class*="p-button"].no-background {
-    background-color: transparent;
+  [class*="p-icon"] {
+    @include vf-icon-size(0.875rem);
+
+    margin-left: $sp-x-small;
   }
+}
+
+[class*="p-button"].no-background {
+  background-color: transparent;
+}
 
 .sites-table {
   thead th:first-child,
@@ -46,7 +46,8 @@
     }
   }
 
-  .sites-table-row:hover {
+  .sites-table-row:hover,
+  .sites-table-row:focus-within {
     @include vf-transition($property: #{background}, $duration: fast);
     background-color: $colors--light-theme--background-hover;
 
