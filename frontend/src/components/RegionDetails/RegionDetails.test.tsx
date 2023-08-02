@@ -1,8 +1,10 @@
+import type { RenderResult } from "@testing-library/react";
 import { rest } from "msw";
 
 import RegionDetails from "./RegionDetails";
 
 import urls from "@/api/urls";
+import { RegionDetailsContext } from "@/context/RegionDetailsContext";
 import { siteFactory, statsFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
 import { getCountryName, getTimeInTimezone, getTimezoneUTCString } from "@/utils";
@@ -11,6 +13,14 @@ import { screen, renderWithMemoryRouter, setupServer, waitFor } from "@/utils/te
 const stats = statsFactory.build();
 const site = siteFactory.build({ stats });
 const mockServer = setupServer(rest.get(`${urls.sites}/:id`, createMockSiteResolver([site])));
+
+const renderForm = (): RenderResult => {
+  return renderWithMemoryRouter(
+    <RegionDetailsContext.Provider value={{ regionId: site.id, setRegionId: vi.fn() }}>
+      <RegionDetails />
+    </RegionDetailsContext.Provider>,
+  );
+};
 
 beforeAll(() => {
   mockServer.listen();
@@ -25,7 +35,7 @@ afterAll(() => {
 });
 
 it("renders the correct details for a region", async () => {
-  renderWithMemoryRouter(<RegionDetails id={site.id} />);
+  renderForm();
 
   await waitFor(() => {
     expect(screen.getByRole("heading", { name: site.name })).toBeInTheDocument();

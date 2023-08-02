@@ -2,7 +2,6 @@ import { Spinner, Notification, Button, Icon } from "@canonical/react-components
 import classNames from "classnames";
 import { get } from "lodash";
 
-import type { Site } from "@/api/types";
 import ErrorMessage from "@/components/ErrorMessage";
 import ExternalLink from "@/components/ExternalLink/ExternalLink";
 import {
@@ -13,11 +12,13 @@ import {
 import LocalTime from "@/components/base/LocalTime/LocalTime";
 import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext, useRowSelectionContext } from "@/context";
+import { useRegionDetailsContext } from "@/context/RegionDetailsContext";
 import { useSiteQuery } from "@/hooks/react-query";
 import { getCountryName } from "@/utils";
 
-const RegionDetails = ({ id }: { id: Site["id"] }) => {
-  const { data: site, error, isLoading } = useSiteQuery(id);
+const RegionDetails = () => {
+  const { regionId } = useRegionDetailsContext();
+  const { data: site, error, isLoading } = useSiteQuery(regionId);
   const { setSidebar } = useAppLayoutContext();
   const { setRowSelection } = useRowSelectionContext("sites");
   const stats = site?.stats;
@@ -120,7 +121,7 @@ const RegionDetails = ({ id }: { id: Site["id"] }) => {
           </table>
           <hr />
           <span className="u-flex u-flex--justify-end">
-            <Button appearance="base">
+            <Button appearance="base" onClick={() => setSidebar("editRegion")}>
               <Icon name="edit" /> Edit
             </Button>
             <RemoveButton

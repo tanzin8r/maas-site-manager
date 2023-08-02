@@ -11,10 +11,14 @@ import {
   connectionLabels,
   getLastSeenText,
 } from "@/components/SitesList/SitesTable/ConnectionInfo/ConnectionInfo";
+import { useAppLayoutContext } from "@/context";
+import { useRegionDetailsContext } from "@/context/RegionDetailsContext";
 import { useSiteQuery } from "@/hooks/react-query";
 
 const RegionSummary = ({ id }: { id: Site["id"] }) => {
   const { data: site, error, isLoading } = useSiteQuery(id);
+  const { setSidebar } = useAppLayoutContext();
+  const { setRegionId } = useRegionDetailsContext();
   const stats = site?.stats;
 
   return (
@@ -30,7 +34,14 @@ const RegionSummary = ({ id }: { id: Site["id"] }) => {
           <div>
             <span className="region-summary__header">
               <h4 className="region-summary__name">{site.name}</h4>
-              <Button appearance="base" className="region-summary__button--edit">
+              <Button
+                appearance="base"
+                className="region-summary__button--edit"
+                onClick={() => {
+                  setRegionId(id);
+                  setSidebar("editRegion");
+                }}
+              >
                 <Icon name="edit" /> Edit
               </Button>
             </span>

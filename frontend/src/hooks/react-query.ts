@@ -37,6 +37,7 @@ import type {
   UsersQueryResult,
   User,
 } from "@/api/types";
+import type { RegionDetailsId } from "@/context/RegionDetailsContext";
 import type { SelectedUserId } from "@/context/UserSelectionContext";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
@@ -50,7 +51,7 @@ export const useSitesQuery = ({ page, size, sort_by }: GetSitesQueryParams, quer
     refetchInterval,
   });
 
-export const useSiteQuery = (id: Site["id"]) =>
+export const useSiteQuery = (id: RegionDetailsId) =>
   useQuery<Site>({ queryKey: ["sites", id], queryFn: () => getSite(id), keepPreviousData: true });
 
 // return single site data from query cache

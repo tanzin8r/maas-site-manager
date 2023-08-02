@@ -25,6 +25,8 @@ import SortIndicator from "@/components/base/SortIndicator";
 import TableActions from "@/components/base/TableActions";
 import TooltipButton from "@/components/base/TooltipButton/TooltipButton";
 import { isDev } from "@/constants";
+import { useAppLayoutContext } from "@/context";
+import { useRegionDetailsContext } from "@/context/RegionDetailsContext";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { UseSitesQueryResult } from "@/hooks/react-query";
 import { getCountryName } from "@/utils";
@@ -58,6 +60,8 @@ const SitesTable = ({
     defaultValue: {},
   });
   const { rowSelection, setRowSelection } = useRowSelectionContext("sites");
+  const { setRegionId } = useRegionDetailsContext();
+  const { setSidebar } = useAppLayoutContext();
 
   // clear selection on unmount
   useEffect(() => {
@@ -232,12 +236,30 @@ const SitesTable = ({
             </Button>
           </div>
         ),
-        cell: () => {
-          return <TableActions className="u-align--right" hasBorder onDelete={() => {}} onEdit={() => {}} />;
+        cell: ({ getValue }) => {
+          const { id } = getValue();
+          return (
+            <TableActions
+              className="u-align--right"
+              hasBorder
+              onDelete={() => {
+                if (id) {
+                  setRowSelection({ [id]: true });
+                  setSidebar("removeRegions");
+                }
+              }}
+              onEdit={() => {
+                if (id) {
+                  setRegionId(id);
+                  setSidebar("editRegion");
+                }
+              }}
+            />
+          );
         },
       },
     ],
-    [],
+    [setRegionId, setRowSelection, setSidebar],
   );
 
   // wrap the empty array in useMemo to avoid re-rendering the empty table on every render
