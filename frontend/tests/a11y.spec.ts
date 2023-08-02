@@ -13,6 +13,9 @@ const a11yTest = async ({ title, path }: { title: string; path: string }) =>
     const accessibilityScanResults = await new AxeBuilder({ page })
       // @canonical/react-components Accordion is known to have accessibility issues
       .exclude(".p-accordion")
+      // TODO: https://warthogs.atlassian.net/browse/MAASENG-2043
+      // leaflet markers do not allow for aria-label
+      .exclude(".leaflet-marker-icon")
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
 

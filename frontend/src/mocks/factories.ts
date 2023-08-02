@@ -46,6 +46,8 @@ export const siteFactory = Factory.define<Site>(({ sequence }) => {
     url: `http://${name}.${chance.tld()}`,
     country: chance.country(), // <alpha2 country code>,
     city: chance.city(),
+    latitude: `${chance.latitude()}`,
+    longitude: `${chance.longitude()}`,
     zip: chance.zip(),
     street: chance.address(),
     timezone: chance.timezone().utc[0],

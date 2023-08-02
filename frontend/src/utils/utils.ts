@@ -6,6 +6,9 @@ import * as countries from "i18n-iso-countries";
 import { getName } from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
 
+import type { Site } from "@/api/types";
+import type { SiteMarkerType } from "@/components/Map/types";
+
 if (typeof window !== "undefined") {
   countries.registerLocale(en);
 }
@@ -75,6 +78,12 @@ export const getTimezoneUTCString = (timezone: string, date?: Date | number) => 
     return "";
   }
 };
+
+export const formatSiteMarker = (site: Site): SiteMarkerType => ({
+  name: site.name,
+  id: site.id,
+  position: [Number(site.latitude), Number(site.longitude)],
+});
 
 export const getTimeInTimezone = (date: Date, timezone: string) => {
   const time = date.getTime() + getTimezoneOffset(timezone);

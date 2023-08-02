@@ -1,13 +1,12 @@
 import { useState } from "react";
 
-import SitesHiddenButton from "../Map/SitesHiddenButton/SitesHiddenButton";
-
 import type { SitesSortKey, SortBy } from "@/api/handlers";
 import Map from "@/components/Map";
+import SitesHiddenButton from "@/components/Map/SitesHiddenButton/SitesHiddenButton";
 import SitesTableControls from "@/components/SitesList/SitesTable/SitesTableControls/SitesTableControls";
 import { useSitesQuery } from "@/hooks/react-query";
 import useDebounce from "@/hooks/useDebouncedValue";
-import { parseSearchTextToQueryParams } from "@/utils";
+import { formatSiteMarker, parseSearchTextToQueryParams } from "@/utils";
 
 const RegionsMap = () => {
   const [searchText, setSearchText] = useState("");
@@ -30,7 +29,7 @@ const RegionsMap = () => {
         <SitesTableControls data={data} isLoading={isLoading} setSearchText={setSearchText} />
       </div>
       <section aria-label="regions map">
-        <Map />
+        <Map markers={data?.items.map(formatSiteMarker) ?? null} />
       </section>
       <SitesHiddenButton />
     </div>

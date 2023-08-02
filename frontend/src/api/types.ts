@@ -22,6 +22,8 @@ export type Site = {
   zip: string;
   street: string;
   timezone: string; // IANA time zone name,
+  latitude: string;
+  longitude: string;
   connection_status: "stable" | "lost" | "unknown";
   stats: Stats | null;
 };

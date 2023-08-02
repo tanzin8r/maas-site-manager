@@ -48,3 +48,9 @@ $grid-margin-default: map_get($grid-margin-widths, default);
         border-bottom: 2px solid $color-mid-x-light;
     }
 }
+
+/* Leaflet marker */ 
+.leaflet-div-icon {
+    background: none;
+    border: none;
+}

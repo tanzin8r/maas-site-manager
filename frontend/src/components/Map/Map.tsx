@@ -1,7 +1,10 @@
 import type { MapContainerProps } from "react-leaflet";
 import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 
-const Map = ({ id = "map-container" }: MapContainerProps) => {
+import SiteMarker from "./SiteMarker";
+import { type SiteMarkerType } from "./types";
+
+const Map = ({ id = "map-container", markers }: MapContainerProps & { markers: SiteMarkerType[] | null }) => {
   return (
     <MapContainer
       boundsOptions={{
@@ -20,6 +23,7 @@ const Map = ({ id = "map-container" }: MapContainerProps) => {
         data-testid="tile-layer"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {markers?.map(({ position, id, name }) => <SiteMarker id={id} key={id} name={name} position={position} />)}
     </MapContainer>
   );
 };
