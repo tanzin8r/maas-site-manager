@@ -223,6 +223,10 @@ class Factory:
         )
         return SiteData(total_machines=total_machines, **row)
 
+    async def make_Config(self, name: str, value: Any = None) -> None:
+        """Create an entry in the global configuration."""
+        await self.create("config", {"name": name, "value": value})
+
 
 @pytest.fixture
 def factory(db_connection: AsyncConnection) -> Iterator[Factory]:

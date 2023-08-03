@@ -26,10 +26,3 @@ class Settings(BaseSettings):
         ],
         validation_alias="MSM_ALLOWED_ORIGINS",
     )
-
-    token_secret_key: str = Field(
-        default="", validation_alias="MSM_TOKEN_SECRET_KEY"
-    )
-
-
-SETTINGS = Settings()

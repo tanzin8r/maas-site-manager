@@ -7,7 +7,10 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordBearer
 
-from ..db.models import User
+from ..db.models import (
+    Config,
+    User,
+)
 from ..jwt import (
     InvalidToken,
     validate_token,
@@ -16,7 +19,10 @@ from ..service import (
     ServiceCollection,
     UserService,
 )
-from ._dependencies import services
+from ._dependencies import (
+    config,
+    services,
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -33,6 +39,7 @@ async def authenticate_user(
 
 
 async def authenticated_user(
+    config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User | None:
@@ -42,7 +49,7 @@ async def authenticated_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        user_id = validate_token(token)
+        user_id = validate_token(token, key=config.token_secret_key)
         if user := await services.users.get_by_id(int(user_id)):
             return user
     except (InvalidToken, ValueError):
@@ -51,10 +58,11 @@ async def authenticated_user(
 
 
 async def authenticated_admin(
+    config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User | None:
-    if user := await authenticated_user(services, token):
+    if user := await authenticated_user(config, services, token):
         if not user.is_admin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

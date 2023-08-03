@@ -13,28 +13,27 @@ from msm.jwt import (
     TOKEN_DURATION_MINUTES,
     validate_token,
 )
-from msm.settings import SETTINGS
+
+SAMPLE_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 
 
 class TestCreateToken:
-    def test_create(self) -> None:
+    @pytest.mark.parametrize("key", ["", SAMPLE_KEY])
+    def test_create(self, key: str) -> None:
         subject = "subject"
-        token = create_token(subject)
-        payload = jwt.decode(
-            token, SETTINGS.token_secret_key, algorithms=["HS256"]
-        )
+        token = create_token(subject, key=key)
+        payload = jwt.decode(token, key, algorithms=["HS256"])
         assert payload["sub"] == subject
         assert payload["iss"] == "MAAS site manager"
         assert datetime.utcfromtimestamp(
             payload["exp"]
         ) < datetime.utcnow() + timedelta(minutes=TOKEN_DURATION_MINUTES)
 
-    def test_create_with_duration(self) -> None:
+    @pytest.mark.parametrize("key", ["", SAMPLE_KEY])
+    def test_create_with_duration(self, key: str) -> None:
         duration = timedelta(minutes=1)
-        token = create_token("user@example.com", duration=duration)
-        payload = jwt.decode(
-            token, SETTINGS.token_secret_key, algorithms=["HS256"]
-        )
+        token = create_token("user@example.com", key=key, duration=duration)
+        payload = jwt.decode(token, key, algorithms=["HS256"])
         assert (
             datetime.utcfromtimestamp(payload["exp"])
             < datetime.utcnow() + duration
@@ -59,9 +58,7 @@ class TestValidateToken:
         ],
     )
     def test_invalid_missing_fields(self, data: dict[str, Any]) -> None:
-        encoded = jwt.encode(
-            data, SETTINGS.token_secret_key, algorithm="HS256"
-        )
+        encoded = jwt.encode(data, key=SAMPLE_KEY, algorithm="HS256")
         with pytest.raises(InvalidToken):
             validate_token(str(encoded))
 

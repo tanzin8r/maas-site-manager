@@ -1,3 +1,4 @@
+from ._config import Config
 from ._site import (
     ConnectionStatus,
     PendingSite,
@@ -13,6 +14,7 @@ from ._user import (
 )
 
 __all__ = [
+    "Config",
     "ConnectionStatus",
     "PendingSite",
     "Site",

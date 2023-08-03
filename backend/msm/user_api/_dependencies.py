@@ -10,7 +10,11 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ..service import ServiceCollection
+from ..db.models import Config
+from ..service import (
+    ConfigService,
+    ServiceCollection,
+)
 
 
 async def db_connection(request: Request) -> AsyncIterator[AsyncConnection]:
@@ -26,3 +30,11 @@ def services(
 ) -> Iterator[ServiceCollection]:
     """Provide the ServiceCollection to access services."""
     yield ServiceCollection(connection)
+
+
+async def config(
+    connection: Annotated[AsyncConnection, Depends(db_connection)]
+) -> AsyncIterator[Config]:
+    """Return the application configuration."""
+    service = ConfigService(connection)
+    yield await service.get()

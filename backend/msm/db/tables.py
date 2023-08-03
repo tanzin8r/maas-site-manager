@@ -10,10 +10,20 @@ from sqlalchemy import (
     Table,
     Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import (
+    JSONB,
+    UUID,
+)
 from sqlalchemy.types import DateTime
 
 METADATA = MetaData()
+
+Config = Table(
+    "config",
+    METADATA,
+    Column("name", Text, primary_key=True),
+    Column("value", JSONB, nullable=False),
+)
 
 Site = Table(
     "site",

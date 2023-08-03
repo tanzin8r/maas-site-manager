@@ -8,10 +8,14 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
+from ...db.models import Config
 from ...jwt import create_token
 from ...service import ServiceCollection
 from .._auth import authenticate_user
-from .._dependencies import services
+from .._dependencies import (
+    config,
+    services,
+)
 
 router = APIRouter()
 
@@ -32,6 +36,7 @@ class LoginPostResponse(BaseModel):
 
 @router.post("/login")
 async def post(
+    config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
     user_login: LoginPostRequest,
 ) -> LoginPostResponse:
@@ -44,5 +49,5 @@ async def post(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_token(str(user.id))
+    access_token = create_token(str(user.id), key=config.token_secret_key)
     return LoginPostResponse(access_token=access_token, token_type="bearer")

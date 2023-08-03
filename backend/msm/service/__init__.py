@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from ._config import ConfigService
 from ._site import (
     InvalidPendingSites,
     SiteService,
@@ -18,6 +19,7 @@ class ServiceCollection:
 
 
 __all__ = [
+    "ConfigService",
     "ServiceCollection",
     "InvalidPendingSites",
     "TokenService",

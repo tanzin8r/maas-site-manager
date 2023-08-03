@@ -19,7 +19,7 @@ from ..middleware import (
     DatabaseMetricsMiddleware,
     TransactionMiddleware,
 )
-from ..settings import SETTINGS
+from ..settings import Settings
 from ._prometheus import instrument_prometheus
 from .handlers import API_ROUTERS
 
@@ -50,7 +50,8 @@ def create_app(
     prometheus_registry: CollectorRegistry = REGISTRY,
 ) -> FastAPI:
     """Create the FastAPI WSGI application."""
-    db = database or Database(str(SETTINGS.db_dsn))
+    settings = Settings()
+    db = database or Database(str(settings.db_dsn))
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -66,7 +67,7 @@ def create_app(
     )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=SETTINGS.allowed_origins,
+        allow_origins=settings.allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
