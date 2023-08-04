@@ -9,6 +9,7 @@ from prometheus_client import (
     CollectorRegistry,
     REGISTRY,
 )
+from sqlalchemy.ext.asyncio import AsyncConnection
 import uvicorn
 from uvicorn.server import logger
 
@@ -20,6 +21,7 @@ from ..middleware import (
     DatabaseMetricsMiddleware,
     TransactionMiddleware,
 )
+from ..service import ConfigService
 from ..settings import Settings
 from ._prometheus import instrument_prometheus
 from .handlers import API_ROUTERS
@@ -57,7 +59,12 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+        async def ensure_config(conn: AsyncConnection) -> None:
+            service = ConfigService(conn)
+            await service.ensure()
+
         await db.ensure_schema()
+        await db.execute_in_transaction(ensure_config)
         yield
         await db.engine.dispose()
 

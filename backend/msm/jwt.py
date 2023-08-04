@@ -2,6 +2,7 @@ from datetime import (
     datetime,
     timedelta,
 )
+import os
 from typing import cast
 
 from jose import (
@@ -10,11 +11,17 @@ from jose import (
 )
 
 TOKEN_ALGORITHM = "HS256"
+TOKEN_SECRET_KEY_BYTES = 32
 TOKEN_DURATION_MINUTES = 30
 
 
 class InvalidToken(Exception):
     """Token is invalid"""
+
+
+def generate_key() -> str:
+    """Generate a random secret key."""
+    return os.urandom(TOKEN_SECRET_KEY_BYTES).hex()
 
 
 def create_token(
