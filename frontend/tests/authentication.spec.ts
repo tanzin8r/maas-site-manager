@@ -32,3 +32,11 @@ test("user is redirected to the URL they wanted to visit", async ({ page }) => {
   await login({ page });
   await expect(page).toHaveURL(routesConfig.requests.path);
 });
+
+test("maintains authentication state after page reload", async ({ page }) => {
+  await page.goto(routesConfig.sitesList.path);
+  await login({ page });
+  await expect(page).toHaveURL(routesConfig.sitesList.path);
+  await page.reload();
+  await expect(page).toHaveURL(routesConfig.sitesList.path);
+});

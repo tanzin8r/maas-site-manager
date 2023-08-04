@@ -8,6 +8,7 @@ import NavigationList from "./NavigationList";
 import type { ExternalNavLink, LocalNavLink } from "./types";
 
 import BREAKPOINTS from "@/config/breakpoints";
+import type { RoutePath } from "@/config/routes";
 import { useCurrentUserQuery } from "@/hooks/react-query";
 import { useLocation } from "@/utils/router";
 
@@ -42,10 +43,22 @@ type NavProps = {
   isLoggedIn: boolean;
 };
 
+const AccountNavigationList = ({ handleNavlinkClick, path }: { handleNavlinkClick: () => void; path: RoutePath }) => {
+  const { data } = useCurrentUserQuery();
+  return (
+    <NavigationList
+      hasIcons
+      isDark
+      items={generateNavItemsAccount(data?.username)}
+      onClick={handleNavlinkClick}
+      path={path}
+    />
+  );
+};
+
 const Navigation = ({ isLoggedIn }: NavProps): JSX.Element => {
   const [isCollapsed, setIsCollapsed] = useLocalStorageState<boolean>("appSideNavIsCollapsed", { defaultValue: true });
   const location = useLocation();
-  const { data } = useCurrentUserQuery();
   const path = location.pathname;
 
   useEffect(() => {
@@ -114,13 +127,7 @@ const Navigation = ({ isLoggedIn }: NavProps): JSX.Element => {
                 <div className="p-panel__content">
                   <NavigationList hasIcons isDark items={navItems} onClick={handleNavlinkClick} path={path} />
                   <NavigationList hasIcons isDark items={settingsNavItems} onClick={handleNavlinkClick} path={path} />
-                  <NavigationList
-                    hasIcons
-                    isDark
-                    items={generateNavItemsAccount(data?.username)}
-                    onClick={handleNavlinkClick}
-                    path={path}
-                  />
+                  <AccountNavigationList handleNavlinkClick={handleNavlinkClick} path={path} />
                 </div>
               )}
             </span>

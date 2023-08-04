@@ -12,7 +12,7 @@ type AuthStatus = "initial" | "authenticated" | "unauthorised";
 interface AuthContextType {
   status: AuthStatus;
   login: ({ email, password }: { email: string; password: string }) => void;
-  logout: (callback: VoidFunction) => void;
+  logout: () => Promise<void>;
   isError: boolean;
   failureReason: LoginError | null;
 }
@@ -20,7 +20,7 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType>({
   status: "initial",
   login: () => null,
-  logout: () => null,
+  logout: () => new Promise(() => {}),
   isError: false,
   failureReason: null,
 });
@@ -72,8 +72,11 @@ export const AuthContextProvider = ({
   apiClient: AxiosInstance;
   children: React.ReactNode;
 }) => {
-  const [persistedAuthToken, setPersistedAuthToken, { removeItem: removePersistedAuthToken }] =
-    useLocalStorageState<string>("jwtToken");
+  const [persistedAuthToken, setPersistedAuthToken] = useLocalStorageState<string>("jwtToken");
+  const removePersistedAuthToken = useCallback(() => {
+    localStorage.removeItem("jwtToken");
+  }, []);
+
   const { mutateAsync, isError, failureReason } = useLoginMutation();
 
   const initialState: AuthState = {
@@ -81,18 +84,24 @@ export const AuthContextProvider = ({
     status: persistedAuthToken ? "authenticated" : "unauthorised",
   };
 
-  const [state, dispatch] = useReducer(authReducer, initialState);
+  const clearAuthToken = useCallback(() => {
+    apiClient.interceptors.request.clear();
+    removePersistedAuthToken();
+  }, [apiClient.interceptors.request, removePersistedAuthToken]);
 
-  useEffect(() => {
-    if (state.status === "authenticated") {
-      apiClient.interceptors.request.use(function (config) {
-        if (state.authToken) {
-          config.headers.Authorization = `Bearer ${state.authToken}`;
-        }
-        return config;
-      });
-    }
-  }, [apiClient.interceptors.request, state.authToken, state.status]);
+  const updateAuthToken = useCallback(
+    (authToken: AuthToken) => {
+      if (authToken) {
+        setPersistedAuthToken(authToken);
+        apiClient.interceptors.request.use(function (config) {
+          config.headers.Authorization = `Bearer ${authToken}`;
+          return config;
+        });
+      }
+    },
+    [apiClient, setPersistedAuthToken],
+  );
+  const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
     apiClient.interceptors.response.use(
@@ -100,28 +109,28 @@ export const AuthContextProvider = ({
       (error) => {
         if (error?.response?.status === 401 || error?.status === 401) {
           dispatch({ type: actionTypes.LOGOUT });
-          removePersistedAuthToken();
         }
         return Promise.reject(error);
       },
     );
-  }, [apiClient, removePersistedAuthToken]);
+  }, [apiClient]);
 
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {
       const response = await mutateAsync({ email, password });
+      updateAuthToken(response.access_token);
       dispatch({ type: actionTypes.LOGIN_SUCCESS, payload: response.access_token });
-      setPersistedAuthToken(response.access_token);
     } catch (error) {
       dispatch({ type: actionTypes.LOGIN_ERROR });
     }
   };
 
-  const logout = (callback: VoidFunction) => {
-    dispatch({ type: actionTypes.LOGOUT });
-    removePersistedAuthToken();
-    callback();
-  };
+  const logout = (): Promise<void> =>
+    new Promise((resolve) => {
+      clearAuthToken();
+      dispatch({ type: actionTypes.LOGOUT });
+      resolve();
+    });
 
   return (
     <AuthContext.Provider
