@@ -17,7 +17,7 @@ from .._dependencies import (
     services,
 )
 
-router = APIRouter()
+v1_router = APIRouter(prefix="/v1")
 
 
 class LoginPostRequest(BaseModel):
@@ -34,7 +34,7 @@ class LoginPostResponse(BaseModel):
     token_type: str
 
 
-@router.post("/login")
+@v1_router.post("/login")
 async def post(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],

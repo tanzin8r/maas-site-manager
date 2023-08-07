@@ -4,39 +4,41 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 import pytest
 
+from msm.db.models import User
+
 from ..fixtures.client import Client
 
 AUTHENTICATED_ROUTES = [
-    ("GET", "/requests"),
-    ("POST", "/requests"),
-    ("GET", "/sites"),
-    ("GET", "/sites/coordinates"),
-    ("GET", "/sites/{site_id}"),
-    ("GET", "/tokens"),
-    ("POST", "/tokens"),
-    ("GET", "/tokens/export"),
-    ("GET", "/users"),
-    ("POST", "/users"),
-    ("GET", "/users/me"),
-    ("PATCH", "/users/me"),
-    ("PATCH", "/users/me/password"),
-    ("GET", "/users/{user_id}"),
-    ("PATCH", "/users/{user_id}"),
-    ("DELETE", "/users/{user_id}"),
+    ("GET", "/api/v1/requests"),
+    ("POST", "/api/v1/requests"),
+    ("GET", "/api/v1/sites"),
+    ("GET", "/api/v1/sites/coordinates"),
+    ("GET", "/api/v1/sites/{site_id}"),
+    ("GET", "/api/v1/tokens"),
+    ("POST", "/api/v1/tokens"),
+    ("GET", "/api/v1/tokens/export"),
+    ("GET", "/api/v1/users"),
+    ("POST", "/api/v1/users"),
+    ("GET", "/api/v1/users/me"),
+    ("PATCH", "/api/v1/users/me"),
+    ("PATCH", "/api/v1/users/me/password"),
+    ("GET", "/api/v1/users/{user_id}"),
+    ("PATCH", "/api/v1/users/{user_id}"),
+    ("DELETE", "/api/v1/users/{user_id}"),
 ]
 
 UNAUTHENTICATED_ROUTES = [
-    ("GET", "/"),
-    ("POST", "/login"),
+    ("GET", "/api/v1/"),
+    ("POST", "/api/v1/login"),
     ("GET", "/metrics"),
 ]
 
 ADMIN_ROUTES = [
-    ("GET", "/users"),
-    ("POST", "/users"),
-    ("GET", "/users/{id}"),
-    ("DELETE", "/users/{id}"),
-    ("PATCH", "/users/{id}"),
+    ("GET", "/api/v1/users"),
+    ("POST", "/api/v1/users"),
+    ("GET", "/api/v1/users/{id}"),
+    ("DELETE", "/api/v1/users/{id}"),
+    ("PATCH", "/api/v1/users/{id}"),
 ]
 
 
@@ -81,9 +83,10 @@ async def test_handler_auth_not_required(
 @pytest.mark.asyncio
 @pytest.mark.parametrize("method,url", ADMIN_ROUTES)
 async def test_handler_admin_required(
-    user_client: Client, method: str, url: str
+    app_client: Client, api_user: User, method: str, url: str
 ) -> None:
-    response = await user_client.request(method, url)
+    app_client.authenticate(api_user.auth_id)
+    response = await app_client.request(method, url)
     assert (
         response.status_code == 403
     ), f"Admin should be required for {method} {url}"

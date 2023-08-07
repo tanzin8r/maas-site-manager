@@ -38,7 +38,7 @@ from .._forms import (
     UserFilterParams,
 )
 
-router = APIRouter()
+v1_router = APIRouter(prefix="/v1")
 
 user_sort_params = SortParamParser(
     fields=[
@@ -71,7 +71,7 @@ class UsersGetResponse(PaginatedResults):
     items: list[User]
 
 
-@router.get("/users")
+@v1_router.get("/users")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -96,7 +96,7 @@ async def get(
     )
 
 
-@router.get("/users/me")
+@v1_router.get("/users/me")
 async def get_me(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -113,7 +113,7 @@ class UsersPatchMeRequest(BaseModel):
     email: str | None = None
 
 
-@router.patch("/users/me")
+@v1_router.patch("/users/me")
 async def patch_me(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -157,7 +157,7 @@ class UsersPasswordPatchRequest(BaseModel):
         return values
 
 
-@router.patch("/users/me/password")
+@v1_router.patch("/users/me/password")
 async def patch_me_password(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -178,7 +178,7 @@ async def patch_me_password(
     )
 
 
-@router.get("/users/{user_id}")
+@v1_router.get("/users/{user_id}")
 async def get_id(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -215,7 +215,7 @@ class UsersPostRequest(BaseModel):
         return values
 
 
-@router.post("/users")
+@v1_router.post("/users")
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -256,7 +256,7 @@ class UsersPatchRequest(BaseModel):
         return values
 
 
-@router.patch("/users/{user_id}")
+@v1_router.patch("/users/{user_id}")
 async def patch(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -299,7 +299,7 @@ async def patch(
     return User.from_model(user)
 
 
-@router.delete("/users/{user_id}", status_code=204)
+@v1_router.delete("/users/{user_id}", status_code=204)
 async def delete(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],

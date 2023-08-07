@@ -35,7 +35,7 @@ from .._forms import (
     SiteFilterParams,
 )
 
-router = APIRouter()
+v1_router = APIRouter(prefix="/v1")
 
 site_sort_parameters = SortParamParser(
     fields=[
@@ -55,7 +55,7 @@ class SitesGetResponse(PaginatedResults):
     items: list[Site]
 
 
-@router.get("/sites")
+@v1_router.get("/sites")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -78,7 +78,7 @@ async def get(
     )
 
 
-@router.get("/sites/coordinates")
+@v1_router.get("/sites/coordinates")
 async def get_coordinates(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -86,7 +86,7 @@ async def get_coordinates(
     return await services.sites.get_coordinates()
 
 
-@router.get("/sites/{site_id}")
+@v1_router.get("/sites/{site_id}")
 async def get_id(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -107,7 +107,7 @@ class PendingSitesGetResponse(PaginatedResults):
     items: list[PendingSite]
 
 
-@router.get("/requests")
+@v1_router.get("/requests")
 async def get_requests(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -133,7 +133,7 @@ class PendingSitesPostRequest(BaseModel):
     accept: bool
 
 
-@router.post("/requests", status_code=204)
+@v1_router.post("/requests", status_code=204)
 async def post_requests(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],

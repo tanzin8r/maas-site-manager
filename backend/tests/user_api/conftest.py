@@ -15,6 +15,10 @@ from ..fixtures.client import Client
 from ..fixtures.factory import Factory
 
 
+def make_api_client(app: FastAPI, prefix: str = "") -> Client:
+    return Client(app=app, base_url=f"http://test{prefix}")
+
+
 @pytest.fixture
 def api_app(
     db: Database, transaction_middleware_class: type
@@ -30,7 +34,7 @@ def api_app(
 @pytest.fixture
 async def app_client(api_app: FastAPI) -> AsyncIterator[Client]:
     """Client for the user API."""
-    async with Client(app=api_app, base_url="http://test") as client:
+    async with make_api_client(api_app) as client:
         yield client
 
 
@@ -54,8 +58,8 @@ async def api_admin(factory: Factory) -> AsyncIterator[User]:
 async def user_client(
     api_app: FastAPI, api_user: User
 ) -> AsyncIterator[Client]:
-    """Authenticated client for the API user."""
-    async with Client(app=api_app, base_url="http://test") as client:
+    """Authenticated client for the API user, under the /api/v1 prefix."""
+    async with make_api_client(api_app, prefix="/api/v1") as client:
         client.authenticate(api_user.auth_id)
         yield client
 
@@ -64,7 +68,7 @@ async def user_client(
 async def admin_client(
     api_app: FastAPI, api_admin: User
 ) -> AsyncIterator[Client]:
-    """Authenticated client for the API admin."""
-    async with Client(app=api_app, base_url="http://test") as client:
+    """Authenticated client for the API admin, under the /api/v1 prefix."""
+    async with make_api_client(api_app, prefix="/api/v1") as client:
         client.authenticate(api_admin.auth_id)
         yield client

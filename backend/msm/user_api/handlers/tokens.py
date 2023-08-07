@@ -25,7 +25,7 @@ from .._auth import authenticated_user
 from .._csv import CSVResponse
 from .._dependencies import services
 
-router = APIRouter()
+v1_router = APIRouter(prefix="/v1")
 
 
 class TokensGetResponse(PaginatedResults):
@@ -34,7 +34,7 @@ class TokensGetResponse(PaginatedResults):
     items: list[Token]
 
 
-@router.get("/tokens")
+@v1_router.get("/tokens")
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -69,7 +69,7 @@ class TokensPostResponse(BaseModel):
     tokens: list[UUID]
 
 
-@router.post("/tokens")
+@v1_router.post("/tokens")
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -86,7 +86,7 @@ async def post(
     return TokensPostResponse(expired=expired, tokens=list(tokens))
 
 
-@router.get("/tokens/export")
+@v1_router.get("/tokens/export")
 async def get_export(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],

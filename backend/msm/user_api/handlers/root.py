@@ -4,7 +4,7 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
-router = APIRouter()
+v1_router = APIRouter(prefix="/v1")
 
 
 class RootGetResponse(BaseModel):
@@ -13,7 +13,7 @@ class RootGetResponse(BaseModel):
     version: str
 
 
-@router.get("/")
+@v1_router.get("/")
 async def get(request: Request) -> RootGetResponse:
     """Root endpoint."""
     return RootGetResponse(version=request.app.version)
