@@ -1,7 +1,10 @@
-import argparse
 from contextlib import asynccontextmanager
+from logging import Logger
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import (
+    Any,
+    AsyncGenerator,
+)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,36 +32,39 @@ from .handlers import API_ROUTERS
 
 def run() -> None:
     """Run the API application."""
-    args = _get_args()
-    if args.devmode:
-        reload_dirs = [str(Path(msm.__file__).parent)]
-        host = "0.0.0.0"
+    settings = Settings()
+    config: dict[str, Any]
+    if settings.dev_mode:
+        config = {
+            "host": "0.0.0.0",
+            "port": 8000,
+            "reload": True,
+            "reload_dirs": [str(Path(msm.__file__).parent)],
+        }
     else:
-        reload_dirs = None
-        host = "127.0.0.1"
+        config = {"uds": settings.user_api_socket}
     uvicorn.run(
         "msm.user_api:create_app",
         factory=True,
-        host=host,
-        port=args.port,
         loop="uvloop",
-        reload=args.devmode,
-        reload_dirs=reload_dirs,
+        **config,
     )
 
 
 def create_app(
-    database: Database | None = None,
+    db: Database | None = None,
     transaction_middleware_class: type = TransactionMiddleware,
     prometheus_registry: CollectorRegistry = REGISTRY,
 ) -> FastAPI:
     """Create the FastAPI WSGI application."""
     settings = Settings()
-    db = database or Database(settings.db_dsn)
-    logger.info(f"Database connection URL is {settings.db_dsn}")
+    if not db:
+        db = Database(settings.db_dsn)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+        _log_settings(logger, settings)
+
         async def ensure_config(conn: AsyncConnection) -> None:
             service = ConfigService(conn)
             await service.ensure()
@@ -74,13 +80,14 @@ def create_app(
         version=PACKAGE.version,
         lifespan=lifespan,
     )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.allowed_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    if settings.dev_mode:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=settings.cors_allowed_origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
     app.add_middleware(DatabaseMetricsMiddleware, db=db)
     app.add_middleware(transaction_middleware_class, db=db)
 
@@ -92,22 +99,7 @@ def create_app(
     return app
 
 
-def _get_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="MAAS site manager user API.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument(
-        "--devmode",
-        help="run server in deveopment mode",
-        action="store_true",
-        default=False,
-    )
-    parser.add_argument(
-        "--port",
-        "-P",
-        help="server port",
-        type=int,
-        default=8000,
-    )
-    return parser.parse_args()
+def _log_settings(logger: Logger, settings: Settings) -> None:
+    logger.info("Application settings:")
+    for key, value in sorted(settings.model_dump().items()):
+        logger.info(f"  {key}: {value}")

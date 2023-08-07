@@ -21,7 +21,7 @@ def api_app(
 ) -> Iterator[FastAPI]:
     """The API for users."""
     yield create_app(
-        database=db,
+        db=db,
         transaction_middleware_class=transaction_middleware_class,
         prometheus_registry=CollectorRegistry(),
     )
