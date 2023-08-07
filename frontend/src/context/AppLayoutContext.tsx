@@ -8,6 +8,7 @@ export type Sidebar =
   | "deleteUser"
   | "regionDetails"
   | "editRegion"
+  | "siteSelect"
   | null;
 export const AppLayoutContext = createContext<{
   sidebar: Sidebar;

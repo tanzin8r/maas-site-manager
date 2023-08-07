@@ -1,0 +1,26 @@
+.selected-sites {
+  td,
+  th {
+    padding-left: 0;
+  }
+
+  .actions {
+    width: 2.5rem;
+  }
+
+  .site-selection-action-btn {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .site-selection-action-btn:focus {
+    opacity: 1;
+  }
+
+  .site-selection-row:hover,
+  .site-selection-row:focus-within {
+    .site-selection-action-btn {
+      opacity: 1;
+    }
+  }
+}

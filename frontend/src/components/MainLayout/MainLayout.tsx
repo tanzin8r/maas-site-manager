@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { Col, Row, useOnEscapePressed, usePrevious } from "@canonical/react-components";
 import classNames from "classnames";
 
+import SiteSelection from "../SiteSelection/SiteSelection";
+
 import DeleteUser from "@/components/DeleteUser";
 import DocumentTitle from "@/components/DocumentTitle/DocumentTitle";
 import EditRegion from "@/components/EditRegion/EditRegion";
@@ -15,6 +17,7 @@ import type { RoutePath } from "@/config/routes";
 import { routesConfig } from "@/config/routes";
 import { useAppLayoutContext, useAuthContext } from "@/context";
 import type { Sidebar } from "@/context/AppLayoutContext";
+import { siteFactory } from "@/mocks/factories";
 import TokensCreate from "@/pages/tokens/create";
 import { matchPath, Outlet, useLocation } from "@/utils/router";
 
@@ -26,10 +29,14 @@ export const sidebarLabels: Record<NonNullable<Sidebar>, string> = {
   deleteUser: "Delete user",
   regionDetails: "Region details",
   editRegion: "Edit region",
+  siteSelect: "Selected Sites",
 };
+
+const mockSelectedSites = siteFactory.buildList(3);
 
 const UserAddForm = () => <UserForm type="add" />;
 const UserEditForm = () => <UserForm type="edit" />;
+const SiteSelectionComponent = () => <SiteSelection selectedSites={mockSelectedSites} />;
 
 const sidebarComponent = {
   addUser: UserAddForm,
@@ -39,6 +46,7 @@ const sidebarComponent = {
   deleteUser: DeleteUser,
   removeRegions: RemoveRegions,
   regionDetails: RegionDetails,
+  siteSelect: SiteSelectionComponent,
 } as const;
 
 const SidebarComponents = ({ sidebar }: { sidebar: NonNullable<Sidebar> }) => {
