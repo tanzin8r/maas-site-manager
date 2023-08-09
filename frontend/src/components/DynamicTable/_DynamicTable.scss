@@ -6,8 +6,11 @@
     display: block;
     overflow-x: hidden;
     overflow-y: auto;
-    scrollbar-gutter: stable;
-}
+  }
+
+  thead {
+      scrollbar-gutter: stable;
+  }
 
   tbody {
     height: auto;

@@ -3,7 +3,9 @@ import { ContextualMenu, Icon, CheckboxInput } from "@canonical/react-components
 import type { SitesColumn } from "@/components/SitesList/SitesTable/SitesTable";
 
 function ColumnsVisibilityControl({ columns }: { columns: SitesColumn[] }) {
-  const filteredColumns = columns.filter((column) => column.id !== "select" && column.id !== "name");
+  const filteredColumns = columns.filter(
+    (column) => column.id !== "select" && column.id !== "name" && column.id !== "actions",
+  );
   const hiddenColumns = filteredColumns.filter((column) => column.getIsVisible() === false);
   const selectedColumnsLength = filteredColumns.length - hiddenColumns.length;
   const someColumnsChecked = selectedColumnsLength > 0 && selectedColumnsLength < filteredColumns.length;
@@ -17,16 +19,11 @@ function ColumnsVisibilityControl({ columns }: { columns: SitesColumn[] }) {
 
   return (
     <ContextualMenu
-      className="filter-accordion"
-      constrainPanelWidth
       dropdownProps={{ "aria-label": "columns menu" }}
-      position="left"
-      toggleClassName="columns-visibility-toggle has-icon"
-      toggleLabel={
-        <>
-          <Icon name="settings" /> Columns
-        </>
-      }
+      position="right"
+      toggleAppearance="base"
+      toggleClassName="columns-visibility-control is-dense"
+      toggleLabel={<Icon name="settings">Columns</Icon>}
       toggleLabelFirst={true}
     >
       <div className="columns-visibility-select-wrapper u-no-padding--top">

@@ -62,12 +62,12 @@ it("can hide and unhide columns", async () => {
 
   await userEvent.click(screen.getByRole("checkbox", { name: /Connection/i }));
 
-  expect(screen.getByRole("checkbox", { name: "5 out of 6 selected" })).toBeInTheDocument();
+  expect(screen.getByRole("checkbox", { name: "4 out of 5 selected" })).toBeInTheDocument();
   expect(screen.queryByRole("columnheader", { name: /Connection/i })).not.toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("checkbox", { name: /Connection/i }));
 
-  expect(screen.getByRole("checkbox", { name: "6 out of 6 selected" })).toBeInTheDocument();
+  expect(screen.getByRole("checkbox", { name: "5 out of 5 selected" })).toBeInTheDocument();
   expect(screen.getByRole("columnheader", { name: /Connection/i })).toBeInTheDocument();
 });
 
@@ -80,16 +80,16 @@ it("can hide and unhide all columns", async () => {
   expect(screen.getByRole("columnheader", { name: /Machines/i })).toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("button", { name: "Columns" }));
-  await userEvent.click(screen.getByRole("checkbox", { name: "6 out of 6 selected" }));
+  await userEvent.click(screen.getByRole("checkbox", { name: "5 out of 5 selected" }));
 
-  expect(screen.getByRole("checkbox", { name: "0 out of 6 selected" })).toBeInTheDocument();
+  expect(screen.getByRole("checkbox", { name: "0 out of 5 selected" })).toBeInTheDocument();
 
   expect(screen.queryByRole("columnheader", { name: /Connection/i })).not.toBeInTheDocument();
   expect(screen.queryByRole("columnheader", { name: /Country/i })).not.toBeInTheDocument();
   expect(screen.queryByRole("columnheader", { name: /Local time/i })).not.toBeInTheDocument();
   expect(screen.queryByRole("columnheader", { name: /Machines/i })).not.toBeInTheDocument();
 
-  await userEvent.click(screen.getByRole("checkbox", { name: "0 out of 6 selected" }));
+  await userEvent.click(screen.getByRole("checkbox", { name: "0 out of 5 selected" }));
 
   expect(screen.getByRole("columnheader", { name: /Connection/i })).toBeInTheDocument();
   expect(screen.getByRole("columnheader", { name: /Country/i })).toBeInTheDocument();

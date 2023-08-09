@@ -1,11 +1,9 @@
 import { SearchBox } from "@canonical/react-components";
 import classNames from "classnames";
 
-import ColumnsVisibilityControl from "./ColumnsVisibilityControl";
 import SitesCount from "./SitesCount";
 import SitesViewControl from "./SitesViewControl";
 
-import type { SitesColumn } from "@/components/SitesList/SitesTable/SitesTable";
 import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext } from "@/context/AppLayoutContext";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
@@ -15,12 +13,8 @@ import { useLocation } from "@/utils/router";
 const SitesTableControls = ({
   totalSites,
   isLoading,
-  allColumns,
   setSearchText,
-}: { allColumns?: SitesColumn[]; setSearchText: (text: string) => void; totalSites: number | null } & Pick<
-  UseSitesQueryResult,
-  "isLoading"
->) => {
+}: { setSearchText: (text: string) => void; totalSites: number | null } & Pick<UseSitesQueryResult, "isLoading">) => {
   const handleSearchInput = (inputValue: string) => {
     setSearchText(inputValue);
   };
@@ -53,7 +47,6 @@ const SitesTableControls = ({
             showDeleteIcon
             type="button"
           />
-          {allColumns && <ColumnsVisibilityControl columns={allColumns} />}
           <SitesViewControl />
         </div>
       </div>

@@ -37,6 +37,11 @@
     }
   }
 
+  th.actions {
+    padding-right: 0;
+    position: relative;
+  }
+
   .sites-table-row--muted {
     td:not(.name) {
       &,
@@ -49,6 +54,7 @@
   .sites-table-row:hover,
   .sites-table-row:focus-within {
     @include vf-transition($property: #{background}, $duration: fast);
+  
     background-color: $colors--light-theme--background-hover;
 
     .table-actions {

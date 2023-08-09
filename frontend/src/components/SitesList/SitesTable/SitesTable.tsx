@@ -1,7 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import React, { useEffect, useMemo } from "react";
 
-import { Button, Icon } from "@canonical/react-components";
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { ColumnDef, Column, Getter, Row, SortingState } from "@tanstack/react-table";
 import classNames from "classnames";
@@ -10,6 +9,7 @@ import useLocalStorageState from "use-local-storage-state";
 
 import AggregatedStats from "./AggregatedStatus";
 import ConnectionInfo from "./ConnectionInfo";
+import ColumnsVisibilityControl from "./SitesTableControls/ColumnsVisibilityControl";
 import SitesTableControls from "./SitesTableControls/SitesTableControls";
 
 import type { SitesQueryResult } from "@/api/types";
@@ -228,14 +228,9 @@ const SitesTable = ({
         accessorKey: "id",
         accessorFn: createAccessor("id"),
         enableSorting: false,
-        header: () => (
-          <div className="u-align--right">
-            {/* TODO: Add aria-label: columns after removing columns button from SiteControl https://warthogs.atlassian.net/browse/MAASENG-2014 */}
-            <Button appearance="base" aria-label="actions column" className="is-dense" hasIcon>
-              <Icon name="settings" />
-            </Button>
-          </div>
-        ),
+        // Empty frag is needed here so nothing is rendered, otherwise react-table will render "ID".
+        // Columns control will show here, but this is implemented below in the component body.
+        header: () => <></>,
         cell: ({ getValue }) => {
           const { id } = getValue();
           return (
@@ -297,15 +292,10 @@ const SitesTable = ({
 
   return (
     <>
-      <SitesTableControls
-        allColumns={table.getAllLeafColumns()}
-        isLoading={isLoading}
-        setSearchText={setSearchText}
-        totalSites={data?.total ?? null}
-      />
+      <SitesTableControls isLoading={isLoading} setSearchText={setSearchText} totalSites={data?.total ?? null} />
       <PaginationBar {...paginationProps} />
       <DynamicTable aria-label="sites" className="sites-table">
-        <thead>
+        <thead className="sites-table__head">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
@@ -319,6 +309,12 @@ const SitesTable = ({
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.column.id === "actions" ? (
+                      // Make sure the columns control is rendered above the actions column
+                      <div className="u-align--right">
+                        <ColumnsVisibilityControl columns={table.getAllLeafColumns()} />
+                      </div>
+                    ) : null}
                   </th>
                 );
               })}

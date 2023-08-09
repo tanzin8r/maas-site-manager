@@ -21,7 +21,7 @@ test("can hide table columns", async ({ page }) => {
     /local time/i,
     /machines/i,
     /aggregated status/i,
-    "",
+    /columns/i,
   ]);
   await page.getByRole("button", { name: "Columns" }).click();
   await page.getByLabel("submenu").getByRole("checkbox", { name: "connection" }).click({ force: true });
@@ -36,7 +36,7 @@ test("can hide table columns", async ({ page }) => {
     /local time/i,
     /machines/i,
     /aggregated status/i,
-    "",
+    /columns/i,
   ]);
 
   await page.reload();
@@ -51,7 +51,7 @@ test("can hide table columns", async ({ page }) => {
     /local time/i,
     /machines/i,
     /aggregated status/i,
-    "",
+    /columns/i,
   ]);
 });
 
