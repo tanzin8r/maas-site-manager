@@ -12,7 +12,7 @@ type Props = {
 
 const RemoveButton = ({ disabled, label = "Remove", onClick, showDeleteIcon, type }: Props) => {
   return (
-    <Button appearance="negative" disabled={disabled} onClick={onClick} type={type}>
+    <Button appearance="negative" className="remove-btn" disabled={disabled} onClick={onClick} type={type}>
       {showDeleteIcon && (
         <>
           <Icon light name="delete" />{" "}

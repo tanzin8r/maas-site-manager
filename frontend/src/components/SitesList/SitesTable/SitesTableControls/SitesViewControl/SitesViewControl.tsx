@@ -6,7 +6,7 @@ const SitesViewControl = () => {
   const { pathname } = useLocation();
   return (
     <div className="p-segmented-control">
-      <div aria-label="sites view control" className="p-segmented-control__list" role="tablist">
+      <div aria-label="sites view control" className="p-segmented-control__list sites-view-control" role="tablist">
         <Button
           aria-selected={pathname === "/sites/map"}
           className="p-segmented-control__button"

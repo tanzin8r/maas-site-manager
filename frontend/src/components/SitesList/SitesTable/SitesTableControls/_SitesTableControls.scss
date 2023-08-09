@@ -1,3 +1,8 @@
+$box-shadow:
+  0px 1px 1px 0px rgba(0, 0, 0, 0.15),
+  0px 2px 2px -1px rgba(0, 0, 0, 0.15),
+  0px 0px 3px 0px rgba(0, 0, 0, 0.2);
+
 .sites-table-controls {
   .sites-table-controls__search {
     width: 100%;
@@ -7,6 +12,23 @@
     @media (min-width: $breakpoint-large) {
       width: auto;
       margin: 0 1rem;
+    }
+  }
+
+  &.is-map-view {
+    .site-control-heading {
+      -webkit-text-stroke-width: 0.5px;
+      -webkit-text-stroke-color: $color-x-dark;
+    }
+
+    .p-search-box__input,
+    .remove-btn,
+    .sites-view-control {
+      box-shadow: $box-shadow;
+
+      .p-segmented-control__button {
+        margin-bottom: 0;
+      }
     }
   }
 }

@@ -1,4 +1,5 @@
 import { SearchBox } from "@canonical/react-components";
+import classNames from "classnames";
 
 import ColumnsVisibilityControl from "./ColumnsVisibilityControl";
 import SitesCount from "./SitesCount";
@@ -9,6 +10,7 @@ import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext } from "@/context/AppLayoutContext";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
 import type { UseSitesQueryResult } from "@/hooks/react-query";
+import { useLocation } from "@/utils/router";
 
 const SitesTableControls = ({
   totalSites,
@@ -22,15 +24,17 @@ const SitesTableControls = ({
   const handleSearchInput = (inputValue: string) => {
     setSearchText(inputValue);
   };
+  const { pathname } = useLocation();
   const { setSidebar } = useAppLayoutContext();
   const { rowSelection } = useRowSelectionContext("sites");
   const isRemoveDisabled = Object.keys(rowSelection).length <= 0;
+  const isMapView = pathname === "/sites/map";
 
   return (
-    <div className="u-fixed-width sites-table-controls">
+    <div className={classNames("u-fixed-width sites-table-controls", { "is-map-view": isMapView })}>
       <div className="u-flex--large">
         <div>
-          <h2 className="p-heading--4 u-no-padding--top">
+          <h2 className="p-heading--4 u-no-padding--top site-control-heading">
             <SitesCount isLoading={isLoading} totalSites={totalSites} />
           </h2>
         </div>
