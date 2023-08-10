@@ -45,14 +45,17 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     { name: "setup", testMatch: /.*\.setup\.ts/ },
+    { name: "a11y", testMatch: "a11y.spec.ts", use: { ...devices["Desktop Chrome"] } },
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: "a11y.spec.ts",
       dependencies: ["setup"],
     },
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
+      testIgnore: "a11y.spec.ts",
       dependencies: ["setup"],
     },
   ],
