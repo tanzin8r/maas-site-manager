@@ -28,7 +28,11 @@ const SitesTableControls = ({
     <div className={classNames("u-fixed-width sites-table-controls", { "is-map-view": isMapView })}>
       <div className="u-flex--large">
         <div>
-          <h2 className="p-heading--4 u-no-padding--top site-control-heading">
+          <h2
+            className={classNames("p-heading--4 u-no-padding--top site-control-heading", {
+              "site-control-heading__loading": isLoading,
+            })}
+          >
             <SitesCount isLoading={isLoading} totalSites={totalSites} />
           </h2>
         </div>
