@@ -107,3 +107,25 @@ it("toggles select all checkbox on click", async () => {
 
   expect(checkbox).toBeChecked();
 });
+
+it("adds search text to navigation url", async () => {
+  const searchText = "test";
+  renderWithMemoryRouter(<SitesList />);
+  const searchBox = screen.getByRole("searchbox", {
+    name: /search and filter/i,
+  });
+
+  await userEvent.type(searchBox, searchText);
+  await waitFor(() =>
+    expect(
+      screen.getByRole("tab", {
+        name: /map/i,
+      }),
+    ).toHaveAttribute("href", `/sites/map?q=${searchText}`),
+  );
+  expect(
+    screen.getByRole("tab", {
+      name: /table/i,
+    }),
+  ).toHaveAttribute("href", `/sites/list?q=${searchText}`);
+});

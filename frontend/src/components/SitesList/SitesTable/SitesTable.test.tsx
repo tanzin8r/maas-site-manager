@@ -32,6 +32,7 @@ const commonProps = {
     ...paginationProps,
   },
   setSearchText: vi.fn(),
+  searchText: "",
 };
 
 beforeEach(() => {

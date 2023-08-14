@@ -3,7 +3,7 @@ import { Button, Icon } from "@canonical/react-components";
 import { Link, useLocation } from "@/utils/router";
 
 const SitesViewControl = () => {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   return (
     <div className="p-segmented-control">
       <div aria-label="sites view control" className="p-segmented-control__list sites-view-control" role="tablist">
@@ -13,7 +13,7 @@ const SitesViewControl = () => {
           element={Link}
           id="map"
           role="tab"
-          to="/sites/map"
+          to={{ pathname: "/sites/map", search }}
         >
           <Icon name="exposed" />
           <span>Map</span>
@@ -24,7 +24,7 @@ const SitesViewControl = () => {
           element={Link}
           id="table"
           role="tab"
-          to="/sites/list"
+          to={{ pathname: "/sites/list", search }}
         >
           <Icon name="switcher-environments" />
           <span>Table</span>

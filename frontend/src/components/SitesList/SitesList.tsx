@@ -6,8 +6,10 @@ import SitesTable from "./SitesTable";
 
 import type { SitesSortKey, SortBy } from "@/api/handlers";
 import { useSitesQuery } from "@/hooks/react-query";
+import useDebounce from "@/hooks/useDebouncedValue";
 import usePagination from "@/hooks/usePagination";
 import { getSortBy } from "@/utils";
+import { useSearchParams, useNavigate } from "@/utils/router";
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -15,7 +17,11 @@ const SitesList = () => {
   const [totalDataCount, setTotalDataCount] = useState(0);
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
     usePagination(DEFAULT_PAGE_SIZE, totalDataCount);
-  const [searchText, setSearchText] = useState("");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
+  const [searchText, setSearchText] = useState(searchParams.get("q") || "");
+  const debounceSearchText = useDebounce(searchText);
   const [sorting, setSorting] = useState<SortingState>([]);
   const sortBy = getSortBy(sorting) as SortBy<SitesSortKey>;
 
@@ -28,6 +34,22 @@ const SitesList = () => {
   useEffect(() => {
     setPage(1);
   }, [searchText, setPage]);
+
+  useEffect(() => {
+    if (isFirstVisit) {
+      setIsFirstVisit(false);
+      return;
+    }
+
+    if (!debounceSearchText) {
+      navigate("/sites/list");
+      return;
+    }
+    const params = { q: debounceSearchText };
+    const urlParams = new URLSearchParams(params);
+    navigate({ pathname: "/sites/list", search: urlParams.toString() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounceSearchText, navigate]);
 
   useEffect(() => {
     if (data && "total" in data) {
@@ -52,6 +74,7 @@ const SitesList = () => {
           setCurrentPage: setPage,
           totalItems: data?.total || 0,
         }}
+        searchText={searchText}
         setSearchText={setSearchText}
         setSorting={setSorting}
         sorting={sorting}

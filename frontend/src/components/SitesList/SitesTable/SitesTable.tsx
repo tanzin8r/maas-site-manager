@@ -48,11 +48,13 @@ const SitesTable = ({
   data,
   isLoading,
   error,
+  searchText,
   setSearchText,
   paginationProps,
   sorting,
   setSorting,
 }: Pick<UseSitesQueryResult, "data" | "isLoading" | "error"> & {
+  searchText: string;
   setSearchText: (text: string) => void;
   paginationProps: PaginationBarProps;
 } & SortProps) => {
@@ -292,7 +294,12 @@ const SitesTable = ({
 
   return (
     <>
-      <SitesTableControls isLoading={isLoading} setSearchText={setSearchText} totalSites={data?.total ?? null} />
+      <SitesTableControls
+        isLoading={isLoading}
+        searchText={searchText}
+        setSearchText={setSearchText}
+        totalSites={data?.total ?? null}
+      />
       <PaginationBar {...paginationProps} />
       <DynamicTable aria-label="sites" className="sites-table">
         <thead className="sites-table__head">

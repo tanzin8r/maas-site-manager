@@ -14,7 +14,12 @@ const SitesTableControls = ({
   totalSites,
   isLoading,
   setSearchText,
-}: { setSearchText: (text: string) => void; totalSites: number | null } & Pick<UseSitesQueryResult, "isLoading">) => {
+  searchText,
+}: {
+  setSearchText: (text: string) => void;
+  totalSites: number | null;
+  searchText: string;
+} & Pick<UseSitesQueryResult, "isLoading">) => {
   const handleSearchInput = (inputValue: string) => {
     setSearchText(inputValue);
   };
@@ -42,6 +47,7 @@ const SitesTableControls = ({
             externallyControlled
             onChange={handleSearchInput}
             placeholder="Search and filter"
+            value={searchText}
           />
         </div>
         <div className="u-flex u-flex--column u-flex--row-small u-flex u-flex--justify-end">
