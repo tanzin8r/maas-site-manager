@@ -5,11 +5,11 @@ import classNames from "classnames";
 
 import DeleteUser from "@/components/DeleteUser";
 import DocumentTitle from "@/components/DocumentTitle/DocumentTitle";
-import EditRegion from "@/components/EditRegion/EditRegion";
+import EditSite from "@/components/EditSite";
 import Navigation from "@/components/Navigation";
-import RegionDetails from "@/components/RegionDetails/RegionDetails";
-import RemoveRegions from "@/components/RemoveRegions";
+import RemoveSites from "@/components/RemoveSites";
 import SecondaryNavigation from "@/components/SecondaryNavigation";
+import SiteDetails from "@/components/SiteDetails";
 import SiteSelection from "@/components/SiteSelection/SiteSelection";
 import UserForm from "@/components/UserForm";
 import type { RoutePath } from "@/config/routes";
@@ -23,11 +23,11 @@ import { matchPath, Outlet, useLocation } from "@/utils/router";
 export const sidebarLabels: Record<NonNullable<Sidebar>, string> = {
   addUser: "Add user",
   editUser: "Edit user",
-  removeRegions: "Remove regions",
+  removeSites: "Remove sites",
   createToken: "Generate tokens",
   deleteUser: "Delete user",
-  regionDetails: "Region details",
-  editRegion: "Edit region",
+  siteDetails: "Site details",
+  editSite: "Edit site",
   siteSelect: "Selected Sites",
 };
 
@@ -39,12 +39,12 @@ const SiteSelectionComponent = () => <SiteSelection selectedSites={mockSelectedS
 
 const sidebarComponent = {
   addUser: UserAddForm,
-  editRegion: EditRegion,
+  editSite: EditSite,
   editUser: UserEditForm,
   createToken: TokensCreate,
   deleteUser: DeleteUser,
-  removeRegions: RemoveRegions,
-  regionDetails: RegionDetails,
+  removeSites: RemoveSites,
+  siteDetails: SiteDetails,
   siteSelect: SiteSelectionComponent,
 } as const;
 

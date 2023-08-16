@@ -65,7 +65,7 @@ const SitesList = () => {
         isLoading={isLoading}
         paginationProps={{
           currentPage: page,
-          dataContext: "MAAS Regions",
+          dataContext: "MAAS Sites",
           handlePageSizeChange,
           isLoading,
           itemsPerPage: size,

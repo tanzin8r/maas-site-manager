@@ -1,9 +1,9 @@
 import type { RenderResult } from "@testing-library/react";
 import { rest } from "msw";
 
-import RegionDetails from "./RegionDetails";
+import SiteDetails from "./SiteDetails";
 
-import { RegionDetailsContext } from "@/context/RegionDetailsContext";
+import { SiteDetailsContext } from "@/context/SiteDetailsContext";
 import { siteFactory, statsFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
 import { getCountryName, getTimeInTimezone, getTimezoneUTCString } from "@/utils";
@@ -16,9 +16,9 @@ const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteRe
 
 const renderForm = (): RenderResult => {
   return renderWithMemoryRouter(
-    <RegionDetailsContext.Provider value={{ selected: site.id, setSelected: vi.fn() }}>
-      <RegionDetails />
-    </RegionDetailsContext.Provider>,
+    <SiteDetailsContext.Provider value={{ selected: site.id, setSelected: vi.fn() }}>
+      <SiteDetails />
+    </SiteDetailsContext.Provider>,
   );
 };
 
@@ -34,7 +34,7 @@ afterAll(() => {
   mockServer.close();
 });
 
-it("renders the correct details for a region", async () => {
+it("renders the correct details for a site", async () => {
   renderForm();
 
   await waitFor(() => {

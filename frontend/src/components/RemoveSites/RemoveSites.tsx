@@ -13,9 +13,9 @@ const initialValues = {
   confirmText: "",
 };
 
-type RemoveRegionsFormValues = typeof initialValues;
+type RemoveSitesFormValues = typeof initialValues;
 
-const RemoveRegionsFormSchema = Yup.object().shape({
+const RemoveSitesFormSchema = Yup.object().shape({
   confirmText: Yup.string()
     .required()
     .when("$expectedConfirmTextValue", (type, schema) => {
@@ -25,43 +25,40 @@ const RemoveRegionsFormSchema = Yup.object().shape({
 
 const createHandleValidate =
   ({ expectedConfirmTextValue }: { expectedConfirmTextValue: string }) =>
-  async (values: RemoveRegionsFormValues) => {
+  async (values: RemoveSitesFormValues) => {
     let errors = {};
-    await RemoveRegionsFormSchema.validate(values, { context: { expectedConfirmTextValue } }).catch(() => {
+    await RemoveSitesFormSchema.validate(values, { context: { expectedConfirmTextValue } }).catch(() => {
       errors = { confirmText: `Confirmation string is not correct. Expected ${expectedConfirmTextValue}` };
     });
     return errors;
   };
 
-const RemoveRegions = () => {
+const RemoveSites = () => {
   const { rowSelection } = useRowSelectionContext("sites");
   const { previousSidebar, setSidebar } = useAppLayoutContext();
-  const regionsCount = rowSelection && Object.keys(rowSelection).length;
+  const sitesCount = rowSelection && Object.keys(rowSelection).length;
   const id = useId();
   const confirmTextId = `confirm-text-${id}`;
   const headingId = `heading-${id}`;
   const { data } = useSiteQuery({ id: Number(Object.keys(rowSelection)?.[0]) });
-  const regionName = data?.name;
-  const regionsCountText = regionsCount === 1 ? regionName : pluralize("regions", regionsCount || 0, !!regionsCount);
-  const expectedConfirmTextValue = `remove ${regionsCountText}`;
-  const handleSubmit = (
-    _values: RemoveRegionsFormValues,
-    { setSubmitting }: FormikHelpers<RemoveRegionsFormValues>,
-  ) => {
+  const siteName = data?.name;
+  const sitesCountText = sitesCount === 1 ? siteName : pluralize("sites", sitesCount || 0, !!sitesCount);
+  const expectedConfirmTextValue = `remove ${sitesCountText}`;
+  const handleSubmit = (_values: RemoveSitesFormValues, { setSubmitting }: FormikHelpers<RemoveSitesFormValues>) => {
     setSubmitting(false);
     setSidebar(null);
-    // TODO: integrate with delete regions endpoint
+    // TODO: integrate with delete sites endpoint
   };
 
-  // close the sidebar when there are no regions selected
+  // close the sidebar when there are no sites selected
   useEffect(() => {
-    if (!regionsCount) {
+    if (!sitesCount) {
       setSidebar(null);
     }
-  }, [regionsCount, setSidebar]);
+  }, [sitesCount, setSidebar]);
 
   return (
-    <Formik<RemoveRegionsFormValues>
+    <Formik<RemoveSitesFormValues>
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validate={createHandleValidate({ expectedConfirmTextValue })}
@@ -70,21 +67,21 @@ const RemoveRegions = () => {
         <Form aria-labelledby={headingId} className="tokens-create" noValidate>
           <div className="tokens-create">
             <h3 className="tokens-create__heading p-heading--4" id={headingId}>
-              Remove <strong> {regionsCountText}</strong> from Site Manager
+              Remove <strong> {sitesCountText}</strong> from Site Manager
             </h3>
             <p>
-              The deletion of data is irreversible. You can re-enrol the MAAS region again through the enrolment
-              process.
+              The deletion of data is irreversible. You can re-enrol the MAAS {pluralize("sites", sitesCount)} again
+              through the enrolment process.
             </p>
             <p id={confirmTextId}>
-              Type <strong>remove {regionsCountText}</strong> to confirm.
+              Type <strong>remove {sitesCountText}</strong> to confirm.
             </p>
             <Field
               aria-labelledby={confirmTextId}
               as={Input}
               error={submitCount > 0 && touched.confirmText && errors.confirmText}
               name="confirmText"
-              placeholder={`remove ${regionsCountText}`}
+              placeholder={`remove ${sitesCountText}`}
               type="text"
             />
             <Button
@@ -110,4 +107,4 @@ const RemoveRegions = () => {
   );
 };
 
-export default RemoveRegions;
+export default RemoveSites;

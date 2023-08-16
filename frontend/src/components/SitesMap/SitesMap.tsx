@@ -8,7 +8,7 @@ import useDebounce from "@/hooks/useDebouncedValue";
 import { formatSiteMarker, parseSearchTextToQueryParams } from "@/utils";
 import { useNavigate, useSearchParams } from "@/utils/router";
 
-const RegionsMap = () => {
+const SitesMap = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isFirstVisit, setIsFirstVisit] = useState(true);
@@ -34,8 +34,8 @@ const RegionsMap = () => {
   }, [debounceSearchText, navigate]);
 
   return (
-    <div className="regions-map">
-      <div className="regions-map__controls-wrapper">
+    <div className="sites-map">
+      <div className="sites-map__controls-wrapper">
         <SitesTableControls
           isLoading={isLoading}
           searchText={searchText}
@@ -43,7 +43,7 @@ const RegionsMap = () => {
           totalSites={data?.length ?? null}
         />
       </div>
-      <section aria-label="regions map">
+      <section aria-label="sites map">
         <Map markers={data?.map?.(formatSiteMarker) ?? null} />
       </section>
       <SitesHiddenButton />
@@ -51,4 +51,4 @@ const RegionsMap = () => {
   );
 };
 
-export default RegionsMap;
+export default SitesMap;

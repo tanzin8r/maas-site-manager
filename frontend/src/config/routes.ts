@@ -5,11 +5,11 @@ export const protectedRoutes = {
   },
   sitesList: {
     path: "/sites/list",
-    title: "Regions List",
+    title: "Sites List",
   },
   sitesMap: {
     path: "/sites/map",
-    title: "Regions Map",
+    title: "Sites Map",
   },
   settings: {
     path: "/settings",

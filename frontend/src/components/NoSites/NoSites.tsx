@@ -4,12 +4,12 @@ import docsUrls from "@/config/docsUrls";
 import { useRequestsCountQuery } from "@/hooks/react-query";
 import { Link } from "@/utils/router";
 
-const NoRegions = () => {
+const NoSites = () => {
   const { data, isSuccess } = useRequestsCountQuery();
 
   return (
     <TableCaption>
-      <TableCaption.Title>No enroled MAAS regions</TableCaption.Title>
+      <TableCaption.Title>No enroled MAAS sites</TableCaption.Title>
       {isSuccess && data.total > 0 ? (
         <>
           <TableCaption.Description>
@@ -45,4 +45,4 @@ const NoRegions = () => {
   );
 };
 
-export default NoRegions;
+export default NoSites;

@@ -1,4 +1,4 @@
-.region-summary {
+.site-summary {
   padding: 1rem;
   margin: 0;
 
@@ -11,17 +11,17 @@
     color: $colors--light-theme--text-muted;
   }
 
-  .region-summary__header{
+  .site-summary__header{
     display: flex;
     justify-content: space-between;
     width: 100%;
 
-    .region-summary__name {
+    .site-summary__name {
       padding-top: 0.25rem;
       margin: 0;
     }
     
-    .region-summary__button--edit {
+    .site-summary__button--edit {
       position: relative;
       align-self: end;
       margin: 0;
@@ -29,23 +29,23 @@
     }
   }
 
-  .region-summary__url {
+  .site-summary__url {
     padding-top: 0;
     margin: 0;
   }
   
-  .region-summary__table {
+  .site-summary__table {
     margin: 0;
 
     td{
       padding: 0.75rem 0 0.5rem;
     }
 
-    .region-summary__table-item {
+    .site-summary__table-item {
       width: 35%;
     }
 
-    .region-summary__last-seen {
+    .site-summary__last-seen {
       padding-left: 0.5rem;
       overflow-wrap: nowrap;
     }

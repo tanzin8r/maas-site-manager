@@ -9,7 +9,7 @@ import { apiUrls } from "@/utils/test-urls";
 import { render, renderWithMemoryRouter, screen, setupServer, userEvent } from "@/utils/test-utils";
 
 const stats = statsFactory.build();
-const site = siteFactory.build({ name: "region-name", url: "https://example.com", stats });
+const site = siteFactory.build({ name: "site-name", url: "https://example.com", stats });
 const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
 
 beforeAll(() => {
@@ -54,7 +54,7 @@ it("displays map markers", () => {
   render(<Map id="map-container" markers={markers} />);
 
   const markerButtons = screen.getAllByRole("button", {
-    name: /region location marker/,
+    name: /site location marker/,
   });
   expect(markerButtons).toHaveLength(sites.length);
   markerButtons.forEach((marker) => {
@@ -62,13 +62,13 @@ it("displays map markers", () => {
   });
 });
 
-it("displays region details after clicking a marker", async () => {
+it("displays site details after clicking a marker", async () => {
   const markers = [{ ...markerFactory.build({ id: site.id, position: [0, 0] }) }];
   renderWithMemoryRouter(<Map id="map-container" markers={markers} />, { withMainLayout: true });
-  expect(screen.getByLabelText(/region location marker/)).toBeInTheDocument();
-  const marker = screen.getByRole("button", { name: /region location marker/ });
-  const regionDetails = /Region details/i;
-  expect(screen.queryByLabelText(regionDetails)).not.toBeInTheDocument();
+  expect(screen.getByLabelText(/site location marker/)).toBeInTheDocument();
+  const marker = screen.getByRole("button", { name: /site location marker/ });
+  const siteDetails = /Site details/i;
+  expect(screen.queryByLabelText(siteDetails)).not.toBeInTheDocument();
   await userEvent.click(marker);
-  expect(screen.getByLabelText(regionDetails)).toBeInTheDocument();
+  expect(screen.getByLabelText(siteDetails)).toBeInTheDocument();
 });

@@ -14,7 +14,7 @@ const mockServer = createMockGetServer(
 );
 const paginationProps = {
   currentPage: 1,
-  dataContext: "MAAS Regions",
+  dataContext: "MAAS Sites",
   handlePageSizeChange: vi.fn,
   isLoading: false,
   itemsPerPage: 1,
@@ -216,7 +216,7 @@ it("displays a pagination bar with the table", () => {
     />,
   );
 
-  expect(screen.getByText(/Showing 2 out of 2 MAAS Regions/i)).toBeInTheDocument();
+  expect(screen.getByText(/Showing 2 out of 2 MAAS Sites/i)).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /next page/i })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /previous page/i })).toBeInTheDocument();
 });

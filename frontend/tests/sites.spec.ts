@@ -55,15 +55,15 @@ test("can hide table columns", async ({ page }) => {
   ]);
 });
 
-test("opens remove regions panel if remove button is pressed", async ({ page }) => {
-  await expect(page.getByRole("complementary", { name: /Remove regions/i })).toBeHidden();
+test("opens remove sites panel if remove button is pressed", async ({ page }) => {
+  await expect(page.getByRole("complementary", { name: /Remove sites/i })).toBeHidden();
   await page.getByRole("checkbox", { name: /select all/i }).click({ force: true });
   await page.getByRole("button", { name: /Remove/i }).click();
-  await expect(page.getByRole("complementary", { name: /Remove regions/i })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: /Remove sites/i })).toBeVisible();
 });
 
-test("can close remove regions panel using Escape key", async ({ page }) => {
-  const dialog = page.getByRole("complementary", { name: /Remove regions/i });
+test("can close remove site panel using Escape key", async ({ page }) => {
+  const dialog = page.getByRole("complementary", { name: /Remove sites/i });
   await expect(dialog).toBeHidden();
   await page.getByRole("checkbox", { name: /select all/i }).click({ force: true });
   await page.getByRole("button", { name: /Remove/i }).click();
@@ -75,7 +75,7 @@ test("can close remove regions panel using Escape key", async ({ page }) => {
 test("hides columns dropdown in the map view", async ({ page }) => {
   const searchAndFilter = page.getByRole("searchbox", { name: /Search and filter/i });
   const columnsDropdown = page.getByRole("button", { name: /Columns/i });
-  const controlsHeading = page.getByRole("heading", { level: 2, name: /MAAS regions/i });
+  const controlsHeading = page.getByRole("heading", { level: 2, name: /MAAS sites/i });
 
   await expect(searchAndFilter).toBeVisible();
   await expect(columnsDropdown).toBeVisible();

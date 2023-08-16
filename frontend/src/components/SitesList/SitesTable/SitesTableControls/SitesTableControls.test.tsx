@@ -11,7 +11,7 @@ const commonProps = {
 it("displays correct total number of sites", () => {
   renderWithMemoryRouter(<SitesTableControls {...commonProps} totalSites={3} />);
 
-  expect(screen.getByRole("heading", { name: /3 MAAS region/i })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /3 MAAS site/i })).toBeInTheDocument();
 });
 
 it("displays a search input", () => {

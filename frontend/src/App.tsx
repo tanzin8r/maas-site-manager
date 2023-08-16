@@ -1,8 +1,8 @@
 import "@/styles/App.scss";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { RegionDetailsContextProvider } from "./context/RegionDetailsContext";
 import { RowSelectionContextProviders } from "./context/RowSelectionContext";
+import { SiteDetailsContextProvider } from "./context/SiteDetailsContext";
 import { UserSelectionContextProvider } from "./context/UserSelectionContext";
 
 import apiClient from "@/api";
@@ -20,9 +20,9 @@ const App: React.FC = () => {
         <AuthContextProvider apiClient={apiClient}>
           <RowSelectionContextProviders>
             <UserSelectionContextProvider>
-              <RegionDetailsContextProvider>
+              <SiteDetailsContextProvider>
                 <RouterProvider router={router} />
-              </RegionDetailsContextProvider>
+              </SiteDetailsContextProvider>
             </UserSelectionContextProvider>
           </RowSelectionContextProviders>
         </AuthContextProvider>

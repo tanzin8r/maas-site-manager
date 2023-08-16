@@ -49,7 +49,7 @@ const SitesTableControls = ({
         <div className="u-flex u-flex--column u-flex--row-small u-flex u-flex--justify-end">
           <RemoveButton
             disabled={isRemoveDisabled}
-            onClick={() => setSidebar("removeRegions")}
+            onClick={() => setSidebar("removeSites")}
             showDeleteIcon
             type="button"
           />

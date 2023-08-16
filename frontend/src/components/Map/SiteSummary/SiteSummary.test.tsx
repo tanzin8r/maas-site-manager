@@ -1,6 +1,6 @@
 import { rest } from "msw";
 
-import RegionSummary from "./RegionSummary";
+import SiteSummary from "./SiteSummary";
 
 import { siteFactory, statsFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
@@ -24,7 +24,7 @@ afterAll(() => {
 });
 
 it("displays data for a site", async () => {
-  renderWithMemoryRouter(<RegionSummary id={site.id} />);
+  renderWithMemoryRouter(<SiteSummary id={site.id} />);
 
   await waitFor(() => {
     expect(screen.getByText(site.name)).toBeInTheDocument();

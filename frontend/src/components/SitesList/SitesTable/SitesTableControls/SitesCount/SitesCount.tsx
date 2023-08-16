@@ -12,7 +12,7 @@ const SitesCount = ({
   isLoading ? (
     <Placeholder isLoading={isLoading} text="xx" />
   ) : (
-    <span>{`${pluralize("MAAS regions", totalSites || 0, !!totalSites)}`}</span>
+    <span>{`${pluralize("MAAS sites", totalSites || 0, !!totalSites)}`}</span>
   );
 
 export default SitesCount;

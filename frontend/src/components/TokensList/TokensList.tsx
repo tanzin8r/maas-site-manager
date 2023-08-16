@@ -76,7 +76,7 @@ const TokensList = () => {
             <p className="tokens-list-instructions">
               Follow the enrolment steps outlined in the{" "}
               {/* TODO: Update link once documentation is live https://warthogs.atlassian.net/browse/MAASENG-1585 */}
-              <ExternalLink to={docsUrls.enrollmentRequest}>documentation</ExternalLink> to enrol new regions. Once an
+              <ExternalLink to={docsUrls.enrollmentRequest}>documentation</ExternalLink> to enrol new sites. Once an
               enrolment request was made use the following certificate data to compare against the certificate shown in
               the enrolment request:
             </p>

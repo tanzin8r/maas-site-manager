@@ -1,6 +1,6 @@
 import { rest } from "msw";
 
-import RemoveRegions from "./RemoveRegions";
+import RemoveSites from "./RemoveSites";
 
 import { siteFactory, statsFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
@@ -49,7 +49,7 @@ vi.mock("@/context", async () => {
 });
 
 it("submit button should not be disabled when something has been typed", async () => {
-  render(<RemoveRegions />);
+  render(<RemoveSites />);
   const errorMessage = /Confirmation string is not correct/i;
   expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
   await userEvent.type(screen.getByRole("textbox"), "invalid text");
@@ -58,7 +58,7 @@ it("submit button should not be disabled when something has been typed", async (
 });
 
 it("validation error is shown after user attempts submission", async () => {
-  render(<RemoveRegions />);
+  render(<RemoveSites />);
   const errorMessage = /Confirmation string is not correct/i;
   await userEvent.type(screen.getByRole("textbox"), "incorrect string{tab}");
   expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
@@ -67,7 +67,7 @@ it("validation error is shown after user attempts submission", async () => {
 });
 
 it("does not display error message on blur if the value has not chagned", async () => {
-  render(<RemoveRegions />);
+  render(<RemoveSites />);
   expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
   await userEvent.type(screen.getByRole("textbox"), "{tab}");
   expect(screen.queryByText(/Confirmation string is not correct/i)).not.toBeInTheDocument();
@@ -75,12 +75,12 @@ it("does not display error message on blur if the value has not chagned", async 
 });
 
 it("validation error is hidden on change if the user already attempted submission", async () => {
-  render(<RemoveRegions />);
+  render(<RemoveSites />);
   const errorMessage = /Confirmation string is not correct/i;
   await userEvent.type(screen.getByRole("textbox"), "incorrect string");
   await userEvent.click(screen.getByRole("button", { name: /Remove/i }));
   expect(screen.getByText(errorMessage)).toBeInTheDocument();
   await userEvent.clear(screen.getByRole("textbox"));
-  await userEvent.type(screen.getByRole("textbox"), "remove 2 regions");
+  await userEvent.type(screen.getByRole("textbox"), "remove 2 sites");
   expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
 });

@@ -1,22 +1,22 @@
 import type { RenderResult } from "@testing-library/react";
 import { rest } from "msw";
 
-import EditRegion from "./EditRegion";
+import EditSite from "./EditSite";
 
-import { RegionDetailsContext } from "@/context/RegionDetailsContext";
+import { SiteDetailsContext } from "@/context/SiteDetailsContext";
 import { siteFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
 import { render, waitFor, screen, userEvent, setupServer } from "@/utils/test-utils";
 
-const region = siteFactory.build();
-const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([region])));
+const site = siteFactory.build();
+const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
 
 const renderForm = async (): Promise<RenderResult> => {
   const { ...rendered } = render(
-    <RegionDetailsContext.Provider value={{ selected: region.id, setSelected: vi.fn() }}>
-      <EditRegion />
-    </RegionDetailsContext.Provider>,
+    <SiteDetailsContext.Provider value={{ selected: site.id, setSelected: vi.fn() }}>
+      <EditSite />
+    </SiteDetailsContext.Provider>,
   );
   // Wait for form to load
   await waitFor(async () => {
@@ -41,13 +41,13 @@ afterAll(() => {
 it("prefills form data", async () => {
   await renderForm();
 
-  expect(screen.getByRole("heading", { name: `Edit ${region.name}` })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: `Edit ${site.name}` })).toBeInTheDocument();
 
-  expect(screen.getByRole("combobox", { name: "Country" })).toHaveValue(region.country);
-  expect(screen.getByRole("textbox", { name: "Street" })).toHaveValue(region.street);
-  expect(screen.getByRole("textbox", { name: "City" })).toHaveValue(region.city);
+  expect(screen.getByRole("combobox", { name: "Country" })).toHaveValue(site.country);
+  expect(screen.getByRole("textbox", { name: "Street" })).toHaveValue(site.street);
+  expect(screen.getByRole("textbox", { name: "City" })).toHaveValue(site.city);
   expect(screen.getByRole("textbox", { name: "Latitude and Longitude" })).toHaveValue(
-    `${region.latitude}, ${region.longitude}`,
+    `${site.latitude}, ${site.longitude}`,
   );
 });
 

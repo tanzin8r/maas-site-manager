@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { Marker, Popup, useMap } from "react-leaflet";
 
-import RegionSummary from "@/components/Map/RegionSummary/RegionSummary";
+import SiteSummary from "@/components/Map/SiteSummary";
 import type { SiteMarkerType } from "@/components/Map/types";
 
 type MarkerApprearance = "base" | "selected";
@@ -13,7 +13,7 @@ type MarkerApprearance = "base" | "selected";
 const SiteMarkerSvg = ({ appearance = "base" }: { appearance?: MarkerApprearance }) => {
   return (
     <svg
-      aria-label="region location marker"
+      aria-label="site location marker"
       className={classNames("site-marker", { "is-selected": appearance === "selected" })}
       fill="none"
       height="47"
@@ -123,7 +123,7 @@ const SiteMarker = ({
           }}
           ref={popupContentRef}
         >
-          <RegionSummary id={id} />
+          <SiteSummary id={id} />
         </div>
       </Popup>
     </Marker>

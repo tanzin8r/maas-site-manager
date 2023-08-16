@@ -42,7 +42,7 @@ it("action buttons are enabled if some rows are selected", async () => {
   expect(screen.getByRole("button", { name: /Deny/i })).toBeEnabled();
 });
 
-it("displays a notification and clears selection if a region has been accepted", async () => {
+it("displays a notification and clears selection if a site has been accepted", async () => {
   renderWithMemoryRouter(<RequestsList />);
 
   // Loading spinner also has "alert" role, wait for page content to load fully.
@@ -61,7 +61,7 @@ it("displays a notification and clears selection if a region has been accepted",
   expect(requestCheckbox).not.toBeChecked();
 });
 
-it("displays a notification and clears selection if a region has been denied", async () => {
+it("displays a notification and clears selection if a site has been denied", async () => {
   renderWithMemoryRouter(<RequestsList />);
 
   await waitFor(() => {

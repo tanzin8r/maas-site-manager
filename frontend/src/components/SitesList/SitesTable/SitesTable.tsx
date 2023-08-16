@@ -15,7 +15,7 @@ import SitesTableControls from "./SitesTableControls/SitesTableControls";
 import type { SitesQueryResult } from "@/api/types";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import ExternalLink from "@/components/ExternalLink";
-import NoRegions from "@/components/NoRegions";
+import NoSites from "@/components/NoSites";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import TableCaption from "@/components/TableCaption/TableCaption";
 import LocalTime from "@/components/base/LocalTime/LocalTime";
@@ -26,8 +26,8 @@ import TableActions from "@/components/base/TableActions";
 import TooltipButton from "@/components/base/TooltipButton/TooltipButton";
 import { isDev } from "@/constants";
 import { useAppLayoutContext } from "@/context";
-import { useRegionDetailsContext } from "@/context/RegionDetailsContext";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
+import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
 import type { UseSitesQueryResult } from "@/hooks/react-query";
 import { getCountryName } from "@/utils";
 
@@ -62,7 +62,7 @@ const SitesTable = ({
     defaultValue: {},
   });
   const { rowSelection, setRowSelection } = useRowSelectionContext("sites");
-  const { setSelected: setRegionId } = useRegionDetailsContext();
+  const { setSelected: setSiteId } = useSiteDetailsContext();
   const { setSidebar } = useAppLayoutContext();
 
   // clear selection on unmount
@@ -122,7 +122,7 @@ const SitesTable = ({
                       <>
                         This MAAS name is not unique in Site Manager.
                         <br />
-                        You can change this name in the MAAS region itself.
+                        You can change this name in the MAAS site itself.
                       </>
                     }
                   ></TooltipButton>
@@ -242,13 +242,13 @@ const SitesTable = ({
               onDelete={() => {
                 if (id) {
                   setRowSelection({ [id]: true });
-                  setSidebar("removeRegions");
+                  setSidebar("removeSites");
                 }
               }}
               onEdit={() => {
                 if (id) {
-                  setRegionId(id);
-                  setSidebar("editRegion");
+                  setSiteId(id);
+                  setSidebar("editSite");
                 }
               }}
             />
@@ -256,7 +256,7 @@ const SitesTable = ({
         },
       },
     ],
-    [setRegionId, setRowSelection, setSidebar],
+    [setSiteId, setRowSelection, setSidebar],
   );
 
   // wrap the empty array in useMemo to avoid re-rendering the empty table on every render
@@ -337,7 +337,7 @@ const SitesTable = ({
             <TableCaption.Loading />
           </TableCaption>
         ) : table.getRowModel().rows.length < 1 ? (
-          <NoRegions />
+          <NoSites />
         ) : (
           <DynamicTable.Body>
             {table.getRowModel().rows.map((row) => {

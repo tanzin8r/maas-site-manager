@@ -1,4 +1,4 @@
-import RegionsMap from "@/components/RegionsMap";
+import SitesMap from "@/components/SitesMap";
 import { siteFactory } from "@/mocks/factories";
 import { createMockSitesCoordinatesResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";
@@ -20,8 +20,8 @@ afterAll(() => {
 });
 
 it("renders map with controls", () => {
-  renderWithMemoryRouter(<RegionsMap />);
+  renderWithMemoryRouter(<SitesMap />);
 
-  expect(screen.getByRole("region", { name: /regions map/i })).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: /sites map/i })).toBeInTheDocument();
   expect(screen.getByRole("searchbox")).toBeInTheDocument();
 });

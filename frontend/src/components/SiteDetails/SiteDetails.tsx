@@ -12,23 +12,23 @@ import {
 import LocalTime from "@/components/base/LocalTime/LocalTime";
 import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext, useRowSelectionContext } from "@/context";
-import type { RegionDetailsContextValue } from "@/context/RegionDetailsContext";
-import { useRegionDetailsContext } from "@/context/RegionDetailsContext";
+import type { SiteDetailsContextValue } from "@/context/SiteDetailsContext";
+import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
 import { useSiteQuery } from "@/hooks/react-query";
 import { getCountryName } from "@/utils";
 
-const RegionDetailsContent = ({ id }: { id: NonNullable<RegionDetailsContextValue["selected"]> }) => {
+const SiteDetailsContent = ({ id }: { id: NonNullable<SiteDetailsContextValue["selected"]> }) => {
   const { data: site, error, isLoading } = useSiteQuery({ id });
   const { setSidebar } = useAppLayoutContext();
   const { setRowSelection } = useRowSelectionContext("sites");
   const stats = site?.stats;
 
   return (
-    <div className="region-details">
+    <div className="site-details">
       <Button
         appearance="base"
         aria-label="Close"
-        className="region-details__close-button"
+        className="site-details__close-button"
         hasIcon
         onClick={() => setSidebar(null)}
       >
@@ -40,15 +40,15 @@ const RegionDetailsContent = ({ id }: { id: NonNullable<RegionDetailsContextValu
         </Notification>
       ) : site ? (
         <>
-          <h3 className="p-heading--4 region-details__name">{site.name}</h3>
+          <h3 className="p-heading--4 site-details__name">{site.name}</h3>
           <ExternalLink to={site.url}>{site.url}</ExternalLink>
-          <table className="region-details__table">
+          <table className="site-details__table">
             <tbody>
               <tr>
-                <td className="u-text--muted region-details__table-row-label">Status</td>
+                <td className="u-text--muted site-details__table-row-label">Status</td>
                 <td
                   className={classNames(
-                    "region-details__table-item",
+                    "site-details__table-item",
                     "connection__text",
                     "status-icon",
                     { "u-text--muted": site.connection_status === "unknown" },
@@ -56,7 +56,7 @@ const RegionDetailsContent = ({ id }: { id: NonNullable<RegionDetailsContextValu
                   )}
                 >
                   {get(connectionLabels, site.connection_status)}
-                  <span className="u-text--muted region-details__last-seen">
+                  <span className="u-text--muted site-details__last-seen">
                     {stats
                       ? getLastSeenText({
                           connection: site.connection_status,
@@ -68,52 +68,52 @@ const RegionDetailsContent = ({ id }: { id: NonNullable<RegionDetailsContextValu
                 </td>
               </tr>
               <tr>
-                <td className="u-text--muted region-details__table-row-label">Country</td>
-                <td className="region-details__table-item">{site.country ? getCountryName(site.country) : null}</td>
+                <td className="u-text--muted site-details__table-row-label">Country</td>
+                <td className="site-details__table-item">{site.country ? getCountryName(site.country) : null}</td>
               </tr>
               <tr>
-                <td className="u-text--muted region-details__table-row-label">Street</td>
-                <td className="region-details__table-item">{site.street}</td>
+                <td className="u-text--muted site-details__table-row-label">Street</td>
+                <td className="site-details__table-item">{site.street}</td>
               </tr>
               <tr>
-                <td className="u-text--muted region-details__table-row-label">City</td>
-                <td className="region-details__table-item">{site.city}</td>
+                <td className="u-text--muted site-details__table-row-label">City</td>
+                <td className="site-details__table-item">{site.city}</td>
               </tr>
               <tr>
-                <td className="u-text--muted region-details__table-row-label">Local time</td>
-                <td className="region-details__table-item">
+                <td className="u-text--muted site-details__table-row-label">Local time</td>
+                <td className="site-details__table-item">
                   {site.timezone ? <LocalTime timezone={site.timezone} /> : null}
                 </td>
               </tr>
               <tr>
-                <td className="u-text--muted region-details__table-row-label">Machines</td>
-                <td className="region-details__table-item">{stats?.total_machines}</td>
+                <td className="u-text--muted site-details__table-row-label">Machines</td>
+                <td className="site-details__table-item">{stats?.total_machines}</td>
               </tr>
               <tr>
-                <td className="u-text--muted region-details__table-row-label">Machines status</td>
-                <td className="region-details__table-item">
+                <td className="u-text--muted site-details__table-row-label">Machines status</td>
+                <td className="site-details__table-item">
                   {stats ? (
-                    <span className="region-details__machines-statuses">
+                    <span className="site-details__machines-statuses">
                       <i className="p-icon--status-deployed"></i>
-                      <span className="region-details__machines-status-count" data-testid="deployed-machines">
+                      <span className="site-details__machines-status-count" data-testid="deployed-machines">
                         {stats.deployed_machines}
                       </span>
                       <span>Deployed</span>
 
                       <i className="p-icon--status-allocated"></i>
-                      <span className="region-details__machines-status-count" data-testid="allocated-machines">
+                      <span className="site-details__machines-status-count" data-testid="allocated-machines">
                         {stats.allocated_machines}
                       </span>
                       <span>Allocated</span>
 
                       <i className="p-icon--status-ready"></i>
-                      <span className="region-details__machines-status-count" data-testid="ready-machines">
+                      <span className="site-details__machines-status-count" data-testid="ready-machines">
                         {stats.ready_machines}
                       </span>
                       <span>Ready / New</span>
 
                       <span></span>
-                      <span className="region-details__machines-status-count" data-testid="error-machines">
+                      <span className="site-details__machines-status-count" data-testid="error-machines">
                         {stats.error_machines}
                       </span>
                       <span>Error</span>
@@ -125,13 +125,13 @@ const RegionDetailsContent = ({ id }: { id: NonNullable<RegionDetailsContextValu
           </table>
           <hr />
           <span className="u-flex u-flex--justify-end">
-            <Button appearance="base" onClick={() => setSidebar("editRegion")}>
+            <Button appearance="base" onClick={() => setSidebar("editSite")}>
               <Icon name="edit" /> Edit
             </Button>
             <RemoveButton
               onClick={() => {
                 setRowSelection({ [site.id]: true });
-                setSidebar("removeRegions");
+                setSidebar("removeSites");
               }}
               showDeleteIcon
             />
@@ -144,10 +144,10 @@ const RegionDetailsContent = ({ id }: { id: NonNullable<RegionDetailsContextValu
   );
 };
 
-const RegionDetails = () => {
-  const { selected: regionId } = useRegionDetailsContext();
+const SiteDetails = () => {
+  const { selected: siteId } = useSiteDetailsContext();
 
-  return regionId ? <RegionDetailsContent id={regionId} /> : null;
+  return siteId ? <SiteDetailsContent id={siteId} /> : null;
 };
 
-export default RegionDetails;
+export default SiteDetails;

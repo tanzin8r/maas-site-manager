@@ -1,5 +1,5 @@
-import RegionsMap from "@/components/RegionsMap";
+import SitesMap from "@/components/SitesMap";
 
-const Map: React.FC = () => <RegionsMap />;
+const Map: React.FC = () => <SitesMap />;
 
 export default Map;

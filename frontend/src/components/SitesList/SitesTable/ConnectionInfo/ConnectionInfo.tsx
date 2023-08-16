@@ -39,7 +39,7 @@ const ConnectionInfo = ({ connection, lastSeen }: ConnectionInfoProps) => {
       <TooltipButton
         message={
           connection === "unknown" ? (
-            "Haven't received a heartbeat from this region yet"
+            "Haven't received a heartbeat from this site yet"
           ) : connection === "stable" ? (
             "Received a heartbeat in the expected interval of 5 minutes"
           ) : (

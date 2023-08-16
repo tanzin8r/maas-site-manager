@@ -3,13 +3,13 @@ import { createContext, useContext, useState } from "react";
 import { usePrevious } from "@canonical/react-components";
 
 export type Sidebar =
-  | "removeRegions"
+  | "removeSites"
   | "createToken"
   | "addUser"
   | "editUser"
   | "deleteUser"
-  | "regionDetails"
-  | "editRegion"
+  | "siteDetails"
+  | "editSite"
   | "siteSelect"
   | null;
 export const AppLayoutContext = createContext<{

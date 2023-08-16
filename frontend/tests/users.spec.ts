@@ -77,10 +77,7 @@ test("closes the form when navigating away", async ({ page }) => {
   } else {
     await page.getByRole("navigation", { name: /main/i }).hover();
   }
-  await page
-    .getByRole("navigation", { name: /main/i })
-    .getByRole("link", { name: /Regions/ })
-    .click();
+  await page.getByRole("navigation", { name: /main/i }).getByRole("link", { name: /Sites/ }).click();
 
   await page.goBack();
   await expect(page.getByRole("form", { name: /Add user/i })).toBeHidden();

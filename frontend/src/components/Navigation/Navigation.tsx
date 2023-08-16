@@ -14,7 +14,7 @@ import { useLocation } from "@/utils/router";
 
 export const navItems: LocalNavLink[] = [
   {
-    label: "Regions",
+    label: "Sites",
     url: "/sites",
     icon: "machines",
   },

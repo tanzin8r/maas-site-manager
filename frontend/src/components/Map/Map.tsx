@@ -6,7 +6,7 @@ import SiteMarker from "./SiteMarker";
 import { type SiteMarkerType } from "./types";
 
 import { useAppLayoutContext } from "@/context";
-import { useRegionDetailsContext } from "@/context/RegionDetailsContext";
+import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
 
 const MapEvents = ({ onEvent }: { onEvent: LeafletEventHandlerFn }) => {
   useMapEvents({
@@ -25,10 +25,10 @@ const Map = ({
   onBoundsChange?: (bounds: string) => void;
 }) => {
   const { setSidebar } = useAppLayoutContext();
-  const { setSelected: setRegionId } = useRegionDetailsContext();
+  const { setSelected: setSiteId } = useSiteDetailsContext();
   const handleMarkerClick = (id: SiteMarkerType["id"]) => {
-    setRegionId(id);
-    setSidebar("regionDetails");
+    setSiteId(id);
+    setSidebar("siteDetails");
   };
 
   return (

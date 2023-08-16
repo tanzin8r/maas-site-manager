@@ -1,6 +1,6 @@
 import { rest } from "msw";
 
-import NoRegions from "./NoRegions";
+import NoSites from "./NoSites";
 
 import { enrollmentRequestFactory } from "@/mocks/factories";
 import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
@@ -12,7 +12,7 @@ const renderComponent = () =>
   renderWithMemoryRouter(
     // render inside a table to avoid warnings about invalid DOM nesting
     <table>
-      <NoRegions />
+      <NoSites />
     </table>,
   );
 
@@ -31,9 +31,9 @@ afterAll(() => {
   mockServer.close();
 });
 
-it("should display 'no enrolled regions' text", () => {
+it("should display 'no enrolled sites' text", () => {
   renderComponent();
-  expect(screen.getByText(/no enroled maas regions/i)).toBeInTheDocument();
+  expect(screen.getByText(/no enroled maas sites/i)).toBeInTheDocument();
 });
 it("should display link to enrollment docs", () => {
   renderComponent();
