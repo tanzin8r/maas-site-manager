@@ -54,6 +54,7 @@ parts:
     override-build: |
       cd frontend
       npm install -g yarn
+      yarn install
       yarn run build
       cp -a dist $SNAPCRAFT_PART_INSTALL/static
 
