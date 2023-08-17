@@ -2,16 +2,22 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    cast,
     TypeVar,
 )
 
-from sqlalchemy import URL
+from sqlalchemy import (
+    text,
+    URL,
+)
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     create_async_engine,
 )
 
 from .tables import METADATA
+
+MIN_POSTGRES_VERSION = (14, 0)
 
 FuncResult = TypeVar("FuncResult")
 
@@ -41,3 +47,13 @@ class Database:
         async with self.engine.connect() as conn:
             async with conn.begin():
                 return await conn.run_sync(func)
+
+
+async def check_server_version(conn: AsyncConnection) -> None:
+    """Raise an exception if th PostgreSQL version is not supported."""
+    result = await conn.execute(text("SHOW server_version"))
+    row = cast(str, result.scalar())
+    # format is "major.minor [optional additional info]"
+    major, minor = row.split(" ", 1)[0].split(".", 1)
+    if (int(major), int(minor)) < MIN_POSTGRES_VERSION:
+        raise RuntimeError(f"Unsupported PostgreSQL version: {major}.{minor}")

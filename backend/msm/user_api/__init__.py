@@ -20,7 +20,10 @@ from uvicorn.server import logger
 import msm
 
 from .. import __version__
-from ..db import Database
+from ..db import (
+    check_server_version,
+    Database,
+)
 from ..middleware import (
     DatabaseMetricsMiddleware,
     TransactionMiddleware,
@@ -75,6 +78,7 @@ def create_app(
             service = ConfigService(conn)
             await service.ensure()
 
+        await db.execute_in_transaction(check_server_version)
         await db.ensure_schema()
         await db.execute_in_transaction(ensure_config)
         yield
