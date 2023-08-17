@@ -190,6 +190,7 @@ class UserService(Service):
         return False
 
     async def delete(self, user_id: int) -> None:
+        """Deletes a user by ID."""
         stmt = delete(User).where(User.c.id == user_id)
         await self.conn.execute(stmt)
 

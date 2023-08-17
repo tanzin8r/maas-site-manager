@@ -87,6 +87,11 @@ class SiteService(Service):
                 return models.Site(**site._asdict())
         return None
 
+    async def delete(self, site_id: int) -> None:
+        """Deletes a site by ID."""
+        stmt = delete(Site).where(Site.c.id == site_id)
+        await self.conn.execute(stmt)
+
     async def get_pending(
         self,
         offset: int = 0,

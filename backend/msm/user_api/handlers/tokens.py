@@ -91,3 +91,14 @@ async def get_export(
     """Return the list of active tokens in CSV format."""
     tokens = await services.tokens.get_active()
     return CSVResponse(content=tokens)
+
+
+@v1_router.delete("/tokens/{id}", status_code=204)
+async def delete(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[Token, Depends(authenticated_user)],
+    id: int,
+) -> None:
+    """Delete a token from the database."""
+    await services.tokens.delete(id)
+    return None

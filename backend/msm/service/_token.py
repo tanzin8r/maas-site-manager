@@ -5,7 +5,10 @@ from datetime import (
 from typing import Iterable
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import (
+    delete,
+    select,
+)
 
 from ..db import (
     models,
@@ -55,6 +58,11 @@ class TokenService(Service):
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.Token, result)
+
+    async def delete(self, token_id: int) -> None:
+        """Deletes a token by ID."""
+        stmt = delete(Token).where(Token.c.id == token_id)
+        await self.conn.execute(stmt)
 
     async def get_active(self) -> Iterable[models.Token]:
         result = await self.conn.execute(

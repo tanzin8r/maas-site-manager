@@ -48,3 +48,12 @@ async def test_tokens_get(user_client: Client, factory: Factory) -> None:
     assert response.status_code == 200
     assert response.json()["total"] == len(expected)
     assert response.json()["items"] == expected
+
+
+@pytest.mark.asyncio
+async def test_delete(user_client: Client, factory: Factory) -> None:
+    token = await factory.make_Token()
+    response = await user_client.delete(f"/tokens/{token.id}")
+    assert response.status_code == 204
+    get_response = await user_client.get("/tokens")
+    assert get_response.json()["total"] == 0

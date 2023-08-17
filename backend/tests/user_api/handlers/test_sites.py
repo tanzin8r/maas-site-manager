@@ -285,3 +285,12 @@ class TestPendingSitesHandler:
         assert response.json() == {
             "detail": {"message": "Unknown pending sites", "ids": ids}
         }
+
+
+@pytest.mark.asyncio
+async def test_delete(user_client: Client, factory: Factory) -> None:
+    site = await factory.make_Site()
+    response = await user_client.delete(f"/sites/{site.id}")
+    assert response.status_code == 204
+    response = await user_client.get(f"/sites/{site.id}")
+    assert response.status_code == 404

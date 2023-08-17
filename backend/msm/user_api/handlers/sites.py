@@ -153,3 +153,14 @@ async def post_requests(
         )
 
     return None
+
+
+@v1_router.delete("/sites/{id}", status_code=204)
+async def delete(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[Site, Depends(authenticated_user)],
+    id: int,
+) -> None:
+    """Delete a site from the database."""
+    await services.sites.delete(id)
+    return None
