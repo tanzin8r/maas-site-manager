@@ -93,10 +93,10 @@ test("search text persists when switching pages", async ({ page }) => {
   const searchText = "test";
   await searchAndFilter.fill(searchText);
 
-  await page.waitForURL(`**/list?q=${searchText}`);
+  await page.waitForURL(`${routesConfig.sitesList.path}?q=${searchText}`);
   await page.getByRole("tab", { name: /map/i }).click();
-  await page.waitForURL(`**/sites/map?q=${searchText}`);
-  await expect(page).toHaveURL(`http://localhost:${process.env.VITE_UI_PORT}/sites/map?q=${searchText}`);
+  await page.waitForURL(`${routesConfig.sitesMap.path}?q=${searchText}`);
+  await expect(page).toHaveURL(`${routesConfig.sitesMap.path}?q=${searchText}`);
   await expect(page.getByRole("searchbox", { name: /Search and filter/i })).toHaveValue(searchText);
   await expect(page.getByRole("tab", { name: /table/i })).toHaveAttribute("href", `/sites/list?q=${searchText}`);
 });
