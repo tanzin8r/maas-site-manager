@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-
 import { Col, Row } from "@canonical/react-components";
 
 import EnrollmentActions from "@/components/EnrollmentActions";
@@ -10,19 +8,12 @@ import usePagination from "@/hooks/usePagination";
 
 const DEFAULT_PAGE_SIZE = 50;
 const Requests: React.FC = () => {
-  const [totalDataCount, setTotalDataCount] = useState(0);
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
-    usePagination(DEFAULT_PAGE_SIZE, totalDataCount);
+    usePagination(DEFAULT_PAGE_SIZE);
   const { error, data, isLoading } = useRequestsQuery({
     page: debouncedPage,
     size,
   });
-
-  useEffect(() => {
-    if (data && "total" in data) {
-      setTotalDataCount(data.total);
-    }
-  }, [data]);
 
   return (
     <section>

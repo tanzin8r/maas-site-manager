@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-
 import { Button, Col, Row, Notification } from "@canonical/react-components";
 import pluralize from "pluralize";
 
@@ -19,9 +17,8 @@ const DEFAULT_PAGE_SIZE = 50;
 const TokensList = () => {
   const { setSidebar } = useAppLayoutContext();
   const { rowSelection, setRowSelection } = useRowSelectionContext("tokens");
-  const [totalDataCount, setTotalDataCount] = useState(0);
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
-    usePagination(DEFAULT_PAGE_SIZE, totalDataCount);
+    usePagination(DEFAULT_PAGE_SIZE);
 
   const { error, data, isLoading } = useTokensQuery({
     page: debouncedPage,
@@ -31,12 +28,6 @@ const TokensList = () => {
   const tokensDeleteMutation = useDeleteTokensMutation({
     onSuccess: () => setRowSelection({}),
   });
-
-  useEffect(() => {
-    if (data && "total" in data) {
-      setTotalDataCount(data.total);
-    }
-  }, [data]);
 
   const handleTokenDelete = () => {
     const selectedIds = Object.keys(rowSelection).map((id) => Number(id));

@@ -14,9 +14,8 @@ import { getSortBy, parseSearchTextToUrlFreeTextSearch } from "@/utils";
 const DEFAULT_PAGE_SIZE = 50;
 
 const UserList = () => {
-  const [totalDataCount, setTotalDataCount] = useState(0);
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
-    usePagination(DEFAULT_PAGE_SIZE, totalDataCount);
+    usePagination(DEFAULT_PAGE_SIZE);
   const [searchText, setSearchText] = useState("");
   const debounceSearchText = useDebounce(searchText);
   const { setSidebar } = useAppLayoutContext();
@@ -33,12 +32,6 @@ const UserList = () => {
   useEffect(() => {
     setPage(1);
   }, [searchText, setPage]);
-
-  useEffect(() => {
-    if (data && "total" in data) {
-      setTotalDataCount(data.total);
-    }
-  }, [data]);
 
   const handleSearchInput = (inputValue: string) => {
     setSearchText(inputValue);
