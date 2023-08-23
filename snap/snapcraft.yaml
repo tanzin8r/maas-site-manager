@@ -15,6 +15,11 @@ environment:
   LD_PRELOAD: $SNAP/usr/lib/snap-preload.so
   MSM_USER_API_SOCKET: $SNAP_DATA/user-api.sock
 
+hooks:
+  configure:
+    plugs:
+      - network
+
 apps:
   user-api:
     daemon: simple
