@@ -20,7 +20,7 @@ import {
   deleteUser,
   getTokensExport,
 } from "@/api/handlers";
-import type { SitesQueryResult, PostTokensResult, Token, Site, UsersQueryResult, User } from "@/api/types";
+import type { SitesQueryResult, PostTokensResult, Site, UsersQueryResult, User } from "@/api/types";
 import type { PendingSitesPostRequest } from "@/api-client";
 import { saveToFile } from "@/utils";
 
@@ -124,13 +124,15 @@ export const useExportTokensToFileQuery = () => {
   return { error, isLoading, exportTokens };
 };
 
-export const useDeleteTokensMutation = (options: UseMutationOptions<unknown, unknown, Token["id"][], unknown>) => {
+export const useDeleteTokensMutation = (
+  options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof deleteTokens>[0], unknown>, "mutationFn">,
+) => {
   const queryClient = useQueryClient();
   return useMutation(deleteTokens, {
     ...options,
     onSuccess: (...args) => {
+      queryClient.invalidateQueries(["tokens"]);
       options?.onSuccess?.(...args);
-      queryClient.invalidateQueries({ queryKey: ["tokens"] });
     },
   });
 };

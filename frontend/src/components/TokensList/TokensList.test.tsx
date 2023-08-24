@@ -5,14 +5,14 @@ import { setupServer } from "msw/node";
 import TokensList from "./TokensList";
 
 import { tokenFactory } from "@/mocks/factories";
-import { createMockDeleteTokensResolver, createMockGetTokensResolver } from "@/mocks/resolvers";
+import { createMockDeleteTokenResolver, createMockGetTokensResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
 import { screen, renderWithMemoryRouter, within, userEvent } from "@/utils/test-utils";
 
 const tokens = tokenFactory.buildList(2);
 const handlers = [
   rest.get(apiUrls.tokens, createMockGetTokensResolver(tokens)),
-  rest.delete(apiUrls.tokens, createMockDeleteTokensResolver()),
+  rest.delete(`${apiUrls.tokens}/:id`, createMockDeleteTokenResolver()),
 ];
 const mockServer = setupServer(...handlers);
 

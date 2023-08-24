@@ -127,6 +127,11 @@ export const createMockDeleteTokensResolver = (): DeleteTokensResponseResolver =
   return res(ctx.status(400));
 };
 
+type DeleteTokenResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
+export const createMockDeleteTokenResolver = (): DeleteTokenResponseResolver => async (_req, res, ctx) => {
+  return res(ctx.status(204));
+};
+
 type UsersResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
 export const createMockGetUsersResolver =
   (users = usersList): UsersResponseResolver =>
@@ -238,6 +243,7 @@ export const getSite = rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver()
 export const postTokens = rest.post(apiUrls.tokens, createMockTokensResolver());
 export const getTokens = rest.get(apiUrls.tokens, createMockGetTokensResolver());
 export const deleteTokens = rest.delete(apiUrls.tokens, createMockDeleteTokensResolver());
+export const deleteToken = rest.delete(`${apiUrls.tokens}/:id`, createMockDeleteTokenResolver());
 export const getUsers = rest.get(apiUrls.users, createMockGetUsersResolver());
 export const getUser = rest.get(`${apiUrls.users}/:id`, createMockGetUserResolver());
 export const getEnrollmentRequests = rest.get(apiUrls.enrollmentRequests, createMockGetEnrollmentRequestsResolver());
@@ -269,6 +275,7 @@ export const allResolvers = [
   getSite,
   postTokens,
   deleteTokens,
+  deleteToken,
   getTokens,
   getEnrollmentRequests,
   postEnrollmentRequests,

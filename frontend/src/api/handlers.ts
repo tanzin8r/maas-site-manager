@@ -105,8 +105,10 @@ export const deleteTokens = async (data: Token["id"][]) => {
     throw Error("No tokens selected");
   }
   try {
-    // TODO: integrate delete tokens once implemented https://warthogs.atlassian.net/browse/MAASENG-2066
-    await Promise.resolve();
+    const responses = data.map((id) => {
+      return apiClient.default.deleteApiV1TokensIdDelete({ id });
+    });
+    return await Promise.all(responses);
   } catch (error) {
     throw error;
   }
