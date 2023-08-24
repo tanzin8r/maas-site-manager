@@ -71,6 +71,15 @@ export const postTokens = async (data: TokensPostRequest) => {
   }
 };
 
+export const getTokensExport = async () => {
+  try {
+    const response = await apiClient.default.getExportApiV1TokensExportGet();
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export type GetTokensQueryParams = PaginationParams & {};
 export const getTokens = ({ page, size }: Parameters<typeof apiClient.default.getApiV1TokensGet>[0]) =>
   apiClient.default.getApiV1TokensGet({ page, size });

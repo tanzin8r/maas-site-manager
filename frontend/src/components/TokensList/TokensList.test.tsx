@@ -68,10 +68,10 @@ it("disables the Delete button if no rows are selected", async () => {
   expect(screen.getByRole("button", { name: "Delete" })).toBeEnabled();
 });
 
-it("disables the Export button if no rows are selected", async () => {
+it("Export button is enabled regardless of row selection", async () => {
   renderWithMemoryRouter(<TokensList />);
 
-  expect(screen.getByRole("button", { name: "Export" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Export" })).toBeEnabled();
 
   await userEvent.click(screen.getAllByRole("checkbox")[0]);
 

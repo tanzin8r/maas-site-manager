@@ -1,5 +1,9 @@
-const ErrorMessage = ({ error }: { error: unknown }) => (
-  <>{error instanceof Error ? error.message : typeof error === "string" ? error : "An unknown error has occured"}</>
-);
+const ErrorMessage = ({
+  error,
+  defaultMessage = "An unknown error has occured",
+}: {
+  error: unknown;
+  defaultMessage?: string;
+}) => <>{error instanceof Error ? error.message : typeof error === "string" ? error : defaultMessage}</>;
 
 export default ErrorMessage;

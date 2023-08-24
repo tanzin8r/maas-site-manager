@@ -18,9 +18,11 @@ import {
   getSite,
   getSitesCoordinates,
   deleteUser,
+  getTokensExport,
 } from "@/api/handlers";
 import type { SitesQueryResult, PostTokensResult, Token, Site, UsersQueryResult, User } from "@/api/types";
 import type { PendingSitesPostRequest } from "@/api-client";
+import { saveToFile } from "@/utils";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 
@@ -98,6 +100,28 @@ export const useTokensCreateMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["tokens"] });
     },
   });
+};
+
+export const useExportTokensToFileQuery = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const exportTokens = async () => {
+    setError(null);
+    setIsLoading(true);
+    getTokensExport()
+      .then((data) => {
+        if (data) {
+          saveToFile(data, "site-manager-tokens.csv", "text/csv");
+        }
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setError(error);
+      });
+  };
+
+  return { error, isLoading, exportTokens };
 };
 
 export const useDeleteTokensMutation = (options: UseMutationOptions<unknown, unknown, Token["id"][], unknown>) => {

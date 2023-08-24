@@ -3,13 +3,14 @@ import pluralize from "pluralize";
 
 import TokensTable from "./components/TokensTable/TokensTable";
 
+import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import ExternalLink from "@/components/ExternalLink";
 import PaginationBar from "@/components/base/PaginationBar";
 import RemoveButton from "@/components/base/RemoveButton";
 import docsUrls from "@/config/docsUrls";
 import { useAppLayoutContext } from "@/context";
 import { useRowSelectionContext } from "@/context/RowSelectionContext";
-import { useDeleteTokensMutation, useTokensQuery } from "@/hooks/react-query";
+import { useDeleteTokensMutation, useTokensQuery, useExportTokensToFileQuery } from "@/hooks/react-query";
 import usePagination from "@/hooks/usePagination";
 
 const DEFAULT_PAGE_SIZE = 50;
@@ -24,6 +25,8 @@ const TokensList = () => {
     page: debouncedPage,
     size,
   });
+
+  const { error: exportTokensError, isLoading: isExportTokensLoading, exportTokens } = useExportTokensToFileQuery();
 
   const tokensDeleteMutation = useDeleteTokensMutation({
     onSuccess: () => setRowSelection({}),
@@ -50,13 +53,23 @@ const TokensList = () => {
           </Col>
         </Row>
       ) : null}
+      {exportTokensError ? (
+        <Row>
+          <Col size={12}>
+            <Notification severity="negative" title="Error">
+              <ErrorMessage error={exportTokensError} />
+            </Notification>
+          </Col>
+        </Row>
+      ) : null}
       {tokensDeleteMutation.isError ? (
         <Row>
           <Col size={12}>
             <Notification severity="negative" title="Error">
-              {tokensDeleteMutation.error instanceof Error
-                ? tokensDeleteMutation?.error.message
-                : "An error occured while deleting the tokens"}
+              <ErrorMessage
+                defaultMessage="An error occured while deleting the tokens"
+                error={tokensDeleteMutation.error}
+              />
             </Notification>
           </Col>
         </Row>
@@ -87,7 +100,9 @@ const TokensList = () => {
         <Row>
           <Col size={12}>
             <div className="u-flex u-flex--justify-end">
-              <Button disabled={!Object.keys(rowSelection).length}>Export</Button>
+              <Button disabled={isExportTokensLoading} onClick={exportTokens}>
+                Export
+              </Button>
               <RemoveButton disabled={!Object.keys(rowSelection).length} label="Delete" onClick={handleTokenDelete} />
               <Button className="p-button--positive" onClick={() => setSidebar("createToken")} type="button">
                 Generate tokens

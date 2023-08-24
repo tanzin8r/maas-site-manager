@@ -91,3 +91,11 @@ export const getSortBy = (sorting: SortingState) => {
   const key = sorting[0].id;
   return `${key}-${sorting[0].desc ? "desc" : "asc"}`;
 };
+
+export const saveToFile = (data: BlobPart, filename: string, type: string): void => {
+  const blob = new Blob([data], { type });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+};

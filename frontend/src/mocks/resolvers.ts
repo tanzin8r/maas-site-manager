@@ -253,6 +253,15 @@ export const tileHandler = rest.get(/.*\.(?:png|jpg|jpeg|bmp)$/, async (req, res
   }
 });
 
+export const getTokensExport = rest.get(apiUrls.tokensExport, async (_req, res, ctx) => {
+  const csv = `id,value,expired,created
+9,0e846493-fde9-4d15-844c-2ca0341d1e84,2024-01-01 00:00:00,2023-02-28 00:00:00
+10,e15a7d3c-9df8-40c7-b81b-ed4796e777bc,2024-01-01 00:00:00,2023-02-28 00:00:00
+11,87a62d9a-7645-43b5-9dd4-eaf53e768c4a,2024-01-01 00:00:00,2023-02-28 00:00:00`;
+
+  return res(ctx.status(200), ctx.set("Content-Type", "text/csv"), ctx.body(csv));
+});
+
 export const allResolvers = [
   postLogin,
   getSites,
@@ -269,5 +278,6 @@ export const allResolvers = [
   addUser,
   getUser,
   deleteUser,
+  getTokensExport,
   ...(import.meta.env.VITE_USE_MOCK_TILES === "true" ? [tileHandler] : []),
 ];

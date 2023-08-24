@@ -10,6 +10,7 @@ export const apiUrls = {
   sites: getApiUrl("/sites"),
   sitesCoordinates: getApiUrl("/sites/coordinates"),
   tokens: getApiUrl("/tokens"),
+  tokensExport: getApiUrl("/tokens/export"),
   users: getApiUrl("/users"),
   enrollmentRequests: getApiUrl("/requests"),
   currentUser: getApiUrl("/users/me"),

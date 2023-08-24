@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 import { adminAuthFile } from "./constants";
 import { routesConfig } from "@/config/routes";
-
+import fs from "fs";
 test.use({ storageState: adminAuthFile });
 
 test.beforeEach(async ({ page }) => {
@@ -61,4 +61,22 @@ test("closes and clears the form after creating the token", async ({ page }) => 
       .getByRole("form", { name: /Generate new enrolment tokens/i })
       .getByRole("button", { name: /Generate tokens/i }),
   ).toBeDisabled();
+});
+
+test("saves tokens to a file on export", async ({ page }) => {
+  await page.getByRole("button", { name: /Export/i }).click();
+  const download = await page.waitForEvent("download");
+  const path = await download.path();
+  const filename = await download.suggestedFilename();
+  expect(filename).toMatch(/tokens.csv/);
+  // verify that the file is saved to disk
+  expect(fs.existsSync(path!)).toBeTruthy();
+  // verify that the file is a valid csv
+  const stream = await download.createReadStream();
+  let data = "";
+  for await (const chunk of stream!) {
+    data += chunk;
+  }
+  const lines = data.split("\n");
+  expect(lines[0]).toMatch(/id,value,expired,created/);
 });
