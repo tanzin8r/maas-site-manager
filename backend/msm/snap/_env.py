@@ -21,6 +21,6 @@ def environ_from_snap() -> dict[str, str]:
     options = Snap().config.get_options("db")
     for config, var in CONFIG_VARS:
         if (value := options.get(config)) is not None:
-            environ[var] = value
+            environ[var] = str(value)
 
     return environ
