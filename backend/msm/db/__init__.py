@@ -1,5 +1,7 @@
+from contextlib import asynccontextmanager
 from typing import (
     Any,
+    AsyncIterator,
     Awaitable,
     Callable,
     cast,
@@ -27,26 +29,40 @@ class Database:
         self.dsn = dsn
         self.engine = create_async_engine(dsn, echo=echo)
 
+    async def aclose(self) -> None:
+        """Disconnect from the database.
+
+        This allow using the object with `contextlib.aclosing`.
+        """
+        await self.engine.dispose()
+
     async def ensure_schema(self) -> None:
+        """Ensure the database schema is up to date."""
         await self._run_sync_in_transaction(METADATA.create_all)
 
     async def drop_schema(self) -> None:
+        """Drop the database schema."""
         await self._run_sync_in_transaction(METADATA.drop_all)
+
+    @asynccontextmanager
+    async def transaction(self) -> AsyncIterator[AsyncConnection]:
+        """Context manager to run a code section in a transaction."""
+        async with self.engine.connect() as conn:
+            async with conn.begin():
+                yield conn
 
     async def execute_in_transaction(
         self, func: Callable[[AsyncConnection], Awaitable[FuncResult]]
     ) -> FuncResult:
         """Execute the given async function in a transaction."""
-        async with self.engine.connect() as conn:
-            async with conn.begin():
-                return await func(conn)
+        async with self.transaction() as conn:
+            return await func(conn)
 
     async def _run_sync_in_transaction(
         self, func: Callable[[Any], FuncResult]
     ) -> FuncResult:
-        async with self.engine.connect() as conn:
-            async with conn.begin():
-                return await conn.run_sync(func)
+        async with self.transaction() as conn:
+            return await conn.run_sync(func)
 
 
 async def check_server_version(conn: AsyncConnection) -> None:

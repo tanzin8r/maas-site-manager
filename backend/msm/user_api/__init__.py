@@ -1,4 +1,7 @@
-from contextlib import asynccontextmanager
+from contextlib import (
+    aclosing,
+    asynccontextmanager,
+)
 from logging import Logger
 import os
 from pathlib import Path
@@ -78,11 +81,11 @@ def create_app(
             service = ConfigService(conn)
             await service.ensure()
 
-        await db.execute_in_transaction(check_server_version)
-        await db.ensure_schema()
-        await db.execute_in_transaction(ensure_config)
-        yield
-        await db.engine.dispose()
+        async with aclosing(db):
+            await db.execute_in_transaction(check_server_version)
+            await db.ensure_schema()
+            await db.execute_in_transaction(ensure_config)
+            yield
 
     app = FastAPI(
         title="MAAS Site Manager",
