@@ -1,8 +1,15 @@
 .DEFAULT_GOAL := ci-build
 
-install-dependencies ci-dep ci-build ci-lint ci-test:
-	$(MAKE) -C frontend $@
+# return changed paths at first level of the tree
+TOP_LEVEL_CHANGES := $(shell git diff-tree --no-commit-id --name-only -r HEAD | cut -d/ -f1| sort | uniq)
+
+install-dependencies ci-dep ci-build ci-lint:
+ifneq (,$(findstring backend,$(TOP_LEVEL_CHANGES)))
 	$(MAKE) -C backend $@
+endif
+ifneq (,$(findstring frontend,$(TOP_LEVEL_CHANGES)))
+	$(MAKE) -C frontend $@
+endif
 .PHONY: install-dependencies ci-dep ci-build ci-lint ci-test
 
 ci-dep-docker-prepare: ci-dep # run by the build-env-prepare job
