@@ -17,7 +17,7 @@ install-dependencies:
 		apt -y install $(PACKAGES)
 .PHONY: install-dependencies
 
-ci-dep:
+ci-dep: install-dependencies
 	YARN_CACHE_FOLDER=/var/cache/yarn yarnpkg install
 	PLAYWRIGHT_BROWSERS_PATH=/var/cache/playwright-browsers npx --yes playwright install
 .PHONY: ci-dep

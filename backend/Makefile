@@ -24,4 +24,3 @@ ci-lint:
 ci-test:
 	tox run -e test -- --junit-xml=../junit-backend.xml
 .PHONY: ci-test
-
