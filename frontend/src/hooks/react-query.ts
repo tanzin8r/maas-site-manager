@@ -19,6 +19,7 @@ import {
   getSitesCoordinates,
   deleteUser,
   getTokensExport,
+  deleteSites,
 } from "@/api/handlers";
 import type { SitesQueryResult, PostTokensResult, Site, UsersQueryResult, User } from "@/api/types";
 import type { PendingSitesPostRequest } from "@/api-client";
@@ -61,6 +62,17 @@ export const useSiteQueryData = (id: Site["id"]): Site | null => {
   const sites = queryDataList.reduce((acc, [_key, data]) => [...acc, ...(data?.items ?? [])], [] as Site[]);
   const site = sites.find((site: any) => site.id === id);
   return site || null;
+};
+
+export const useDeleteSitesMutation = (options?: UseMutationOptions<unknown, unknown, Site["id"][], unknown>) => {
+  const queryClient = useQueryClient();
+  return useMutation(deleteSites, {
+    ...options,
+    onSuccess: (...args) => {
+      options?.onSuccess?.(...args);
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+    },
+  });
 };
 
 export type useUsersQueryResult = ReturnType<typeof useUsersQuery>;

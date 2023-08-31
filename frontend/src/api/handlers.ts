@@ -1,7 +1,7 @@
 import { apiClient } from "./api";
 import type { Token, User } from "./types";
 
-import type { LoginPostRequest, PendingSitesPostRequest, TokensPostRequest } from "@/api-client";
+import type { LoginPostRequest, PendingSitesPostRequest, Site, TokensPostRequest } from "@/api-client";
 
 export type PostLoginData = {
   email: string;
@@ -57,6 +57,20 @@ export const getSitesCoordinates = async (_queryText?: string) =>
 export const getSite = async ({ id }: Parameters<typeof apiClient.default.getIdApiV1SitesIdGet>[0]) => {
   const response = await apiClient.default.getIdApiV1SitesIdGet({ id });
   return response;
+};
+
+export const deleteSites = async (data: Site["id"][]) => {
+  if (data.length === 0) {
+    throw Error("No sites selected");
+  }
+  try {
+    const responses = data.map((id) => {
+      return apiClient.default.deleteApiV1SitesIdDelete({ id });
+    });
+    return await Promise.all(responses);
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const postTokens = async (data: TokensPostRequest) => {

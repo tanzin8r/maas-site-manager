@@ -83,6 +83,22 @@ export const createMockSiteResolver =
     return res(ctx.json({ ...site }));
   };
 
+type DeleteSitesResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
+export const createMockDeleteSitesResolver = (): DeleteSitesResponseResolver => async (req, res, ctx) => {
+  const ids = req.json();
+
+  if (Array.isArray(ids) && ids.length > 0) {
+    return res(ctx.status(204));
+  } else {
+    return res(ctx.status(400));
+  }
+};
+
+type DeleteSiteResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
+export const createMockDeleteSiteResolver = (): DeleteSiteResponseResolver => async (_req, res, ctx) => {
+  return res(ctx.status(204));
+};
+
 type TokensResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
 export const createMockTokensResolver = (): TokensResponseResolver => async (req, res, ctx) => {
   let tokens;
@@ -119,7 +135,7 @@ export const createMockGetTokensResolver =
 
 type DeleteTokensResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
 export const createMockDeleteTokensResolver = (): DeleteTokensResponseResolver => async (req, res, ctx) => {
-  const ids = req.body;
+  const ids = req.json();
 
   if (Array.isArray(ids) && ids.length > 0) {
     return res(ctx.status(204));
@@ -240,6 +256,8 @@ export const postLogin = rest.post(apiUrls.login, createMockLoginResolver());
 export const getSites = rest.get(apiUrls.sites, createMockSitesResolver());
 export const getSitesCoordinates = rest.get(apiUrls.sitesCoordinates, createMockSitesCoordinatesResolver());
 export const getSite = rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver());
+export const deleteSites = rest.delete(apiUrls.sites, createMockDeleteSitesResolver());
+export const deleteSite = rest.delete(`${apiUrls.sites}/:id`, createMockDeleteSiteResolver());
 export const postTokens = rest.post(apiUrls.tokens, createMockTokensResolver());
 export const getTokens = rest.get(apiUrls.tokens, createMockGetTokensResolver());
 export const deleteTokens = rest.delete(apiUrls.tokens, createMockDeleteTokensResolver());
@@ -273,6 +291,8 @@ export const allResolvers = [
   getSites,
   getSitesCoordinates,
   getSite,
+  deleteSites,
+  deleteSite,
   postTokens,
   deleteTokens,
   deleteToken,

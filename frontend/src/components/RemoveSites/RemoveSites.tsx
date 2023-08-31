@@ -7,7 +7,7 @@ import pluralize from "pluralize";
 import * as Yup from "yup";
 
 import { useAppLayoutContext, useRowSelectionContext } from "@/context";
-import { useSiteQuery } from "@/hooks/react-query";
+import { useDeleteSitesMutation, useSiteQuery } from "@/hooks/react-query";
 
 const initialValues = {
   confirmText: "",
@@ -34,8 +34,9 @@ const createHandleValidate =
   };
 
 const RemoveSites = () => {
-  const { rowSelection } = useRowSelectionContext("sites");
+  const { rowSelection, setRowSelection } = useRowSelectionContext("sites");
   const { previousSidebar, setSidebar } = useAppLayoutContext();
+  const deleteSitesMutation = useDeleteSitesMutation();
   const sitesCount = rowSelection && Object.keys(rowSelection).length;
   const id = useId();
   const confirmTextId = `confirm-text-${id}`;
@@ -45,9 +46,14 @@ const RemoveSites = () => {
   const sitesCountText = sitesCount === 1 ? siteName : pluralize("sites", sitesCount || 0, !!sitesCount);
   const expectedConfirmTextValue = `remove ${sitesCountText}`;
   const handleSubmit = (_values: RemoveSitesFormValues, { setSubmitting }: FormikHelpers<RemoveSitesFormValues>) => {
-    setSubmitting(false);
-    setSidebar(null);
-    // TODO: integrate with delete sites endpoint
+    const selectedIds = Object.keys(rowSelection).map((id) => Number(id));
+    deleteSitesMutation.mutate(selectedIds, {
+      onSuccess() {
+        setSubmitting(false);
+        setSidebar(null);
+        setRowSelection({});
+      },
+    });
   };
 
   // close the sidebar when there are no sites selected
