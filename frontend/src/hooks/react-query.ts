@@ -72,6 +72,9 @@ export const useDeleteSitesMutation = (options?: UseMutationOptions<unknown, unk
       options?.onSuccess?.(...args);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
     },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+    },
   });
 };
 
@@ -145,6 +148,9 @@ export const useDeleteTokensMutation = (
     onSuccess: (...args) => {
       queryClient.invalidateQueries(["tokens"]);
       options?.onSuccess?.(...args);
+    },
+    onError: () => {
+      queryClient.invalidateQueries(["tokens"]);
     },
   });
 };

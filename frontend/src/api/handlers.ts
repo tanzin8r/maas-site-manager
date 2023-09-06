@@ -67,7 +67,7 @@ export const deleteSites = async (data: Site["id"][]) => {
     const responses = data.map((id) => {
       return apiClient.default.deleteApiV1SitesIdDelete({ id });
     });
-    return await Promise.all(responses);
+    return await Promise.allSettled(responses);
   } catch (error) {
     throw error;
   }
@@ -122,7 +122,7 @@ export const deleteTokens = async (data: Token["id"][]) => {
     const responses = data.map((id) => {
       return apiClient.default.deleteApiV1TokensIdDelete({ id });
     });
-    return await Promise.all(responses);
+    return await Promise.allSettled(responses);
   } catch (error) {
     throw error;
   }
