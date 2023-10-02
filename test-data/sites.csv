@@ -1,10 +1,10 @@
-id,city,postal_code,country,latitude,longitude,name,name_unique,note,state,address,timezone,url,accepted,created
-1,London,SE1 1JA,GB,51.501990,-0.092200,Canonical Group Limited,t,4th Floor,,201 Borough High Street,Europe/London,https://london.canonical.example.com,t,2023-04-19 14:01:40.107611
-2,Austin,TX 78701,US,30.269612,-97.741057,Canonical USA Inc.,t,Perry Brooks Building - Suite 300,,720 Brazos Street,America/Chicago,https://austin.canonical.example.com,t,2023-04-28 14:01:34.229025
-3,Boston,MA 024251,US,42.358859,-71.059615,Canonical USA Inc. 001,t,Suite 210,,18 Tremont Street,America/Chicago,https://boston.canonical.example.com,t,2023-05-04 14:01:49.706886
-4,Shanghai,200030,CN,31.187270,121.436829,Canonical China,t,上海市漕溪北路331号12楼1246室,,No. 331 North Caoxi Road,Asia/Shanghai,https://shanghai.canonical.example.com,f,2023-04-03 14:01:27.419476
-5,Beijing,100004,CN,39.908447,116.448690,Canonical China 001,t,China World Office 1; 北京市朝阳区建国门外大街1号国贸写字楼1座11层1118-19室,Chaoyang District,1 Jianguomenwai Avenue,Asia/Shanghai,https://shanghai.canonical.example.com,t,2023-05-03 15:02:11.107339
-6,Taipei City,號12 樓,TW,25.058098,121.543406,Canonical Group Limited - Taiwan Branch,t,105402 台北市松山區民生東路三段100,Songshan Dist.,"12F.,No. 100,Sec. 3,Minsheng E. Rd.",Asia/Taipei,https://taiwan.canonical.example.com,t,2023-05-04 14:02:24.156508
-7,Douglas,IM99 1TT,IM,54.153072,-4.481012,Canonical Limited,t,2nd Floor - Clarendon House,,ictoria Street,Europe/London,https://canonical.example.com,f,2023-04-13 14:02:31.611254
-8,Tokyo,100-0014,JP,35.673242,139.740669,Canonical Japan K.K,f,3rd Floor - Sanno Park Tower,,2-11-1 Nagata-cho Chiyoda-ku,Japan,https://japan.canonical.example.com,t,2022-05-03 14:02:42.955134
-9,Tokyo,100-0014,JP,35.673242,139.740669,Canonical Japan K.K,f,Duplicate,,2-11-1 Nagata-cho Chiyoda-ku,Japan,https://japan.canonical.example.com,t,2022-05-03 14:02:42.955134
+id,city,postal_code,country,coordinates,name,name_unique,note,state,address,timezone,url,accepted,created
+1,London,SE1 1JA,GB,"(-0.092200, 51.501990)",Canonical Group Limited,t,4th Floor,,201 Borough High Street,Europe/London,https://london.canonical.example.com,t,2023-04-19 14:01:40.107611
+2,Austin,TX 78701,US,"(-97.741057, 30.269612)",Canonical USA Inc.,t,Perry Brooks Building - Suite 300,,720 Brazos Street,America/Chicago,https://austin.canonical.example.com,t,2023-04-28 14:01:34.229025
+3,Boston,MA 024251,US,"(-71.059615, 42.358859)",Canonical USA Inc. 001,t,Suite 210,,18 Tremont Street,America/Chicago,https://boston.canonical.example.com,t,2023-05-04 14:01:49.706886
+4,Shanghai,200030,CN,"(121.436829, 31.187270)",Canonical China,t,上海市漕溪北路331号12楼1246室,,No. 331 North Caoxi Road,Asia/Shanghai,https://shanghai.canonical.example.com,f,2023-04-03 14:01:27.419476
+5,Beijing,100004,CN,"(116.448690, 39.908447)",Canonical China 001,t,China World Office 1; 北京市朝阳区建国门外大街1号国贸写字楼1座11层1118-19室,Chaoyang District,1 Jianguomenwai Avenue,Asia/Shanghai,https://shanghai.canonical.example.com,t,2023-05-03 15:02:11.107339
+6,Taipei City,號12 樓,TW,"(121.543406, 25.058098)",Canonical Group Limited - Taiwan Branch,t,105402 台北市松山區民生東路三段100,Songshan Dist.,"12F.,No. 100,Sec. 3,Minsheng E. Rd.",Asia/Taipei,https://taiwan.canonical.example.com,t,2023-05-04 14:02:24.156508
+7,Douglas,IM99 1TT,IM,"(-4.481012, 54.153072)",Canonical Limited,t,2nd Floor - Clarendon House,,ictoria Street,Europe/London,https://canonical.example.com,f,2023-04-13 14:02:31.611254
+8,Tokyo,100-0014,JP,"(139.740669, 35.673242)",Canonical Japan K.K,f,3rd Floor - Sanno Park Tower,,2-11-1 Nagata-cho Chiyoda-ku,Japan,https://japan.canonical.example.com,t,2022-05-03 14:02:42.955134
+9,Tokyo,100-0014,JP,"(139.740669, 35.673242)",Canonical Japan K.K,f,Duplicate,,2-11-1 Nagata-cho Chiyoda-ku,Japan,https://japan.canonical.example.com,t,2022-05-03 14:02:42.955134

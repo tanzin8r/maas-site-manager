@@ -33,8 +33,9 @@ class SiteUpdate(BaseModel):
     name: str
     city: str | None = None
     country: str | None = Field(default=None, min_length=2, max_length=2)
-    latitude: str | None = None
-    longitude: str | None = None
+    coordinates: tuple[
+        float, float
+    ] | None  # first item is the lon, second is the lat
     note: str | None = None
     state: str | None = None
     address: str | None = None
@@ -52,8 +53,9 @@ class Site(BaseModel):
     name: str
     city: str | None = None
     country: str | None = Field(default=None, min_length=2, max_length=2)
-    latitude: str | None = None
-    longitude: str | None = None
+    coordinates: tuple[
+        float, float
+    ] | None  # first item is the lon, second is the lat
     note: str | None = None
     state: str | None = None
     address: str | None = None
@@ -70,8 +72,9 @@ class SiteCoordinates(BaseModel):
     """Coordinates for a MAAS site."""
 
     id: int
-    latitude: str | None = None
-    longitude: str | None = None
+    coordinates: tuple[
+        float, float
+    ] | None = None  # first item is the lon, second is the lat
 
 
 class PendingSite(BaseModel):

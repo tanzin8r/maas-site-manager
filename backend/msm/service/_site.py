@@ -125,8 +125,7 @@ class SiteService(Service):
                 Site.c.name,
                 Site.c.city,
                 Site.c.country,
-                Site.c.latitude,
-                Site.c.longitude,
+                Site.c.coordinates,
                 Site.c.name_unique,
                 Site.c.note,
                 Site.c.state,
@@ -173,8 +172,7 @@ class SiteService(Service):
         stmt = (
             select(
                 Site.c.id,
-                Site.c.latitude,
-                Site.c.longitude,
+                Site.c.coordinates,
             )
             .select_from(Site)
             .where(Site.c.accepted == True)  # noqa
@@ -223,8 +221,7 @@ class SiteService(Service):
             Site.c.address,
             Site.c.city,
             Site.c.country,
-            Site.c.latitude,
-            Site.c.longitude,
+            Site.c.coordinates,
             Site.c.name,
             Site.c.name_unique,
             Site.c.note,

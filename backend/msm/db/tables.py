@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -9,6 +10,7 @@ from sqlalchemy import (
     MetaData,
     Table,
     Text,
+    types,
 )
 from sqlalchemy.dialects.postgresql import (
     JSONB,
@@ -17,6 +19,19 @@ from sqlalchemy.dialects.postgresql import (
 from sqlalchemy.types import DateTime
 
 METADATA = MetaData()
+
+
+class Point(types.UserDefinedType):  # type: ignore
+    """
+    The postgresql POINT
+    https://www.postgresql.org/docs/current/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS
+    """
+
+    cache_ok = True
+
+    def get_col_spec(self, **kw: Any) -> str:
+        return "POINT"
+
 
 Config = Table(
     "config",
@@ -32,8 +47,7 @@ Site = Table(
     Column("address", Text),
     Column("city", Text),
     Column("country", Text),  # ISO 3166 Alpha2
-    Column("latitude", Text),
-    Column("longitude", Text),
+    Column("coordinates", Point),
     Column("name", Text),
     Column("name_unique", Boolean),
     Column("note", Text),

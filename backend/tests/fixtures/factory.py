@@ -134,8 +134,7 @@ class Factory:
         country: str | None = None,
         url: str | None = None,
         timezone: str | None = None,
-        latitude: str | None = None,
-        longitude: str | None = None,
+        coordinates: tuple[float, float] | None = None,
         connection_status: ConnectionStatus = ConnectionStatus.UNKNOWN,
     ) -> Site:
         """Create a Site."""
@@ -156,8 +155,7 @@ class Factory:
                     "timezone": (
                         getattr(TimeZone, timezone) if timezone else None
                     ),
-                    "latitude": latitude,
-                    "longitude": longitude,
+                    "coordinates": coordinates,
                     "name_unique": True,
                     "accepted": True,
                     "created": datetime.utcnow(),

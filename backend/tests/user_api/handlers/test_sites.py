@@ -127,11 +127,12 @@ class TestSitesHandler:
         }
 
     async def test_patch(self, user_client: Client, factory: Factory) -> None:
-        site = await factory.make_Site()
+        site = await factory.make_Site(coordinates=(0, 0))
         site_duplicate = await factory.make_Site()
-        update: dict[str, str | bool] = {
+        update: dict[str, Any] = {
             "name": "shiny new name",
             "url": "https://shiny.example.com",
+            "coordinates": [180, 90],
         }
 
         # update a site
@@ -248,13 +249,13 @@ class TestSitesHandler:
         user_client: Client,
         factory: Factory,
     ) -> None:
-        site1 = await factory.make_Site(latitude="10", longitude="-1")
-        site2 = await factory.make_Site(latitude="20", longitude="-2")
+        site1 = await factory.make_Site(coordinates=(10, -1))
+        site2 = await factory.make_Site(coordinates=(20, -2))
         response = await user_client.get("/sites/coordinates")
         assert response.status_code == 200
         assert response.json() == [
-            {"id": site1.id, "latitude": "10", "longitude": "-1"},
-            {"id": site2.id, "latitude": "20", "longitude": "-2"},
+            {"id": site1.id, "coordinates": [10, -1]},
+            {"id": site2.id, "coordinates": [20, -2]},
         ]
 
 

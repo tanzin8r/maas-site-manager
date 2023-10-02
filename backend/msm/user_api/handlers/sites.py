@@ -68,8 +68,9 @@ class SiteUpdateRequest(BaseModel):
     name: str
     city: str | None = None
     country: str | None = Field(default=None, min_length=2, max_length=2)
-    latitude: str | None = None
-    longitude: str | None = None
+    coordinates: list[
+        float
+    ] | None = None  # first item is the lon, second is the lat
     note: str | None = None
     state: str | None = None
     address: str | None = None

@@ -38,12 +38,12 @@ class TestSiteService:
         factory: Factory,
         db_connection: AsyncConnection,
     ) -> None:
-        site1 = await factory.make_Site(latitude="10", longitude="-1")
-        site2 = await factory.make_Site(latitude="20", longitude="-2")
+        site1 = await factory.make_Site(coordinates=(10, -1))
+        site2 = await factory.make_Site(coordinates=(20, -2))
         # pending site is not included
         await factory.make_PendingSite()
         service = SiteService(db_connection)
         assert list(await service.get_coordinates()) == [
-            SiteCoordinates(id=site1.id, latitude="10", longitude="-1"),
-            SiteCoordinates(id=site2.id, latitude="20", longitude="-2"),
+            SiteCoordinates(id=site1.id, coordinates=[10, -1]),
+            SiteCoordinates(id=site2.id, coordinates=[20, -2]),
         ]

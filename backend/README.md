@@ -62,11 +62,11 @@ PostgreSQL instance (installed via `make install-dependencies).
 Make sure to set the following environment variables when starting the app:
 
 ```
-export POSTGRES_HOST="localhost"  # change if PostgreSQL is running elsewhere
-export POSTGRES_PORT=5432
-export POSTGRES_DB="postgres"  # default for postgres docker image
-export POSTGRES_USER="postgres"  # default for postgres docker image
-export POSTGRES_PASSWORD="msm"
+export MSM_DB_HOST="localhost"  # change if PostgreSQL is running elsewhere
+export MSM_DB_PORT=5432
+export MSM_DB_NAME="postgres"  # default for postgres docker image
+export MSM_DB_USER="postgres"  # default for postgres docker image
+export MSM_DB_PASSWORD="msm"
 ```
 
 Another (quicker) way is to launch a PostgreSQL instance via `docker`:
@@ -132,3 +132,17 @@ If you are running the app in docker you can easily load those
 
 - export the `POSTGRES_*` environment vars as needed
 - run the loading script `../test-data/import.sh`
+
+### Interact with the API
+
+If you used the `test-data`, then you can generate a token for the pre-existing `admin` user with 
+
+```bash
+export TOKEN=$(curl -X POST http://localhost:8000/api/v1/login -d '{"email": "admin@example.com", "password": "admin"}' -H "Content-Type: application/json" | jq -r .access_token)
+```
+
+and call the endpoints with 
+
+```bash
+curl http://localhost:8000/api/v1/sites -H "Authorization: bearer $TOKEN"
+```
