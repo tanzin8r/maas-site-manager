@@ -14,23 +14,11 @@ export const $Site = {
             isRequired: true,
         },
         city: {
-            type: 'any-of',
-            contains: [{
-                type: 'string',
-            }, {
-                type: 'null',
-            }],
+            type: 'string',
             isRequired: true,
         },
         country: {
-            type: 'any-of',
-            contains: [{
-                type: 'string',
-                maxLength: 2,
-                minLength: 2,
-            }, {
-                type: 'null',
-            }],
+            type: 'string',
             isRequired: true,
         },
         coordinates: {
@@ -45,47 +33,25 @@ export const $Site = {
             isRequired: true,
         },
         note: {
-            type: 'any-of',
-            contains: [{
-                type: 'string',
-            }, {
-                type: 'null',
-            }],
+            type: 'string',
             isRequired: true,
         },
         state: {
-            type: 'any-of',
-            contains: [{
-                type: 'string',
-            }, {
-                type: 'null',
-            }],
+            type: 'string',
             isRequired: true,
         },
         address: {
-            type: 'any-of',
-            contains: [{
-                type: 'string',
-            }, {
-                type: 'null',
-            }],
+            type: 'string',
             isRequired: true,
         },
         postal_code: {
-            type: 'any-of',
-            contains: [{
-                type: 'string',
-            }, {
-                type: 'null',
-            }],
+            type: 'string',
             isRequired: true,
         },
         timezone: {
             type: 'any-of',
             contains: [{
                 type: 'TimeZone',
-            }, {
-                type: 'null',
             }],
             isRequired: true,
         },
