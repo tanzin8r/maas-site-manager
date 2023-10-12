@@ -60,11 +60,9 @@ class Settings(BaseSettings):
         validation_alias="MSM_DB_PASSWORD",
         json_schema_extra={"snap-key": "db.password"},
     )
-    user_api_port: int = Field(
-        default=8000, validation_alias="MSM_USER_API_PORT"
-    )
-    user_api_socket: str = Field(
-        default="user_api.socket", validation_alias="MSM_USER_API_SOCKET"
+    api_port: int = Field(default=8000, validation_alias="MSM_API_PORT")
+    api_socket: str = Field(
+        default="api.socket", validation_alias="MSM_API_SOCKET"
     )
 
     @classmethod

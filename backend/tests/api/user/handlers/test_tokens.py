@@ -5,8 +5,8 @@ from datetime import (
 
 import pytest
 
-from ...fixtures.client import Client
-from ...fixtures.factory import Factory
+from ....fixtures.client import Client
+from ....fixtures.factory import Factory
 
 
 def iso8601_duration(duration: timedelta) -> str:

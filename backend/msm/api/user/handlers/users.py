@@ -16,8 +16,8 @@ from pydantic import (
     model_validator,
 )
 
-from ...db import models
-from ...schema import (
+from ....db import models
+from ....schema import (
     PaginatedResults,
     pagination_params,
     PaginationParams,
@@ -26,18 +26,18 @@ from ...schema import (
     SortParam,
     SortParamParser,
 )
-from ...service import ServiceCollection
+from ....service import ServiceCollection
+from ..._dependencies import services
+from ..._utils import raise_on_empty_request
 from .._auth import (
     authenticate_user,
     authenticated_admin,
     authenticated_user,
 )
-from .._dependencies import services
 from .._forms import (
     user_filter_params,
     UserFilterParams,
 )
-from .._utils import raise_on_empty_request
 
 v1_router = APIRouter(prefix="/v1")
 

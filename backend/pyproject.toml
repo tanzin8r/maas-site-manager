@@ -52,7 +52,7 @@ testing = [
 ]
 [project.scripts]
 msm-admin = "msm.cmd.admin:script"
-msm-user-api = "msm.user_api:run"
+msm-api = "msm.api:run"
 [project.entry-points."snaphelpers.hooks"]
 configure = "msm.snap:configure_hook"
 

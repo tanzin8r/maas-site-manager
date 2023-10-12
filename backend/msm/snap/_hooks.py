@@ -34,7 +34,7 @@ def _generate_config(settings: Settings, snap: Snap) -> None:
     nginx_config = NginxConfig(
         base_dir=snap.paths.snap,
         data_dir=snap.paths.data,
-        port=settings.user_api_port,
-        user_api_socket=Path(settings.user_api_socket),
+        port=settings.api_port,
+        api_socket=Path(settings.api_socket),
     )
     nginx_config.write(snap.paths.data / "nginx.conf")

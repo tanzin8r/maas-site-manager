@@ -2,7 +2,7 @@ import pytest
 
 from msm.db.models import User
 
-from ...fixtures.client import Client
+from ....fixtures.client import Client
 
 
 @pytest.mark.asyncio

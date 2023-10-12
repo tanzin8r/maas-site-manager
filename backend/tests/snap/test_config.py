@@ -12,7 +12,7 @@ def config() -> Iterator[NginxConfig]:
         base_dir=Path("/path/base"),
         data_dir=Path("/path/data"),
         port=1234,
-        user_api_socket=Path("/path/user-api.socket"),
+        api_socket=Path("/path/api.socket"),
     )
 
 
@@ -22,7 +22,7 @@ class TestNginxConfig:
             "base_dir": Path("/path/base"),
             "data_dir": Path("/path/data"),
             "port": 1234,
-            "user_api_socket": Path("/path/user-api.socket"),
+            "api_socket": Path("/path/api.socket"),
         }
 
     def test_render(self, config: NginxConfig) -> None:
@@ -30,7 +30,7 @@ class TestNginxConfig:
         assert f"root {config.base_dir}/static;" in content
         assert "listen 1234;" in content
         assert "listen [::]:1234;" in content
-        assert f"server unix:{config.user_api_socket};" in content
+        assert f"server unix:{config.api_socket};" in content
 
     def test_write(self, tmp_path: Path, config: NginxConfig) -> None:
         outfile = tmp_path / "nginx.conf"

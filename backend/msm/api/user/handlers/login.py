@@ -8,14 +8,14 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
-from ...db.models import Config
-from ...jwt import create_token
-from ...service import ServiceCollection
-from .._auth import authenticate_user
-from .._dependencies import (
+from ....db.models import Config
+from ....jwt import create_token
+from ....service import ServiceCollection
+from ..._dependencies import (
     config,
     services,
 )
+from .._auth import authenticate_user
 
 v1_router = APIRouter(prefix="/v1")
 

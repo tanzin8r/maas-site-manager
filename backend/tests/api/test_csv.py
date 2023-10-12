@@ -4,8 +4,8 @@ from datetime import (
 )
 import uuid
 
+from msm.api._csv import CSVResponse
 from msm.db.models import Token
-from msm.user_api._csv import CSVResponse
 
 
 def isoformat(t: datetime) -> str:

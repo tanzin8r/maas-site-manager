@@ -20,4 +20,4 @@ COPY . /app/
 EXPOSE 8000
 
 #ENTRYPOINT ["tail", "-f", "/dev/null"]  # to keep it running for debugging
-ENTRYPOINT ["python", "-m", "tox", "run", "-re", "user-api"]
+ENTRYPOINT ["python", "-m", "tox", "run", "-re", "api"]

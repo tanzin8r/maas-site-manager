@@ -33,7 +33,7 @@ from ..middleware import (
 from ..service import ConfigService
 from ..settings import Settings
 from ._prometheus import instrument_prometheus
-from .handlers import api_router
+from .user.handlers import api_router
 
 
 def run() -> None:
@@ -43,14 +43,14 @@ def run() -> None:
     if settings.dev_mode:
         config = {
             "host": "0.0.0.0",
-            "port": settings.user_api_port,
+            "port": settings.api_port,
             "reload": True,
             "reload_dirs": [str(Path(msm.__file__).parent)],
         }
     else:
-        config = {"uds": settings.user_api_socket}
+        config = {"uds": settings.api_socket}
     uvicorn.run(
-        "msm.user_api:create_app",
+        "msm.api:create_app",
         factory=True,
         loop="uvloop",
         **config,
@@ -62,7 +62,7 @@ def create_app(
     transaction_middleware_class: type = TransactionMiddleware,
     prometheus_registry: CollectorRegistry = REGISTRY,
 ) -> FastAPI:
-    """Create the User API (FastAPI) ASGI application."""
+    """Create the API (FastAPI) ASGI application."""
     settings = Settings()
     if not db:
         db = Database(settings.db_dsn)

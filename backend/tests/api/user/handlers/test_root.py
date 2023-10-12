@@ -2,7 +2,7 @@ import pytest
 
 from msm import __version__
 
-from ...fixtures.client import Client
+from ....fixtures.client import Client
 
 
 @pytest.mark.asyncio

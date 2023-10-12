@@ -7,19 +7,19 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordBearer
 
-from ..db.models import (
+from ...db.models import (
     Config,
     User,
 )
-from ..jwt import (
+from ...jwt import (
     InvalidToken,
     validate_token,
 )
-from ..service import (
+from ...service import (
     ServiceCollection,
     UserService,
 )
-from ._dependencies import (
+from .._dependencies import (
     config,
     services,
 )

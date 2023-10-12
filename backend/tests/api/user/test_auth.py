@@ -6,7 +6,7 @@ import pytest
 
 from msm.db.models import User
 
-from ..fixtures.client import Client
+from ...fixtures.client import Client
 
 AUTHENTICATED_ROUTES = [
     ("GET", "/api/v1/requests"),

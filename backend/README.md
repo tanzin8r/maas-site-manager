@@ -84,7 +84,7 @@ Database schema setup will happen automatically at application startup.
 The application can be run via
 
 ```
-tox run -e user-api
+tox run -e api
 ```
 
 ## Delete and recreate the database

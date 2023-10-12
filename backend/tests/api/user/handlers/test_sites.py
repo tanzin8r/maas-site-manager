@@ -14,8 +14,8 @@ from msm.db.models import (
 )
 from msm.service._site import LOST_CONNECTION_THRESHOLD_SECONDS
 
-from ...fixtures.client import Client
-from ...fixtures.factory import Factory
+from ....fixtures.client import Client
+from ....fixtures.factory import Factory
 
 
 def site_details(site: Site, stats: SiteData | None = None) -> dict[str, Any]:

@@ -1,6 +1,4 @@
-"""
-Common utility functions for the user API
-"""
+"""Common utility functions for the API"""
 
 from fastapi import (
     HTTPException,

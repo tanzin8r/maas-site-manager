@@ -43,6 +43,6 @@ class NginxConfig(ConfigRenderer):
     base_dir: Path
     data_dir: Path
     port: int
-    user_api_socket: Path
+    api_socket: Path
 
     template_name = "nginx.conf"
