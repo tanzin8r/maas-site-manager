@@ -89,7 +89,7 @@ async def get_export(
     authenticated_user: Annotated[User, Depends(authenticated_user)],
 ) -> CSVResponse:
     """Return the list of active tokens in CSV format."""
-    tokens = await services.tokens.get_active()
+    _, tokens = await services.tokens.get()
     return CSVResponse(content=tokens)
 
 

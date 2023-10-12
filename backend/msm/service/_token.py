@@ -42,7 +42,9 @@ class TokenService(Service):
         offset: int = 0,
         limit: int | None = None,
     ) -> tuple[int, Iterable[models.Token]]:
-        count = await queries.row_count(self.conn, Token)
+        """Return active tokens."""
+        expired_filter = Token.c.expired > datetime.utcnow()
+        count = await queries.row_count(self.conn, Token, expired_filter)
         stmt = (
             select(
                 Token.c.id,
@@ -51,6 +53,7 @@ class TokenService(Service):
                 Token.c.created,
             )
             .select_from(Token)
+            .where(expired_filter)
             .order_by(Token.c.id)
             .offset(offset)
         )
@@ -63,17 +66,3 @@ class TokenService(Service):
         """Deletes a token by ID."""
         stmt = delete(Token).where(Token.c.id == token_id)
         await self.conn.execute(stmt)
-
-    async def get_active(self) -> Iterable[models.Token]:
-        result = await self.conn.execute(
-            select(
-                Token.c.id,
-                Token.c.value,
-                Token.c.expired,
-                Token.c.created,
-            )
-            .select_from(Token)
-            .where(Token.c.expired > datetime.utcnow())
-            .order_by(Token.c.id)
-        )
-        return self.objects_from_result(models.Token, result)

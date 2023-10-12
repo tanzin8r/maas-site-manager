@@ -24,7 +24,7 @@ class TestTokenService:
         assert len(list(uuids)) == 10
         assert expiration > now + duration
 
-    async def test_get_active_tokens(
+    async def test_get_includes_only_active(
         self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
         uuid1, uuid2, uuid3 = [uuid.uuid4() for _ in range(3)]
@@ -33,7 +33,9 @@ class TestTokenService:
         await factory.make_Token(value=uuid3, lifetime=timedelta(hours=2))
 
         service = TokenService(db_connection)
-        assert [token.value for token in await service.get_active()] == [
+        count, tokens = await service.get()
+        assert count == 2
+        assert set(token.value for token in tokens) == {
             uuid2,
             uuid3,
-        ]
+        }
