@@ -6,7 +6,7 @@ import pytest
 
 from msm.db.models import User
 
-from ...fixtures.client import Client
+from ..fixtures.client import Client
 
 AUTHENTICATED_ROUTES = [
     ("GET", "/api/v1/requests"),
@@ -31,7 +31,6 @@ AUTHENTICATED_ROUTES = [
 ]
 
 UNAUTHENTICATED_ROUTES = [
-    ("GET", "/api/v1/"),
     ("POST", "/api/v1/login"),
     ("GET", "/metrics"),
 ]
@@ -47,6 +46,7 @@ ADMIN_ROUTES = [
 
 @pytest.fixture
 def api_routes(api_app: FastAPI) -> Iterator[set[tuple[str, str]]]:
+    """Return all API routes as tuples of (method, path)."""
     routes = set()
     for route in api_app.routes:
         if not isinstance(route, APIRoute):
