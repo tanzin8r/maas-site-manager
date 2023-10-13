@@ -59,6 +59,13 @@ Site = Table(
     Column("url", Text, nullable=False, default=""),
     Column("accepted", Boolean, nullable=False, default=False, index=True),
     Column("created", DateTime, nullable=False, default=datetime.utcnow),
+    Column(
+        "auth_id",
+        UUID(as_uuid=True),
+        nullable=False,
+        unique=True,
+        index=True,
+    ),
 )
 
 

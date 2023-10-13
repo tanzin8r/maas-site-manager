@@ -138,6 +138,7 @@ class Factory:
         timezone: str | None = None,
         coordinates: tuple[float, float] | None = None,
         connection_status: ConnectionStatus = ConnectionStatus.UNKNOWN,
+        auth_id: UUID | None = None,
     ) -> Site:
         """Create a Site."""
         id = await self.next_id("site")
@@ -145,6 +146,8 @@ class Factory:
             name = f"site{id}"
         if url is None:
             url = f"https://{name}.example.com/"
+        if auth_id is None:
+            auth_id = uuid4()
         [row] = await self.create(
             "site",
             [
@@ -161,6 +164,7 @@ class Factory:
                     "name_unique": True,
                     "accepted": True,
                     "created": datetime.utcnow(),
+                    "auth_id": auth_id,
                 }
             ],
         )
@@ -170,6 +174,7 @@ class Factory:
         self,
         name: str | None = None,
         url: str | None = None,
+        auth_id: UUID | None = None,
     ) -> PendingSite:
         """Create a PendingSite."""
         id = await self.next_id("site")
@@ -177,6 +182,8 @@ class Factory:
             name = f"site{id}"
         if url is None:
             url = f"https://{name}.example.com/"
+        if auth_id is None:
+            auth_id = uuid4()
         [row] = await self.create(
             "site",
             {
@@ -185,6 +192,7 @@ class Factory:
                 "url": url,
                 "accepted": False,
                 "created": datetime.utcnow(),
+                "auth_id": auth_id,
             },
         )
         return PendingSite(**row)
