@@ -99,3 +99,13 @@ export const saveToFile = (data: BlobPart, filename: string, type: string): void
   link.download = filename;
   link.click();
 };
+
+export const computeMinZoom = ({
+  screenWidth,
+  screenHeight,
+}: {
+  screenWidth: number;
+  screenHeight: number;
+}): number => {
+  return Math.ceil(Math.log2(Math.max(screenWidth, screenHeight) / 256));
+};

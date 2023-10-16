@@ -7,6 +7,8 @@ import { type SiteMarkerType } from "./types";
 
 import { useAppLayoutContext } from "@/context";
 import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
+import useWindowSize from "@/hooks/useWindowSize";
+import { computeMinZoom } from "@/utils";
 
 const MapEvents = ({ onEvent }: { onEvent: LeafletEventHandlerFn }) => {
   useMapEvents({
@@ -26,10 +28,13 @@ const Map = ({
 }) => {
   const { setSidebar } = useAppLayoutContext();
   const { setSelected: setSiteId } = useSiteDetailsContext();
+  const { screenHeight, screenWidth } = useWindowSize();
   const handleMarkerClick = (id: SiteMarkerType["id"]) => {
     setSiteId(id);
     setSidebar("siteDetails");
   };
+
+  const minZoom = useMemo(() => computeMinZoom({ screenHeight, screenWidth }), [screenHeight, screenWidth]);
 
   return (
     <MapContainer
@@ -40,7 +45,12 @@ const Map = ({
       center={[0, 0]}
       className="map"
       id={id}
-      minZoom={1}
+      maxBounds={[
+        [-90, -180],
+        [90, 180],
+      ]}
+      maxBoundsViscosity={0.8}
+      minZoom={minZoom}
       zoom={3}
       zoomControl={false}
     >
