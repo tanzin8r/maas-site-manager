@@ -51,7 +51,6 @@ Site = Table(
     Column("country", Text, nullable=False, default=""),  # ISO 3166 Alpha2
     Column("coordinates", Point),
     Column("name", Text, nullable=False, default=""),
-    Column("name_unique", Boolean, nullable=False, default=True),
     Column("note", Text, nullable=False, default=""),
     Column("postal_code", Text, nullable=False, default=""),
     Column("state", Text, nullable=False, default=""),

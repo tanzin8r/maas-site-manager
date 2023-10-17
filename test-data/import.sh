@@ -35,7 +35,7 @@ EOF
 fi
 
 (
-    copy_cmd sites.csv 'site(id, city, postal_code, country, coordinates, name, name_unique, note, state, address,timezone, url, accepted, created, auth_id)'
+    copy_cmd sites.csv 'site(id, city, postal_code, country, coordinates, name, note, state, address,timezone, url, accepted, created, auth_id)'
     copy_cmd tokens.csv 'token(auth_id, value, expired, created)'
     copy_cmd users.csv '"user"(email, username, full_name, password, is_admin, auth_id)'
     copy_cmd site_data.csv 'site_data(site_id, allocated_machines, deployed_machines, ready_machines, error_machines, other_machines, last_seen)'

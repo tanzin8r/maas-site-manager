@@ -15,6 +15,8 @@ from uuid import (
 import pytest
 from sqlalchemy import (
     ColumnOperators,
+    func,
+    select,
     Sequence,
 )
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -161,13 +163,20 @@ class Factory:
                         getattr(TimeZone, timezone) if timezone else ""
                     ),
                     "coordinates": coordinates,
-                    "name_unique": True,
                     "accepted": True,
                     "created": datetime.utcnow(),
                     "auth_id": auth_id,
                 }
             ],
         )
+        # compute the name_unique attribute
+        site_table = METADATA.tables["site"]
+        result = await self.conn.execute(
+            select(func.count() == 1)
+            .select_from(site_table)
+            .filter(site_table.c.name == name)
+        )
+        row["name_unique"] = result.one()[0]
         return Site(connection_status=connection_status, **row)
 
     async def make_PendingSite(

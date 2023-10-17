@@ -96,15 +96,6 @@ class SiteService(Service):
         result = await self.conn.execute(stmt)
         return result.scalar() is True
 
-    async def is_name_unique(self, id: int, name: str) -> bool:
-        """Check if the given name is unique"""
-        stmt = select(Site).where(
-            select(Site).where(Site.c.name == name, Site.c.id != id).exists()
-        )
-        if result := await self.conn.execute(stmt):
-            return result.scalar() is None
-        return True
-
     async def update(self, site_id: int, details: models.SiteUpdate) -> None:
         """Update a site"""
         stmt = (
@@ -200,7 +191,12 @@ class SiteService(Service):
             Site.c.country,
             Site.c.coordinates,
             Site.c.name,
-            Site.c.name_unique,
+            Site.c.name.notin_(
+                select(Site.c.name)
+                .select_from(Site)
+                .group_by(Site.c.name)
+                .having(func.count(Site.c.name) > 1)
+            ).label("name_unique"),
             Site.c.note,
             Site.c.postal_code,
             Site.c.state,

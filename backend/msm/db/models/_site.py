@@ -42,7 +42,6 @@ class SiteUpdate(BaseModel):
     postal_code: str | None = None
     # XXX: mypy can't grok that this is an str/enum with lots of members
     timezone: TimeZone | None = None  # type: ignore[valid-type]
-    name_unique: bool | None = None
 
 
 class Site(BaseModel):

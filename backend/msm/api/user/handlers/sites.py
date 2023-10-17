@@ -63,7 +63,7 @@ class SitesGetResponse(PaginatedResults):
 
 
 class SiteUpdateRequest(BaseModel):
-    """Update a site without setting it's name_unique."""
+    """Update a site."""
 
     city: str | None = None
     country: str | None = Field(default=None, min_length=2, max_length=2)
@@ -108,9 +108,7 @@ async def patch(
     request: SiteUpdateRequest,
     id: int,
 ) -> models.Site:
-    """Modify a site and make sure that the `name_unique`
-    flag is updated accordingly.
-    """
+    """Modify a site."""
     if not await services.sites.id_exists(id):
         raise not_found("Site")
 
