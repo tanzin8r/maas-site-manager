@@ -4,21 +4,22 @@
 #
 #    pip-compile --output-file=requirements.txt pyproject.toml
 #
-annotated-types==0.5.0
+annotated-types==0.6.0
     # via pydantic
 anyio==3.7.1
     # via
+    #   fastapi
     #   starlette
     #   watchfiles
 asyncpg==0.28.0
     # via sqlalchemy
 bcrypt==4.0.1
     # via passlib
-cffi==1.15.1
+cffi==1.16.0
     # via cryptography
 click==8.1.7
     # via uvicorn
-cryptography==41.0.3
+cryptography==41.0.4
     # via python-jose
 dnspython==2.4.2
     # via email-validator
@@ -28,15 +29,15 @@ email-validator==2.0.0.post2
     # via pydantic
 exceptiongroup==1.1.3
     # via anyio
-fastapi==0.101.1
+fastapi==0.104.0
     # via
     #   msm (pyproject.toml)
     #   prometheus-fastapi-instrumentator
-greenlet==2.0.2
+greenlet==3.0.0
     # via sqlalchemy
 h11==0.14.0
     # via uvicorn
-httptools==0.6.0
+httptools==0.6.1
     # via uvicorn
 idna==3.4
     # via
@@ -58,12 +59,12 @@ pyasn1==0.5.0
     #   rsa
 pycparser==2.21
     # via cffi
-pydantic[email]==2.3.0
+pydantic[email]==2.4.2
     # via
     #   fastapi
     #   msm (pyproject.toml)
     #   pydantic-settings
-pydantic-core==2.6.3
+pydantic-core==2.10.1
     # via pydantic
 pydantic-settings==2.0.3
     # via msm (pyproject.toml)
@@ -75,7 +76,7 @@ python-jose[cryptography]==3.3.0
     # via msm (pyproject.toml)
 python-multipart==0.0.6
     # via msm (pyproject.toml)
-pytz==2023.3
+pytz==2023.3.post1
     # via msm (pyproject.toml)
 pyyaml==6.0.1
     # via
@@ -89,13 +90,13 @@ snap-helpers==0.4.2
     # via msm (pyproject.toml)
 sniffio==1.3.0
     # via anyio
-sqlalchemy[postgresql_asyncpg]==2.0.20
+sqlalchemy[postgresql_asyncpg]==2.0.22
     # via msm (pyproject.toml)
 starlette==0.27.0
     # via fastapi
 strenum==0.4.15
     # via msm (pyproject.toml)
-typing-extensions==4.7.1
+typing-extensions==4.8.0
     # via
     #   fastapi
     #   pydantic
@@ -106,11 +107,11 @@ ujson==5.8.0
     # via msm (pyproject.toml)
 uvicorn[standard]==0.23.2
     # via msm (pyproject.toml)
-uvloop==0.17.0
+uvloop==0.18.0
     # via
     #   msm (pyproject.toml)
     #   uvicorn
-watchfiles==0.20.0
+watchfiles==0.21.0
     # via uvicorn
 websockets==11.0.3
     # via uvicorn
