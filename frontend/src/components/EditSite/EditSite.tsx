@@ -143,7 +143,6 @@ const EditSiteContent = ({
                 <Label htmlFor={stateId}>Administrative region</Label>
                 <Field
                   as={Input}
-                  className="u-no-margin"
                   error={touched.state && errors.state}
                   help={<small className="u-text--muted">e.g. state, province etc.</small>}
                   id={stateId}
@@ -165,7 +164,6 @@ const EditSiteContent = ({
                 <Label htmlFor={coordinatesId}>Latitude and Longitude</Label>
                 <Field
                   as={Input}
-                  className="u-no-margin"
                   error={touched.coordinates && errors.coordinates}
                   help={<small className="u-text--muted">Coordinates need to be a comma-separated pair.</small>}
                   id={coordinatesId}
