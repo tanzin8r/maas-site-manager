@@ -79,42 +79,24 @@ $grid-margin-default: map_get($grid-margin-widths, default);
     z-index: 100;
 }
 
-.site-marker-cluster {
+.site-marker-cluster__body {
+  stroke: $color-light;
+}
+
+.site-marker-cluster__text {
   text-align: center;
+  color: white;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+  width: 100%;
 
-  .site-marker-cluster__body {
-    stroke: $color-light;
-  }
-
-  .site-marker-cluster__text {
-    color: white;
-    position: relative;
-    left: 0;
-  }
-}
-
-.site-marker-cluster--x-large {
-  .site-marker-cluster__text {
-    bottom: 85%;
-  }
-}
-
-.site-marker-cluster--large {
-  .site-marker-cluster__text {
-    bottom: 95%;
-  }
-}
-
-.site-marker-cluster--medium {
-  .site-marker-cluster__text {
-    bottom: 95%;
-  }
-}
-
-.site-marker-cluster--small {
-  .site-marker-cluster__text {
-    bottom: 108%;
-  }
+  // Adjust margin-top to simulate correct leading and center the text visually
+  margin-top: -1px;
 }
 
 .popup-container {
