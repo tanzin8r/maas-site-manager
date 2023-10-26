@@ -5,18 +5,23 @@ import { Map as LeafletMap, control } from "leaflet";
 
 import { LeafletMapContextProvider } from "@/context/LeafletMapContext";
 
-interface LeafletMapContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  options: MapOptions & { boundsOptions: FitBoundsOptions; zoomControlOptions?: Control.ZoomOptions };
+interface InitialOptions extends Omit<MapOptions, "minZoom"> {
+  boundsOptions: FitBoundsOptions;
+  zoomControlOptions?: Control.ZoomOptions;
+}
+interface LeafletMapContainerProps extends React.HTMLAttributes<HTMLDivElement>, Pick<MapOptions, "minZoom"> {
+  initialOptions: InitialOptions;
 }
 
 /**
  * Sets up a leaflet map and adds it to the LeafletMapContextProvider.
  *
- * @note Changes to options, except for minZoom, are not reflected in the map after initialization.
+ * @note Changes to initialOptions are not reflected in the map after initialization.
  */
 const LeafletMapContainer: React.FC<LeafletMapContainerProps> = ({
   children,
-  options: { boundsOptions, zoomControlOptions, ...leafletOptions },
+  initialOptions: { boundsOptions, zoomControlOptions, ...leafletOptions },
+  minZoom,
   ...props
 }) => {
   const [map, setMap] = useState<LeafletMap | null>(null);
@@ -46,10 +51,10 @@ const LeafletMapContainer: React.FC<LeafletMapContainerProps> = ({
 
   // Update map zoom on change
   useEffect(() => {
-    if (map && leafletOptions.minZoom) {
-      map.setMinZoom(leafletOptions.minZoom);
+    if (map && minZoom) {
+      map.setMinZoom(minZoom);
     }
-  }, [map, leafletOptions.minZoom]);
+  }, [map, minZoom]);
 
   useEffect(() => {
     return () => {

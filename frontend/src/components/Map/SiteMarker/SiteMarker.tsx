@@ -59,28 +59,37 @@ export const getSiteMarker = (appearance: keyof typeof markerIcon) => {
 const getClusterSvg = (
   appearance: MarkerApprearance,
   count: number,
-  size: number,
-) => `<svg fill="none" height=${size} viewBox="0 0 ${size} ${size}" width=${size} xmlns="http://www.w3.org/2000/svg">
+) => `<svg fill="none" viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
     <rect
       class=${classNames("site-marker-cluster__body", { "has-selected": appearance === "selected" })}
       fill="#E95420"
-      height=${size - 1}
+      height="31"
       rx="28.5"
-      width=${size - 1}
+      width="31"
       x="0.5"
       y="0.5"
     />
-    <span class="site-marker-cluster__text p-heading--${count < 20 ? "5" : "4"}">${count}</span>
+    <span class="site-marker-cluster__text">${count}</span>
   </svg>`;
 
-export const createCustomClusterIcon = function (appearance: MarkerApprearance, count: number) {
-  const size = count >= 30 ? 58 : count >= 20 ? 48 : count >= 10 ? 38 : 28;
-  const sizeModifier = count >= 30 ? "x-large" : count >= 20 ? "large" : count >= 10 ? "medium" : "small";
-  const html = getClusterSvg(appearance, count, size);
+export const getClusterSize = (count: number, maxCount: number) => {
+  const sizeModifiers = [
+    { countLimit: 0.4 * maxCount, size: 32 },
+    { countLimit: 0.6 * maxCount, size: 48 },
+    { countLimit: 0.8 * maxCount, size: 58 },
+    { countLimit: Infinity, size: 88 },
+  ] as const;
+  const size = sizeModifiers.find(({ countLimit }) => count <= countLimit)!.size;
+  return size;
+};
+
+export const createCustomClusterIcon = function (appearance: MarkerApprearance, count: number, maxCount = 100) {
+  const iconSize = getClusterSize(count, maxCount);
+  const html = getClusterSvg(appearance, count);
 
   return new L.DivIcon({
     html,
-    className: `site-marker-cluster site-marker-cluster--${sizeModifier}`,
-    iconSize: L.point(size, size, true),
+    className: "site-marker-cluster",
+    iconSize: L.point(iconSize, iconSize, true),
   });
 };

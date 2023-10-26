@@ -94,6 +94,7 @@ $grid-margin-default: map_get($grid-margin-widths, default);
   transform: translateY(-50%);
   line-height: 1;
   width: 100%;
+  font-size: 1rem;
 
   // Adjust margin-top to simulate correct leading and center the text visually
   margin-top: -1px;

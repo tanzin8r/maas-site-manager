@@ -31,6 +31,7 @@ const MarkersLayer = ({ markers }: MapProps) => {
   const resetTimeout = () => clearTimeout(timeoutRef.current);
   const [sitePopupId, setSitePopupId] = useState<number | null>(null);
   const popup = usePopupContainer();
+  const highestClusterChildCount = useRef(0);
 
   const handleMarkerClick = useCallback(
     async (e: L.LeafletEvent, id: SiteMarkerType["id"]) => {
@@ -48,13 +49,24 @@ const MarkersLayer = ({ markers }: MapProps) => {
     // set default marker icon
     L.Marker.prototype.options.icon = getSiteMarker("base");
 
+    map.on("zoom", () => {
+      highestClusterChildCount.current = 0;
+    });
+
     // Create a new marker cluster group
     const markerClusterGroup = L.markerClusterGroup({
       iconCreateFunction: function (cluster) {
-        return createCustomClusterIcon("base", cluster.getChildCount());
+        const childCount = cluster.getChildCount();
+
+        // Keep track of the highestClusterChildCount
+        if (childCount > highestClusterChildCount.current) {
+          highestClusterChildCount.current = childCount;
+        }
+        return createCustomClusterIcon("base", childCount, highestClusterChildCount.current);
       },
       showCoverageOnHover: false,
     });
+
     markers.forEach((marker) => {
       const leafletMarker = L.marker(marker.position);
       leafletMarker.on("click", (event) => {
@@ -78,7 +90,6 @@ const MarkersLayer = ({ markers }: MapProps) => {
       leafletMarker.on("popupopen", () => {
         setSitePopupId(marker.id);
       });
-
       // Add markers to the cluster group
       markerClusterGroup.addLayer(leafletMarker);
     });

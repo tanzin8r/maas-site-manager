@@ -1,1 +1,1 @@
-export { getSiteMarker, createCustomClusterIcon } from "./SiteMarker";
+export { getSiteMarker, createCustomClusterIcon, getClusterSize } from "./SiteMarker";

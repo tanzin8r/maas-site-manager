@@ -51,12 +51,11 @@ const MapContainer: FC<MapProps> = (props) => {
   return (
     <LeafletMapContainer
       className="map"
-      options={{
+      initialOptions={{
         center: [0, 0],
         zoom: 3,
         zoomControlOptions: { position: "bottomright" },
         maxBoundsViscosity: 0.8,
-        minZoom,
         maxZoom: 17,
         maxBounds: [
           [-90, -180],
@@ -64,6 +63,7 @@ const MapContainer: FC<MapProps> = (props) => {
         ],
         boundsOptions: { paddingTopLeft: [50, 0] },
       }}
+      minZoom={minZoom}
     >
       <Map {...props} />
     </LeafletMapContainer>

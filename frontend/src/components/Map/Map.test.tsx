@@ -1,6 +1,7 @@
 import { rest } from "msw";
 
 import Map from "./Map";
+import { getClusterSize } from "./SiteMarker";
 
 import { markerFactory, siteFactory, statsFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
@@ -94,4 +95,28 @@ it("displays site details after clicking a marker", async () => {
   expect(screen.queryByLabelText("Site details")).not.toBeInTheDocument();
   await userEvent.click(marker);
   expect(screen.getByLabelText("Site details")).toBeInTheDocument();
+});
+
+it("updates highestClusterChildCount correctly when more markers are added", () => {
+  const markers = markerFactory.buildList(2, { position: [0, 0] });
+  const { rerender } = render(<Map markers={markers} />);
+
+  expect(screen.getByRole("button", { name: `${markers.length}` })).toBeInTheDocument();
+
+  const newMarkers = markerFactory.buildList(3, { position: [0, 0] });
+  rerender(<Map markers={newMarkers} />);
+
+  expect(screen.queryByRole("button", { name: `${markers.length}` })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: `${newMarkers.length}` })).toBeInTheDocument();
+});
+
+it("sets cluster size relative to the biggest cluster currently in view", () => {
+  const count = 5;
+  const markers = [...markerFactory.buildList(count, { position: [0, 0] })];
+  render(<Map markers={markers} />);
+
+  expect(screen.getByRole("button", { name: `${count}` })).toHaveStyle({
+    width: `${getClusterSize(count, count)}px`,
+    height: `${getClusterSize(count, count)}px`,
+  });
 });
