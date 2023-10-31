@@ -1,51 +1,9 @@
 import argparse
-import asyncio
-from itertools import chain
 from operator import attrgetter
 import sys
 from traceback import format_tb
 
-
-class Action:
-    """An action for a script."""
-
-    name: str
-    description: str
-
-    asynchronous: bool = False
-
-    def __init__(self) -> None:
-        self._actions: dict[str, argparse.Action] = {}
-
-    def add_arguments(self, parser: argparse.ArgumentParser) -> None:
-        """Add options for the actions to the subparser."""
-        self.register_options(parser)
-        actions = chain(
-            parser._positionals._group_actions,
-            parser._optionals._group_actions,
-        )
-        self._actions = {action.dest: action for action in actions}
-
-    def register_options(self, parser: argparse.ArgumentParser) -> None:
-        """Register the Action with a subparser.
-
-        Subclasses can implement this to add action-specific options to the
-        parser.
-        """
-
-    def execute(self, options: argparse.Namespace) -> int:
-        """Perform a synchronous action.
-
-        Subclasses must implement this.
-        """
-        return 0
-
-    async def aexecute(self, options: argparse.Namespace) -> int:
-        """Perform an asyncronouse action.
-
-        Subclasses must implement this.
-        """
-        return 0
+from ._action import Action
 
 
 class Script:
@@ -82,7 +40,7 @@ class Script:
         # the action is guaranteed to be there as the parser validates choices
         action = self._actions[options.action]
         try:
-            return self._call_action(action, options)
+            return action(options)
         except KeyboardInterrupt:
             do_exit()
         except Exception as e:
@@ -93,12 +51,6 @@ class Script:
             message += f"Command failed: {str(e)}"
             do_exit(message, code=2)
         return 0
-
-    def _call_action(self, action: Action, options: argparse.Namespace) -> int:
-        """Call the action with the specified arguments."""
-        if action.asynchronous:
-            return asyncio.run(action.aexecute(options))
-        return action.execute(options)
 
     def _register_action(self, action_class: type[Action]) -> Action:
         """Retister an Action."""

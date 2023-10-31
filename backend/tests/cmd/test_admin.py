@@ -1,18 +1,29 @@
 from argparse import Namespace
+from typing import (
+    cast,
+    Iterator,
+)
 
 import pytest
 
+from msm.cmd import AsyncAction
 from msm.cmd.admin import script
 from msm.password import verify_password
 
 from ..fixtures.factory import Factory
 
 
+@pytest.fixture
+def create_user_action() -> Iterator[AsyncAction]:
+    yield cast(AsyncAction, script._actions["create-user"])
+
+
 @pytest.mark.usefixtures("settings_environ", "db")
 class TestAdmin:
-    async def test_create_user(self, factory: Factory) -> None:
-        action = script._actions["create-user"]
-        await action.aexecute(
+    async def test_create_user(
+        self, factory: Factory, create_user_action: AsyncAction
+    ) -> None:
+        await create_user_action.aexecute(
             Namespace(
                 username="admin",
                 email="admin@example.net",
@@ -39,14 +50,14 @@ class TestAdmin:
         self,
         capsys: pytest.CaptureFixture[str],
         factory: Factory,
+        create_user_action: AsyncAction,
         attr: str,
         value: str,
     ) -> None:
         await factory.make_User(**{attr: value})  # type: ignore[arg-type]
         await factory.conn.commit()
-        action = script._actions["create-user"]
         with pytest.raises(SystemExit) as error:
-            await action.aexecute(
+            await create_user_action.aexecute(
                 Namespace(
                     username="admin",
                     email="admin@example.net",

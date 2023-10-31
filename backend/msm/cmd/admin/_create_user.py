@@ -10,21 +10,19 @@ from typing import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from .. import (
+    AsyncAction,
+    do_exit,
+)
 from ...db import Database
 from ...db.models import UserCreate
 from ...service import UserService
 from ...settings import Settings
-from .._script import (
-    Action,
-    do_exit,
-)
 
 
-class CreateUserAction(Action):
+class CreateUserAction(AsyncAction):
     name = "create-user"
     description = "Create a user"
-
-    asynchronous = True
 
     def register_options(self, parser: ArgumentParser) -> None:
         parser.add_argument(
