@@ -1,12 +1,16 @@
 .site-marker {
-  @include vf-transition(transform, snap, out);
+  @include vf-transition(transform, fast, out);
 
   transition-delay: 0;
   transform-origin: bottom center;
 
   &:hover {
-    transform: scale(1.25);
+    transform: scale(1.1);
     transition-delay: 750ms;
+
+    .site-marker__body {
+      fill: adjust-color($color-brand, $lightness: -$hover-background-opacity-percentage);
+    }
   }
 
   .site-marker__body {
