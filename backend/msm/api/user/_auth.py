@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import (
     Depends,
@@ -50,7 +51,8 @@ async def authenticated_user(
     )
     try:
         decoded_token = JWT.decode(token, key=config.token_secret_key)
-        if user := await services.users.get_by_auth_id(decoded_token.subject):
+        auth_id = UUID(decoded_token.subject)
+        if user := await services.users.get_by_auth_id(auth_id):
             return user
     except (InvalidToken, ValueError):
         raise auth_error

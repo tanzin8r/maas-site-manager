@@ -2,6 +2,7 @@ from typing import (
     AsyncIterator,
     Iterator,
 )
+from uuid import uuid4
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -83,6 +84,19 @@ class TestUserService:
         exists: bool,
     ) -> None:
         assert await service.get_by_id(id) == (user if exists else None)
+
+    async def test_get_by_auth_id(
+        self,
+        user: User,
+        service: UserService,
+    ) -> None:
+        assert await service.get_by_auth_id(user.auth_id) == user
+
+    async def test_get_by_auth_id_unknown(
+        self,
+        service: UserService,
+    ) -> None:
+        assert await service.get_by_auth_id(uuid4()) is None
 
     async def test_password_matches(
         self,

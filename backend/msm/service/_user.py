@@ -2,6 +2,7 @@ from typing import (
     Any,
     Iterable,
 )
+from uuid import UUID
 
 from sqlalchemy import (
     delete,
@@ -87,7 +88,7 @@ class UserService(Service):
                 return models.User(**user._asdict())
         return None
 
-    async def get_by_auth_id(self, auth_id: str) -> models.User | None:
+    async def get_by_auth_id(self, auth_id: UUID) -> models.User | None:
         """Gets a user by authentication ID."""
         stmt = self._select_statement().where(User.c.auth_id == auth_id)
         if result := await self.conn.execute(stmt):
