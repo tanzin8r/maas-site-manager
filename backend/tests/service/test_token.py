@@ -57,3 +57,14 @@ class TestTokenService:
             str(uuid2),
             str(uuid3),
         }
+
+    async def test_get_by_auth_id(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        uuid1, uuid2, uuid3 = [uuid.uuid4() for _ in range(3)]
+        await factory.make_Token(auth_id=uuid1, lifetime=timedelta(hours=-1))
+        await factory.make_Token(auth_id=uuid2, lifetime=timedelta(hours=1))
+        service = TokenService(db_connection)
+        assert await service.get_by_auth_id(uuid1) is not None
+        assert await service.get_by_auth_id(uuid2) is not None
+        assert await service.get_by_auth_id(uuid3) is None

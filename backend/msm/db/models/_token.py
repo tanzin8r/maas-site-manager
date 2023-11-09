@@ -10,3 +10,7 @@ class Token(BaseModel):
     value: str
     expired: datetime
     created: datetime
+
+    def is_expired(self) -> bool:
+        """Whether the token is expired."""
+        return self.expired < datetime.utcnow()

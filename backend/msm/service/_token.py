@@ -2,12 +2,16 @@ from datetime import (
     datetime,
     timedelta,
 )
-from typing import Iterable
-from uuid import uuid4
+from typing import (
+    Any,
+    Iterable,
+)
+import uuid
 
 from sqlalchemy import (
     delete,
     select,
+    Select,
 )
 
 from ..db import (
@@ -33,7 +37,7 @@ class TokenService(Service):
         tokens_data = []
         token_values = []
         for _ in range(count):
-            auth_id = uuid4()
+            auth_id = uuid.uuid4()
             token = JWT.create(
                 issuer=issuer,
                 subject=str(auth_id),
@@ -61,13 +65,7 @@ class TokenService(Service):
         expired_filter = Token.c.expired > datetime.utcnow()
         count = await queries.row_count(self.conn, Token, expired_filter)
         stmt = (
-            select(
-                Token.c.id,
-                Token.c.value,
-                Token.c.expired,
-                Token.c.created,
-            )
-            .select_from(Token)
+            self._select_statement()
             .where(expired_filter)
             .order_by(Token.c.id)
             .offset(offset)
@@ -77,7 +75,26 @@ class TokenService(Service):
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.Token, result)
 
-    async def delete(self, token_id: int) -> None:
+    async def get_by_auth_id(self, auth_id: uuid.UUID) -> models.Token | None:
+        """Get a token by authentication ID.
+
+        The token is returned even if it's expired.
+        """
+        stmt = self._select_statement().where(Token.c.auth_id == auth_id)
+        result = await self.conn.execute(stmt)
+        if row := result.one_or_none():
+            return models.Token(**row._asdict())
+        return None
+
+    async def delete(self, id: int) -> None:
         """Deletes a token by ID."""
-        stmt = delete(Token).where(Token.c.id == token_id)
+        stmt = delete(Token).where(Token.c.id == id)
         await self.conn.execute(stmt)
+
+    def _select_statement(self) -> Select[Any]:
+        return select(
+            Token.c.id,
+            Token.c.value,
+            Token.c.expired,
+            Token.c.created,
+        ).select_from(Token)
