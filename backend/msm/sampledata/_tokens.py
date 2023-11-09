@@ -10,11 +10,11 @@ from ._db import (
 
 
 async def make_fixture_tokens(
-    conn: AsyncConnection, secret_key: str
+    conn: AsyncConnection, issuer: str, secret_key: str
 ) -> list[SampleDataModel]:
     collection = ModelCollection("token")
     for _ in range(10):
-        token = JWT.create(str(uuid4()), key=secret_key)
+        token = JWT.create(issuer=issuer, subject=str(uuid4()), key=secret_key)
         collection.add(
             auth_id=token.subject,
             value=token.encoded,

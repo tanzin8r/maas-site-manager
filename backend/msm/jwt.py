@@ -37,6 +37,10 @@ class JWT:
     _REQUIRED_FIELDS = frozenset(("iat", "iss", "exp", "sub"))
 
     @cached_property
+    def issuer(self) -> str:
+        return cast(str, self.payload["iss"])
+
+    @cached_property
     def subject(self) -> str:
         return cast(str, self.payload["sub"])
 
@@ -59,6 +63,7 @@ class JWT:
     @classmethod
     def create(
         cls,
+        issuer: str,
         subject: str,
         key: str = "",
         duration: timedelta = TOKEN_DURATION,
@@ -71,7 +76,7 @@ class JWT:
         expiration = issued + duration
         payload = data | {
             "sub": subject,
-            "iss": "MAAS site manager",
+            "iss": issuer,
             "iat": issued,
             "exp": expiration,
         }
@@ -93,10 +98,16 @@ class JWT:
         if cls._REQUIRED_FIELDS - set(payload):
             raise InvalidToken()
 
-        expiration = datetime.utcfromtimestamp(payload["exp"])
-        if expiration < datetime.utcnow():
-            raise InvalidToken()
         return JWT(
             payload=payload,
             encoded=encoded,
         )
+
+    def validate(self, issuer: str) -> None:
+        """Raise InvalidToken if the token is not valid."""
+        expiration = datetime.utcfromtimestamp(self.payload["exp"])
+        if expiration < datetime.utcnow():
+            raise InvalidToken()
+
+        if self.issuer != issuer:
+            raise InvalidToken()

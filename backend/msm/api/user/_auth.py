@@ -25,7 +25,7 @@ from .._dependencies import (
     services,
 )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
 
 
 async def authenticate_user(
@@ -43,7 +43,7 @@ async def authenticated_user(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
     token: Annotated[str, Depends(oauth2_scheme)],
-) -> User | None:
+) -> User:
     auth_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -51,11 +51,12 @@ async def authenticated_user(
     )
     try:
         decoded_token = JWT.decode(token, key=config.token_secret_key)
-        auth_id = UUID(decoded_token.subject)
-        if user := await services.users.get_by_auth_id(auth_id):
-            return user
+        decoded_token.validate(config.service_identifier)
     except (InvalidToken, ValueError):
         raise auth_error
+    auth_id = UUID(decoded_token.subject)
+    if user := await services.users.get_by_auth_id(auth_id):
+        return user
     raise auth_error
 
 
@@ -63,12 +64,12 @@ async def authenticated_admin(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
     token: Annotated[str, Depends(oauth2_scheme)],
-) -> User | None:
-    if user := await authenticated_user(config, services, token):
-        if not user.is_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Unauthorized credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+) -> User:
+    user = await authenticated_user(config, services, token)
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user

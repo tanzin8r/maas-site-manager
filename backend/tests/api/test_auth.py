@@ -86,7 +86,10 @@ async def test_handler_auth_not_required(
 @pytest.mark.asyncio
 @pytest.mark.parametrize("method,url", ADMIN_ROUTES)
 async def test_handler_admin_required(
-    app_client: Client, api_user: User, method: str, url: str
+    app_client: Client,
+    api_user: User,
+    method: str,
+    url: str,
 ) -> None:
     app_client.authenticate(api_user.auth_id)
     response = await app_client.request(method, url)

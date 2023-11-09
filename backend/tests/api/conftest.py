@@ -6,17 +6,25 @@ from typing import (
 from fastapi import FastAPI
 from prometheus_client import CollectorRegistry
 import pytest
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.api import create_app
 from msm.db import Database
-from msm.db.models import User
+from msm.db.models import (
+    Config,
+    User,
+)
+from msm.service import ConfigService
 
 from ..fixtures.client import Client
 from ..fixtures.factory import Factory
 
 
-def make_api_client(app: FastAPI, prefix: str = "") -> Client:
-    return Client(app=app, base_url=f"http://test{prefix}")
+def make_api_client(app: FastAPI, config: Config, prefix: str = "") -> Client:
+    """Return a Client configured for the application API."""
+    client = Client(app=app, base_url=f"http://test{prefix}")
+    client.set_token_config(config.service_identifier, config.token_secret_key)
+    return client
 
 
 @pytest.fixture
@@ -32,9 +40,19 @@ def api_app(
 
 
 @pytest.fixture
-async def app_client(api_app: FastAPI) -> AsyncIterator[Client]:
+async def api_config(db_connection: AsyncConnection) -> AsyncIterator[Config]:
+    """The API service configuration."""
+    service = ConfigService(db_connection)
+    await service.ensure()
+    yield await service.get()
+
+
+@pytest.fixture
+async def app_client(
+    api_app: FastAPI, api_config: Config
+) -> AsyncIterator[Client]:
     """Client for the API."""
-    async with make_api_client(api_app) as client:
+    async with make_api_client(api_app, api_config) as client:
         yield client
 
 
@@ -50,5 +68,5 @@ async def api_user(factory: Factory) -> AsyncIterator[User]:
 
 @pytest.fixture
 async def api_admin(factory: Factory) -> AsyncIterator[User]:
-    """An API administrator)."""
+    """An API administrator."""
     yield await factory.make_User(username=API_ADMIN_NAME, is_admin=True)

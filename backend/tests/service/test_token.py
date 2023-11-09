@@ -22,6 +22,7 @@ class TestTokenService:
         duration = timedelta(minutes=10)
         service = TokenService(db_connection)
         expiration, values = await service.create(
+            issuer="issuer",
             duration=duration,
             count=10,
         )
@@ -35,7 +36,7 @@ class TestTokenService:
         duration = timedelta(minutes=10)
         service = TokenService(db_connection)
         _, [value] = await service.create(
-            duration=duration, secret_key=secret_key
+            issuer="issuer", duration=duration, secret_key=secret_key
         )
         decoded_token = JWT.decode(value, secret_key)
         [token] = await factory.get("token")

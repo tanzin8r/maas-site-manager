@@ -22,6 +22,7 @@ from ._base import Service
 class TokenService(Service):
     async def create(
         self,
+        issuer: str,
         duration: timedelta,
         count: int = 1,
         secret_key: str = "",
@@ -33,7 +34,12 @@ class TokenService(Service):
         token_values = []
         for _ in range(count):
             auth_id = uuid4()
-            token = JWT.create(str(auth_id), secret_key, duration=duration)
+            token = JWT.create(
+                issuer=issuer,
+                subject=str(auth_id),
+                key=secret_key,
+                duration=duration,
+            )
             token_values.append(token.encoded)
             tokens_data.append(
                 {

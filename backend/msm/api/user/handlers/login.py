@@ -49,5 +49,9 @@ async def post(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    token = JWT.create(str(user.auth_id), key=config.token_secret_key)
+    token = JWT.create(
+        issuer=config.service_identifier,
+        subject=str(user.auth_id),
+        key=config.token_secret_key,
+    )
     return LoginPostResponse(access_token=token.encoded, token_type="bearer")

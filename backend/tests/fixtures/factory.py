@@ -65,10 +65,11 @@ class Factory:
         *filters: ColumnOperators,
     ) -> list[dict[str, Any]]:
         """Get ore on more entries from a table."""
+        tbl = METADATA.tables[table]
         result = await self.conn.execute(
-            METADATA.tables[table]
-            .select()
+            tbl.select()
             .where(*filters)  # type: ignore[arg-type]
+            .order_by(*tbl.primary_key.columns)  # predictable order
         )
         return [row._asdict() for row in result]
 
@@ -107,6 +108,7 @@ class Factory:
 
     async def make_Token(
         self,
+        issuer: str = "issuer",
         auth_id: UUID | None = None,
         lifetime: timedelta = timedelta(minutes=5),
         key: str = "",
@@ -115,7 +117,12 @@ class Factory:
         id = await self.next_id("token")
         if auth_id is None:
             auth_id = uuid4()
-        token = JWT.create(str(auth_id), key=key, duration=lifetime)
+        token = JWT.create(
+            issuer=issuer,
+            subject=str(auth_id),
+            key=key,
+            duration=lifetime,
+        )
         now = datetime.utcnow()
         [row] = await self.create(
             "token",

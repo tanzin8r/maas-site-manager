@@ -38,7 +38,11 @@ class FixturesAction(DatabaseAction):
         self._print_fixtures("users", ["id", "username", "email"], users)
         sites = await make_fixture_sites(conn)
         self._print_fixtures("sites", ["id", "name", "url"], sites)
-        tokens = await make_fixture_tokens(conn, config.token_secret_key)
+        tokens = await make_fixture_tokens(
+            conn,
+            config.service_identifier,
+            config.token_secret_key,
+        )
         self._print_fixtures("tokens", ["id", "value", "expired"], tokens)
 
     def _print_fixtures(

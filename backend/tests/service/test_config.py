@@ -14,10 +14,14 @@ class TestConfigService:
     async def test_get(
         self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
+        await factory.make_Config("service_identifier", value="12345")
         await factory.make_Config("token_secret_key", value="secret")
         service = ConfigService(db_connection)
         config = await service.get()
-        assert config == Config(token_secret_key="secret")
+        assert config == Config(
+            service_identifier="12345",
+            token_secret_key="secret",
+        )
 
     async def test_get_no_extra_entries(
         self, factory: Factory, db_connection: AsyncConnection
@@ -37,26 +41,34 @@ class TestConfigService:
             Config.model_fields
         )
 
-    async def test_ensure_generate_key(
+    async def test_ensure_creates_defaults(
         self,
         mocker: MockerFixture,
         factory: Factory,
         db_connection: AsyncConnection,
     ) -> None:
+        mocker.patch.object(_config, "uuid4").return_value = "a-b-c"
         mocker.patch.object(_config, "generate_key").return_value = "abcde"
         service = ConfigService(db_connection)
         await service.ensure()
         configs = await factory.get("config")
-        assert configs == [{"name": "token_secret_key", "value": "abcde"}]
+        assert configs == [
+            {"name": "service_identifier", "value": "a-b-c"},
+            {"name": "token_secret_key", "value": "abcde"},
+        ]
 
     async def test_ensure_keep_existing(
         self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
+        await factory.make_Config("service_identifier", value="12345")
         await factory.make_Config("token_secret_key", value="secret")
         service = ConfigService(db_connection)
         await service.ensure()
         configs = await factory.get("config")
-        assert configs == [{"name": "token_secret_key", "value": "secret"}]
+        assert configs == [
+            {"name": "service_identifier", "value": "12345"},
+            {"name": "token_secret_key", "value": "secret"},
+        ]
 
     async def test_ensure_remove_extra(
         self, factory: Factory, db_connection: AsyncConnection

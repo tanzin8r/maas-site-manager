@@ -81,7 +81,8 @@ async def post(
     Token duration (TTL) is expressed as an ISO-8601 duration string.
     """
     expired, tokens = await services.tokens.create(
-        create_request.duration,
+        issuer=config.service_identifier,
+        duration=create_request.duration,
         count=create_request.count,
         secret_key=config.token_secret_key,
     )
