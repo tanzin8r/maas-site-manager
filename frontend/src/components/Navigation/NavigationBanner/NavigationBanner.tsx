@@ -1,3 +1,5 @@
+import { Navigation } from "@canonical/maas-react-components";
+
 import { isSelected } from "@/components/Navigation/utils";
 import { Link, useLocation } from "@/utils/router";
 
@@ -5,26 +7,21 @@ const NavigationBanner = ({ children }: { children?: React.ReactNode }): JSX.Ele
   const location = useLocation();
   const homepageLink = { url: "/", label: "Homepage" } as const;
   return (
-    <>
-      <Link
+    <Navigation.Banner>
+      <Navigation.Logo
         aria-current={isSelected(location.pathname, homepageLink)}
         aria-label={homepageLink.label}
-        className="p-panel__logo"
-        onClick={(event) => {
+        as={Link}
+        onClick={(event: React.MouseEvent<HTMLElement>) => {
           // removing the focus from the link element after click
           // this allows the side navigation to collapse on mouseleave
           event.currentTarget.blur();
         }}
         to={homepageLink.url}
       >
-        <div className="p-navigation__tagged-logo">
-          <div className="p-navigation__logo-tag">
-            <svg
-              className="p-panel__logo-icon p-navigation__logo-icon"
-              fill="#fff"
-              viewBox="0 0 165.5 174.3"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+        <Navigation.LogoTag>
+          <Navigation.LogoIcon>
+            <svg fill="#fff" viewBox="0 0 165.5 174.3" xmlns="http://www.w3.org/2000/svg">
               <ellipse cx="15.57" cy="111.46" rx="13.44" ry="13.3" />
               <path d="M156.94 101.45H31.88a18.91 18.91 0 0 1 .27 19.55c-.09.16-.2.31-.29.46h125.08a6 6 0 0 0 6.06-5.96v-8.06a6 6 0 0 0-6-6Z" />
               <ellipse cx="15.62" cy="63.98" rx="13.44" ry="13.3" />
@@ -34,12 +31,15 @@ const NavigationBanner = ({ children }: { children?: React.ReactNode }): JSX.Ele
               <ellipse cx="15.57" cy="158.94" rx="13.44" ry="13.3" />
               <path d="M156.94 149H31.88a18.88 18.88 0 0 1 .27 19.5c-.09.16-.19.31-.29.46h125.08A6 6 0 0 0 163 163v-8.06a6 6 0 0 0-6-6Z" />
             </svg>
-          </div>
-          <div className="p-panel__logo-name is-fading-when-collapsed ">Site Manager</div>
-        </div>
-      </Link>
+          </Navigation.LogoIcon>
+        </Navigation.LogoTag>
+        <Navigation.LogoText>
+          <Navigation.LogoName variant="small">Canonical</Navigation.LogoName>
+          <Navigation.LogoName>Site Manager</Navigation.LogoName>
+        </Navigation.LogoText>
+      </Navigation.Logo>
       {children}
-    </>
+    </Navigation.Banner>
   );
 };
 

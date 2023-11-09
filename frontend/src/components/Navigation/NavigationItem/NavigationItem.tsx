@@ -1,7 +1,6 @@
 import { useId } from "react";
 
-import { ExternalLink } from "@canonical/maas-react-components";
-import { Icon } from "@canonical/react-components";
+import { ExternalLink, Navigation } from "@canonical/maas-react-components";
 
 import type { NavLink } from "@/components/Navigation/types";
 import { isSelected } from "@/components/Navigation/utils";
@@ -16,21 +15,14 @@ type Props = {
 
 const LinkContent = ({ navLink }: { navLink: NavLink }) => (
   <>
-    {navLink.icon ? (
-      typeof navLink.icon === "string" ? (
-        <Icon className="p-side-navigation__icon" light name={navLink.icon} />
-      ) : (
-        <>{navLink.icon}</>
-      )
-    ) : null}
-    <span className="p-side-navigation__label">{navLink.label}</span>
+    {navLink.icon ? <Navigation.Icon light name={navLink.icon} /> : null}
+    <Navigation.Label>{navLink.label}</Navigation.Label>
   </>
 );
 
 const NavigationItem = ({ navLink, path, onClick }: Props): JSX.Element => {
   const id = useId();
   const linkProps = {
-    className: "p-side-navigation__link",
     id: `${navLink.label}-${id}`,
     onClick: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
       onClick();
@@ -41,20 +33,16 @@ const NavigationItem = ({ navLink, path, onClick }: Props): JSX.Element => {
   };
 
   return (
-    <li
-      aria-labelledby={`${navLink.label}-${id}`}
-      className={`p-side-navigation__item${isSelected(path, navLink) ? " is-selected" : ""}`}
-    >
-      {!navLink.external ? (
-        <Link {...linkProps} aria-current={isSelected(path, navLink) ? "page" : undefined} to={navLink.url}>
-          <LinkContent navLink={navLink} />
-        </Link>
-      ) : (
-        <ExternalLink {...linkProps} to={navLink.url}>
-          <LinkContent navLink={navLink} />
-        </ExternalLink>
-      )}
-    </li>
+    <Navigation.Item aria-labelledby={`${navLink.label}-${id}`}>
+      <Navigation.Link
+        aria-current={isSelected(path, navLink) ? "page" : undefined}
+        as={navLink.external ? ExternalLink : Link}
+        to={navLink.url}
+        {...linkProps}
+      >
+        <LinkContent navLink={navLink} />
+      </Navigation.Link>
+    </Navigation.Item>
   );
 };
 

@@ -67,17 +67,17 @@ test("closes the form when navigating away", async ({ page }) => {
   await page.getByRole("button", { name: /Add user/i }).click();
   await expect(page.getByRole("form", { name: /Add user/i })).toBeVisible();
 
-  const mobileBanner = await page.getByRole("banner", { name: /navigation/i }).isVisible();
+  const mobileBanner = await page
+    .getByRole("banner", { name: "navigation" })
+    .getByRole("button", { name: /menu/i })
+    .isVisible();
   // eslint-disable-next-line playwright/no-conditional-in-test
   if (mobileBanner) {
-    await page
-      .getByRole("banner", { name: /navigation/ })
-      .getByRole("button", { name: /menu/i })
-      .click();
+    await page.getByRole("banner", { name: "navigation" }).getByRole("button", { name: /menu/i }).click();
   } else {
-    await page.getByRole("navigation", { name: /main/i }).hover();
+    await page.getByRole("banner", { name: /main/i }).hover();
   }
-  await page.getByRole("navigation", { name: /main/i }).getByRole("link", { name: /Sites/ }).click();
+  await page.getByRole("banner", { name: /main/i }).getByRole("link", { name: /Sites/ }).click();
 
   await page.goBack();
   await expect(page.getByRole("form", { name: /Add user/i })).toBeHidden();

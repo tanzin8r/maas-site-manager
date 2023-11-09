@@ -28,7 +28,7 @@ afterAll(() => {
 
 it("displays navigation", () => {
   renderWithMemoryRouter(<Navigation isLoggedIn />);
-  expect(screen.getByRole("navigation")).toBeInTheDocument();
+  expect(screen.getByRole("banner", { name: "main navigation" })).toBeInTheDocument();
 });
 
 [...navItems, ...settingsNavItems].forEach(({ label, url }) => {
@@ -42,13 +42,13 @@ it("displays navigation", () => {
 
 it("is collapsed by default", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn />);
-  expect(screen.getByRole("navigation")).toHaveClass("is-collapsed");
+  expect(screen.getByRole("banner", { name: "main navigation" })).toHaveClass("is-collapsed");
 });
 
 it("persists collapsed state", async () => {
   const { rerender } = renderWithMemoryRouter(<Navigation isLoggedIn />);
 
-  const primaryNavigation = screen.getByRole("navigation");
+  const primaryNavigation = screen.getByRole("banner", { name: "main navigation" });
   await userEvent.click(screen.getByRole("button", { name: "expand main navigation" }));
   expect(primaryNavigation).toHaveClass("is-pinned");
 
@@ -103,7 +103,7 @@ it("does not display in-app navigation links when logged out", () => {
 it("should be collapsed on user logout", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn={false} />);
 
-  expect(screen.getByRole("navigation")).toHaveClass("is-collapsed");
+  expect(screen.getByRole("banner", { name: "main navigation" })).toHaveClass("is-collapsed");
 });
 
 it("removes focus from the current element after clicking the link", async () => {

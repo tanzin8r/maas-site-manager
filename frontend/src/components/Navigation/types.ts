@@ -3,7 +3,7 @@ import type { RoutePath } from "@/config/routes";
 type BaseNavLink = {
   adminOnly?: boolean;
   external?: boolean;
-  icon?: string | React.ReactNode;
+  icon?: string;
   label: string;
 };
 export type ExternalNavLink = BaseNavLink & {
@@ -21,7 +21,7 @@ export type NavLink = ExternalNavLink | LocalNavLink;
 export type NavGroup = {
   navLinks: NavLink[];
   groupTitle?: string;
-  groupIcon?: string | React.ReactNode;
+  groupIcon?: string;
 };
 
 export type NavItem = NavGroup | NavLink;

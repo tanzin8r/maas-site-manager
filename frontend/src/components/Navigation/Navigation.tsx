@@ -1,15 +1,14 @@
-import { Button } from "@canonical/react-components";
-import classNames from "classnames";
+import { Navigation, NavigationBar } from "@canonical/maas-react-components";
 import useLocalStorageState from "use-local-storage-state";
 
 import NavigationBanner from "./NavigationBanner";
-import NavigationCollapseToggle from "./NavigationCollapseToggle";
 import NavigationList from "./NavigationList";
 import type { ExternalNavLink, LocalNavLink } from "./types";
 
 import BREAKPOINTS from "@/config/breakpoints";
 import type { RoutePath } from "@/config/routes";
 import { useCurrentUserQuery } from "@/hooks/react-query";
+import { useGlobalKeyShortcut } from "@/hooks/useGlobalKeyShortcut";
 import { useLocation } from "@/utils/router";
 
 export const navItems: LocalNavLink[] = [
@@ -56,7 +55,7 @@ const AccountNavigationList = ({ handleNavlinkClick, path }: { handleNavlinkClic
   );
 };
 
-const Navigation = ({ isLoggedIn }: NavProps): JSX.Element => {
+const AppNavigation = ({ isLoggedIn }: NavProps): JSX.Element => {
   const [isCollapsed, setIsCollapsed] = useLocalStorageState<boolean>("appSideNavIsCollapsed", { defaultValue: true });
   const location = useLocation();
   const path = location.pathname;
@@ -73,77 +72,60 @@ const Navigation = ({ isLoggedIn }: NavProps): JSX.Element => {
     }
   };
 
+  useGlobalKeyShortcut("[", () => {
+    setIsCollapsed(!isCollapsed);
+  });
+
   return (
     <>
-      <header aria-label="navigation" className="l-navigation-bar">
-        <div className="p-panel is-dark">
-          <div className="p-panel__header">
-            <NavigationBanner />
-            <div className="p-panel__controls u-nudge-down--small u-no-margin-top">
-              <Button
-                appearance="base"
-                className="has-icon is-dark"
-                onClick={() => {
-                  setIsCollapsed(!isCollapsed);
-                }}
-              >
-                Menu
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-      <nav
-        aria-label="main"
-        className={classNames("l-navigation", {
-          "is-collapsed": isCollapsed,
-          "is-pinned": !isCollapsed,
-        })}
-      >
-        <div className="l-navigation__drawer">
-          <div className="p-panel is-dark u-flex u-flex--column u-flex--justify-between">
-            <span>
-              <div className="p-panel__header is-sticky">
-                <NavigationBanner>
-                  <div className="l-navigation__controls">
-                    <NavigationCollapseToggle isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-                    <Button
-                      appearance="base"
-                      className="is-dark b-btn-transparent u-hide u-no-wrap u-show--small"
-                      onClick={(e) => {
-                        setIsCollapsed(!isCollapsed);
-                        // Make sure the button does not have focus
-                        // .l-navigation remains open with :focus-within
-                        e.stopPropagation();
-                        e.currentTarget.blur();
-                      }}
-                    >
-                      Close menu
-                    </Button>
-                  </div>
-                </NavigationBanner>
-              </div>
-              {isLoggedIn && (
-                <div className="p-panel__content">
-                  <NavigationList hasIcons isDark items={navItems} onClick={handleNavlinkClick} path={path} />
-                  <NavigationList hasIcons isDark items={settingsNavItems} onClick={handleNavlinkClick} path={path} />
-                  <AccountNavigationList handleNavlinkClick={handleNavlinkClick} path={path} />
-                </div>
-              )}
-            </span>
-            <NavigationList
-              hasIcons
-              hideDivider
-              isDark
-              items={navItemsBottom}
-              onClick={handleNavlinkClick}
-              path={path}
-            />
-          </div>
-        </div>
-      </nav>
+      <NavigationBar className="l-navigation-bar">
+        <Navigation.Header>
+          <NavigationBanner />
+          <Navigation.Controls>
+            <NavigationBar.MenuButton
+              onClick={() => {
+                setIsCollapsed(!isCollapsed);
+              }}
+            >
+              Menu
+            </NavigationBar.MenuButton>
+          </Navigation.Controls>
+        </Navigation.Header>
+      </NavigationBar>
+      <Navigation isCollapsed={isCollapsed}>
+        <Navigation.Drawer>
+          <Navigation.Header>
+            <NavigationBanner>
+              <Navigation.Controls>
+                <Navigation.CollapseToggle isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+                <NavigationBar.MenuButton
+                  onClick={() => {
+                    setIsCollapsed(!isCollapsed);
+                  }}
+                >
+                  Close menu
+                </NavigationBar.MenuButton>
+              </Navigation.Controls>
+            </NavigationBanner>
+          </Navigation.Header>
+          <Navigation.Content>
+            {isLoggedIn && (
+              <>
+                <NavigationList items={navItems} onClick={handleNavlinkClick} path={path} />
+                <NavigationList items={settingsNavItems} onClick={handleNavlinkClick} path={path} />
+                <AccountNavigationList handleNavlinkClick={handleNavlinkClick} path={path} />
+              </>
+            )}
+          </Navigation.Content>
+          <Navigation.Footer>
+            <Navigation.Content>
+              <NavigationList hideDivider items={navItemsBottom} onClick={handleNavlinkClick} path={path} />
+            </Navigation.Content>
+          </Navigation.Footer>
+        </Navigation.Drawer>
+      </Navigation>
     </>
   );
 };
 
-export default Navigation;
+export default AppNavigation;
