@@ -1,10 +1,16 @@
 from typing import Iterator
+from uuid import uuid4
 
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 import pytest
 
-from msm.db.models import User
+from msm.api._auth import token_response
+from msm.db.models import (
+    Config,
+    User,
+)
+from msm.jwt import JWT
 
 from ..fixtures.client import Client
 
@@ -96,3 +102,11 @@ async def test_handler_admin_required(
     assert (
         response.status_code == 403
     ), f"Admin should be required for {method} {url}"
+
+
+def test_token_response(api_config: Config) -> None:
+    auth_id = uuid4()
+    response = token_response(api_config, auth_id)
+    assert response.token_type == "Bearer"
+    token = JWT.decode(response.access_token, key=api_config.token_secret_key)
+    assert token.subject == str(auth_id)

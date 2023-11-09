@@ -12,7 +12,7 @@ async def test_post(app_client: Client, api_admin: User) -> None:
         json={"email": api_admin.email, "password": "admin"},
     )
     assert response.status_code == 200
-    assert response.json()["token_type"] == "bearer"
+    assert response.json()["token_type"] == "Bearer"
 
 
 @pytest.mark.asyncio

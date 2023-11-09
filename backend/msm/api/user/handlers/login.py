@@ -9,8 +9,11 @@ from fastapi import (
 from pydantic import BaseModel
 
 from ....db.models import Config
-from ....jwt import JWT
 from ....service import ServiceCollection
+from ..._auth import (
+    AccessTokenResponse,
+    token_response,
+)
 from ..._dependencies import (
     config,
     services,
@@ -27,31 +30,19 @@ class LoginPostRequest(BaseModel):
     password: str
 
 
-class LoginPostResponse(BaseModel):
-    """User login response with JSON Web Token."""
-
-    access_token: str
-    token_type: str
-
-
 @v1_router.post("/login")
 async def post(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
     user_login: LoginPostRequest,
-) -> LoginPostResponse:
+) -> AccessTokenResponse:
     user = await authenticate_user(
         services.users, user_login.email, user_login.password
     )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    token = JWT.create(
-        issuer=config.service_identifier,
-        subject=str(user.auth_id),
-        key=config.token_secret_key,
-    )
-    return LoginPostResponse(access_token=token.encoded, token_type="bearer")
+    return token_response(config, user.auth_id)
