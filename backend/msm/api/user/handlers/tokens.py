@@ -1,7 +1,4 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import timedelta
 from typing import Annotated
 
 from fastapi import (
@@ -63,10 +60,9 @@ class TokensPostRequest(BaseModel):
 
 
 class TokensPostResponse(BaseModel):
-    """List of created tokens, along with their duration."""
+    """Response containing generated tokens."""
 
-    expired: datetime
-    tokens: list[str]
+    items: list[Token]
 
 
 @v1_router.post("/tokens")
@@ -76,17 +72,17 @@ async def post(
     authenticated_user: Annotated[User, Depends(authenticated_user)],
     create_request: TokensPostRequest,
 ) -> TokensPostResponse:
-    """Create one or more tokens.
+    """Create enrollment tokens for sites.
 
     Token duration (TTL) is expressed as an ISO-8601 duration string.
     """
-    expired, tokens = await services.tokens.create(
+    tokens = await services.tokens.create(
         issuer=config.service_identifier,
         duration=create_request.duration,
         count=create_request.count,
         secret_key=config.token_secret_key,
     )
-    return TokensPostResponse(expired=expired, tokens=list(tokens))
+    return TokensPostResponse(items=tokens)
 
 
 @v1_router.get("/tokens/export")

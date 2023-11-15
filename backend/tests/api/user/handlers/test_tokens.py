@@ -15,16 +15,30 @@ def iso8601_duration(duration: timedelta) -> str:
 
 
 @pytest.mark.asyncio
-async def test_token_time_format(user_client: Client) -> None:
-    expiry = timedelta(seconds=100)
-    response = await user_client.post(
-        "/tokens", json={"duration": iso8601_duration(expiry)}
-    )
-    assert response.status_code == 200
-    result = response.json()
-    assert datetime.fromisoformat(result["expired"]) < (
-        datetime.utcnow() + expiry
-    )
+class TestTokensPost:
+    @pytest.mark.asyncio
+    async def test_create_tokens(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        response = await user_client.post(
+            "/tokens", json={"duration": "1D", "count": 2}
+        )
+        assert response.status_code == 200
+        tokens = response.json()["items"]
+        assert len(tokens) == 2
+        values = {token["value"] for token in await factory.get("token")}
+        assert {token["value"] for token in tokens} == values
+
+    async def test_time_format(self, user_client: Client) -> None:
+        expiry = timedelta(seconds=100)
+        response = await user_client.post(
+            "/tokens", json={"duration": iso8601_duration(expiry)}
+        )
+        assert response.status_code == 200
+        [token] = response.json()["items"]
+        assert datetime.fromisoformat(token["expired"]) < (
+            datetime.utcnow() + expiry
+        )
 
 
 @pytest.mark.asyncio

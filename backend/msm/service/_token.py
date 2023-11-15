@@ -30,12 +30,9 @@ class TokenService(Service):
         duration: timedelta,
         count: int = 1,
         secret_key: str = "",
-    ) -> tuple[datetime, Iterable[str]]:
+    ) -> Iterable[models.Token]:
         """Create tokens, returning their expiration and values."""
-        created = datetime.utcnow()
-        expired = created + duration
-        tokens_data = []
-        token_values = []
+        data = []
         for _ in range(count):
             auth_id = uuid.uuid4()
             token = JWT.create(
@@ -44,17 +41,24 @@ class TokenService(Service):
                 key=secret_key,
                 duration=duration,
             )
-            token_values.append(token.encoded)
-            tokens_data.append(
+            data.append(
                 {
                     "expired": token.expiration,
-                    "created": created,
+                    "created": token.issued,
                     "value": token.encoded,
                     "auth_id": auth_id,
                 }
             )
-        await self.conn.execute(Token.insert(), tokens_data)
-        return expired, token_values
+        result = await self.conn.execute(
+            Token.insert().returning(
+                Token.c.id,
+                Token.c.value,
+                Token.c.expired,
+                Token.c.created,
+            ),
+            data,
+        )
+        return self.objects_from_result(models.Token, result)
 
     async def get(
         self,

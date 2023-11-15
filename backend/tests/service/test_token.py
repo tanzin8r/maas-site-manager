@@ -1,7 +1,4 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import timedelta
 import uuid
 
 import pytest
@@ -18,16 +15,22 @@ class TestTokenService:
     async def test_create(
         self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
-        now = datetime.utcnow()
         duration = timedelta(minutes=10)
         service = TokenService(db_connection)
-        expiration, values = await service.create(
-            issuer="issuer",
-            duration=duration,
-            count=10,
+        tokens = list(
+            await service.create(
+                issuer="issuer",
+                duration=duration,
+                count=10,
+            )
         )
-        assert len(list(values)) == 10
-        assert expiration > now + duration
+        assert len(tokens) == 10
+        for token in tokens:
+            assert token.expired - token.created == duration
+        db_tokens = await factory.get("token")
+        assert {token.value for token in tokens} == {
+            token["value"] for token in db_tokens
+        }
 
     async def test_create_value_is_jwt(
         self, factory: Factory, db_connection: AsyncConnection
@@ -35,12 +38,12 @@ class TestTokenService:
         secret_key = "abcde"
         duration = timedelta(minutes=10)
         service = TokenService(db_connection)
-        _, [value] = await service.create(
+        [token] = await service.create(
             issuer="issuer", duration=duration, secret_key=secret_key
         )
-        decoded_token = JWT.decode(value, secret_key)
-        [token] = await factory.get("token")
-        assert token["auth_id"] == uuid.UUID(decoded_token.subject)
+        decoded_token = JWT.decode(token.value, secret_key)
+        [db_token] = await factory.get("token")
+        assert db_token["auth_id"] == uuid.UUID(decoded_token.subject)
 
     async def test_get_includes_only_active(
         self, factory: Factory, db_connection: AsyncConnection
