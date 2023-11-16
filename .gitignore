@@ -43,6 +43,7 @@ logs
 *.egg-info
 
 # Backend tox and build
+/backend/.coverage
 /backend/.tox
 /backend/build
 

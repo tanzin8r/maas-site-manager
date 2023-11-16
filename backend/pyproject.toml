@@ -91,6 +91,14 @@ testpaths = [
 junit_logging = "all"
 junit_suite_name = "maas-site-manager backend tests"
 
+[tool.coverage.report]
+fail_under = 80.0
+show_missing = true
+skip_covered = true
+
+[tool.coverage.run]
+source = ["msm"]
+
 [tool.mypy]
 install_types = true
 junit_xml = "../junit-mypy.xml"
