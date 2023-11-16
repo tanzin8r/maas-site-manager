@@ -6,7 +6,7 @@ from fastapi import (
     HTTPException,
     status,
 )
-from pydantic import BaseModel
+from fastapi.security import OAuth2PasswordRequestForm
 
 from ....db.models import Config
 from ....service import ServiceCollection
@@ -23,21 +23,14 @@ from .._auth import authenticate_user
 v1_router = APIRouter(prefix="/v1")
 
 
-class LoginPostRequest(BaseModel):
-    """User login request schema."""
-
-    email: str
-    password: str
-
-
 @v1_router.post("/login")
 async def post(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
-    user_login: LoginPostRequest,
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> AccessTokenResponse:
     user = await authenticate_user(
-        services.users, user_login.email, user_login.password
+        services.users, form_data.username, form_data.password
     )
     if not user:
         raise HTTPException(
