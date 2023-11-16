@@ -92,6 +92,14 @@ class SiteService(Service):
                 return models.Site(**site._asdict())
         return None
 
+    async def get_by_auth_id(self, auth_id: UUID) -> models.Site | None:
+        """Get a site by authentication ID."""
+        stmt = self._select_statement().where(Site.c.auth_id == auth_id)
+        if result := await self.conn.execute(stmt):
+            if site := result.one_or_none():
+                return models.Site(**site._asdict())
+        return None
+
     async def id_exists(self, id: int) -> bool:
         """Check if the given site exists"""
         stmt = select(exists(Site).where(Site.c.id == id))

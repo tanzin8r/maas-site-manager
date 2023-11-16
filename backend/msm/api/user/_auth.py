@@ -39,7 +39,7 @@ async def authenticated_user(
     raise INVALID_TOKEN_ERROR
 
 
-async def authenticated_admin(
+def authenticated_admin(
     user: User = Depends(authenticated_user),
 ) -> User:
     if not user.is_admin:

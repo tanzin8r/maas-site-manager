@@ -1,8 +1,16 @@
-from typing import Callable
+from typing import (
+    Awaitable,
+    Callable,
+)
 from uuid import UUID
 
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import (
+    Depends,
+    HTTPException,
+    Request,
+    status,
+)
+from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
 
 from ..db.models import Config
@@ -13,13 +21,31 @@ from ..jwt import (
 from ._dependencies import config
 from ._utils import INVALID_TOKEN_ERROR
 
+# a dependency callable that returns the token
+BearerToken = Callable[[Request], Awaitable[str | None]]
+
+
+async def bearer_token(request: Request) -> str:
+    """Returns the authentication token from the request header."""
+    authorization = request.headers.get("Authorization")
+    scheme, token = get_authorization_scheme_param(authorization)
+    if not authorization or scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return token
+
 
 def auth_id_from_token(
-    oauth2_scheme: OAuth2PasswordBearer,
+    bearer_token: BearerToken,
 ) -> Callable[[Config, str], UUID]:
+    """Return a dependency callable to get the auth ID from the token."""
+
     def auth_id_dep(
         config: Config = Depends(config),
-        token: str = Depends(oauth2_scheme),
+        token: str = Depends(bearer_token),
     ) -> UUID:
         try:
             decoded_token = JWT.decode(token, key=config.token_secret_key)

@@ -38,6 +38,18 @@ class TestSiteService:
             Site(**details) if exists else None
         )
 
+    async def test_get_by_auth_id(
+        self,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        auth_id = uuid4()
+        site = await factory.make_Site(auth_id=auth_id)
+        details = site.model_dump() | {"connection_status": "unknown"}
+        service = SiteService(db_connection)
+        assert await service.get_by_auth_id(auth_id) == Site(**details)
+        assert await service.get_by_auth_id(uuid4()) is None
+
     async def test_get_coordinates(
         self,
         factory: Factory,

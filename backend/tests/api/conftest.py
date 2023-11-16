@@ -14,7 +14,10 @@ from msm.db.models import (
     Config,
     User,
 )
-from msm.service import ConfigService
+from msm.service import (
+    ConfigService,
+    ServiceCollection,
+)
 
 from ..fixtures.client import Client
 from ..fixtures.factory import Factory
@@ -45,6 +48,14 @@ async def api_config(db_connection: AsyncConnection) -> AsyncIterator[Config]:
     service = ConfigService(db_connection)
     await service.ensure()
     yield await service.get()
+
+
+@pytest.fixture
+def api_services(
+    db_connection: AsyncConnection,
+) -> Iterator[ServiceCollection]:
+    """A ServiceCollection using the current DB connection."""
+    yield ServiceCollection(db_connection)
 
 
 @pytest.fixture

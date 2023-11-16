@@ -6,7 +6,6 @@ from fastapi import (
     Response,
     status,
 )
-from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 from ....db.models import (
@@ -17,6 +16,7 @@ from ....service import ServiceCollection
 from ..._auth import (
     AccessTokenResponse,
     auth_id_from_token,
+    bearer_token,
     token_response,
 )
 from ..._dependencies import (
@@ -26,10 +26,6 @@ from ..._dependencies import (
 from ..._utils import INVALID_TOKEN_ERROR
 
 v1_router = APIRouter(prefix="/v1")
-
-OAUTH2_SCHEME = OAuth2PasswordBearer(
-    tokenUrl="token"
-)  # XXX update url once defined
 
 
 class EnrollPostRequest(BaseModel):
@@ -44,7 +40,7 @@ async def post(
     request: EnrollPostRequest,
     response: Response,
     services: ServiceCollection = Depends(services),
-    auth_id: UUID = Depends(auth_id_from_token(OAUTH2_SCHEME)),
+    auth_id: UUID = Depends(auth_id_from_token(bearer_token)),
 ) -> None:
     """Request to enroll a new site."""
     db_token = await services.tokens.get_by_auth_id(auth_id)
@@ -63,7 +59,7 @@ async def get(
     response: Response,
     config: Config = Depends(config),
     services: ServiceCollection = Depends(services),
-    auth_id: UUID = Depends(auth_id_from_token(OAUTH2_SCHEME)),
+    auth_id: UUID = Depends(auth_id_from_token(bearer_token)),
 ) -> AccessTokenResponse | None:
     """Check the site enrollment status.
 
