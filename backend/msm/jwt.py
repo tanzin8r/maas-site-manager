@@ -34,7 +34,7 @@ class JWT:
     payload: dict[str, Any]
     encoded: str
 
-    _REQUIRED_FIELDS = frozenset(("iat", "iss", "exp", "sub"))
+    _REQUIRED_FIELDS: frozenset[str] = frozenset(("iat", "iss", "exp", "sub"))
 
     @cached_property
     def issuer(self) -> str:
@@ -87,10 +87,14 @@ class JWT:
         )
 
     @classmethod
-    def decode(cls, encoded: str, key: str = "") -> "JWT":
+    def decode(
+        cls, encoded: str, key: str = "", issuer: str | None = None
+    ) -> "JWT":
         """Decode a token string."""
         try:
-            payload = jwt.decode(encoded, key, algorithms=[TOKEN_ALGORITHM])
+            payload = jwt.decode(
+                encoded, key, algorithms=[TOKEN_ALGORITHM], issuer=issuer
+            )
         except JWTError:
             raise InvalidToken()
 
@@ -102,12 +106,3 @@ class JWT:
             payload=payload,
             encoded=encoded,
         )
-
-    def validate(self, issuer: str) -> None:
-        """Raise InvalidToken if the token is not valid."""
-        expiration = datetime.utcfromtimestamp(self.payload["exp"])
-        if expiration < datetime.utcnow():
-            raise InvalidToken()
-
-        if self.issuer != issuer:
-            raise InvalidToken()

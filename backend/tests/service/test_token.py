@@ -35,13 +35,18 @@ class TestTokenService:
     async def test_create_value_is_jwt(
         self, factory: Factory, db_connection: AsyncConnection
     ) -> None:
+        issuer = "issuer"
         secret_key = "abcde"
         duration = timedelta(minutes=10)
         service = TokenService(db_connection)
         [token] = await service.create(
-            issuer="issuer", duration=duration, secret_key=secret_key
+            issuer=issuer, duration=duration, secret_key=secret_key
         )
-        decoded_token = JWT.decode(token.value, secret_key)
+        decoded_token = JWT.decode(
+            token.value,
+            key=secret_key,
+            issuer=issuer,
+        )
         [db_token] = await factory.get("token")
         assert db_token["auth_id"] == uuid.UUID(decoded_token.subject)
 
@@ -56,7 +61,10 @@ class TestTokenService:
         service = TokenService(db_connection)
         count, tokens = await service.get()
         assert count == 2
-        assert {JWT.decode(token.value).subject for token in tokens} == {
+        assert {
+            JWT.decode(token.value, issuer="issuer").subject
+            for token in tokens
+        } == {
             str(uuid2),
             str(uuid3),
         }

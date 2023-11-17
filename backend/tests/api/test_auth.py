@@ -120,7 +120,11 @@ def test_token_response(api_config: Config) -> None:
     auth_id = uuid4()
     response = token_response(api_config, auth_id)
     assert response.token_type == "Bearer"
-    token = JWT.decode(response.access_token, key=api_config.token_secret_key)
+    token = JWT.decode(
+        response.access_token,
+        key=api_config.token_secret_key,
+        issuer=api_config.service_identifier,
+    )
     assert token.subject == str(auth_id)
 
 

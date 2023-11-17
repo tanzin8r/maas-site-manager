@@ -80,6 +80,8 @@ class TestEnrollGetHandler:
         payload = response.json()
         assert payload["token_type"] == "Bearer"
         token = JWT.decode(
-            payload["access_token"], key=api_config.token_secret_key
+            payload["access_token"],
+            key=api_config.token_secret_key,
+            issuer=api_config.service_identifier,
         )
         assert token.subject == str(auth_id)

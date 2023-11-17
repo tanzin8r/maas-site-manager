@@ -48,9 +48,12 @@ def auth_id_from_token(
         token: str = Depends(bearer_token),
     ) -> UUID:
         try:
-            decoded_token = JWT.decode(token, key=config.token_secret_key)
-            decoded_token.validate(config.service_identifier)
-        except (InvalidToken, ValueError):
+            decoded_token = JWT.decode(
+                token,
+                key=config.token_secret_key,
+                issuer=config.service_identifier,
+            )
+        except (ValueError, InvalidToken):
             raise INVALID_TOKEN_ERROR
         return UUID(decoded_token.subject)
 

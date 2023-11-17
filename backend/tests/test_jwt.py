@@ -50,11 +50,11 @@ class TestJWT:
     def test_decode_valid(self) -> None:
         data = {"foo": "bar"}
         token = JWT.create(issuer="issuer", subject="subject", data=data)
-        assert JWT.decode(token.encoded) == token
+        assert JWT.decode(token.encoded, issuer="issuer") == token
 
     def test_decode_invalid(self) -> None:
         with pytest.raises(InvalidToken):
-            JWT.decode("garbage")
+            JWT.decode("garbage", issuer="issuer")
 
     @pytest.mark.parametrize(
         "data",
@@ -66,17 +66,17 @@ class TestJWT:
     def test_decode_invalid_missing_fields(self, data: dict[str, Any]) -> None:
         encoded = jwt.encode(data, key=SAMPLE_KEY, algorithm="HS256")
         with pytest.raises(InvalidToken):
-            JWT.decode(str(encoded))
+            JWT.decode(str(encoded), issuer="issuer")
 
-    def test_validate_expired(self) -> None:
+    def test_decode_expired(self) -> None:
         issuer = "issuer"
         token = JWT.create(
             issuer=issuer, subject="subject", duration=timedelta(days=-1)
         )
         with pytest.raises(InvalidToken):
-            token.validate(issuer=issuer)
+            JWT.decode(token.encoded, issuer=issuer)
 
-    def test_validate_different_issuer(self) -> None:
+    def test_decode_different_issuer(self) -> None:
         token = JWT.create(issuer="other", subject="subject")
         with pytest.raises(InvalidToken):
-            token.validate(issuer="issuer")
+            JWT.decode(token.encoded, issuer="issuer")
