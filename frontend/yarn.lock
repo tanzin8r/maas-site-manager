@@ -1100,10 +1100,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@canonical/maas-react-components@1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@canonical/maas-react-components/-/maas-react-components-1.4.1.tgz#9b165bed308a0ebfd361f86b485ca2bf0d28264b"
-  integrity sha512-D6RlDTIckoxyg/ZJa5f+WwhJuRynKeBsBKlWVph9eYWlp/31oCfC+voBnB1A6275pq1F5GVLm8DW+/cDMjbASA==
+"@canonical/maas-react-components@1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@canonical/maas-react-components/-/maas-react-components-1.5.0.tgz#3cda970c9f95a1379f22fddd37e9c94eb7e345b2"
+  integrity sha512-pef2X+mf/W+/3q3kkIBrD9gHjb0z0S+JghDkd0mlmYuCbGxb+PqXk0vzlyEfzbIsltI0H/UEJLtNhM6kVTtD9A==
 
 "@canonical/react-components@0.44.0":
   version "0.44.0"
@@ -2056,6 +2056,15 @@
   version "18.2.14"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.14.tgz#fa7a6fecf1ce35ca94e74874f70c56ce88f7a127"
   integrity sha512-A0zjq+QN/O0Kpe30hA1GidzyFjatVvrpIvWLxD+xv67Vt91TWWgco9IvrJBkeyHm1trGaFS/FSGqPlhyeZRm0g==
+  dependencies:
+    "@types/prop-types" "*"
+    "@types/scheduler" "*"
+    csstype "^3.0.2"
+
+"@types/react@18.2.21":
+  version "18.2.21"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.21.tgz#774c37fd01b522d0b91aed04811b58e4e0514ed9"
+  integrity sha512-neFKG/sBAwGxHgXiIxnbm3/AAVQ/cMRS93hvBpg8xYRbeQSPVABp9U2bRnPf0iI4+Ucdv3plSxKK+3CW2ENJxA==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"

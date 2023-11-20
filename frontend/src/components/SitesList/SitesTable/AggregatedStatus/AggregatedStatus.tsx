@@ -52,10 +52,14 @@ const AggregatedStatus = ({ stats, hideLabel }: { stats: Stats; hideLabel?: bool
               { color: color.link, value: allocated_machines },
               { color: color.linkFaded, value: ready_machines },
             ]}
-            label={hideLabel ? undefined : `${deployed_machines} of ${total_machines} deployed`}
-            labelClassName="u-text--muted"
-            small
-          />
+            size="small"
+          >
+            {hideLabel ? undefined : (
+              <Meter.Label className="u-text--muted">
+                {deployed_machines} of {total_machines} deployed
+              </Meter.Label>
+            )}
+          </Meter>
         </Popover>
       </div>
     </>
