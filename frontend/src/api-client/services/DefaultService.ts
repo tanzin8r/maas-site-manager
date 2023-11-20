@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AccessTokenResponse } from '../models/AccessTokenResponse';
+import type { Body_post_api_v1_login_post } from '../models/Body_post_api_v1_login_post';
 import type { EnrollPostRequest } from '../models/EnrollPostRequest';
-import type { LoginPostRequest } from '../models/LoginPostRequest';
 import type { PendingSitesGetResponse } from '../models/PendingSitesGetResponse';
 import type { PendingSitesPostRequest } from '../models/PendingSitesPostRequest';
 import type { Site } from '../models/Site';
@@ -34,15 +34,15 @@ export class DefaultService {
      * @throws ApiError
      */
     public postApiV1LoginPost({
-        requestBody,
+        formData,
     }: {
-        requestBody: LoginPostRequest,
+        formData: Body_post_api_v1_login_post,
     }): CancelablePromise<AccessTokenResponse> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/api/v1/login',
-            body: requestBody,
-            mediaType: 'application/json',
+            formData: formData,
+            mediaType: 'application/x-www-form-urlencoded',
             errors: {
                 422: `Validation Error`,
             },

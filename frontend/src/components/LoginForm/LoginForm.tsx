@@ -9,14 +9,14 @@ import { useAuthContext } from "@/context";
 import { useNavigate, useSearchParams } from "@/utils/router";
 
 const initialValues = {
-  email: "",
+  username: "",
   password: "",
-};
+} as const;
 
 type LoginFormValues = typeof initialValues;
 
 const LoginFormSchema = Yup.object().shape({
-  email: Yup.string().required("Please enter an email address."),
+  username: Yup.string().required("Please enter an email address."),
   password: Yup.string().required("Please enter a password."),
 });
 
@@ -30,7 +30,7 @@ const LoginForm = () => {
   const { login, isError, failureReason, status } = useAuthContext();
   // TODO: update error response types  https://warthogs.atlassian.net/browse/MAASENG-2082
   /* @ts-ignore-next-line */
-  const failureDetails = failureReason?.response?.data?.detail;
+  const failureDetails = failureReason?.body?.detail;
   const handleRedirect = useCallback(() => {
     // send user back to the page they tried to visit
     // { replace: true } avoids going back to login page once authenticated
@@ -38,10 +38,10 @@ const LoginForm = () => {
   }, [searchParams, navigate]);
 
   const handleSubmit = async (
-    { email, password }: LoginFormValues,
+    { username, password }: LoginFormValues,
     { setSubmitting }: FormikHelpers<LoginFormValues>,
   ) => {
-    await login({ email, password });
+    await login({ username, password });
     setSubmitting(false);
   };
 
@@ -80,9 +80,9 @@ const LoginForm = () => {
                     <Label htmlFor={emailId}>Email</Label>
                     <Field
                       as={Input}
-                      error={touched.email && errors.email}
+                      error={touched.username && errors.username}
                       id={emailId}
-                      name="email"
+                      name="username"
                       required
                       type="email"
                     />

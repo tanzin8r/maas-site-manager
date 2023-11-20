@@ -1,19 +1,14 @@
 import { apiClient } from "./api";
 import type { Token, User } from "./types";
 
-import type { LoginPostRequest, PendingSitesPostRequest, Site, TokensPostRequest } from "@/api-client";
+import type { Body_post_api_v1_login_post, PendingSitesPostRequest, Site, TokensPostRequest } from "@/api-client";
 
-export type PostLoginData = {
-  email: string;
-  password: string;
-};
-
-export const postLogin = async (data: LoginPostRequest) => {
-  if (!data?.email || !data?.password) {
+export const postLogin = async (data: Body_post_api_v1_login_post) => {
+  if (!data?.username || !data?.password) {
     throw Error("Missing required fields");
   }
   try {
-    const response = await apiClient.default.postApiV1LoginPost({ requestBody: data });
+    const response = await apiClient.default.postApiV1LoginPost({ formData: data });
     return response;
   } catch (error) {
     throw error;

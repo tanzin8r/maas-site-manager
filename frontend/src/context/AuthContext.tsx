@@ -4,14 +4,14 @@ import React, { createContext, useContext, useReducer } from "react";
 import useLocalStorageState from "use-local-storage-state";
 
 import type { FetchHttpRequestWithInterceptors } from "@/api/FetchHttpRequestWithInterceptors";
-import type { ApiClient } from "@/api-client";
+import type { ApiClient, Body_post_api_v1_login_post } from "@/api-client";
 import { OpenAPI } from "@/api-client";
 import { useLoginMutation } from "@/hooks/react-query";
 type AuthStatus = "initial" | "authenticated" | "unauthorised";
 
 interface AuthContextType {
   status: AuthStatus;
-  login: ({ email, password }: { email: string; password: string }) => void;
+  login: ({ username, password }: Pick<Body_post_api_v1_login_post, "username" | "password">) => void;
   logout: () => Promise<void>;
   isError: boolean;
   failureReason: unknown | null;
@@ -104,9 +104,9 @@ export const AuthContextProvider = ({ apiClient, children }: { apiClient: ApiCli
     });
   }, [apiClient, clearAuthToken]);
 
-  const login = async ({ email, password }: { email: string; password: string }) => {
+  const login = async ({ username, password }: { username: string; password: string }) => {
     try {
-      const response = await mutateAsync({ email, password });
+      const response = await mutateAsync({ username, password });
       updateAuthToken(response.access_token);
       dispatch({ type: actionTypes.LOGIN_SUCCESS, payload: response.access_token });
     } catch (error) {
