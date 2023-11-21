@@ -36,7 +36,7 @@ def pending_site_details(site: PendingSite) -> dict[str, Any]:
 
 
 @pytest.mark.asyncio
-class TestSitesHandler:
+class TestSitesGetHandler:
     async def test_get(self, user_client: Client, factory: Factory) -> None:
         details = [
             site_details(
@@ -71,7 +71,7 @@ class TestSitesHandler:
             "items": details[1:],
         }
 
-    async def test_get_only_accepted(
+    async def test_only_accepted(
         self, user_client: Client, factory: Factory
     ) -> None:
         site = await factory.make_Site()
@@ -86,7 +86,7 @@ class TestSitesHandler:
             "items": [site_details(site)],
         }
 
-    async def test_get_filter_timezone(
+    async def test_filter_timezone(
         self, user_client: Client, factory: Factory
     ) -> None:
         await factory.make_Site(timezone="Europe/Berlin")
@@ -101,7 +101,7 @@ class TestSitesHandler:
             "items": [site_details(site)],
         }
 
-    async def test_get_with_stats(
+    async def test_with_stats(
         self, user_client: Client, factory: Factory
     ) -> None:
         site = await factory.make_Site(
@@ -126,26 +126,7 @@ class TestSitesHandler:
             "items": [site_details(site, stats=site_data)],
         }
 
-    async def test_patch(self, user_client: Client, factory: Factory) -> None:
-        site = await factory.make_Site(coordinates=(0, 0))
-        update: dict[str, Any] = {
-            "country": "ES",
-            "coordinates": [180, 90],
-        }
-
-        # update a site
-        response = await user_client.patch(f"/sites/{site.id}", json=update)
-        assert response.status_code == 200
-        updated = Site(**site.model_dump()).model_dump() | update
-        assert response.json() == updated
-
-    async def test_patch_nonexistent(
-        self, user_client: Client, factory: Factory
-    ) -> None:
-        response = await user_client.patch("/sites/42", json={"country": "IT"})
-        assert response.status_code == 404
-
-    async def test_get_connection_status(
+    async def test_connection_status(
         self, user_client: Client, factory: Factory
     ) -> None:
         site = await factory.make_Site(
@@ -169,21 +150,6 @@ class TestSitesHandler:
             == ConnectionStatus.LOST
         )
 
-    async def test_get_by_id(
-        self, user_client: Client, factory: Factory
-    ) -> None:
-        site = await factory.make_Site()
-
-        site_id = -1
-        response = await user_client.get(f"/sites/{site_id}")
-        assert response.status_code == 404
-        assert response.json()["detail"]["message"] == "Site does not exist."
-
-        site_id = 2
-        response = await user_client.get(f"/sites/{site.id}")
-        assert response.status_code == 200
-        assert response.json() == site_details(site)
-
     @pytest.mark.parametrize(
         "query_params, expected_result",
         [
@@ -203,7 +169,7 @@ class TestSitesHandler:
             ("page=2&size=2&sort_by=country,city-asc", ["Milan", "Rome"]),
         ],
     )
-    async def test_get_with_sorting(
+    async def test_with_sorting(
         self,
         user_client: Client,
         factory: Factory,
@@ -224,16 +190,18 @@ class TestSitesHandler:
         "query_params",
         ["sort_by=id-asc", "sort_by=city,city", "sort_by=doesnotexist"],
     )
-    async def test_get_with_invalid_sorting(
+    async def test_with_invalid_sorting(
         self,
         user_client: Client,
-        factory: Factory,
         query_params: str,
     ) -> None:
         response = await user_client.get("/sites", params=query_params)
         assert response.status_code == 400
 
-    async def test_get_coordinates(
+
+@pytest.mark.asyncio
+class TestGetCoordinatesHandler:
+    async def test_coordinates(
         self,
         user_client: Client,
         factory: Factory,
@@ -249,12 +217,60 @@ class TestSitesHandler:
 
 
 @pytest.mark.asyncio
-class TestPendingSitesHandler:
+class TestSitesGetByIDHandler:
+    async def test_by_id(self, user_client: Client, factory: Factory) -> None:
+        site = await factory.make_Site()
+
+        site_id = -1
+        response = await user_client.get(f"/sites/{site_id}")
+        assert response.status_code == 404
+        assert response.json()["detail"]["message"] == "Site does not exist."
+
+        site_id = 2
+        response = await user_client.get(f"/sites/{site.id}")
+        assert response.status_code == 200
+        assert response.json() == site_details(site)
+
+
+@pytest.mark.asyncio
+class TestSitesPatchHandler:
+    async def test_patch(self, user_client: Client, factory: Factory) -> None:
+        site = await factory.make_Site(coordinates=(0, 0))
+        update: dict[str, Any] = {
+            "country": "ES",
+            "coordinates": [180, 90],
+        }
+
+        # update a site
+        response = await user_client.patch(f"/sites/{site.id}", json=update)
+        assert response.status_code == 200
+        updated = Site(**site.model_dump()).model_dump() | update
+        assert response.json() == updated
+
+    async def test_nonexistent(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        response = await user_client.patch("/sites/42", json={"country": "IT"})
+        assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestSitesDeleteHandler:
+    async def test_delete(self, user_client: Client, factory: Factory) -> None:
+        site = await factory.make_Site()
+        response = await user_client.delete(f"/sites/{site.id}")
+        assert response.status_code == 204
+        response = await user_client.get(f"/sites/{site.id}")
+        assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestPendingSitesGetHandler:
     async def test_get(self, user_client: Client, factory: Factory) -> None:
         await factory.make_Site()
         site = await factory.make_PendingSite()
 
-        response = await user_client.get("/requests")
+        response = await user_client.get("/sites/pending")
         assert response.status_code == 200
         assert response.json() == {
             "page": 1,
@@ -263,32 +279,31 @@ class TestPendingSitesHandler:
             "items": [pending_site_details(site)],
         }
 
-    async def test_post_accept(
-        self, user_client: Client, factory: Factory
-    ) -> None:
+
+@pytest.mark.asyncio
+class TestPendingSitesPostHandler:
+    async def test_accept(self, user_client: Client, factory: Factory) -> None:
         site = await factory.make_PendingSite()
 
         response = await user_client.post(
-            "/requests",
+            "/sites/pending",
             json={"ids": [site.id], "accept": True},
         )
         assert response.status_code == 204
         [created_site] = await factory.get("site")
         assert created_site["accepted"]
 
-    async def test_post_reject(
-        self, user_client: Client, factory: Factory
-    ) -> None:
+    async def test_reject(self, user_client: Client, factory: Factory) -> None:
         site = await factory.make_PendingSite()
 
         response = await user_client.post(
-            "/requests",
+            "/sites/pending",
             json={"ids": [site.id], "accept": False},
         )
         assert response.status_code == 204
         assert await factory.get("site") == []
 
-    async def test_post_invalid_ids(
+    async def test_invalid_ids(
         self, user_client: Client, factory: Factory
     ) -> None:
         site = await factory.make_Site()
@@ -296,19 +311,10 @@ class TestPendingSitesHandler:
         # unknown IDs and IDs for non-pending sites are invalid
         ids = [site.id, 10000]
         response = await user_client.post(
-            "/requests",
+            "/sites/pending",
             json={"ids": ids, "accept": True},
         )
         assert response.status_code == 400
         assert response.json() == {
             "detail": {"message": "Unknown pending sites", "ids": ids}
         }
-
-
-@pytest.mark.asyncio
-async def test_delete(user_client: Client, factory: Factory) -> None:
-    site = await factory.make_Site()
-    response = await user_client.delete(f"/sites/{site.id}")
-    assert response.status_code == 204
-    response = await user_client.get(f"/sites/{site.id}")
-    assert response.status_code == 404

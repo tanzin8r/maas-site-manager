@@ -27,10 +27,10 @@ from ..fixtures.client import Client
 
 AUTHENTICATED_ROUTES = [
     # user API
-    ("GET", "/api/v1/requests"),
-    ("POST", "/api/v1/requests"),
     ("GET", "/api/v1/sites"),
     ("GET", "/api/v1/sites/coordinates"),
+    ("GET", "/api/v1/sites/pending"),
+    ("POST", "/api/v1/sites/pending"),
     ("GET", "/api/v1/sites/{id}"),
     ("PATCH", "/api/v1/sites/{id}"),
     ("DELETE", "/api/v1/sites/{id}"),
