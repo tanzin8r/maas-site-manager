@@ -109,11 +109,11 @@ class TestSitesGetHandler:
         )
         site_data = await factory.make_SiteData(
             site.id,
-            allocated_machines=10,
-            deployed_machines=20,
-            ready_machines=30,
-            error_machines=40,
-            other_machines=5,
+            machines_allocated=10,
+            machines_deployed=20,
+            machines_ready=30,
+            machines_error=40,
+            machines_other=5,
             last_seen=datetime.utcnow(),
         )
 

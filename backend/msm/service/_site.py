@@ -260,24 +260,24 @@ class SiteService(Service):
                 (
                     SiteData.c.site_id != None,  # noqa: E711
                     func.json_build_object(
-                        "total_machines",
+                        "machines_total",
                         (
-                            SiteData.c.allocated_machines
-                            + SiteData.c.deployed_machines
-                            + SiteData.c.ready_machines
-                            + SiteData.c.error_machines
-                            + SiteData.c.other_machines
-                        ).label("total_machines"),
-                        "allocated_machines",
-                        SiteData.c.allocated_machines,
-                        "deployed_machines",
-                        SiteData.c.deployed_machines,
-                        "ready_machines",
-                        SiteData.c.ready_machines,
-                        "error_machines",
-                        SiteData.c.error_machines,
-                        "other_machines",
-                        SiteData.c.other_machines,
+                            SiteData.c.machines_allocated
+                            + SiteData.c.machines_deployed
+                            + SiteData.c.machines_ready
+                            + SiteData.c.machines_error
+                            + SiteData.c.machines_other
+                        ).label("machines_total"),
+                        "machines_allocated",
+                        SiteData.c.machines_allocated,
+                        "machines_deployed",
+                        SiteData.c.machines_deployed,
+                        "machines_ready",
+                        SiteData.c.machines_ready,
+                        "machines_error",
+                        SiteData.c.machines_error,
+                        "machines_other",
+                        SiteData.c.machines_other,
                         "last_seen",
                         SiteData.c.last_seen,
                     ),

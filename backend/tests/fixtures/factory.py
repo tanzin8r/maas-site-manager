@@ -222,11 +222,11 @@ class Factory:
     async def make_SiteData(
         self,
         site_id: int,
-        allocated_machines: int = 0,
-        deployed_machines: int = 0,
-        ready_machines: int = 0,
-        error_machines: int = 0,
-        other_machines: int = 0,
+        machines_allocated: int = 0,
+        machines_deployed: int = 0,
+        machines_ready: int = 0,
+        machines_error: int = 0,
+        machines_other: int = 0,
         last_seen: datetime | None = None,
     ) -> SiteData:
         """Create SiteData for a Site."""
@@ -235,23 +235,23 @@ class Factory:
             [
                 {
                     "site_id": site_id,
-                    "allocated_machines": allocated_machines,
-                    "deployed_machines": deployed_machines,
-                    "ready_machines": ready_machines,
-                    "error_machines": error_machines,
-                    "other_machines": other_machines,
+                    "machines_allocated": machines_allocated,
+                    "machines_deployed": machines_deployed,
+                    "machines_ready": machines_ready,
+                    "machines_error": machines_error,
+                    "machines_other": machines_other,
                     "last_seen": last_seen,
                 }
             ],
         )
-        total_machines = (
-            allocated_machines
-            + deployed_machines
-            + ready_machines
-            + error_machines
-            + other_machines
+        machines_total = (
+            machines_allocated
+            + machines_deployed
+            + machines_ready
+            + machines_error
+            + machines_other
         )
-        return SiteData(total_machines=total_machines, **row)
+        return SiteData(machines_total=machines_total, **row)
 
     async def make_Config(self, name: str, value: Any = None) -> None:
         """Create an entry in the global configuration."""

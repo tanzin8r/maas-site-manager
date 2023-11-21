@@ -20,12 +20,12 @@ class ConnectionStatus(str, Enum):
 class SiteData(BaseModel):
     """Data for a site."""
 
-    total_machines: int
-    allocated_machines: int
-    deployed_machines: int
-    ready_machines: int
-    error_machines: int
-    other_machines: int
+    machines_total: int
+    machines_allocated: int
+    machines_deployed: int
+    machines_ready: int
+    machines_error: int
+    machines_other: int
     last_seen: datetime
 
 

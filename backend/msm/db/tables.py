@@ -131,10 +131,10 @@ SiteData = Table(
     Column(
         "site_id", Integer, ForeignKey("site.id"), unique=True, nullable=False
     ),
-    Column("allocated_machines", Integer, nullable=False, default=0),
-    Column("deployed_machines", Integer, nullable=False, default=0),
-    Column("ready_machines", Integer, nullable=False, default=0),
-    Column("error_machines", Integer, nullable=False, default=0),
-    Column("other_machines", Integer, nullable=False, default=0),
+    Column("machines_allocated", Integer, nullable=False, default=0),
+    Column("machines_deployed", Integer, nullable=False, default=0),
+    Column("machines_ready", Integer, nullable=False, default=0),
+    Column("machines_error", Integer, nullable=False, default=0),
+    Column("machines_other", Integer, nullable=False, default=0),
     Column("last_seen", DateTime),
 )
