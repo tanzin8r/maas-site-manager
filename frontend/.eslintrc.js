@@ -24,6 +24,7 @@ module.exports = {
       "warn",
       { allowSameFolder: true, rootDir: "frontend/src", prefix: "@" },
     ],
+    "no-debugger": process.env.CI ? "error" : "warn",
   },
   settings: {
     react: {
