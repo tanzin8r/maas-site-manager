@@ -5,6 +5,9 @@ from datetime import (
 
 import pytest
 
+from msm.time import now_utc
+
+from ... import api_timestamp
 from ....fixtures.client import Client
 from ....fixtures.factory import Factory
 
@@ -16,7 +19,6 @@ def iso8601_duration(duration: timedelta) -> str:
 
 @pytest.mark.asyncio
 class TestTokensPost:
-    @pytest.mark.asyncio
     async def test_create_tokens(
         self, user_client: Client, factory: Factory
     ) -> None:
@@ -36,9 +38,12 @@ class TestTokensPost:
         )
         assert response.status_code == 200
         [token] = response.json()["items"]
-        assert datetime.fromisoformat(token["expired"]) < (
-            datetime.utcnow() + expiry
-        )
+
+        # XXX Python3.10 doesn't support parsing ISO timestamps without
+        # microseconds and with Z instead of offset. This can be dropped when
+        # switching to Python3.11 or later
+        expired = token["expired"].replace("Z", ".000000+00:00")
+        assert datetime.fromisoformat(expired) < (now_utc() + expiry)
 
 
 @pytest.mark.asyncio
@@ -51,8 +56,8 @@ async def test_tokens_get(user_client: Client, factory: Factory) -> None:
     expected = []
     for token in tokens:
         entry = token.model_dump()
-        entry["expired"] = token.expired.isoformat()
-        entry["created"] = token.created.isoformat()
+        entry["expired"] = api_timestamp(token.expired)
+        entry["created"] = api_timestamp(token.created)
         entry["value"] = str(token.value)
         expected.append(entry)
 

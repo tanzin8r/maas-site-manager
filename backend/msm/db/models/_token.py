@@ -1,6 +1,9 @@
-from datetime import datetime
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+)
 
-from pydantic import BaseModel
+from ...time import now_utc
 
 
 class Token(BaseModel):
@@ -8,9 +11,9 @@ class Token(BaseModel):
 
     id: int
     value: str
-    expired: datetime
-    created: datetime
+    expired: AwareDatetime
+    created: AwareDatetime
 
     def is_expired(self) -> bool:
         """Whether the token is expired."""
-        return self.expired < datetime.utcnow()
+        return self.expired < now_utc()

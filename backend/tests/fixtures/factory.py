@@ -37,6 +37,7 @@ from msm.jwt import (
 )
 from msm.password import hash_password
 from msm.schema import TimeZone
+from msm.time import now_utc
 
 
 class Factory:
@@ -129,7 +130,7 @@ class Factory:
             key=key,
             duration=lifetime,
         )
-        now = datetime.utcnow()
+        now = now_utc()
         [row] = await self.create(
             "token",
             [
@@ -177,7 +178,7 @@ class Factory:
                     ),
                     "coordinates": coordinates,
                     "accepted": True,
-                    "created": datetime.utcnow(),
+                    "created": now_utc(),
                     "auth_id": auth_id,
                 }
             ],
@@ -213,7 +214,7 @@ class Factory:
                 "name": name,
                 "url": url,
                 "accepted": False,
-                "created": datetime.utcnow(),
+                "created": now_utc(),
                 "auth_id": auth_id,
             },
         )
@@ -231,7 +232,7 @@ class Factory:
     ) -> SiteData:
         """Create SiteData for a Site."""
         if last_seen is None:
-            last_seen = datetime.utcnow()
+            last_seen = now_utc()
         [row] = await self.create(
             "site_data",
             [

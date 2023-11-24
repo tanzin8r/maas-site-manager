@@ -1,7 +1,4 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import timedelta
 from typing import (
     Any,
     Iterable,
@@ -24,6 +21,7 @@ from ..jwt import (
     TokenAudience,
     TokenPurpose,
 )
+from ..time import now_utc
 from ._base import Service
 
 
@@ -72,7 +70,7 @@ class TokenService(Service):
         limit: int | None = None,
     ) -> tuple[int, Iterable[models.Token]]:
         """Return active tokens."""
-        expired_filter = Token.c.expired > datetime.utcnow()
+        expired_filter = Token.c.expired > now_utc()
         count = await queries.row_count(self.conn, Token, expired_filter)
         stmt = (
             self._select_statement()

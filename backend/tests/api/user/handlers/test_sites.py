@@ -1,7 +1,4 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import timedelta
 from typing import Any
 
 import pytest
@@ -13,7 +10,9 @@ from msm.db.models import (
     SiteData,
 )
 from msm.service._site import LOST_CONNECTION_THRESHOLD
+from msm.time import now_utc
 
+from ... import api_timestamp
 from ....fixtures.client import Client
 from ....fixtures.factory import Factory
 
@@ -25,13 +24,13 @@ def site_details(site: Site, stats: SiteData | None = None) -> dict[str, Any]:
         data["stats"] = None
     else:
         data["stats"] = stats.model_dump()
-        data["stats"]["last_seen"] = data["stats"]["last_seen"].isoformat()
+        data["stats"]["last_seen"] = api_timestamp(data["stats"]["last_seen"])
     return data
 
 
 def pending_site_details(site: PendingSite) -> dict[str, Any]:
     data = site.model_dump()
-    data["created"] = data["created"].isoformat()
+    data["created"] = api_timestamp(data["created"])
     return data
 
 
@@ -114,7 +113,7 @@ class TestSitesGetHandler:
             machines_ready=30,
             machines_error=40,
             machines_other=5,
-            last_seen=datetime.utcnow(),
+            last_seen=now_utc(),
         )
 
         page = await user_client.get("/sites")
@@ -138,9 +137,7 @@ class TestSitesGetHandler:
         await factory.make_SiteData(
             site.id,
             last_seen=(
-                datetime.utcnow()
-                - LOST_CONNECTION_THRESHOLD
-                - timedelta(seconds=1)
+                now_utc() - LOST_CONNECTION_THRESHOLD - timedelta(seconds=1)
             ),
         )
 

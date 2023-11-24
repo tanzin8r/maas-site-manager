@@ -6,6 +6,7 @@ import uuid
 
 from msm.api._csv import CSVResponse
 from msm.db.models import Token
+from msm.time import now_utc
 
 
 def isoformat(t: datetime) -> str:
@@ -15,7 +16,7 @@ def isoformat(t: datetime) -> str:
 def test_csv_response() -> None:
     uuid1 = str(uuid.uuid4())
     uuid2 = str(uuid.uuid4())
-    now = datetime.utcnow()
+    now = now_utc()
     created1 = now - timedelta(hours=1)
     expired1 = now + timedelta(hours=1)
     created2 = now - timedelta(hours=2)

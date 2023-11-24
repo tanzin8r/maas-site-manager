@@ -1,9 +1,9 @@
-from datetime import datetime
 from enum import Enum
 from typing import Literal
 from uuid import UUID
 
 from pydantic import (
+    AwareDatetime,
     BaseModel,
     Field,
 )
@@ -26,7 +26,7 @@ class SiteData(BaseModel):
     machines_ready: int
     machines_error: int
     machines_other: int
-    last_seen: datetime
+    last_seen: AwareDatetime
 
 
 class Site(BaseModel):
@@ -57,7 +57,7 @@ class PendingSite(BaseModel):
     id: int
     name: str
     url: str
-    created: datetime
+    created: AwareDatetime
 
 
 class EnrollingSite(BaseModel):

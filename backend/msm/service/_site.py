@@ -28,6 +28,7 @@ from ..db.tables import (
     SiteData,
 )
 from ..schema import SortParam
+from ..time import now_utc
 from ._base import Service
 
 LOST_CONNECTION_THRESHOLD = timedelta(seconds=60)
@@ -249,7 +250,7 @@ class SiteService(Service):
         return None
 
     def _select_statement(self) -> Select[Any]:
-        connection_lost_limit = datetime.utcnow() - LOST_CONNECTION_THRESHOLD
+        connection_lost_limit = now_utc() - LOST_CONNECTION_THRESHOLD
         return select(
             Site.c.id,
             Site.c.address,

@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -10,6 +9,7 @@ from ...jwt import (
     TokenPurpose,
 )
 from ...service import ServiceCollection
+from ...time import now_utc
 from .._auth import (
     auth_id_from_token,
     bearer_token,
@@ -39,5 +39,5 @@ async def authenticated_site(
     if not site:
         raise INVALID_TOKEN_ERROR
 
-    await services.sites.update_last_seen(site.id, datetime.utcnow())
+    await services.sites.update_last_seen(site.id, now_utc())
     return site

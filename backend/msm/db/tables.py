@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import (
     Any,
     Callable,
@@ -22,6 +21,8 @@ from sqlalchemy.types import (
     DateTime,
     UserDefinedType,
 )
+
+from ..time import now_utc
 
 METADATA = MetaData()
 
@@ -76,7 +77,9 @@ Site = Table(
     Column("timezone", Text, nullable=False, default=""),
     Column("url", Text, nullable=False, default=""),
     Column("accepted", Boolean, nullable=False, default=False, index=True),
-    Column("created", DateTime, nullable=False, default=datetime.utcnow),
+    Column(
+        "created", DateTime(timezone=True), nullable=False, default=now_utc
+    ),
     Column(
         "auth_id",
         UUID(as_uuid=True),
@@ -119,8 +122,10 @@ Token = Table(
         unique=True,
         index=True,
     ),
-    Column("expired", DateTime, nullable=False),
-    Column("created", DateTime, nullable=False, default=datetime.utcnow),
+    Column("expired", DateTime(timezone=True), nullable=False),
+    Column(
+        "created", DateTime(timezone=True), nullable=False, default=now_utc
+    ),
 )
 
 
@@ -136,5 +141,5 @@ SiteData = Table(
     Column("machines_ready", Integer, nullable=False, default=0),
     Column("machines_error", Integer, nullable=False, default=0),
     Column("machines_other", Integer, nullable=False, default=0),
-    Column("last_seen", DateTime),
+    Column("last_seen", DateTime(timezone=True)),
 )

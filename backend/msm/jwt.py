@@ -16,6 +16,11 @@ from jose import (
 )
 from strenum import StrEnum
 
+from .time import (
+    now_utc,
+    utc_from_timestamp,
+)
+
 TOKEN_ALGORITHM = "HS256"
 TOKEN_SECRET_KEY_BYTES = 32
 TOKEN_DURATION = timedelta(minutes=30)
@@ -63,11 +68,11 @@ class JWT:
 
     @cached_property
     def issued(self) -> datetime:
-        return datetime.utcfromtimestamp(self.payload["iat"])
+        return utc_from_timestamp(self.payload["iat"])
 
     @cached_property
     def expiration(self) -> datetime:
-        return datetime.utcfromtimestamp(self.payload["exp"])
+        return utc_from_timestamp(self.payload["exp"])
 
     @cached_property
     def audience(self) -> list[TokenAudience]:
@@ -100,7 +105,8 @@ class JWT:
         """Create a JWT."""
         if data is None:
             data = {}
-        issued = datetime.utcnow()
+
+        issued = now_utc()
         expiration = issued + duration
         payload = data | {
             "sub": subject,

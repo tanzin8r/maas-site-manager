@@ -1,11 +1,9 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import timedelta
 from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from ..time import now_utc
 from ._db import (
     ModelCollection,
     SampleDataModel,
@@ -144,7 +142,7 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
 
     collection = ModelCollection("site_data")
 
-    now = datetime.utcnow()
+    now = now_utc()
     collection.add(
         site_id=sites[0].id,
         machines_allocated=10,
