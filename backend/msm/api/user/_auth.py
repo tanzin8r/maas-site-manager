@@ -18,7 +18,7 @@ from .._auth import auth_id_from_token
 from .._dependencies import services
 from .._utils import INVALID_TOKEN_ERROR
 
-OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="api/v1/login")
+OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="v1/login")
 
 
 async def authenticate_user(

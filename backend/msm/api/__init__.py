@@ -33,8 +33,9 @@ from ..middleware import (
 from ..service import ConfigService
 from ..settings import Settings
 from ._prometheus import instrument_prometheus
-from .site.handlers import api_router as site_api_router
-from .user.handlers import api_router as user_api_router
+from ._utils import create_subapp
+from .site.handlers import ROUTERS as SITE_API_ROUTERS
+from .user.handlers import ROUTERS as USER_API_ROUTERS
 
 
 def run() -> None:
@@ -95,8 +96,8 @@ def create_app(
     app.add_middleware(DatabaseMetricsMiddleware, db=db)
     app.add_middleware(transaction_middleware_class, db=db)
 
-    app.include_router(user_api_router(), prefix="/api")
-    app.include_router(site_api_router(), prefix="/site")
+    app.mount("/api", create_subapp("User API", "api", USER_API_ROUTERS))
+    app.mount("/site", create_subapp("Site API", "site", SITE_API_ROUTERS))
 
     instrument_prometheus(app, prometheus_registry)
 

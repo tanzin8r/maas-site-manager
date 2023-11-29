@@ -1,6 +1,10 @@
+from typing import Iterator
 import uuid
 
-from fastapi import HTTPException
+from fastapi import (
+    FastAPI,
+    HTTPException,
+)
 import pytest
 
 from msm.api.user._auth import (
@@ -9,6 +13,86 @@ from msm.api.user._auth import (
 )
 from msm.db.models import User
 from msm.service import ServiceCollection
+
+from ...fixtures.app import get_api_routes
+from ...fixtures.client import Client
+
+AUTHENTICATED_ROUTES = (
+    ("GET", "/api/v1/sites"),
+    ("GET", "/api/v1/sites/coordinates"),
+    ("GET", "/api/v1/sites/pending"),
+    ("POST", "/api/v1/sites/pending"),
+    ("GET", "/api/v1/sites/{id}"),
+    ("PATCH", "/api/v1/sites/{id}"),
+    ("DELETE", "/api/v1/sites/{id}"),
+    ("GET", "/api/v1/tokens"),
+    ("POST", "/api/v1/tokens"),
+    ("GET", "/api/v1/tokens/export"),
+    ("DELETE", "/api/v1/tokens/{id}"),
+    ("GET", "/api/v1/users"),
+    ("POST", "/api/v1/users"),
+    ("GET", "/api/v1/users/me"),
+    ("PATCH", "/api/v1/users/me"),
+    ("PATCH", "/api/v1/users/me/password"),
+    ("GET", "/api/v1/users/{id}"),
+    ("PATCH", "/api/v1/users/{id}"),
+    ("DELETE", "/api/v1/users/{id}"),
+)
+
+UNAUTHENTICATED_ROUTES = (("POST", "/api/v1/login"),)
+
+ADMIN_ROUTES = (
+    ("GET", "/api/v1/users"),
+    ("POST", "/api/v1/users"),
+    ("GET", "/api/v1/users/{id}"),
+    ("DELETE", "/api/v1/users/{id}"),
+    ("PATCH", "/api/v1/users/{id}"),
+)
+
+
+@pytest.fixture
+def api_routes(api_app: FastAPI) -> Iterator[set[tuple[str, str]]]:
+    yield get_api_routes(api_app, "/api")
+
+
+def test_all_routes_checked(api_routes: set[tuple[str, str]]) -> None:
+    assert api_routes == set(AUTHENTICATED_ROUTES + UNAUTHENTICATED_ROUTES)
+
+
+@pytest.mark.asyncio
+class TestAuthentication:
+    @pytest.mark.parametrize("method,url", AUTHENTICATED_ROUTES)
+    async def test_handler_auth_required(
+        self, app_client: Client, method: str, url: str
+    ) -> None:
+        response = await app_client.request(method, url)
+        assert (
+            response.status_code == 401
+        ), f"Auth should be required for {method} {url}"
+
+    @pytest.mark.parametrize("method,url", UNAUTHENTICATED_ROUTES)
+    async def test_handler_auth_not_required(
+        self, app_client: Client, method: str, url: str
+    ) -> None:
+        response = await app_client.request(method, url)
+        assert not response.is_server_error
+        assert (
+            response.status_code != 401
+        ), f"Auth should not be required for {method} {url}"
+
+    @pytest.mark.parametrize("method,url", ADMIN_ROUTES)
+    async def test_handler_admin_required(
+        self,
+        app_client: Client,
+        api_user: User,
+        method: str,
+        url: str,
+    ) -> None:
+        app_client.authenticate(api_user.auth_id)
+        response = await app_client.request(method, url)
+        assert (
+            response.status_code == 403
+        ), f"Admin should be required for {method} {url}"
 
 
 @pytest.mark.asyncio

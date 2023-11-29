@@ -9,7 +9,23 @@ from msm.db.models import (
 )
 
 from ...fixtures.client import Client
+from ...fixtures.factory import Factory
 from ..conftest import make_api_client
+
+API_USER_NAME = "user"
+API_ADMIN_NAME = "admin"
+
+
+@pytest.fixture
+async def api_user(factory: Factory) -> AsyncIterator[User]:
+    """An API user (without admin rights)."""
+    yield await factory.make_User(username=API_USER_NAME, is_admin=False)
+
+
+@pytest.fixture
+async def api_admin(factory: Factory) -> AsyncIterator[User]:
+    """An API administrator."""
+    yield await factory.make_User(username=API_ADMIN_NAME, is_admin=True)
 
 
 @pytest.fixture

@@ -1,10 +1,16 @@
 """Common utility functions for the API"""
 
+from typing import Iterable
+
 from fastapi import (
+    APIRouter,
+    FastAPI,
     HTTPException,
     status,
 )
 from pydantic import BaseModel
+
+from .. import __version__
 
 INVALID_TOKEN_ERROR = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -30,3 +36,13 @@ def raise_on_empty_request(request: BaseModel) -> None:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={"message": "Request body empty."},
         )
+
+
+def create_subapp(
+    title: str, name: str, routers: Iterable[APIRouter]
+) -> FastAPI:
+    """Return a FastAPI application with the specified routers registered."""
+    app = FastAPI(title=title, name=name, version=__version__)
+    for r in routers:
+        app.router.include_router(r)
+    return app

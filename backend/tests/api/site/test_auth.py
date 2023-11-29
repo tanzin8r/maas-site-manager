@@ -1,13 +1,46 @@
+from typing import Iterator
 import uuid
 
-from fastapi import HTTPException
+from fastapi import (
+    FastAPI,
+    HTTPException,
+)
 import pytest
 
 from msm.api.site._auth import authenticated_site
 from msm.db.models import Site
 from msm.service import ServiceCollection
 
+from ...fixtures.app import get_api_routes
+from ...fixtures.client import Client
 from ...fixtures.factory import Factory
+
+AUTHENTICATED_ROUTES = (
+    ("POST", "/site/v1/details"),
+    ("GET", "/site/v1/enroll"),
+    ("POST", "/site/v1/enroll"),
+)
+
+
+@pytest.fixture
+def api_routes(api_app: FastAPI) -> Iterator[set[tuple[str, str]]]:
+    yield get_api_routes(api_app, "/site")
+
+
+def test_all_routes_checked(api_routes: set[tuple[str, str]]) -> None:
+    assert api_routes == set(AUTHENTICATED_ROUTES)
+
+
+@pytest.mark.asyncio
+class TestAuthentication:
+    @pytest.mark.parametrize("method,url", AUTHENTICATED_ROUTES)
+    async def test_handler_auth_required(
+        self, app_client: Client, method: str, url: str
+    ) -> None:
+        response = await app_client.request(method, url)
+        assert (
+            response.status_code == 401
+        ), f"Auth should be required for {method} {url}"
 
 
 @pytest.mark.asyncio
