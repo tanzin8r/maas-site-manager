@@ -70,7 +70,7 @@ const EditSiteContent = ({
 
   const [initialValues, setInitialValues] = useState<SiteFormValues>(baseInitialValues);
   const { previousSidebar, setSidebar } = useAppLayoutContext();
-  const { data: site, error, isLoading } = useSiteQuery({ id: siteId });
+  const { data: site, error, isPending } = useSiteQuery({ id: siteId });
 
   const updateSite = useUpdateSiteMutation({
     onSuccess() {
@@ -122,7 +122,7 @@ const EditSiteContent = ({
 
   return (
     <div>
-      {!isLoading && site && initialValues !== baseInitialValues ? (
+      {!isPending && site && initialValues !== baseInitialValues ? (
         <>
           <h3 className="p-heading--4 u-no-margin" id={headingId}>
             Edit <strong>{site.name}</strong>

@@ -15,11 +15,11 @@ it("renders provided error string", () => {
 });
 
 it("renders a default error message if no error is provided", () => {
-  render(<ErrorMessage error={undefined} />);
+  render(<ErrorMessage error={null} />);
   expect(screen.getByText("An unknown error has occured")).toBeInTheDocument();
 });
 
 it("renders a custom default error message", () => {
-  render(<ErrorMessage defaultMessage="There was an error processing this request" error={undefined} />);
+  render(<ErrorMessage defaultMessage="There was an error processing this request" error={null} />);
   expect(screen.getByText("There was an error processing this request")).toBeInTheDocument();
 });

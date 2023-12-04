@@ -10,7 +10,7 @@ export type AppPaginationProps = {
   onNextClick: () => void;
   onPreviousClick: () => void;
   setCurrentPage: (x: number) => void;
-  isLoading: boolean;
+  isPending: boolean;
 };
 
 const TablePagination = ({
@@ -20,7 +20,7 @@ const TablePagination = ({
   onNextClick,
   onPreviousClick,
   setCurrentPage,
-  isLoading,
+  isPending,
 }: AppPaginationProps) => {
   const [pageNumber, setPageNumber] = useState<number | undefined>(currentPage);
   const [error, setError] = useState("");
@@ -64,7 +64,7 @@ const TablePagination = ({
       <Button
         appearance="base"
         aria-label="previous page"
-        disabled={currentPage === 1 || isLoading || noItems}
+        disabled={currentPage === 1 || isPending || noItems}
         hasIcon
         onClick={handlePreviousClick}
       >
@@ -76,7 +76,7 @@ const TablePagination = ({
       <Input
         aria-label="current page"
         className="current-page"
-        disabled={isLoading}
+        disabled={isPending}
         error={error}
         min={1}
         onBlur={handleInputBlur}
@@ -90,7 +90,7 @@ const TablePagination = ({
       <Button
         appearance="base"
         aria-label="next page"
-        disabled={currentPage === totalPages || isLoading || noItems}
+        disabled={currentPage === totalPages || isPending || noItems}
         hasIcon
         onClick={handleNextClick}
       >

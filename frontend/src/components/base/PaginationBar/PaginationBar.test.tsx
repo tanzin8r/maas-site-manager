@@ -8,7 +8,7 @@ it("should render the PaginationBar component correctly", () => {
       currentPage={1}
       dataContext="tokens"
       handlePageSizeChange={() => {}}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}

@@ -16,7 +16,7 @@ const paginationProps = {
   currentPage: 1,
   dataContext: "MAAS Sites",
   handlePageSizeChange: vi.fn,
-  isLoading: false,
+  isPending: false,
   itemsPerPage: 1,
   onNextClick: vi.fn,
   onPreviousClick: vi.fn,
@@ -24,8 +24,8 @@ const paginationProps = {
   totalItems: 1,
 };
 const commonProps = {
-  error: undefined,
-  isLoading: false,
+  error: null,
+  isPending: false,
   sorting: [],
   setSorting: vi.fn(),
   paginationProps: {
@@ -92,8 +92,8 @@ it("displays correctly paginated results", () => {
     <SitesTable
       {...commonProps}
       data={sitesQueryResultFactory.build({ items, total: 100, page: 1, size: pageLength })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       paginationProps={{
         ...paginationProps,
         itemsPerPage: pageLength,
@@ -116,8 +116,8 @@ it("displays correct local time", () => {
     <SitesTable
       {...commonProps}
       data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       paginationProps={{
         ...paginationProps,
       }}
@@ -135,8 +135,8 @@ it("displays full name of the country", () => {
     <SitesTable
       {...commonProps}
       data={sitesQueryResultFactory.build({ items: [item], total: 1, page: 1, size: 1 })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       paginationProps={{
         ...paginationProps,
       }}

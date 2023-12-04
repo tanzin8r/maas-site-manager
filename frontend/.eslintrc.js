@@ -9,6 +9,7 @@ module.exports = {
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:import/typescript",
+    "plugin:@tanstack/eslint-plugin-query/recommended",
     "eslint-config-prettier", // Ensure this is last in the list.
   ],
   parserOptions: {

@@ -1774,18 +1774,24 @@
     "@swc/core-win32-ia32-msvc" "1.3.69"
     "@swc/core-win32-x64-msvc" "1.3.69"
 
-"@tanstack/query-core@4.29.25":
-  version "4.29.25"
-  resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-4.29.25.tgz#605d357968a740544af6754004eed1dfd4587cb8"
-  integrity sha512-DI4y4VC6Uw4wlTpOocEXDky69xeOScME1ezLKsj+hOk7DguC9fkqXtp6Hn39BVb9y0b5IBrY67q6kIX623Zj4Q==
-
-"@tanstack/react-query@4.29.25":
-  version "4.29.25"
-  resolved "https://registry.yarnpkg.com/@tanstack/react-query/-/react-query-4.29.25.tgz#64df3260b65760fbd3c81ffae23b7b3802c71aa6"
-  integrity sha512-c1+Ezu+XboYrdAMdusK2fTdRqXPMgPAnyoTrzHOZQqr8Hqz6PNvV9DSKl8agUo6nXX4np7fdWabIprt+838dLg==
+"@tanstack/eslint-plugin-query@5.8.4":
+  version "5.8.4"
+  resolved "https://registry.yarnpkg.com/@tanstack/eslint-plugin-query/-/eslint-plugin-query-5.8.4.tgz#2c411eac4e02c6724b9838efc008d5e32e625f87"
+  integrity sha512-KVgcMc+Bn1qbwkxYVWQoiVSNEIN4IAiLj3cUH/SAHT8m8E59Y97o8ON1syp0Rcw094ItG8pEVZFyQuOaH6PDgQ==
   dependencies:
-    "@tanstack/query-core" "4.29.25"
-    use-sync-external-store "^1.2.0"
+    "@typescript-eslint/utils" "^5.54.0"
+
+"@tanstack/query-core@5.8.3":
+  version "5.8.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-5.8.3.tgz#7c6d62721518223e8b27f1a0b5e9bd4e3bb7ecd8"
+  integrity sha512-SWFMFtcHfttLYif6pevnnMYnBvxKf3C+MHMH7bevyYfpXpTMsLB9O6nNGBdWSoPwnZRXFNyNeVZOw25Wmdasow==
+
+"@tanstack/react-query@5.8.4":
+  version "5.8.4"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-query/-/react-query-5.8.4.tgz#7d5ef4dc4e2985fdc607d0f30ff79a8453abe652"
+  integrity sha512-CD+AkXzg8J72JrE6ocmuBEJfGzEzu/bzkD6sFXFDDB5yji9N20JofXZlN6n0+CaPJuIi+e4YLCbGsyPFKkfNQA==
+  dependencies:
+    "@tanstack/query-core" "5.8.3"
 
 "@tanstack/react-table@8.9.3":
   version "8.9.3"
@@ -2257,7 +2263,7 @@
     eslint-utils "^3.0.0"
     semver "^7.3.7"
 
-"@typescript-eslint/utils@^5.58.0":
+"@typescript-eslint/utils@^5.54.0", "@typescript-eslint/utils@^5.58.0":
   version "5.62.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-5.62.0.tgz#141e809c71636e4a75daa39faed2fb5f4b10df86"
   integrity sha512-n8oxjeb5aIbPFEtmQxQYOLI0i9n5ySBEY/ZEHHZqKQSFnxio1rv6dthascc9dLuwrL0RC5mPCxB7vnAVGAYWAQ==
@@ -6862,11 +6868,6 @@ use-ssr@^1.0.25:
   version "1.0.25"
   resolved "https://registry.yarnpkg.com/use-ssr/-/use-ssr-1.0.25.tgz#c7f54b59d6e52db26749b1d4115a650101a190bd"
   integrity sha512-VYF8kJKI+X7+U4XgGoUER2BUl0vIr+8OhlIhyldgSGE0KHMoDRXPvWeHUUeUktq7ACEOVLzXGq1+QRxcvtwvyQ==
-
-use-sync-external-store@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.2.0.tgz#7dbefd6ef3fe4e767a0cf5d7287aacfb5846928a"
-  integrity sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2:
   version "1.0.2"

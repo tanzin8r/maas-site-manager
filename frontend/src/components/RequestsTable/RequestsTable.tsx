@@ -20,8 +20,8 @@ export type EnrollmentRequestsColumn = Column<PendingSite, unknown>;
 const RequestsTable = ({
   data,
   error,
-  isLoading,
-}: Pick<UseEnrollmentRequestsQueryResult, "data" | "error" | "isLoading">) => {
+  isPending,
+}: Pick<UseEnrollmentRequestsQueryResult, "data" | "error" | "isPending">) => {
   const { rowSelection, setRowSelection } = useRowSelectionContext("requests");
 
   // clear selection on unmount
@@ -112,7 +112,7 @@ const RequestsTable = ({
         <TableCaption>
           <TableCaption.Error error={error} />
         </TableCaption>
-      ) : isLoading ? (
+      ) : isPending ? (
         <TableCaption>
           <TableCaption.Loading />
         </TableCaption>

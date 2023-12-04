@@ -10,7 +10,7 @@ const EnrollmentActions: React.FC = () => {
   const { rowSelection, setRowSelection } = useRowSelectionContext("requests");
   const selectedIds = Object.keys(rowSelection).map((id) => Number(id));
   const enrollmentRequestsMutation = useEnrollmentRequestsMutation({ onSuccess: () => setRowSelection({}) });
-  const isActionDisabled = Object.keys(rowSelection).length === 0 || enrollmentRequestsMutation.isLoading;
+  const isActionDisabled = Object.keys(rowSelection).length === 0 || enrollmentRequestsMutation.isPending;
   const handleAccept = () =>
     enrollmentRequestsMutation.mutate({
       accept: true,

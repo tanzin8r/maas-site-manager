@@ -15,7 +15,7 @@ const SitesMap = () => {
   const [searchText, setSearchText] = useState(searchParams.get("q") || "");
   const debounceSearchText = useDebounce(searchText);
 
-  const { data, isLoading } = useSitesCoordinatesQuery(parseSearchTextToQueryParams(debounceSearchText));
+  const { data, isPending } = useSitesCoordinatesQuery(parseSearchTextToQueryParams(debounceSearchText));
 
   useEffect(() => {
     if (isFirstVisit) {
@@ -37,7 +37,7 @@ const SitesMap = () => {
     <div className="sites-map">
       <div className="sites-map__controls-wrapper">
         <SitesTableControls
-          isLoading={isLoading}
+          isPending={isPending}
           searchText={searchText}
           setSearchText={setSearchText}
           totalSites={data?.length ?? null}

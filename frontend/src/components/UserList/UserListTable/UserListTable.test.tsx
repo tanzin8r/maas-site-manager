@@ -28,8 +28,8 @@ it("renders an empty users table", () => {
   renderWithMemoryRouter(
     <UserListTable
       data={usersQueryResultFactory.build()}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       setSorting={vi.fn()}
       sorting={[]}
     />,
@@ -43,8 +43,8 @@ it("renders a spinner while loading", () => {
   renderWithMemoryRouter(
     <UserListTable
       data={usersQueryResultFactory.build()}
-      error={undefined}
-      isLoading={true}
+      error={null}
+      isPending={true}
       setSorting={vi.fn()}
       sorting={[]}
     />,
@@ -58,8 +58,8 @@ it("shows errors if present", () => {
   renderWithMemoryRouter(
     <UserListTable
       data={usersQueryResultFactory.build()}
-      error={errorMessage}
-      isLoading={false}
+      error={new Error(errorMessage)}
+      isPending={false}
       setSorting={vi.fn()}
       sorting={[]}
     />,
@@ -73,8 +73,8 @@ it("renders rows with details for each user", () => {
   renderWithMemoryRouter(
     <UserListTable
       data={usersQueryResultFactory.build({ items, total: 1, page: 1, size: 1 })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       setSorting={vi.fn()}
       sorting={[]}
     />,
@@ -104,8 +104,8 @@ it("renders correctly paginated results", () => {
   renderWithMemoryRouter(
     <UserListTable
       data={usersQueryResultFactory.build({ items, total: 100, page: 1, size: pageLength })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       setSorting={vi.fn()}
       sorting={[]}
     />,
@@ -120,8 +120,8 @@ it("displays the correct sort direction label", () => {
   const { rerender } = renderWithMemoryRouter(
     <UserListTable
       data={usersQueryResultFactory.build({ items, total: 2, page: 1, size: 10 })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       setSorting={vi.fn()}
       sorting={[]}
     />,
@@ -138,8 +138,8 @@ it("displays the correct sort direction label", () => {
   rerender(
     <UserListTable
       data={usersQueryResultFactory.build({ items, total: 2, page: 1, size: 10 })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       setSorting={vi.fn()}
       sorting={[{ id: "email", desc: true }]}
     />,
@@ -152,8 +152,8 @@ it("displays the correct sort direction label", () => {
   rerender(
     <UserListTable
       data={usersQueryResultFactory.build({ items, total: 2, page: 1, size: 10 })}
-      error={undefined}
-      isLoading={false}
+      error={null}
+      isPending={false}
       setSorting={vi.fn()}
       sorting={[{ id: "email", desc: false }]}
     />,

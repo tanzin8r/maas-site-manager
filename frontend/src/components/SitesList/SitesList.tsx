@@ -24,7 +24,7 @@ const SitesList = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const sortBy = getSortBy(sorting) as SortBy<SitesSortKey>;
 
-  const { error, data, isLoading } = useSitesQuery({
+  const { error, data, isPending } = useSitesQuery({
     page: debouncedPage,
     size,
     sortBy,
@@ -55,12 +55,12 @@ const SitesList = () => {
       <SitesTable
         data={data}
         error={error}
-        isLoading={isLoading}
+        isPending={isPending}
         paginationProps={{
           currentPage: page,
           dataContext: "MAAS Sites",
           handlePageSizeChange,
-          isLoading,
+          isPending,
           itemsPerPage: size,
           onNextClick: handleNextClick,
           onPreviousClick: handlePreviousClick,

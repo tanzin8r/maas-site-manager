@@ -6,7 +6,7 @@ it("should render pagination component correctly", () => {
   render(
     <TablePagination
       currentPage={1}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -21,7 +21,7 @@ it("should render previous button as disabled on first page", async () => {
   render(
     <TablePagination
       currentPage={1}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -36,7 +36,7 @@ it("should render next button as disabled on last page", async () => {
   render(
     <TablePagination
       currentPage={1}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -53,7 +53,7 @@ it("next and previous buttons work as expected", async () => {
   render(
     <TablePagination
       currentPage={2}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={onNextClick}
       onPreviousClick={onPreviousClick}
@@ -75,7 +75,7 @@ it("should have a numeric input showing the current page", async () => {
   render(
     <TablePagination
       currentPage={currentPage}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -91,7 +91,7 @@ it("disables numeric input and buttons when data is loading", async () => {
   render(
     <TablePagination
       currentPage={1}
-      isLoading={true}
+      isPending={true}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -109,7 +109,7 @@ it("displays an error message when input out of range", async () => {
   render(
     <TablePagination
       currentPage={1}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}
@@ -129,7 +129,7 @@ it("returns input to original page value on blur when invalid value is inputted"
   render(
     <TablePagination
       currentPage={currentPage}
-      isLoading={false}
+      isPending={false}
       itemsPerPage={10}
       onNextClick={() => {}}
       onPreviousClick={() => {}}

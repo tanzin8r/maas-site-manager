@@ -10,7 +10,7 @@ const DEFAULT_PAGE_SIZE = 50;
 const Requests: React.FC = () => {
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
     usePagination(DEFAULT_PAGE_SIZE);
-  const { error, data, isLoading } = useRequestsQuery({
+  const { error, data, isPending } = useRequestsQuery({
     page: debouncedPage,
     size,
   });
@@ -24,7 +24,7 @@ const Requests: React.FC = () => {
             currentPage={page}
             dataContext="open enrolment requests"
             handlePageSizeChange={handlePageSizeChange}
-            isLoading={isLoading}
+            isPending={isPending}
             itemsPerPage={size}
             onNextClick={handleNextClick}
             onPreviousClick={handlePreviousClick}
@@ -33,7 +33,7 @@ const Requests: React.FC = () => {
           />
         </Col>
         <Col size={12}>
-          <RequestsTable data={data} error={error} isLoading={isLoading} />
+          <RequestsTable data={data} error={error} isPending={isPending} />
         </Col>
       </Row>
     </section>

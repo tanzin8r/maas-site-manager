@@ -5,12 +5,12 @@ import type { UseSitesQueryResult } from "@/hooks/react-query";
 
 const SitesCount = ({
   totalSites,
-  isLoading,
+  isPending,
 }: {
   totalSites: number | null;
-} & Pick<UseSitesQueryResult, "isLoading">) =>
-  isLoading ? (
-    <Placeholder isLoading={isLoading} text="xx" />
+} & Pick<UseSitesQueryResult, "isPending">) =>
+  isPending ? (
+    <Placeholder isPending={isPending} text="xx" />
   ) : (
     <span>{`${pluralize("MAAS sites", totalSites || 0, !!totalSites)}`}</span>
   );

@@ -18,7 +18,7 @@ import { useSiteQuery } from "@/hooks/react-query";
 import { getCountryName } from "@/utils";
 
 const SiteDetailsContent = ({ id }: { id: NonNullable<SiteDetailsContextValue["selected"]> }) => {
-  const { data: site, error, isLoading } = useSiteQuery({ id });
+  const { data: site, error, isPending } = useSiteQuery({ id });
   const { setSidebar } = useAppLayoutContext();
   const { setRowSelection } = useRowSelectionContext("sites");
   const stats = site?.stats;
@@ -145,7 +145,7 @@ const SiteDetailsContent = ({ id }: { id: NonNullable<SiteDetailsContextValue["s
             />
           </span>
         </>
-      ) : isLoading ? (
+      ) : isPending ? (
         <Spinner />
       ) : null}
     </div>

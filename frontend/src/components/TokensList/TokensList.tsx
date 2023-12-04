@@ -21,12 +21,12 @@ const TokensList = () => {
   const { page, debouncedPage, size, handleNextClick, handlePreviousClick, handlePageSizeChange, setPage } =
     usePagination(DEFAULT_PAGE_SIZE);
 
-  const { error, data, isLoading } = useTokensQuery({
+  const { error, data, isPending } = useTokensQuery({
     page: debouncedPage,
     size,
   });
 
-  const { error: exportTokensError, isLoading: isExportTokensLoading, exportTokens } = useExportTokensToFileQuery();
+  const { error: exportTokensError, isPending: isExportTokensLoading, exportTokens } = useExportTokensToFileQuery();
 
   const tokensDeleteMutation = useDeleteTokensMutation({
     onSuccess: () => setRowSelection({}),
@@ -114,7 +114,7 @@ const TokensList = () => {
           currentPage={page}
           dataContext="tokens"
           handlePageSizeChange={handlePageSizeChange}
-          isLoading={isLoading}
+          isPending={isPending}
           itemsPerPage={size}
           onNextClick={handleNextClick}
           onPreviousClick={handlePreviousClick}
@@ -122,7 +122,7 @@ const TokensList = () => {
           totalItems={data?.total || 0}
         />
       </header>
-      <TokensTable data={data} error={error} isLoading={isLoading} />
+      <TokensTable data={data} error={error} isPending={isPending} />
     </section>
   );
 };

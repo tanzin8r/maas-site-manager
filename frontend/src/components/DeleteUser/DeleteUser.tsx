@@ -30,7 +30,7 @@ const DeleteUserContent = ({
 }) => {
   const id = useId();
   const { setSidebar } = useAppLayoutContext();
-  const { data: user, error, isError, isLoading, isSuccess: getUserSuccess } = useUserQuery({ id: selectedUserId });
+  const { data: user, error, isError, isPending, isSuccess: getUserSuccess } = useUserQuery({ id: selectedUserId });
 
   const deleteUserMutation = useDeleteUserMutation();
   const headingId = `heading-${id}`;
@@ -61,7 +61,7 @@ const DeleteUserContent = ({
           <ErrorMessage error={error} />
         </Notification>
       )}
-      {isLoading ? (
+      {isPending ? (
         <Spinner text="Loading..." />
       ) : (
         <Formik<DeleteUserFormValues>

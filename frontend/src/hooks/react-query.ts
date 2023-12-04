@@ -1,5 +1,5 @@
 import type { MutateOptions, UseMutationOptions } from "@tanstack/react-query";
-import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery, keepPreviousData } from "@tanstack/react-query";
 
 import type apiClient from "@/api";
 import {
@@ -41,7 +41,7 @@ export const useSitesQuery = ({ page, size, sortBy }: Parameters<typeof apiClien
   useQuery<SitesGetResponse>({
     queryKey: ["sites", page, size, sortBy],
     queryFn: () => getSites({ page, size, sortBy }),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     refetchInterval,
   });
 
@@ -49,11 +49,11 @@ export const useSitesCoordinatesQuery = (queryText?: string) =>
   useQuery({
     queryKey: ["sitesCoordinates", queryText],
     queryFn: () => getSitesCoordinates(queryText),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     refetchInterval,
   });
 export const useSiteQuery = ({ id }: Parameters<typeof apiClient.default.getIdV1SitesIdGet>[0]) =>
-  useQuery<Site>({ queryKey: ["sites", id], queryFn: () => getSite({ id }), keepPreviousData: true });
+  useQuery<Site>({ queryKey: ["sites", id], queryFn: () => getSite({ id }), placeholderData: keepPreviousData });
 
 // return single site data from query cache
 export const useSiteQueryData = (id: Site["id"]): Site | null => {
@@ -73,7 +73,8 @@ export const useSiteQueryData = (id: Site["id"]): Site | null => {
 
 export const useDeleteSitesMutation = (options?: UseMutationOptions<unknown, unknown, Site["id"][], unknown>) => {
   const queryClient = useQueryClient();
-  return useMutation(deleteSites, {
+  return useMutation({
+    mutationFn: deleteSites,
     ...options,
     onSuccess: (...args) => {
       options?.onSuccess?.(...args);
@@ -89,7 +90,8 @@ export const useUpdateSiteMutation = (
   options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof updateSite>[0], unknown>, "mutationFn">,
 ) => {
   const queryClient = useQueryClient();
-  return useMutation(updateSite, {
+  return useMutation({
+    mutationFn: updateSite,
     ...options,
     onSuccess: (...args) => {
       options?.onSuccess?.(...args);
@@ -108,7 +110,7 @@ export const useUsersQuery = ({
   useQuery<UsersGetResponse>({
     queryKey: ["users", page, size, sortBy, searchText],
     queryFn: () => getUsers({ page, size, sortBy, searchText }),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
 export type useUserQueryResult = ReturnType<typeof useUserQuery>;
@@ -116,7 +118,7 @@ export const useUserQuery = ({ id, enabled = true }: { id: User["id"]; enabled?:
   useQuery<User>({
     queryKey: ["users", id],
     queryFn: () => getUser({ id }),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     enabled,
   });
 
@@ -125,12 +127,13 @@ export const useTokensQuery = ({ page, size }: Parameters<typeof getTokens>[0]) 
   useQuery<TokensGetResponse>({
     queryKey: ["tokens", page, size],
     queryFn: () => getTokens({ page, size }),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
 export const useTokensCreateMutation = () => {
   const queryClient = useQueryClient();
-  return useMutation(postTokens, {
+  return useMutation({
+    mutationFn: postTokens,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tokens"] });
     },
@@ -138,39 +141,40 @@ export const useTokensCreateMutation = () => {
 };
 
 export const useExportTokensToFileQuery = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, setisPending] = useState(false);
   const [error, setError] = useState(null);
 
   const exportTokens = async () => {
     setError(null);
-    setIsLoading(true);
+    setisPending(true);
     getTokensExport()
       .then((data) => {
         if (data) {
           saveToFile(data, "site-manager-tokens.csv", "text/csv");
         }
-        setIsLoading(false);
+        setisPending(false);
       })
       .catch((error) => {
         setError(error);
       });
   };
 
-  return { error, isLoading, exportTokens };
+  return { error, isPending, exportTokens };
 };
 
 export const useDeleteTokensMutation = (
   options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof deleteTokens>[0], unknown>, "mutationFn">,
 ) => {
   const queryClient = useQueryClient();
-  return useMutation(deleteTokens, {
+  return useMutation({
+    mutationFn: deleteTokens,
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries(["tokens"]);
+      queryClient.invalidateQueries({ queryKey: ["tokens"] });
       options?.onSuccess?.(...args);
     },
     onError: () => {
-      queryClient.invalidateQueries(["tokens"]);
+      queryClient.invalidateQueries({ queryKey: ["tokens"] });
     },
   });
 };
@@ -180,7 +184,7 @@ export const useRequestsQuery = ({ page, size }: Parameters<typeof apiClient.def
   useQuery({
     queryKey: ["requests", page, size],
     queryFn: () => getEnrollmentRequests({ page, size }),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     refetchInterval,
   });
 
@@ -188,13 +192,14 @@ export const useRequestsCountQuery = () =>
   useQuery({
     queryKey: ["requests", 1, 1],
     queryFn: () => getEnrollmentRequests({ page: 1, size: 1 }),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     refetchInterval,
   });
 
 export const useEnrollmentRequestsMutation = (options: MutateOptions<unknown, unknown, PendingSitesPostRequest>) => {
   const queryClient = useQueryClient();
-  return useMutation(postEnrollmentRequests, {
+  return useMutation({
+    mutationFn: postEnrollmentRequests,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ["requests"] });
       options?.onSuccess?.(...args);
@@ -202,13 +207,13 @@ export const useEnrollmentRequestsMutation = (options: MutateOptions<unknown, un
   });
 };
 
-export const useLoginMutation = () => useMutation(postLogin);
+export const useLoginMutation = () => useMutation({ mutationFn: postLogin });
 
 export const useCurrentUserQuery = () => useQuery<User>({ queryKey: ["me"], queryFn: getCurrentUser });
 
 export const useUpdateUserMutation = (
   options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof updateUser>[0], unknown>, "mutationFn">,
-) => useMutation(updateUser, options);
+) => useMutation({ mutationFn: updateUser, ...options });
 
 export const useAddUserMutation = (
   options?: Omit<
@@ -217,10 +222,11 @@ export const useAddUserMutation = (
   >,
 ) => {
   const queryClient = useQueryClient();
-  return useMutation(addUser, {
+  return useMutation({
+    mutationFn: addUser,
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries(["users"]);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       options?.onSuccess?.(...args);
     },
   });
@@ -230,10 +236,11 @@ export const useDeleteUserMutation = (
   options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof deleteUser>[0], unknown>, "mutationFn">,
 ) => {
   const queryClient = useQueryClient();
-  return useMutation(deleteUser, {
+  return useMutation({
+    mutationFn: deleteUser,
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries(["users"]);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       options?.onSuccess?.(...args);
     },
   });

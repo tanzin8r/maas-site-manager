@@ -46,14 +46,14 @@ type SortProps = {
 };
 const SitesTable = ({
   data,
-  isLoading,
+  isPending,
   error,
   searchText,
   setSearchText,
   paginationProps,
   sorting,
   setSorting,
-}: Pick<UseSitesQueryResult, "data" | "isLoading" | "error"> & {
+}: Pick<UseSitesQueryResult, "data" | "isPending" | "error"> & {
   searchText: string;
   setSearchText: (text: string) => void;
   paginationProps: PaginationBarProps;
@@ -295,7 +295,7 @@ const SitesTable = ({
   return (
     <>
       <SitesTableControls
-        isLoading={isLoading}
+        isPending={isPending}
         searchText={searchText}
         setSearchText={setSearchText}
         totalSites={data?.total ?? null}
@@ -332,7 +332,7 @@ const SitesTable = ({
           <TableCaption>
             <TableCaption.Error error={error} />
           </TableCaption>
-        ) : isLoading ? (
+        ) : isPending ? (
           <TableCaption>
             <TableCaption.Loading />
           </TableCaption>

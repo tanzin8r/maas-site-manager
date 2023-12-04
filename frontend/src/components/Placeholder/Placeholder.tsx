@@ -4,7 +4,7 @@ import classNames from "classnames";
 
 type Props = {
   className?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
 } & (
   | {
       text?: never;
@@ -16,9 +16,9 @@ type Props = {
     }
 );
 
-const Placeholder = ({ text, children, className, isLoading = false }: Props) => {
+const Placeholder = ({ text, children, className, isPending = false }: Props) => {
   const delay = Math.floor(Math.random() * 750);
-  if (isLoading) {
+  if (isPending) {
     return (
       <span
         aria-label="loading"

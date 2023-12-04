@@ -102,7 +102,7 @@ const TokensCreate = () => {
               </Button>
               <Button
                 appearance="positive"
-                disabled={!dirty || !isValid || tokensCreateMutation.isLoading || isSubmitting}
+                disabled={!dirty || !isValid || tokensCreateMutation.isPending || isSubmitting}
                 type="submit"
               >
                 Generate tokens

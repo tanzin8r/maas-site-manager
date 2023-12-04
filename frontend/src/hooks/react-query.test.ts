@@ -71,12 +71,12 @@ it("should finish loading when exporting tokens", async () => {
   });
   const { result } = renderHook(() => useExportTokensToFileQuery(), { wrapper: Providers });
 
-  expect(result.current.isLoading).toBe(false);
+  expect(result.current.isPending).toBe(false);
 
   act(() => {
     result.current.exportTokens();
   });
-  expect(result.current.isLoading).toBe(true);
-  await waitFor(() => expect(result.current.isLoading).toBe(false));
+  expect(result.current.isPending).toBe(true);
+  await waitFor(() => expect(result.current.isPending).toBe(false));
   expect(result.current.error).toBe(null);
 });

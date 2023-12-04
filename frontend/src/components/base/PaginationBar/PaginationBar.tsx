@@ -11,7 +11,7 @@ export type PaginationBarProps = AppPaginationProps & {
   handlePageSizeChange: (size: number) => void;
   dataContext: string;
   setCurrentPage: (page: number) => void;
-  isLoading: boolean;
+  isPending: boolean;
 };
 
 const PaginationBar = ({
@@ -23,7 +23,7 @@ const PaginationBar = ({
   handlePageSizeChange,
   dataContext,
   setCurrentPage,
-  isLoading,
+  isPending,
 }: PaginationBarProps) => {
   const pageCounts = useMemo(() => [20, 30, 50], []);
   const pageOptions = useMemo(
@@ -56,7 +56,7 @@ const PaginationBar = ({
       <ControlsBar.Right>
         <TablePagination
           currentPage={currentPage}
-          isLoading={isLoading}
+          isPending={isPending}
           itemsPerPage={itemsPerPage}
           onNextClick={onNextClick}
           onPreviousClick={onPreviousClick}

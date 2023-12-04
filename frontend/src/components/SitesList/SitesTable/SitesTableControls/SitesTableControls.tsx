@@ -12,14 +12,14 @@ import { useLocation } from "@/utils/router";
 
 const SitesTableControls = ({
   totalSites,
-  isLoading,
+  isPending,
   setSearchText,
   searchText,
 }: {
   setSearchText: (text: string) => void;
   totalSites: number | null;
   searchText: string;
-} & Pick<UseSitesQueryResult, "isLoading">) => {
+} & Pick<UseSitesQueryResult, "isPending">) => {
   const handleSearchInput = (inputValue: string) => {
     setSearchText(inputValue);
   };
@@ -34,7 +34,7 @@ const SitesTableControls = ({
       <div className="u-flex--large">
         <div>
           <h2 className="p-heading--4 u-no-padding--top site-control-heading">
-            <SitesCount isLoading={isLoading} totalSites={totalSites} />
+            <SitesCount isPending={isPending} totalSites={totalSites} />
           </h2>
         </div>
         <div className="u-flex--grow">

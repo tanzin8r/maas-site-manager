@@ -21,7 +21,7 @@ interface SiteSummaryProps extends DOMAttributes<HTMLElement> {
   id: Site["id"];
 }
 const SiteSummary = ({ id, ...props }: SiteSummaryProps) => {
-  const { data: site, error, isLoading } = useSiteQuery({ id });
+  const { data: site, error, isPending } = useSiteQuery({ id });
   const { setSidebar } = useAppLayoutContext();
   const { setSelected: setSiteId } = useSiteDetailsContext();
   const { stats } = site || {};
@@ -86,7 +86,7 @@ const SiteSummary = ({ id, ...props }: SiteSummaryProps) => {
             </tbody>
           </table>
         </>
-      ) : isLoading ? (
+      ) : isPending ? (
         <Spinner />
       ) : null}
     </Card>

@@ -64,7 +64,7 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
   const { selected: selectedUserId, setSelected: setSelectedUserId } = useUserSelectionContext();
   const { setSidebar } = useAppLayoutContext();
   const queryClient = useQueryClient();
-  const { data: user, error, isLoading } = useUserQuery({ id: selectedUserId!, enabled: type === "edit" });
+  const { data: user, error, isPending } = useUserQuery({ id: selectedUserId!, enabled: type === "edit" });
 
   const resetForm = () => {
     setSidebar(null);
@@ -85,7 +85,7 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
     },
   });
 
-  const isMutationLoading = addUser.isLoading || updateUser.isLoading;
+  const isMutationPending = addUser.isPending || updateUser.isPending;
 
   useEffect(() => {
     if (type === "edit" && user) {
@@ -143,7 +143,7 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
           <ErrorMessage error={addUser.error} />
         </Notification>
       )}
-      {type === "edit" && (isEqual(initialValues, baseInitialValues) || isLoading) ? (
+      {type === "edit" && (isEqual(initialValues, baseInitialValues) || isPending) ? (
         <Spinner text="Loading..." />
       ) : (
         <Formik
@@ -217,8 +217,8 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
                 </Button>
                 <ActionButton
                   appearance="positive"
-                  disabled={!dirty || !isValid || isSubmitting || isMutationLoading}
-                  loading={isSubmitting || isMutationLoading}
+                  disabled={!dirty || !isValid || isSubmitting || isMutationPending}
+                  loading={isSubmitting || isMutationPending}
                   type="submit"
                 >
                   {type === "add" ? "Add user" : "Save"}

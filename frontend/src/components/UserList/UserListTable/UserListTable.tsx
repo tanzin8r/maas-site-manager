@@ -31,10 +31,10 @@ type SortProps = {
 const UserListTable = ({
   data,
   error,
-  isLoading,
+  isPending,
   setSorting,
   sorting,
-}: Pick<useUsersQueryResult, "data" | "error" | "isLoading"> & SortProps) => {
+}: Pick<useUsersQueryResult, "data" | "error" | "isPending"> & SortProps) => {
   const [isShowingFullName, setIsShowingFullName] = useState(false);
   const { setSelected: setSelectedUserId } = useUserSelectionContext();
   const { setSidebar } = useAppLayoutContext();
@@ -215,7 +215,7 @@ const UserListTable = ({
         <TableCaption>
           <TableCaption.Error error={error} />
         </TableCaption>
-      ) : isLoading ? (
+      ) : isPending ? (
         <TableCaption>
           <TableCaption.Loading />
         </TableCaption>

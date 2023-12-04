@@ -22,7 +22,7 @@ const createAccessor =
 export type TokenColumnDef = ColumnDef<Token, Partial<Token>>;
 export type TokenColumn = Column<Token, unknown>;
 
-const TokensTable = ({ data, error, isLoading }: Pick<useTokensQueryResult, "data" | "error" | "isLoading">) => {
+const TokensTable = ({ data, error, isPending }: Pick<useTokensQueryResult, "data" | "error" | "isPending">) => {
   const [copiedText, setCopiedText] = useState("");
 
   const { rowSelection, setRowSelection } = useRowSelectionContext("tokens");
@@ -139,7 +139,7 @@ const TokensTable = ({ data, error, isLoading }: Pick<useTokensQueryResult, "dat
         <TableCaption>
           <TableCaption.Error error={error} />
         </TableCaption>
-      ) : isLoading ? (
+      ) : isPending ? (
         <TableCaption>
           <TableCaption.Loading />
         </TableCaption>

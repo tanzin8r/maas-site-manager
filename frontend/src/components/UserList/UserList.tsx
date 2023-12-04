@@ -22,7 +22,7 @@ const UserList = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const sortBy = getSortBy(sorting) as SortBy<UserSortKey>;
 
-  const { data, error, isLoading } = useUsersQuery({
+  const { data, error, isPending } = useUsersQuery({
     page: debouncedPage,
     size,
     sortBy,
@@ -58,14 +58,14 @@ const UserList = () => {
         currentPage={page}
         dataContext="users"
         handlePageSizeChange={handlePageSizeChange}
-        isLoading={isLoading}
+        isPending={isPending}
         itemsPerPage={size}
         onNextClick={handleNextClick}
         onPreviousClick={handlePreviousClick}
         setCurrentPage={setPage}
         totalItems={data?.total || 0}
       />
-      <UserListTable data={data} error={error} isLoading={isLoading} setSorting={setSorting} sorting={sorting} />
+      <UserListTable data={data} error={error} isPending={isPending} setSorting={setSorting} sorting={sorting} />
     </section>
   );
 };

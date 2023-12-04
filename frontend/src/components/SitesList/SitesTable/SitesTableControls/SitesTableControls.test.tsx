@@ -4,7 +4,7 @@ import { renderWithMemoryRouter, screen } from "@/utils/test-utils";
 
 const commonProps = {
   setSearchText: vi.fn(),
-  isLoading: false,
+  isPending: false,
   searchText: "",
 };
 
