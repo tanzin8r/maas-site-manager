@@ -39,7 +39,7 @@
     "yup": "1.2.0"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.7.3",
+    "@axe-core/playwright": "4.8.1",
     "@playwright/test": "1.36.1",
     "@remix-run/web-fetch": "4.3.5",
     "@tanstack/eslint-plugin-query": "5.8.4",
