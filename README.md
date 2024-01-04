@@ -2,6 +2,7 @@
 
 This repository contains the MVP for the MAAS Site Manager. It contains one sub-folder for every sub-project.
 
+
 ## How to Run a Local Development Environment?
 
 ### Manual Setup
@@ -49,7 +50,6 @@ sudo snap start --enable maas-site-manager
 
 Once the service is enabled, changing settings will automatically restart it
 with the new ones.
-
 
 ### Using Docker Compose
 

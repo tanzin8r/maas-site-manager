@@ -70,7 +70,7 @@ async def post(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
-    create_request: TokensPostRequest,
+    post_request: TokensPostRequest,
 ) -> TokensPostResponse:
     """Create enrollment tokens for sites.
 
@@ -78,8 +78,8 @@ async def post(
     """
     tokens = await services.tokens.create(
         issuer=config.service_identifier,
-        duration=create_request.duration,
-        count=create_request.count,
+        duration=post_request.duration,
+        count=post_request.count,
         secret_key=config.token_secret_key,
     )
     return TokensPostResponse(items=tokens)
