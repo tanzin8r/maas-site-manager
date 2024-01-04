@@ -30,7 +30,10 @@ from ..middleware import (
     DatabaseMetricsMiddleware,
     TransactionMiddleware,
 )
-from ..service import ConfigService
+from ..service import (
+    ConfigService,
+    SettingsService,
+)
 from ..settings import Settings
 from ._prometheus import instrument_prometheus
 from ._utils import create_subapp
@@ -76,7 +79,7 @@ def create_app(
         async with aclosing(db):
             await db.execute_in_transaction(check_server_version)
             await db.ensure_schema()
-            await db.execute_in_transaction(ensure_config)
+            await db.execute_in_transaction(ensure_db_entries)
             yield
 
     app = FastAPI(
@@ -104,10 +107,10 @@ def create_app(
     return app
 
 
-async def ensure_config(conn: AsyncConnection) -> None:
-    """Ensure global configurations are populated."""
-    service = ConfigService(conn)
-    await service.ensure()
+async def ensure_db_entries(conn: AsyncConnection) -> None:
+    """Ensure global database entries are populated."""
+    await ConfigService(conn).ensure()
+    await SettingsService(conn).ensure()
 
 
 def _log_settings(logger: Logger, settings: Settings) -> None:

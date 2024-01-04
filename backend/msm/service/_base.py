@@ -39,9 +39,9 @@ class DBBackedModelService(Service, Generic[Model]):
     """This service allows getting and setting values for a Pydantic model
     backed by a database table.
 
-    The table is expected to have the following fields:
-      - name (as Text)
-      - value (as JSONB)
+    The table is expected to have the following columns:
+      - name (Text)
+      - value (JSONB)
 
     Subclasses must inherit this as DBBackedModelService[Model] declaring the
     related (Pydantic) Model class.

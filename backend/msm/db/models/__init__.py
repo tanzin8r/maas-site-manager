@@ -1,4 +1,5 @@
 from ._config import Config
+from ._settings import Settings
 from ._site import (
     ConnectionStatus,
     EnrollingSite,
@@ -24,6 +25,7 @@ __all__ = [
     "EnrollingSite",
     "PendingSite",
     "PendingSiteCreate",
+    "Settings",
     "Site",
     "SiteCoordinates",
     "SiteData",

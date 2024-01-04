@@ -2,7 +2,7 @@ from argparse import Namespace
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ...api import ensure_config
+from ...api import ensure_db_entries
 from ...db.models import Config
 from ...sampledata import (
     SampleDataModel,
@@ -21,7 +21,7 @@ class FixturesAction(DatabaseAction):
     async def aexecute(self, options: Namespace) -> int:
         async with self.database_connection() as conn:
             await self.db.ensure_schema()
-            await self.db.execute_in_transaction(ensure_config)
+            await self.db.execute_in_transaction(ensure_db_entries)
             config = await self._get_config(conn)
             await self._make_fixtures(conn, config)
 

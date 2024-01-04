@@ -55,12 +55,23 @@ class Point(UserDefinedType):  # type: ignore
         return convert
 
 
+# Internal configuration options that are shared by units of the service
+# installation
 Config = Table(
     "config",
     METADATA,
     Column("name", Text, primary_key=True),
     Column("value", JSONB, nullable=False),
 )
+
+# Global application settings that can be configured through the API
+Setting = Table(
+    "setting",
+    METADATA,
+    Column("name", Text, primary_key=True),
+    Column("value", JSONB, nullable=False),
+)
+
 
 Site = Table(
     "site",

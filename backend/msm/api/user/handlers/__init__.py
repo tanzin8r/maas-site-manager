@@ -1,5 +1,6 @@
 from . import (
     login,
+    settings,
     sites,
     tokens,
     users,
@@ -7,6 +8,7 @@ from . import (
 
 ROUTERS = (
     login.v1_router,
+    settings.v1_router,
     sites.v1_router,
     tokens.v1_router,
     users.v1_router,

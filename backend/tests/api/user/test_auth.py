@@ -18,6 +18,8 @@ from ...fixtures.app import get_api_routes
 from ...fixtures.client import Client
 
 AUTHENTICATED_ROUTES = (
+    ("GET", "/api/v1/settings"),
+    ("PATCH", "/api/v1/settings"),
     ("GET", "/api/v1/sites"),
     ("GET", "/api/v1/sites/coordinates"),
     ("GET", "/api/v1/sites/pending"),
@@ -42,6 +44,8 @@ AUTHENTICATED_ROUTES = (
 UNAUTHENTICATED_ROUTES = (("POST", "/api/v1/login"),)
 
 ADMIN_ROUTES = (
+    ("GET", "/api/v1/settings"),
+    ("PATCH", "/api/v1/settings"),
     ("GET", "/api/v1/users"),
     ("POST", "/api/v1/users"),
     ("GET", "/api/v1/users/{id}"),

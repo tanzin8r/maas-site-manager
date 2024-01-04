@@ -260,6 +260,10 @@ class Factory:
         """Create an entry in the global configuration."""
         await self.create("config", {"name": name, "value": value})
 
+    async def make_Setting(self, name: str, value: Any = None) -> None:
+        """Create an entry in the global settings."""
+        await self.create("setting", {"name": name, "value": value})
+
 
 @pytest.fixture
 def factory(db_connection: AsyncConnection) -> Iterator[Factory]:
