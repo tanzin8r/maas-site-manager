@@ -1,6 +1,10 @@
+from collections.abc import Iterable
 from logging.config import fileConfig
 
 from alembic import context
+from alembic.migration import MigrationContext
+from alembic.operations.ops import MigrationScript
+from alembic.script.base import ScriptDirectory
 from sqlalchemy import engine_from_config, pool
 
 from msm.db.tables import METADATA
@@ -24,6 +28,20 @@ if config.config_file_name is not None:
 target_metadata = METADATA
 
 
+def process_revision_directives(
+    context: MigrationContext,
+    revision: str | Iterable[str | None],
+    directives: list[MigrationScript],
+) -> None:
+    # override the revision ID incrementing the last used one
+    migration_script: MigrationScript = directives[0]
+
+    rev_id = 0
+    if head_rev := ScriptDirectory.from_config(config).get_current_head():
+        rev_id = int(head_rev) + 1
+    migration_script.rev_id = f"{rev_id:04}"
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -42,6 +60,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        process_revision_directives=process_revision_directives,
     )
 
     with context.begin_transaction():
@@ -63,7 +82,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            process_revision_directives=process_revision_directives,
         )
 
         with context.begin_transaction():

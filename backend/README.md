@@ -1,5 +1,6 @@
 # MAAS site manager backend
 
+
 ## Development environment
 
 The application is currently supported on Ubuntu 22.04 (Jammy). It's suggested
@@ -32,7 +33,7 @@ The project uses `tox` for running python-related workflows:
 Unit tests use `pytest`. Test can be run either via
 
 ```
-tox -e test
+tox run -e test
 ```
 
 or just
@@ -41,13 +42,14 @@ or just
 tox
 ```
 
-(as this is the default target).
+(as this is the default target). This runs all tests in parallel and reports
+coverage.
 
-It's also possible to pass additional arguments to `pytest` (e.g. to run a
-subset of tests) by passing them to `tox` via extra args:
+To run tests sequentially, possibly selecting a subset of them, it's possibly
+to use the default `py` env, passing additional arguments to `pytest`:
 
 ```
-tox -- <extra args>...
+tox run -e py -- <extra args>...
 ```
 
 
@@ -86,6 +88,7 @@ The application can be run via
 ```
 tox run -e api
 ```
+
 
 ## Delete and recreate the database
 
@@ -146,3 +149,33 @@ and call the endpoints with
 ```bash
 curl http://localhost:8000/api/v1/sites -H "Authorization: bearer $TOKEN"
 ```
+
+
+## Database migrations
+
+Database migrations are managed using [Alembic](https://alembic.sqlalchemy.org).
+The command is available through the `alembic` tox environment.
+
+To ensure that the database status is up to date with the changes in migrations, run
+
+```
+tox run -e alembic -- upgrade head
+```
+
+When table definitions are changed, to create a new patch run
+
+```
+tox run -e alembic -- revision --autogenerate -m $name
+```
+
+where `$name` is the desired migration name.  The resulting filename will be in
+the form `$id_$name.py`, where the revision `id` is automatically incremented
+from the last one (note that, for this reason, passing `--rev-id` won't have
+any effect).
+
+The `--autogenerate` parameter can be omitted to create an empty migration that
+can be later manually edited.
+
+**Note**: the database should be at the correct state previous to the
+modifications that the patch should contain.  This should be done by calling
+the env with `upgrade head` before generating new revisions.
