@@ -1,5 +1,8 @@
+#
+# This file is automatically loaded by Alembic when performing operations
+#
+
 from collections.abc import Iterable
-from logging.config import fileConfig
 
 from alembic import context
 from alembic.migration import MigrationContext
@@ -7,25 +10,8 @@ from alembic.operations.ops import MigrationScript
 from alembic.script.base import ScriptDirectory
 from sqlalchemy import engine_from_config, pool
 
+from msm.db.alembic import get_config
 from msm.db.tables import METADATA
-from msm.settings import Settings
-
-# this is the Alembic Config object, which provides access to the values within
-# the .ini file in use.
-config = context.config
-
-# inject the database DSN from settings in the configuration
-settings = Settings()
-config.set_main_option(
-    "sqlalchemy.url",
-    settings.db_dsn(async_engine=False).render_as_string(hide_password=False),
-)
-
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
-
-# model's MetaData object here for 'autogenerate' support
-target_metadata = METADATA
 
 
 def process_revision_directives(
@@ -35,7 +21,7 @@ def process_revision_directives(
 ) -> None:
     # override the revision ID incrementing the last used one
     migration_script: MigrationScript = directives[0]
-
+    config = get_config()
     rev_id = 0
     if head_rev := ScriptDirectory.from_config(config).get_current_head():
         rev_id = int(head_rev) + 1
@@ -54,10 +40,11 @@ def run_migrations_offline() -> None:
     script output.
 
     """
+    config = get_config()
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
-        target_metadata=target_metadata,
+        target_metadata=METADATA,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         process_revision_directives=process_revision_directives,
@@ -74,6 +61,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    config = get_config()
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -83,7 +71,7 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata,
+            target_metadata=METADATA,
             process_revision_directives=process_revision_directives,
         )
 

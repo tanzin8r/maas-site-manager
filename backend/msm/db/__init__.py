@@ -8,6 +8,7 @@ from typing import (
 
 from sqlalchemy import (
     URL,
+    Connection,
     text,
 )
 from sqlalchemy.ext.asyncio import (
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from .alembic import migrate_db
 from .tables import METADATA
 
 MIN_POSTGRES_VERSION = (14, 0)
@@ -34,13 +36,29 @@ class Database:
         """
         await self.engine.dispose()
 
-    async def ensure_schema(self) -> None:
-        """Ensure the database schema is up to date."""
-        await self._run_sync_in_transaction(METADATA.create_all)
+    async def ensure_schema(self, migrate: bool = True) -> None:
+        """Ensure the database schema is up to date.
+
+        When `migrate` is True, this is done applying pending migrations (if
+        any).  Otherwise, the current schema is created.
+
+        """
+        func: Callable[[Connection], Any]
+        if migrate:
+            func = migrate_db
+        else:
+            func = METADATA.create_all
+        await self._run_sync_in_transaction(func)
 
     async def drop_schema(self) -> None:
         """Drop the database schema."""
-        await self._run_sync_in_transaction(METADATA.drop_all)
+
+        def drop_all(conn: Connection) -> None:
+            METADATA.drop_all(conn)
+            # Alembic table is not tracked by metadata, manually delete it
+            conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
+
+        await self._run_sync_in_transaction(drop_all)
 
     @asynccontextmanager
     async def transaction(self) -> AsyncIterator[AsyncConnection]:
@@ -57,7 +75,7 @@ class Database:
             return await func(conn)
 
     async def _run_sync_in_transaction(
-        self, func: Callable[[Any], FuncResult]
+        self, func: Callable[[Connection], FuncResult]
     ) -> FuncResult:
         async with self.transaction() as conn:
             return await conn.run_sync(func)

@@ -66,7 +66,8 @@ async def db(
     """Set up the database schema."""
     echo = request.config.getoption("sqlalchemy_debug")
     db = Database(db_setup.dsn, echo=echo)
-    await db.ensure_schema()
+    # don't go through migration, just apply schema, since the DB is empty
+    await db.ensure_schema(migrate=False)
     yield db
     await db.drop_schema()
 
