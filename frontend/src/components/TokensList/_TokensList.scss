@@ -8,7 +8,6 @@ $instructions-height-medium: 10.9375rem;
   @media only screen and (min-width: $breakpoint-small) {
     background-color: white;
     z-index: 1;
-    padding-top: $spv--medium;
   }
 
 
@@ -34,11 +33,7 @@ $instructions-height-medium: 10.9375rem;
     }
   }
 
-  .pagination-bar {
+  .controls-bar {
     margin-bottom: 0;
-  }
-
-  .main-toolbar {
-    padding-bottom: $spv--large;
   }
 }

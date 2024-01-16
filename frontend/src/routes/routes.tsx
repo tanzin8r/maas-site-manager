@@ -1,5 +1,6 @@
 import RequireLogin from "./RequireLogin";
 
+import ImagesList from "@/components/ImagesList";
 import MainLayout from "@/components/MainLayout";
 import MapSettings from "@/components/MapSettings";
 import NotFound from "@/routes/404";
@@ -56,6 +57,19 @@ export const routes = createRoutesFromElements(
         }
         index
         path="map"
+      />
+    </Route>
+
+    <Route path="images">
+      <Route index loader={() => redirect("/images/list")} />
+      <Route
+        element={
+          <RequireLogin>
+            <ImagesList />
+          </RequireLogin>
+        }
+        index
+        path="list"
       />
     </Route>
     <Route

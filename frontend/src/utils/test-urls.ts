@@ -14,4 +14,5 @@ export const apiUrls = {
   users: getApiUrl("/users"),
   enrollmentRequests: getApiUrl("/sites/pending"),
   currentUser: getApiUrl("/users/me"),
+  images: getApiUrl("/images"),
 };

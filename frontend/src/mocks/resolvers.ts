@@ -1,7 +1,14 @@
 import { rest } from "msw";
 import type { RestRequest, restContext, ResponseResolver } from "msw";
 
-import { siteFactory, tokenFactory, enrollmentRequestFactory, accessTokenFactory, userFactory } from "./factories";
+import {
+  siteFactory,
+  tokenFactory,
+  enrollmentRequestFactory,
+  accessTokenFactory,
+  userFactory,
+  imageFactory,
+} from "./factories";
 
 import type { GetSitesQueryParams, SortDirection, SitesSortKey, UserSortKey } from "@/api/handlers";
 import type { User } from "@/api/types";
@@ -290,6 +297,27 @@ export const getTokensExport = rest.get(apiUrls.tokensExport, async (_req, res, 
   return res(ctx.status(200), ctx.set("Content-Type", "text/csv"), ctx.body(csv));
 });
 
+type ImagesResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
+export const createMockImagesResolver =
+  (images: ReturnType<typeof imageFactory.buildList>): ImagesResponseResolver =>
+  (req, res, ctx) => {
+    const searchParams = new URLSearchParams(req.url.search);
+    const page = Number(searchParams.get("page"));
+    const size = Number(searchParams.get("size"));
+    const items_page = images.slice((page - 1) * size, page * size);
+
+    const response = {
+      items: items_page,
+      page,
+      total: images.length,
+      size,
+    };
+
+    return res(ctx.status(200), ctx.json(response));
+  };
+
+export const getImages = rest.get(apiUrls.images, createMockImagesResolver(imageFactory.buildList(10)));
+
 export const allResolvers = [
   postLogin,
   getSites,
@@ -311,5 +339,6 @@ export const allResolvers = [
   getUser,
   deleteUser,
   getTokensExport,
+  getImages,
   ...(import.meta.env.VITE_USE_MOCK_TILES === "true" ? [tileHandler] : []),
 ];

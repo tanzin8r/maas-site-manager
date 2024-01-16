@@ -1,4 +1,4 @@
-import { MainToolbar } from "@canonical/maas-react-components";
+import { ContentSection, MainToolbar } from "@canonical/maas-react-components";
 import { SearchBox } from "@canonical/react-components";
 import type { SortingState } from "@tanstack/react-table";
 
@@ -38,31 +38,36 @@ const UserList = () => {
   };
 
   return (
-    <section className="user-list">
-      <MainToolbar>
-        <MainToolbar.Controls>
-          <SearchBox
-            className="user-list__search"
-            externallyControlled
-            onChange={handleSearchInput}
-            placeholder="Search"
-          />
-          <button onClick={() => setSidebar("addUser")} type="button">
-            Add user
-          </button>
-        </MainToolbar.Controls>
-      </MainToolbar>
-      <PaginationBar
-        currentPage={page}
-        dataContext="users"
-        handlePageSizeChange={handlePageSizeChange}
-        isPending={isPending}
-        itemsPerPage={size}
-        setCurrentPage={setPage}
-        totalItems={data?.total || 0}
-      />
-      <UserListTable data={data} error={error} isPending={isPending} setSorting={setSorting} sorting={sorting} />
-    </section>
+    <ContentSection className="user-list">
+      <ContentSection.Header>
+        <MainToolbar>
+          <MainToolbar.Title>Users</MainToolbar.Title>
+          <MainToolbar.Controls>
+            <SearchBox
+              className="user-list__search"
+              externallyControlled
+              onChange={handleSearchInput}
+              placeholder="Search"
+            />
+            <button onClick={() => setSidebar("addUser")} type="button">
+              Add user
+            </button>
+          </MainToolbar.Controls>
+        </MainToolbar>
+        <PaginationBar
+          currentPage={page}
+          dataContext="users"
+          handlePageSizeChange={handlePageSizeChange}
+          isPending={isPending}
+          itemsPerPage={size}
+          setCurrentPage={setPage}
+          totalItems={data?.total || 0}
+        />
+      </ContentSection.Header>
+      <ContentSection.Content>
+        <UserListTable data={data} error={error} isPending={isPending} setSorting={setSorting} sorting={sorting} />
+      </ContentSection.Content>
+    </ContentSection>
   );
 };
 

@@ -1,3 +1,5 @@
+import { ContentSection } from "@canonical/maas-react-components";
+
 import SiteSelectionTable from "./SiteSelectionTable";
 
 import type { Site } from "@/api/types";
@@ -8,15 +10,17 @@ type Props = {
 
 const SiteSelection = ({ selectedSites }: Props) => {
   return (
-    <div className="u-padding-top--medium">
-      <h3 className="p-heading--4 u-no-padding--top u-no-margin">Selection</h3>
-      {selectedSites.length > 0 && (
-        <p>
-          {selectedSites.length} selected <button className="p-button--link">clear selection</button>
-        </p>
-      )}
-      <SiteSelectionTable selectedSites={selectedSites} />
-    </div>
+    <ContentSection>
+      <ContentSection.Title>Selection</ContentSection.Title>
+      <ContentSection.Content>
+        {selectedSites.length > 0 && (
+          <p>
+            {selectedSites.length} selected <button className="p-button--link">clear selection</button>
+          </p>
+        )}
+        <SiteSelectionTable selectedSites={selectedSites} />
+      </ContentSection.Content>
+    </ContentSection>
   );
 };
 

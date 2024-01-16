@@ -50,26 +50,24 @@ const SitesList = () => {
   }, [debounceSearchText, navigate]);
 
   return (
-    <div>
-      <SitesTable
-        data={data}
-        error={error}
-        isPending={isPending}
-        paginationProps={{
-          currentPage: page,
-          dataContext: "MAAS Sites",
-          handlePageSizeChange,
-          isPending,
-          itemsPerPage: size,
-          setCurrentPage: setPage,
-          totalItems: data?.total || 0,
-        }}
-        searchText={searchText}
-        setSearchText={setSearchText}
-        setSorting={setSorting}
-        sorting={sorting}
-      />
-    </div>
+    <SitesTable
+      data={data}
+      error={error}
+      isPending={isPending}
+      paginationProps={{
+        currentPage: page,
+        dataContext: "MAAS Sites",
+        handlePageSizeChange,
+        isPending,
+        itemsPerPage: size,
+        setCurrentPage: setPage,
+        totalItems: data?.total || 0,
+      }}
+      searchText={searchText}
+      setSearchText={setSearchText}
+      setSorting={setSorting}
+      sorting={sorting}
+    />
   );
 };
 

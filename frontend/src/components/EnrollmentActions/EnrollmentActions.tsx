@@ -35,6 +35,7 @@ const EnrollmentActions: React.FC = () => {
           </Notification>
         ) : null}
         <MainToolbar>
+          <MainToolbar.Title>Enrollment requests</MainToolbar.Title>
           <MainToolbar.Controls>
             <RemoveButton disabled={isActionDisabled} label="Deny" onClick={handleDeny} type="button" />
             <Button appearance="positive" disabled={isActionDisabled} onClick={handleAccept} type="button">

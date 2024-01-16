@@ -21,6 +21,7 @@ import {
   getTokensExport,
   deleteSites,
   updateSite,
+  getImages,
 } from "@/api/handlers";
 import type {
   PendingSitesPostRequest,
@@ -245,3 +246,11 @@ export const useDeleteUserMutation = (
     },
   });
 };
+
+export const useImagesQuery = ({ page, size }: Record<string, number>) =>
+  useQuery({
+    queryKey: ["images", page, size],
+    queryFn: () => getImages({ page, size }),
+    placeholderData: keepPreviousData,
+    refetchInterval,
+  });

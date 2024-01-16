@@ -1,4 +1,4 @@
-import { ExternalLink, MainToolbar } from "@canonical/maas-react-components";
+import { ContentSection, ExternalLink, MainToolbar } from "@canonical/maas-react-components";
 import { Button, Col, Row, Notification } from "@canonical/react-components";
 import pluralize from "pluralize";
 
@@ -38,7 +38,7 @@ const TokensList = () => {
 
   const deletedTokensCount = tokensDeleteMutation.variables?.length;
   return (
-    <section className="tokens-list">
+    <ContentSection>
       {tokensDeleteMutation.isSuccess && deletedTokensCount ? (
         <Row>
           <Col size={12}>
@@ -73,7 +73,7 @@ const TokensList = () => {
           </Col>
         </Row>
       ) : null}
-      <header className="tokens-list-header" id="tokens-list-header">
+      <ContentSection.Header className="tokens-list-header">
         <Row>
           <Col size={12}>
             <p className="tokens-list-instructions">
@@ -116,9 +116,9 @@ const TokensList = () => {
           setCurrentPage={setPage}
           totalItems={data?.total || 0}
         />
-      </header>
+      </ContentSection.Header>
       <TokensTable data={data} error={error} isPending={isPending} />
-    </section>
+    </ContentSection>
   );
 };
 

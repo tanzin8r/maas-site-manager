@@ -17,6 +17,12 @@ export const navItems: LocalNavLink[] = [
     url: "/sites",
     icon: "machines",
   },
+  {
+    label: "Images",
+    url: "/images",
+    // TODO: add images icon https://warthogs.atlassian.net/browse/MAASENG-2566
+    icon: "",
+  },
 ];
 
 export const settingsNavItems: LocalNavLink[] = [

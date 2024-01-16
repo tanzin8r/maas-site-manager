@@ -8,6 +8,8 @@ import type {
   Site,
   TokensPostRequest,
 } from "@/api-client";
+import type { Image } from "@/mocks/factories";
+import { apiUrls } from "@/utils/test-urls";
 
 export const postLogin = async (data: Body_post_v1_login_post) => {
   if (!data?.username || !data?.password) {
@@ -170,3 +172,19 @@ export const addUser = ({ requestBody }: Parameters<typeof apiClient.default.pos
 
 export const deleteUser = ({ id }: Parameters<typeof apiClient.default.deleteV1UsersIdDelete>[0]) =>
   apiClient.default.deleteV1UsersIdDelete({ id });
+
+// TODO: replace with api client once API supports it https://warthogs.atlassian.net/browse/MAASENG-2570
+export const getImages = async (params: Record<string, number>) => {
+  let stringParams: Record<string, string> = {};
+  for (const [key, value] of Object.entries(params)) {
+    stringParams[key] = String(value);
+  }
+  const response = await fetch(`${apiUrls.images}?${new URLSearchParams(stringParams)}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const data = (await response.json()) as { items: Image[]; page: number; total: number; size: number };
+  return data;
+};

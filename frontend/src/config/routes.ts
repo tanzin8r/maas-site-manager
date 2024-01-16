@@ -39,6 +39,14 @@ export const protectedRoutes = {
     path: "/account/details",
     title: "Personal Details",
   },
+  images: {
+    path: "/images",
+    title: "",
+  },
+  imagesList: {
+    path: "/images/list",
+    title: "Images",
+  },
   password: {
     path: "/account/password",
     title: "Password",

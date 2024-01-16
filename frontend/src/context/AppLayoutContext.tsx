@@ -11,6 +11,9 @@ export type Sidebar =
   | "siteDetails"
   | "editSite"
   | "siteSelect"
+  | "uploadImage"
+  | "downloadImages"
+  | "deleteImages"
   | null;
 export const AppLayoutContext = createContext<{
   previousSidebar: Sidebar;

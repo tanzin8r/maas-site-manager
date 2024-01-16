@@ -1,3 +1,4 @@
+import { ContentSection } from "@canonical/maas-react-components";
 import { ActionButton, Button, CheckboxInput, Input, Label, Notification, Spinner } from "@canonical/react-components";
 import { useQueryClient } from "@tanstack/react-query";
 import { Field, Form, Formik } from "formik";
@@ -124,111 +125,120 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
   };
 
   return (
-    <div>
-      <h3 className="p-heading--4" id={headingId}>
+    <ContentSection>
+      <ContentSection.Title id={headingId}>
         {type === "add" ? "Add user" : `Edit ${user ? user.username : ""}`}
-      </h3>
-      {error ? (
-        <Notification severity="negative" title="Error while fetching user">
-          <ErrorMessage error={error} />
-        </Notification>
-      ) : null}
-      {updateUser.isError && (
-        <Notification severity="negative" title="Error while editing user">
-          <ErrorMessage error={updateUser.error} />
-        </Notification>
-      )}
-      {addUser.isError && (
-        <Notification severity="negative" title="Error while adding user">
-          <ErrorMessage error={addUser.error} />
-        </Notification>
-      )}
-      {type === "edit" && (isEqual(initialValues, baseInitialValues) || isPending) ? (
-        <Spinner text="Loading..." />
-      ) : (
-        <Formik
-          initialValues={initialValues}
-          onSubmit={handleSubmit}
-          validationSchema={type === "add" ? AddUserSchema : EditUserSchema}
-        >
-          {({ isSubmitting, errors, touched, isValid, dirty, values }) => (
-            <Form aria-labelledby={headingId}>
-              <h4 className="p-heading--5">Personal details</h4>
-              <Label className="is-required" htmlFor={usernameId}>
-                Username
-              </Label>
-              <Field
-                as={Input}
-                error={touched.username && errors.username}
-                id={usernameId}
-                name="username"
-                required
-                type="text"
-              />
-              <Label htmlFor={fullNameId}>Full name (optional)</Label>
-              <Field
-                as={Input}
-                error={touched.full_name && errors.full_name}
-                id={fullNameId}
-                name="full_name"
-                type="text"
-              />
-              <Label className="is-required" htmlFor={emailId}>
-                Email address
-              </Label>
-              <Field as={Input} error={touched.email && errors.email} id={emailId} name="email" required type="email" />
-              <Field
-                as={CheckboxInput}
-                error={touched.is_admin && errors.is_admin}
-                label="MAAS Site Manager administrator"
-                name="is_admin"
-                type="checkbox"
-              />
-              <hr />
-              <h4 className="p-heading--5">{type === "edit" ? "Change " : null}Password</h4>
-              <Label className={type === "add" ? "is-required" : null} htmlFor={passwordId}>
-                Password
-              </Label>
-              <Field
-                as={Input}
-                error={touched.password && errors.password}
-                id={passwordId}
-                name="password"
-                required={type === "add"}
-                type="password"
-              />
-              <Label className={type === "add" ? "is-required" : null} htmlFor={confirmPasswordId}>
-                Password (again)
-              </Label>
-              <Field
-                as={Input}
-                error={errors.confirm_password}
-                id={confirmPasswordId}
-                name="confirm_password"
-                required={type === "add" || values.password !== ""}
-                type="password"
-              />
-              <p className="u-text--muted">Enter the same password as before, for verification</p>
+      </ContentSection.Title>
+      <ContentSection.Content>
+        {error ? (
+          <Notification severity="negative" title="Error while fetching user">
+            <ErrorMessage error={error} />
+          </Notification>
+        ) : null}
+        {updateUser.isError && (
+          <Notification severity="negative" title="Error while editing user">
+            <ErrorMessage error={updateUser.error} />
+          </Notification>
+        )}
+        {addUser.isError && (
+          <Notification severity="negative" title="Error while adding user">
+            <ErrorMessage error={addUser.error} />
+          </Notification>
+        )}
+        {type === "edit" && (isEqual(initialValues, baseInitialValues) || isPending) ? (
+          <Spinner text="Loading..." />
+        ) : (
+          <Formik
+            initialValues={initialValues}
+            onSubmit={handleSubmit}
+            validationSchema={type === "add" ? AddUserSchema : EditUserSchema}
+          >
+            {({ isSubmitting, errors, touched, isValid, dirty, values }) => (
+              <Form aria-labelledby={headingId}>
+                <h4 className="p-heading--5">Personal details</h4>
+                <Label className="is-required" htmlFor={usernameId}>
+                  Username
+                </Label>
+                <Field
+                  as={Input}
+                  error={touched.username && errors.username}
+                  id={usernameId}
+                  name="username"
+                  required
+                  type="text"
+                />
+                <Label htmlFor={fullNameId}>Full name (optional)</Label>
+                <Field
+                  as={Input}
+                  error={touched.full_name && errors.full_name}
+                  id={fullNameId}
+                  name="full_name"
+                  type="text"
+                />
+                <Label className="is-required" htmlFor={emailId}>
+                  Email address
+                </Label>
+                <Field
+                  as={Input}
+                  error={touched.email && errors.email}
+                  id={emailId}
+                  name="email"
+                  required
+                  type="email"
+                />
+                <Field
+                  as={CheckboxInput}
+                  error={touched.is_admin && errors.is_admin}
+                  label="MAAS Site Manager administrator"
+                  name="is_admin"
+                  type="checkbox"
+                />
+                <hr />
+                <h4 className="p-heading--5">{type === "edit" ? "Change " : null}Password</h4>
+                <Label className={type === "add" ? "is-required" : null} htmlFor={passwordId}>
+                  Password
+                </Label>
+                <Field
+                  as={Input}
+                  error={touched.password && errors.password}
+                  id={passwordId}
+                  name="password"
+                  required={type === "add"}
+                  type="password"
+                />
+                <Label className={type === "add" ? "is-required" : null} htmlFor={confirmPasswordId}>
+                  Password (again)
+                </Label>
+                <Field
+                  as={Input}
+                  error={errors.confirm_password}
+                  id={confirmPasswordId}
+                  name="confirm_password"
+                  required={type === "add" || values.password !== ""}
+                  type="password"
+                />
+                <p className="u-text--muted">Enter the same password as before, for verification</p>
 
-              <hr />
-              <div className="u-flex u-flex--justify-end u-padding-top--medium">
-                <Button appearance="base" onClick={resetForm} type="button">
-                  Cancel
-                </Button>
-                <ActionButton
-                  appearance="positive"
-                  disabled={!dirty || !isValid || isSubmitting || isMutationPending}
-                  loading={isSubmitting || isMutationPending}
-                  type="submit"
-                >
-                  {type === "add" ? "Add user" : "Save"}
-                </ActionButton>
-              </div>
-            </Form>
-          )}
-        </Formik>
-      )}
-    </div>
+                <hr />
+                <div className="u-flex u-flex--justify-end u-padding-top--medium">
+                  <Button appearance="base" onClick={resetForm} type="button">
+                    Cancel
+                  </Button>
+                  <ActionButton
+                    appearance="positive"
+                    disabled={!dirty || !isValid || isSubmitting || isMutationPending}
+                    loading={isSubmitting || isMutationPending}
+                    type="submit"
+                  >
+                    {type === "add" ? "Add user" : "Save"}
+                  </ActionButton>
+                </div>
+              </Form>
+            )}
+          </Formik>
+        )}
+      </ContentSection.Content>
+    </ContentSection>
   );
 };
 

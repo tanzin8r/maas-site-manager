@@ -158,3 +158,28 @@ export const enrollmentRequestFactory = Factory.define<PendingSite>(({ sequence 
     created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>
   };
 });
+
+// TODO: replace with auto-generated types from the API client https://warthogs.atlassian.net/browse/MAASENG-2570
+export type Image = {
+  id: number;
+  release: string;
+  architecture: string;
+  name: string;
+  size: number;
+  downloaded: number;
+  number_of_sites_synced: number;
+  is_custom_image: boolean;
+  last_synced: Date;
+};
+
+export const imageFactory = Factory.define<Image>(() => ({
+  id: Math.floor(Math.random() * 1000),
+  release: "release",
+  architecture: "architecture",
+  name: "name",
+  size: Math.floor(Math.random() * 10000),
+  downloaded: Math.floor(Math.random() * 100),
+  number_of_sites_synced: Math.floor(Math.random() * 100),
+  is_custom_image: Math.random() < 0.5,
+  last_synced: new Date(),
+}));

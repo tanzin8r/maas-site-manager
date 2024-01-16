@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+import { ContentSection } from "@canonical/maas-react-components";
+
 import Map from "@/components/Map";
 import SitesHiddenButton from "@/components/Map/SitesHiddenButton/SitesHiddenButton";
 import SitesTableControls from "@/components/SitesList/SitesTable/SitesTableControls/SitesTableControls";
@@ -34,20 +36,20 @@ const SitesMap = () => {
   }, [debounceSearchText, navigate]);
 
   return (
-    <div className="sites-map">
-      <div className="sites-map__controls-wrapper">
+    <ContentSection className="sites-map">
+      <ContentSection.Header className="sites-map__controls-wrapper">
         <SitesTableControls
           isPending={isPending}
           searchText={searchText}
           setSearchText={setSearchText}
           totalSites={data?.length ?? null}
         />
-      </div>
+      </ContentSection.Header>
       <section aria-label="sites map">
         <Map markers={data?.map?.(formatSiteMarker) ?? null} />
       </section>
       <SitesHiddenButton />
-    </div>
+    </ContentSection>
   );
 };
 

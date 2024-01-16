@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import React, { useEffect, useMemo } from "react";
 
-import { ExternalLink } from "@canonical/maas-react-components";
+import { ContentSection, ExternalLink } from "@canonical/maas-react-components";
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { ColumnDef, Column, Getter, Row, SortingState } from "@tanstack/react-table";
 import classNames from "classnames";
@@ -293,14 +293,16 @@ const SitesTable = ({
   });
 
   return (
-    <>
-      <SitesTableControls
-        isPending={isPending}
-        searchText={searchText}
-        setSearchText={setSearchText}
-        totalSites={data?.total ?? null}
-      />
-      <PaginationBar {...paginationProps} />
+    <ContentSection>
+      <ContentSection.Header>
+        <SitesTableControls
+          isPending={isPending}
+          searchText={searchText}
+          setSearchText={setSearchText}
+          totalSites={data?.total ?? null}
+        />
+        <PaginationBar {...paginationProps} />
+      </ContentSection.Header>
       <DynamicTable aria-label="sites" className="sites-table">
         <thead className="sites-table__head">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -362,7 +364,7 @@ const SitesTable = ({
           </DynamicTable.Body>
         )}
       </DynamicTable>
-    </>
+    </ContentSection>
   );
 };
 
