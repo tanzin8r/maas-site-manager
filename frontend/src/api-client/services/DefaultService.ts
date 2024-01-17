@@ -6,6 +6,8 @@ import type { AccessTokenResponse } from '../models/AccessTokenResponse';
 import type { Body_post_v1_login_post } from '../models/Body_post_v1_login_post';
 import type { PendingSitesGetResponse } from '../models/PendingSitesGetResponse';
 import type { PendingSitesPostRequest } from '../models/PendingSitesPostRequest';
+import type { Settings } from '../models/Settings';
+import type { SettingsPatchRequest } from '../models/SettingsPatchRequest';
 import type { Site } from '../models/Site';
 import type { SiteCoordinates } from '../models/SiteCoordinates';
 import type { SitesGetResponse } from '../models/SitesGetResponse';
@@ -42,6 +44,40 @@ export class DefaultService {
             url: '/v1/login',
             formData: formData,
             mediaType: 'application/x-www-form-urlencoded',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Get
+     * Return service settings.
+     * @returns Settings Successful Response
+     * @throws ApiError
+     */
+    public getV1SettingsGet(): CancelablePromise<Settings> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/v1/settings',
+        });
+    }
+
+    /**
+     * Patch
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public patchV1SettingsPatch({
+        requestBody,
+    }: {
+        requestBody: SettingsPatchRequest,
+    }): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/v1/settings',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },
