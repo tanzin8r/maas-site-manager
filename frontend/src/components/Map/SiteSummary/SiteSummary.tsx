@@ -3,7 +3,7 @@ import type { DOMAttributes } from "react";
 import { ExternalLink } from "@canonical/maas-react-components";
 import { Button, Card, Icon, Notification, Spinner } from "@canonical/react-components";
 import classNames from "classnames";
-import { get } from "lodash";
+import get from "lodash/get";
 
 import type { Site } from "@/api/types";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";

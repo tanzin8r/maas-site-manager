@@ -2,7 +2,7 @@ import { ContentSection } from "@canonical/maas-react-components";
 import { ActionButton, Button, CheckboxInput, Input, Label, Notification, Spinner } from "@canonical/react-components";
 import { useQueryClient } from "@tanstack/react-query";
 import { Field, Form, Formik } from "formik";
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 import * as Yup from "yup";
 
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
