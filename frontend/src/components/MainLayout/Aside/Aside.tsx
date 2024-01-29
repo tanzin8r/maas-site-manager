@@ -1,22 +1,10 @@
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 import { Col, Row, useOnEscapePressed, usePrevious } from "@canonical/react-components";
 import classNames from "classnames";
 
-import DeleteImages from "@/components/DeleteImages";
-import DeleteOrKeepImages from "@/components/DeleteOrKeepImages";
-import DeleteUser from "@/components/DeleteUser";
-import DownloadImages from "@/components/DownloadImages";
-import EditSite from "@/components/EditSite";
-import RemoveSites from "@/components/RemoveSites";
-import SiteDetails from "@/components/SiteDetails";
-import SiteSelection from "@/components/SiteSelection/SiteSelection";
-import UploadImage from "@/components/UploadImage";
-import UserForm from "@/components/UserForm";
 import { useAppLayoutContext } from "@/context";
 import type { Sidebar } from "@/context/AppLayoutContext";
-import { siteFactory } from "@/mocks/factories";
-import TokensCreate from "@/routes/tokens/create";
 import { useLocation } from "@/utils/router";
 
 export const sidebarLabels: Record<NonNullable<Sidebar>, string> = {
@@ -34,25 +22,19 @@ export const sidebarLabels: Record<NonNullable<Sidebar>, string> = {
   deleteOrKeepImages: "Delete images",
 };
 
-const mockSelectedSites = siteFactory.buildList(3);
-
-const UserAddForm = () => <UserForm type="add" />;
-const UserEditForm = () => <UserForm type="edit" />;
-const SiteSelectionComponent = () => <SiteSelection selectedSites={mockSelectedSites} />;
-
 export const sidebarComponent: Record<NonNullable<Sidebar>, React.FC> = {
-  addUser: UserAddForm,
-  editSite: EditSite,
-  editUser: UserEditForm,
-  createToken: TokensCreate,
-  deleteUser: DeleteUser,
-  removeSites: RemoveSites,
-  siteDetails: SiteDetails,
-  siteSelect: SiteSelectionComponent,
-  uploadImage: UploadImage,
-  downloadImages: DownloadImages,
-  deleteImages: DeleteImages,
-  deleteOrKeepImages: DeleteOrKeepImages,
+  addUser: lazy(() => import("@/components/UserForm/UserAddForm")),
+  editSite: lazy(() => import("@/components/EditSite")),
+  editUser: lazy(() => import("@/components/UserForm/UserEditForm")),
+  createToken: lazy(() => import("@/components/TokensCreate")),
+  deleteUser: lazy(() => import("@/components/DeleteUser")),
+  removeSites: lazy(() => import("@/components/RemoveSites")),
+  siteDetails: lazy(() => import("@/components/SiteDetails")),
+  siteSelect: () => null,
+  uploadImage: lazy(() => import("@/components/UploadImage")),
+  downloadImages: lazy(() => import("@/components/DownloadImages")),
+  deleteImages: lazy(() => import("@/components/DeleteImages")),
+  deleteOrKeepImages: lazy(() => import("@/components/DeleteOrKeepImages")),
 } as const;
 
 export const SidebarComponents = ({ sidebar }: { sidebar: NonNullable<Sidebar> }) => {
@@ -85,7 +67,9 @@ export const Aside = () => {
       id="aside-panel"
     >
       <Row>
-        <Col size={12}>{sidebar && <SidebarComponents sidebar={sidebar} />}</Col>
+        <Col size={12}>
+          <Suspense>{sidebar && <SidebarComponents sidebar={sidebar} />}</Suspense>
+        </Col>
       </Row>
     </aside>
   );

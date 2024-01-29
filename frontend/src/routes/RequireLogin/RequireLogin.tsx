@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
 import { useAuthContext } from "@/context";
-import { createSearchParams, useLocation, useNavigate } from "@/utils/router";
+import { Outlet, createSearchParams, useLocation, useNavigate } from "@/utils/router";
 
-const RequireLogin = ({ children }: { children?: React.ReactNode }) => {
+const RequireLogin = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { status } = useAuthContext();
@@ -21,7 +21,7 @@ const RequireLogin = ({ children }: { children?: React.ReactNode }) => {
     return null;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default RequireLogin;

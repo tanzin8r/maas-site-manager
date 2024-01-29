@@ -1,8 +1,6 @@
 /* eslint-disable no-console */
 import * as React from "react";
 
-import * as Sentry from "@sentry/browser";
-import maplibregl from "maplibre-gl";
 import * as ReactDOM from "react-dom/client";
 
 import packageInfo from "../package.json";
@@ -39,21 +37,25 @@ if (environment !== "test") {
 // and avoid reinitialising when navigating between pages
 const hasMapResources = localStorage.getItem("hasAcceptedOsmTos");
 if (!hasMapResources || hasMapResources === "false") {
-  maplibregl.prewarm();
+  import("maplibre-gl").then((maplibregl) => {
+    maplibregl.default.prewarm();
+  });
 }
 
 // https://sentry.is.canonical.com/canonical/maas-site-manager/
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-  environment,
-  release,
-  beforeSend: (event) => ({
-    ...event,
-    // send just the pathname of the current page excluding the origin
-    // this allows for grouping of errors by route
-    tags: { ...event.tags, url: window.location.pathname, version },
+import("@sentry/browser").then((Sentry) =>
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    environment,
+    release,
+    beforeSend: (event) => ({
+      ...event,
+      // send just the pathname of the current page excluding the origin
+      // this allows for grouping of errors by route
+      tags: { ...event.tags, url: window.location.pathname, version },
+    }),
   }),
-});
+);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

@@ -1,175 +1,64 @@
+import { lazy } from "react";
+
 import RequireLogin from "./RequireLogin";
 
-import ImagesList from "@/components/ImagesList";
 import MainLayout from "@/components/MainLayout";
-import MapSettings from "@/components/MapSettings";
-import NotFound from "@/routes/404";
-import Account from "@/routes/account";
-import Password from "@/routes/account/password";
-import Login from "@/routes/login";
-import Logout from "@/routes/logout";
-import PersonalDetails from "@/routes/personalDetails";
-import Requests from "@/routes/requests";
-import Settings from "@/routes/settings";
-import ImagesMaas from "@/routes/settings/images/maas";
-import ImageServer from "@/routes/settings/images/server";
-import ImageTransfer from "@/routes/settings/images/transfer";
-import Sites from "@/routes/sites";
-import List from "@/routes/sites/list";
-import Map from "@/routes/sites/map";
-import Tokens from "@/routes/tokens/tokens";
-import Users from "@/routes/users";
 import { createRoutesFromElements, Route, redirect } from "@/utils/router";
+
+const Logout = lazy(() => import("@/routes/logout"));
+const Login = lazy(() => import("@/routes/login"));
+const NotFound = lazy(() => import("@/routes/404"));
+const Sites = lazy(() => import("@/routes/sites"));
+const List = lazy(() => import("@/routes/sites/list"));
+const Map = lazy(() => import("@/routes/sites/map"));
+const ImagesList = lazy(() => import("@/components/ImagesList"));
+const Settings = lazy(() => import("@/routes/settings"));
+const Tokens = lazy(() => import("@/routes/tokens/tokens"));
+const Requests = lazy(() => import("@/routes/requests"));
+const Users = lazy(() => import("@/routes/users"));
+const MapSettings = lazy(() => import("@/components/MapSettings"));
+const ImageServer = lazy(() => import("@/routes/settings/images/server"));
+const ImagesMaas = lazy(() => import("@/routes/settings/images/maas"));
+const ImageTransfer = lazy(() => import("@/routes/settings/images/transfer"));
+const Account = lazy(() => import("@/routes/account"));
+const PersonalDetails = lazy(() => import("@/routes/personalDetails"));
+const Password = lazy(() => import("@/routes/account/password"));
 
 export const routes = createRoutesFromElements(
   <Route element={<MainLayout />} path="/">
-    <Route
-      element={
-        <RequireLogin>
-          <NotFound />
-        </RequireLogin>
-      }
-      path="*"
-    />
-    <Route index loader={() => redirect("/sites")} />
     <Route element={<Logout />} path="logout" />
     <Route element={<Login />} path="login" />
-    <Route
-      element={
-        <RequireLogin>
-          <Sites />
-        </RequireLogin>
-      }
-      path="sites"
-    >
-      <Route index loader={() => redirect("/sites/list")} />
-      <Route
-        element={
-          <RequireLogin>
-            <List />
-          </RequireLogin>
-        }
-        index
-        path="list"
-      />
-      <Route
-        element={
-          <RequireLogin>
-            <Map />
-          </RequireLogin>
-        }
-        index
-        path="map"
-      />
-    </Route>
 
-    <Route path="images">
-      <Route index loader={() => redirect("/images/list")} />
-      <Route
-        element={
-          <RequireLogin>
-            <ImagesList />
-          </RequireLogin>
-        }
-        index
-        path="list"
-      />
-    </Route>
-    <Route
-      element={
-        <RequireLogin>
-          <Settings />
-        </RequireLogin>
-      }
-      path="settings"
-    >
-      <Route element={<RequireLogin />} index loader={() => redirect("/settings/tokens")} />
-      <Route
-        element={
-          <RequireLogin>
-            <Tokens />
-          </RequireLogin>
-        }
-        path="tokens"
-      />
-      <Route
-        element={
-          <RequireLogin>
-            <Requests />
-          </RequireLogin>
-        }
-        path="requests"
-      />
-      <Route
-        element={
-          <RequireLogin>
-            <Users />
-          </RequireLogin>
-        }
-        path="users"
-      />
-      <Route
-        element={
-          <RequireLogin>
-            <MapSettings />
-          </RequireLogin>
-        }
-        path="map"
-      />
-      <Route path="images">
-        <Route element={<RequireLogin />} index loader={() => redirect("/settings/images/server")} />
-        <Route
-          element={
-            <RequireLogin>
-              <ImageServer />
-            </RequireLogin>
-          }
-          path="server"
-        />
-        <Route
-          element={
-            <RequireLogin>
-              <ImagesMaas />
-            </RequireLogin>
-          }
-          path="maas"
-        />
-        <Route
-          element={
-            <RequireLogin>
-              <ImageTransfer />
-            </RequireLogin>
-          }
-          path="transfer"
-        />
+    <Route element={<RequireLogin />}>
+      <Route element={<NotFound />} path="*" />
+      <Route index loader={() => redirect("/sites")} />
+      <Route element={<Sites />} path="sites">
+        <Route index loader={() => redirect("/sites/list")} />
+        <Route element={<List />} index path="list" />
+        <Route element={<Map />} index path="map" />
       </Route>
-    </Route>
-    <Route
-      element={
-        <RequireLogin>
-          <Account />
-        </RequireLogin>
-      }
-      path="account"
-    >
-      <Route element={<RequireLogin />} index loader={() => redirect("/account/details")} />
-      <Route
-        element={
-          <RequireLogin>
-            <PersonalDetails />
-          </RequireLogin>
-        }
-        path="details"
-      />
-
-      <Route
-        element={
-          <RequireLogin>
-            <Password />
-          </RequireLogin>
-        }
-        path="password"
-      />
+      <Route path="images">
+        <Route index loader={() => redirect("/images/list")} />
+        <Route element={<ImagesList />} index path="list" />
+      </Route>
+      <Route element={<Settings />} path="settings">
+        <Route element={<RequireLogin />} index loader={() => redirect("/settings/tokens")} />
+        <Route element={<Tokens />} path="tokens" />
+        <Route element={<Requests />} path="requests" />
+        <Route element={<Users />} path="users" />
+        <Route element={<MapSettings />} path="map" />
+        <Route path="images">
+          <Route element={<RequireLogin />} index loader={() => redirect("/settings/images/server")} />
+          <Route element={<ImageServer />} path="server" />
+          <Route element={<ImagesMaas />} path="maas" />
+          <Route element={<ImageTransfer />} path="transfer" />
+        </Route>
+      </Route>
+      <Route element={<Account />} path="account">
+        <Route element={<RequireLogin />} index loader={() => redirect("/account/details")} />
+        <Route element={<PersonalDetails />} path="details" />
+        <Route element={<Password />} path="password" />
+      </Route>
     </Route>
   </Route>,
 );

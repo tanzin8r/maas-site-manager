@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import classNames from "classnames";
 
 import { Aside } from "./Aside";
@@ -32,7 +34,9 @@ const MainLayout: React.FC = () => {
         <div className="l-main__content">
           <div className="row">
             <div className="col-12">
-              <Outlet />
+              <Suspense>
+                <Outlet />
+              </Suspense>
             </div>
           </div>
         </div>

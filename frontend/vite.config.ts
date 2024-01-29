@@ -33,5 +33,18 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: { "@": path.resolve(__dirname, "src") },
     },
+    build: {
+      chunkSizeWarningLimit: 1600,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ["react", "react-dom"],
+            canonicalComponents: ["@canonical/react-components", "@canonical/maas-react-components"],
+            formik: ["formik"],
+            yup: ["yup"],
+          },
+        },
+      },
+    },
   };
 });
