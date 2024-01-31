@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ContentSection, FormSection } from "@canonical/maas-react-components";
-import { CheckboxInput, Button } from "@canonical/react-components";
+import { Button, Input } from "@canonical/react-components";
 import type { FormikHelpers } from "formik";
 import { Formik, Form, Field } from "formik";
 
@@ -48,7 +48,7 @@ const MaasImages = () => {
               </FormSection.Description>
               <FormSection.Content>
                 <Field
-                  as={CheckboxInput}
+                  as={Input}
                   disabled={isPending}
                   error={touched[formKeys.images_connect_to_maas] && errors[formKeys.images_connect_to_maas]}
                   label="Connect to maas.io and keep selected images up to date."

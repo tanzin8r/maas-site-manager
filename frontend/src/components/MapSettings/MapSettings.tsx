@@ -1,5 +1,5 @@
 import { ContentSection } from "@canonical/maas-react-components";
-import { CheckboxInput, ActionButton } from "@canonical/react-components";
+import { ActionButton, Input } from "@canonical/react-components";
 import type { FormikHelpers } from "formik";
 import { Field, Form, Formik } from "formik";
 import useLocalStorageState from "use-local-storage-state";
@@ -42,7 +42,7 @@ const MapSettings = () => {
               their fair use policy.
             </p>
             <Field
-              as={CheckboxInput}
+              as={Input}
               error={touched.acceptedOsmTos && errors.acceptedOsmTos}
               label="I have read and accept the OpenStreetMap term of service and their fair use policy."
               name="acceptedOsmTos"
