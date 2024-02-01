@@ -1,22 +1,23 @@
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
 
 import classNames from "classnames";
 
 type Props = {
   className?: string;
   isPending?: boolean;
+  style?: CSSProperties;
 } & (
   | {
       text?: never;
-      children: ReactNode;
+      children?: ReactNode;
     }
   | {
-      text: string;
+      text?: string;
       children?: never;
     }
 );
 
-const Placeholder = ({ text, children, className, isPending = false }: Props) => {
+const Placeholder = ({ text, children, className, isPending = false, style }: Props) => {
   const delay = Math.floor(Math.random() * 750);
   if (isPending) {
     return (
@@ -24,9 +25,9 @@ const Placeholder = ({ text, children, className, isPending = false }: Props) =>
         aria-label="loading"
         className={classNames("p-placeholder", className)}
         role="progressbar"
-        style={{ animationDelay: `${delay}ms` }}
+        style={{ animationDelay: `${delay}ms`, ...style }}
       >
-        <span aria-hidden="true">{text || children}</span>
+        <span aria-hidden="true">{text || children || "Loading"}</span>
       </span>
     );
   }

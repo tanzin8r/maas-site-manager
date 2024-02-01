@@ -57,6 +57,8 @@ it("can display error message", async () => {
       rowSelection={{}}
       setRowSelection={vi.fn(() => {})}
       setSidebar={vi.fn(() => {})}
+      setSorting={vi.fn(() => [])}
+      sorting={[]}
     />,
   );
   await waitFor(() => expect(screen.getByText("custom error")).toBeInTheDocument());

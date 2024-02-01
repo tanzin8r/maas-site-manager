@@ -23,12 +23,13 @@
   tbody {
     height: auto;
     min-height: auto;
+  }
 
-
+  &:not([aria-busy="true"]) tbody:not([aria-busy="true"]) {
     tr:hover,
     tr:focus-within {
       @include vf-transition($property: #{background}, $duration: fast);
-  
+
       background-color: $colors--light-theme--background-hover;
     }
   }

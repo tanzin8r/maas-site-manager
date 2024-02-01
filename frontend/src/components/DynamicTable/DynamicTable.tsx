@@ -1,8 +1,10 @@
-import type { PropsWithChildren, RefObject } from "react";
+import type { AriaAttributes, PropsWithChildren, RefObject } from "react";
 import { useState, useEffect, useLayoutEffect } from "react";
 
+import type { RowData, Table } from "@tanstack/react-table";
 import classNames from "classnames";
 
+import Placeholder from "@/components/Placeholder";
 import BREAKPOINTS from "@/config/breakpoints";
 
 const DynamicTable = ({ className, children, ...props }: PropsWithChildren<{ className?: string }>) => {
@@ -13,11 +15,54 @@ const DynamicTable = ({ className, children, ...props }: PropsWithChildren<{ cla
   );
 };
 
+const SkeletonRows = ({ columns }: { columns: Array<{ id: string }> }) => (
+  <>
+    {Array.from({ length: 10 }, (_, index) => {
+      return (
+        <tr aria-hidden="true" key={index}>
+          {columns.map((column, columnIndex) => {
+            return (
+              <td className={classNames(column.id, "u-text-overflow-clip")} key={columnIndex}>
+                <Placeholder isPending style={{ opacity: 1 - index * 0.1 }} text="XXXxxxx.xxxxxxxxx" />
+              </td>
+            );
+          })}
+        </tr>
+      );
+    })}
+  </>
+);
+
+const DynamicTableLoading = <TData extends RowData>({
+  className,
+  table,
+}: {
+  className?: string;
+  table?: Table<TData>;
+  placeholderLengths?: { [key: string]: string };
+}) => {
+  const columns = table
+    ? table.getAllColumns()
+    : (Array.from({ length: 10 }).fill({ id: "" }) as Array<{ id: string }>);
+
+  return (
+    <>
+      <caption className="u-visually-hidden">Loading...</caption>
+      <DynamicTableBody aria-busy="true" className={className}>
+        <SkeletonRows columns={columns} />
+      </DynamicTableBody>
+    </>
+  );
+};
 /**
  * sets a fixed height for the table body
  * allowing it to be scrolled independently of the page
  */
-const DynamicTableBody = ({ className, children }: PropsWithChildren<{ className?: string }>) => {
+const DynamicTableBody = ({
+  className,
+  children,
+  ...props
+}: PropsWithChildren<{ className?: string } & AriaAttributes>) => {
   const tableBodyRef: RefObject<HTMLTableSectionElement> = useRef(null);
   const [offset, setOffset] = useState<number | null>(null);
 
@@ -44,11 +89,13 @@ const DynamicTableBody = ({ className, children }: PropsWithChildren<{ className
       className={className}
       ref={tableBodyRef}
       style={offset ? { height: `calc(100vh - ${offset}px)`, minHeight: `calc(100vh - ${offset}px)` } : undefined}
+      {...props}
     >
       {children}
     </tbody>
   );
 };
 DynamicTable.Body = DynamicTableBody;
+DynamicTable.Loading = DynamicTableLoading;
 
 export default DynamicTable;

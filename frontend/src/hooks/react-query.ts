@@ -1,5 +1,5 @@
 import type { MutateOptions, UseMutationOptions } from "@tanstack/react-query";
-import { useQueryClient, useMutation, useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery, keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 
 import type apiClient from "@/api";
 import {
@@ -37,6 +37,7 @@ import type {
   User,
   TokensGetResponse,
 } from "@/api-client";
+import type { Image } from "@/mocks/factories";
 import { saveToFile } from "@/utils";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
@@ -275,13 +276,40 @@ export const useDeleteUserMutation = (
   });
 };
 
-export const useImagesQuery = ({ page, size }: Record<string, number>) =>
-  useQuery({
-    queryKey: ["images", page, size],
-    queryFn: () => getImages({ page, size }),
-    placeholderData: keepPreviousData,
+const DEFAULT_PAGE_SIZE = 10;
+export const useImagesInfiniteQuery = ({
+  sortBy,
+  pageSize = DEFAULT_PAGE_SIZE,
+}: {
+  sortBy: string | null;
+  pageSize?: number;
+}) => {
+  const query = useInfiniteQuery({
+    queryKey: ["images", sortBy, pageSize],
+    initialPageParam: { page: 1, size: pageSize },
     refetchInterval,
+    queryFn: ({ pageParam: { page } }) => getImages({ page, size: pageSize, sortBy }),
+    getNextPageParam: (lastPage, allPages) => {
+      const fetchedItemsCount = allPages.reduce((total, page) => total + page.items.length, 0);
+      const nextPage =
+        fetchedItemsCount < lastPage.total ? { page: lastPage.page + 1, size: DEFAULT_PAGE_SIZE } : undefined;
+      return nextPage;
+    },
+    staleTime: Infinity,
   });
+
+  const data = {
+    items: query.data?.pages ? query.data.pages.reduce((acc, page) => acc.concat(page.items), [] as Image[]) : [],
+  };
+
+  useEffect(() => {
+    if (query.hasNextPage && !query.isFetchingNextPage) {
+      query.fetchNextPage();
+    }
+  }, [query]);
+
+  return { ...query, data };
+};
 
 export const useUpstreamImagesQuery = ({ page, size }: Record<string, number>) =>
   useQuery({

@@ -170,7 +170,7 @@ export type Image = {
   downloaded: number;
   number_of_sites_synced: number;
   is_custom_image: boolean;
-  last_synced: Date;
+  last_synced: string | null; // <ISO 8601 date string>
 };
 
 // TODO: replace with auto-generated types from the API client https://warthogs.atlassian.net/browse/MAASENG-2569
@@ -213,10 +213,10 @@ export const imageFactory = Factory.define<Image>(({ sequence }) => {
     architecture: archFactory.build(),
     name: OS.name,
     size: chance.integer({ min: 300 * 1024, max: 4 * 1024 * 1024 }) * 1024,
-    downloaded: Math.floor(Math.random() * 100),
-    number_of_sites_synced: Math.floor(Math.random() * 100),
+    downloaded: Math.floor(Math.random() * 3),
+    number_of_sites_synced: Math.floor(Math.random() * 2),
     is_custom_image: chance.bool(),
-    last_synced: new Date(),
+    last_synced: chance.pickone([new Date().toISOString(), null]),
   };
 });
 

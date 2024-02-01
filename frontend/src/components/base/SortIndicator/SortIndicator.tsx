@@ -10,8 +10,8 @@ export const SortIndicator = ({
   header: Header<User, Partial<User>> | Header<Site, Partial<Site>> | Header<Image, Partial<Image>>;
 }) =>
   ({
-    asc: <Icon aria-label="ascending" name="chevron-up" />,
-    desc: <Icon aria-label="descending" name="chevron-down" />,
+    asc: <Icon name="chevron-up">ascending</Icon>,
+    desc: <Icon name="chevron-down">descending</Icon>,
   })[header?.column?.getIsSorted() as string] ?? null;
 
 export default SortIndicator;

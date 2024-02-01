@@ -20,6 +20,7 @@ import type {
   UserSortKey,
   UpstreamImageSource,
   SelectUpstreamImagesPayload,
+  ImagesSortKey,
 } from "@/api/handlers";
 import type { User } from "@/api/types";
 import type { TokensPostResponse } from "@/api-client";
@@ -314,19 +315,43 @@ export const createMockImagesResolver =
     const searchParams = new URLSearchParams(req.url.search);
     const page = Number(searchParams.get("page"));
     const size = Number(searchParams.get("size"));
-    const items_page = images.slice((page - 1) * size, page * size);
+    const sortBy = searchParams.get("sortBy");
+    if (sortBy) {
+      const [field, order] = sortBy.split("-") as [ImagesSortKey, SortDirection];
+      images.sort((a, b) => {
+        if (a.name < b.name) {
+          return -1;
+        } else if (a.name > b.name) {
+          return 1;
+        } else {
+          if (a[field] < b[field]) {
+            return order === "asc" ? -1 : 1;
+          } else if (a[field] > b[field]) {
+            return order === "asc" ? 1 : -1;
+          } else {
+            return 0;
+          }
+        }
+      });
+    }
+
+    const start = (page - 1) * size;
+    const end = page * size;
+    const itemsPage = images.slice(start, end);
 
     const response = {
-      items: items_page,
+      items: itemsPage,
       page,
       total: images.length,
       size,
     };
 
-    return res(ctx.status(200), ctx.json(response));
+    const delay = isDev ? 500 : 0;
+    return res(ctx.delay(delay), ctx.status(200), ctx.json(response));
   };
 
-export const getImages = rest.get(apiUrls.images, createMockImagesResolver(imageFactory.buildList(10)));
+const imagesList = imageFactory.buildList(25);
+export const getImages = rest.get(apiUrls.images, createMockImagesResolver(imagesList));
 
 type UpstreamImagesResponseResolver = ResponseResolver<RestRequest, typeof restContext>;
 export const createMockUpstreamImagesResolver =

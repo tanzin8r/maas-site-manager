@@ -9,6 +9,7 @@ type Props = {
   hasBorder?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  onExpand?: () => void;
   editTooltip?: string;
   deleteTooltip?: string;
   editDisabled?: boolean;
@@ -23,6 +24,7 @@ const TableActions = ({
   deleteTooltip,
   onEdit,
   onDelete,
+  onExpand,
   editDisabled,
   editPath,
   deleteDisabled,
@@ -37,27 +39,36 @@ const TableActions = ({
             disabled={editDisabled}
             element={editPath ? Link : undefined}
             hasIcon
-            onClick={() => (onEdit ? onEdit() : null)}
+            onClick={onEdit}
             to={editPath ? editPath : undefined}
+            type={editPath ? undefined : "button"}
           >
             <i className="p-icon--edit">Edit</i>
           </Button>
         </Tooltip>
       )}
-      {onEdit && onDelete ? <span className="table-actions-vertical-divider"></span> : null}
-      {onDelete && (
-        <Tooltip message={deleteTooltip} position="left">
-          <Button
-            appearance="base"
-            className="is-dense u-table-cell-padding-overlap table-actions-btn"
-            disabled={deleteDisabled}
-            hasIcon
-            onClick={() => onDelete()}
-            type="button"
-          >
-            <i className="p-icon--delete">Delete</i>
-          </Button>
-        </Tooltip>
+      {onExpand ? (
+        <Button appearance="base" onClick={onExpand} type="button">
+          expand
+        </Button>
+      ) : (
+        <>
+          {onEdit && onDelete ? <span className="table-actions-vertical-divider"></span> : null}
+          {onDelete && (
+            <Tooltip message={deleteTooltip} position="left">
+              <Button
+                appearance="base"
+                className="is-dense u-table-cell-padding-overlap table-actions-btn"
+                disabled={deleteDisabled}
+                hasIcon
+                onClick={onDelete}
+                type="button"
+              >
+                <i className="p-icon--delete">Delete</i>
+              </Button>
+            </Tooltip>
+          )}
+        </>
       )}
     </div>
   );

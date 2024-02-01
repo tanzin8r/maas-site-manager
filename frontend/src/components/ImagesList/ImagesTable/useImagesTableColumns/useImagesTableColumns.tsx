@@ -1,33 +1,36 @@
 import { useMemo } from "react";
 
 import { formatBytes } from "@canonical/maas-react-components";
-import { Icon, Button } from "@canonical/react-components";
-import type { ColumnDef, Row, Getter } from "@tanstack/react-table";
+import { Icon } from "@canonical/react-components";
+import type { ColumnDef, Row, Getter, Table } from "@tanstack/react-table";
+import pluralize from "pluralize";
 
-import type { ImagesTableProps } from "./ImagesTable";
-
+import SyncStatus from "@/components/ImagesList/ImagesTable/SyncStatus";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
-import SortIndicator from "@/components/base/SortIndicator";
+import SelectGroupCheckbox from "@/components/SelectGroupCheckbox/SelectGroupCheckbox";
+import GroupRowActions from "@/components/base/GroupRowActions";
 import TableActions from "@/components/base/TableActions";
+import { useAppLayoutContext } from "@/context";
 import type { Image } from "@/mocks/factories";
 export type ImageColumnDef = ColumnDef<Image, Partial<Image>>;
 
-export const useImageTableColumns = ({
-  setRowSelection,
-  setSidebar,
-}: Pick<ImagesTableProps, "setRowSelection" | "setSidebar">) =>
-  useMemo<ImageColumnDef[]>(
+const useImagesTableColumns = () => {
+  const { setSidebar } = useAppLayoutContext();
+
+  return useMemo<ImageColumnDef[]>(
     () => [
       {
         id: "select",
         accessorKey: "id",
         enableSorting: false,
         header: ({ table }) => <SelectAllCheckbox table={table} tableId="images" />,
-        cell: ({ row, getValue }: { row: Row<Image>; getValue: Getter<Image["name"]> }) => {
-          return (
+        cell: ({ row }: { row: Row<Image> }) => {
+          return row.getIsGrouped() ? (
+            <SelectGroupCheckbox row={row} />
+          ) : (
             <label className="p-checkbox--inline">
               <input
-                aria-label={getValue()}
+                aria-label={row.original.name}
                 className="p-checkbox__input"
                 type="checkbox"
                 {...{
@@ -41,17 +44,21 @@ export const useImageTableColumns = ({
           );
         },
       },
-      { id: "name", accessorKey: "name", enableSorting: true, header: () => "Name" },
       {
-        id: "release",
-        accessorKey: "release",
-        enableSorting: true,
-        header: ({ header }) => (
-          <Button appearance="link" className="p-button--table-header">
-            Release title <SortIndicator header={header} />
-          </Button>
-        ),
+        id: "name",
+        accessorKey: "name",
+        cell: ({ row, getValue }: { row: Row<Image>; getValue: Getter<Image["name"]> }) => {
+          return (
+            <div>
+              <div>
+                <strong>{getValue()}</strong>
+              </div>
+              <small className="u-text--muted">{pluralize("image", row.getLeafRows().length ?? 0, true)}</small>
+            </div>
+          );
+        },
       },
+      { id: "release", accessorKey: "release", enableSorting: true, header: () => "Release title" },
       {
         id: "architecture",
         accessorKey: "architecture",
@@ -73,16 +80,13 @@ export const useImageTableColumns = ({
         accessorKey: "status",
         enableSorting: false,
         header: () => "Status",
+        cell: ({ row }) => <SyncStatus image={row.original} />,
       },
       {
         id: "custom",
         accessorKey: "is_custom_image",
-        enableSorting: true,
-        header: ({ header }) => (
-          <Button appearance="link" className="p-button--table-header">
-            Custom <SortIndicator header={header} />
-          </Button>
-        ),
+        enableSorting: false,
+        header: "Custom",
         cell: ({ getValue }: { getValue: Getter<Image["is_custom_image"]> }) =>
           getValue() ? <Icon aria-label="checked" name="task-outstanding" role="img" /> : null,
       },
@@ -90,15 +94,21 @@ export const useImageTableColumns = ({
         id: "action",
         accessorKey: "id",
         header: () => "Action",
-        cell: ({ getValue }: { getValue: Getter<Image["id"]> }) => {
+        enableSorting: false,
+        cell: ({ row, getValue }: { table: Table<Image>; row: Row<Image>; getValue: Getter<Image["id"]> }) => {
           const id = getValue();
-          return (
+          return row.getIsGrouped() ? (
+            <GroupRowActions getIsExpanded={row.getIsExpanded} toggleExpanded={row.toggleExpanded} />
+          ) : (
             <TableActions
               className="u-align--right"
+              deleteDisabled={row.getIsGrouped() ? !row.getCanSelectSubRows() : !row.getCanSelect()}
               hasBorder
               onDelete={() => {
                 if (id) {
-                  setRowSelection({ [id]: true });
+                  if (!row.getIsSelected()) {
+                    row.toggleSelected();
+                  }
                   setSidebar("deleteImages");
                 }
               }}
@@ -107,5 +117,7 @@ export const useImageTableColumns = ({
         },
       },
     ],
-    [setRowSelection, setSidebar],
+    [setSidebar],
   );
+};
+export default useImagesTableColumns;

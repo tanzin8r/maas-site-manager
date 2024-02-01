@@ -57,8 +57,9 @@ export type SortDirection = "asc" | "desc";
 
 export type SitesSortKey = "name";
 export type UserSortKey = "username" | "full_name" | "email";
+export type ImagesSortKey = "release";
 
-export type SortBy<T extends SitesSortKey | UserSortKey> = `${T}-${SortDirection}` | null;
+export type SortBy<T extends SitesSortKey | UserSortKey | ImagesSortKey> = `${T}-${SortDirection}` | null;
 export type SortingParams<T extends SitesSortKey | UserSortKey> = {
   sortBy: SortBy<T>;
 };
@@ -202,7 +203,7 @@ export const deleteUser = ({ id }: Parameters<typeof apiClient.default.deleteV1U
   apiClient.default.deleteV1UsersIdDelete({ id });
 
 // TODO: replace with api client once API supports it https://warthogs.atlassian.net/browse/MAASENG-2570
-export const getImages = async (params: Record<string, number>) => {
+export const getImages = async (params: Record<string, number | string | null>) => {
   let stringParams: Record<string, string> = {};
   for (const [key, value] of Object.entries(params)) {
     stringParams[key] = String(value);

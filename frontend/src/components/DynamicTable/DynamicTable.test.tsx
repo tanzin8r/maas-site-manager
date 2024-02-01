@@ -1,9 +1,9 @@
-/* eslint-disable testing-library/no-unnecessary-act */
+/* eslint-disable testing-library/no-unnecessary-act, testing-library/no-container, testing-library/no-node-access  */
 
 import DynamicTable from "./DynamicTable";
 
 import BREAKPOINTS from "@/config/breakpoints";
-import { render, fireEvent, waitFor, act } from "@/utils/test-utils";
+import { screen, render, fireEvent, waitFor, act } from "@/utils/test-utils";
 
 const offset = 100;
 
@@ -37,7 +37,6 @@ it("sets a fixed table body height based on top offset on large screens", async 
     </DynamicTable>,
   );
 
-  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
   const tbody = container.querySelector("tbody");
 
   await act(async () => {
@@ -54,4 +53,16 @@ it("sets a fixed table body height based on top offset on large screens", async 
   });
 
   await waitFor(() => expect(tbody).toHaveStyle(`height: calc(100vh - ${offset + 1}px)`));
+});
+
+it("displays loading state", () => {
+  const { container } = render(
+    <DynamicTable>
+      <DynamicTable.Loading />
+    </DynamicTable>,
+  );
+
+  expect(screen.getByText("Loading...")).toBeInTheDocument();
+  expect(container.querySelector("tbody")).toHaveAttribute("aria-busy", "true");
+  expect(screen.getAllByRole("row", { hidden: true })).toHaveLength(10);
 });
