@@ -1,8 +1,7 @@
 import { rest } from "msw";
 
-import UserForm from "./UserForm";
+import UserAddForm from "./UserAddForm";
 
-import { UserSelectionContext } from "@/context/UserSelectionContext";
 import { userFactory } from "@/mocks/factories";
 import { createMockGetUserResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
@@ -10,15 +9,6 @@ import { render, screen, setupServer, userEvent, waitFor } from "@/utils/test-ut
 
 const user = userFactory.build({ is_admin: true });
 const mockServer = setupServer(rest.get(`${apiUrls.users}/:id`, createMockGetUserResolver([user])));
-
-const renderEditForm = () => {
-  const setSelected = vi.fn();
-  return render(
-    <UserSelectionContext.Provider value={{ selected: user.id, setSelected }}>
-      <UserForm type="edit" />
-    </UserSelectionContext.Provider>,
-  );
-};
 
 beforeAll(() => {
   mockServer.listen();
@@ -32,56 +22,15 @@ afterAll(() => {
   mockServer.close();
 });
 
-it("prefills data for a user when editing", async () => {
-  renderEditForm();
-
-  await waitFor(() => {
-    expect(screen.getByRole("heading", { name: `Edit ${user.username}` })).toBeInTheDocument();
-  });
-
-  await waitFor(async () => {
-    expect(screen.getByRole("textbox", { name: "Username" })).toHaveValue(user.username);
-  });
-  expect(screen.getByRole("textbox", { name: "Full name (optional)" })).toHaveValue(user.full_name);
-  expect(screen.getByRole("textbox", { name: "Email address" })).toHaveValue(user.email);
-  expect(screen.getByRole("checkbox", { name: "MAAS Site Manager administrator" })).toBeChecked();
-});
-
-it("enables the submit button only when values have been changed while editing", async () => {
-  renderEditForm();
-
-  // Wait for form to load
-  await waitFor(async () => {
-    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
-  });
-
-  await userEvent.clear(screen.getByRole("textbox", { name: "Full name (optional)" }));
-
-  expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
-});
-
-it("makes the confirm_password field required if the password field has been filled in while editing", async () => {
-  renderEditForm();
-
-  // Wait for form to load
-  await waitFor(() => {
-    expect(screen.getByLabelText("Password (again)")).not.toBeRequired();
-  });
-
-  await userEvent.type(screen.getByLabelText("Password"), "testpassword");
-
-  expect(screen.getByLabelText("Password (again)")).toBeRequired();
-});
-
 it("requires the password fields when adding a user", () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   expect(screen.getByLabelText("Password")).toBeRequired();
   expect(screen.getByLabelText("Password (again)")).toBeRequired();
 });
 
 it("enables the submit button when all required fields are filled in and valid when editing a user", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   expect(screen.getByRole("button", { name: "Add user" })).toBeDisabled();
 
@@ -98,7 +47,7 @@ it("enables the submit button when all required fields are filled in and valid w
 });
 
 it("displays an error if a username with invalid characters is entered", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   await userEvent.type(screen.getByRole("textbox", { name: "Username" }), "not a valid username");
   await userEvent.tab();
@@ -107,7 +56,7 @@ it("displays an error if a username with invalid characters is entered", async (
 });
 
 it("displays an error if a username over 150 characters in length is entered", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   // 151 characters long, max is 150
   const tooLong = "A".repeat(151);
@@ -121,7 +70,7 @@ it("displays an error if a username over 150 characters in length is entered", a
 });
 
 it("displays an error if no username is entered", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   await userEvent.click(screen.getByRole("textbox", { name: "Username" }));
   await userEvent.tab();
@@ -130,7 +79,7 @@ it("displays an error if no username is entered", async () => {
 });
 
 it("displays an error if an invalid email address is entered", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   await userEvent.type(screen.getByRole("textbox", { name: "Email address" }), "not a valid email address");
   await userEvent.tab();
@@ -139,7 +88,7 @@ it("displays an error if an invalid email address is entered", async () => {
 });
 
 it("displays an error if a password less than 8 characters in length is entered", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   // 151 characters long, max is 150
   const tooShort = "AAAA";
@@ -151,7 +100,7 @@ it("displays an error if a password less than 8 characters in length is entered"
 });
 
 it("displays an error if a password over 100 characters in length is entered", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
 
   // 101 characters long, max is 100
   const tooLong = "A".repeat(101);
@@ -165,7 +114,7 @@ it("displays an error if a password over 100 characters in length is entered", a
 });
 
 it("displays an error if the password confirmation field does not match the given password", async () => {
-  render(<UserForm type="add" />);
+  render(<UserAddForm />);
   await userEvent.type(screen.getByLabelText("Password"), "aValidPassword");
   await userEvent.type(screen.getByLabelText("Password (again)"), "notTheSamePassword");
   await userEvent.tab();
@@ -173,4 +122,28 @@ it("displays an error if the password confirmation field does not match the give
   expect(
     screen.getByText(/New passwords do not match. Please ensure the new passwords are the same./i),
   ).toBeInTheDocument();
+});
+
+it("shows an error message when submission fails", async () => {
+  mockServer.use(
+    rest.post(apiUrls.users, (_req, res, ctx) => {
+      return res(ctx.status(400));
+    }),
+  );
+  render(<UserAddForm />);
+
+  expect(screen.queryByText(/Error/i)).not.toBeInTheDocument();
+
+  await userEvent.type(screen.getByRole("textbox", { name: "Username" }), "user1");
+  await userEvent.type(screen.getByRole("textbox", { name: "Email address" }), "user1@example.com");
+  await userEvent.type(screen.getByLabelText("Password"), "testpassword");
+  await userEvent.type(screen.getByLabelText("Password (again)"), "testpassword");
+
+  // Simulate form submission
+  await userEvent.click(screen.getByRole("button", { name: "Add user" }));
+
+  await waitFor(() => {
+    expect(screen.getByText(/Error/i)).toBeInTheDocument();
+  });
+  expect(screen.getByText(/Bad Request/i)).toBeInTheDocument();
 });

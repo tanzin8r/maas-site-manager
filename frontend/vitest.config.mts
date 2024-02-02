@@ -27,7 +27,6 @@ export default defineConfig({
     coverage: {
       // exclude index files as they're only used to export other files
       // exclude pages as they're covered by playwright tests
-      // exclude UserAdd/Edit forms since they're covered by adjacent UserForm test
       exclude: [
         ...coverageConfigDefaults.exclude,
         "**/index.ts",
@@ -35,8 +34,6 @@ export default defineConfig({
         "src/routes/**/*",
         "**/types.ts",
         "src/api-client/**/*",
-        "src/components/UserForm/UserAddForm.tsx",
-        "src/components/UserForm/UserEditForm.tsx",
       ],
       include: ["src/**/*.{ts,tsx}"],
       reporter: ["text", "json", "html"],

@@ -1,4 +1,4 @@
-import UserForm from "./UserForm/UserForm";
+import UserForm from "@/components/UserForm";
 
 const UserEditForm = () => <UserForm type="edit" />;
 
