@@ -1,34 +1,32 @@
-import { lazy } from "react";
-
 import RequireLogin from "./RequireLogin";
 
 import MainLayout from "@/components/MainLayout";
+import { lazyWithErrorBoundary } from "@/utils/hoc";
 import { createRoutesFromElements, Route, redirect } from "@/utils/router";
 
-const Logout = lazy(() => import("@/routes/logout"));
-const Login = lazy(() => import("@/routes/login"));
-const NotFound = lazy(() => import("@/routes/404"));
-const Sites = lazy(() => import("@/routes/sites"));
-const List = lazy(() => import("@/routes/sites/list"));
-const Map = lazy(() => import("@/routes/sites/map"));
-const ImagesList = lazy(() => import("@/components/ImagesList"));
-const Settings = lazy(() => import("@/routes/settings"));
-const Tokens = lazy(() => import("@/routes/tokens/tokens"));
-const Requests = lazy(() => import("@/routes/requests"));
-const Users = lazy(() => import("@/routes/users"));
-const MapSettings = lazy(() => import("@/components/MapSettings"));
-const ImageServer = lazy(() => import("@/routes/settings/images/server"));
-const ImagesMaas = lazy(() => import("@/routes/settings/images/maas"));
-const ImageTransfer = lazy(() => import("@/routes/settings/images/transfer"));
-const Account = lazy(() => import("@/routes/account"));
-const PersonalDetails = lazy(() => import("@/routes/personalDetails"));
-const Password = lazy(() => import("@/routes/account/password"));
+const Logout = lazyWithErrorBoundary(() => import("@/routes/logout"));
+const Login = lazyWithErrorBoundary(() => import("@/routes/login"));
+const NotFound = lazyWithErrorBoundary(() => import("@/routes/404"));
+const Sites = lazyWithErrorBoundary(() => import("@/routes/sites"));
+const List = lazyWithErrorBoundary(() => import("@/routes/sites/list"));
+const Map = lazyWithErrorBoundary(() => import("@/routes/sites/map"));
+const ImagesList = lazyWithErrorBoundary(() => import("@/components/ImagesList"));
+const Settings = lazyWithErrorBoundary(() => import("@/routes/settings"));
+const Tokens = lazyWithErrorBoundary(() => import("@/routes/tokens/tokens"));
+const Requests = lazyWithErrorBoundary(() => import("@/routes/requests"));
+const Users = lazyWithErrorBoundary(() => import("@/routes/users"));
+const MapSettings = lazyWithErrorBoundary(() => import("@/components/MapSettings"));
+const ImageServer = lazyWithErrorBoundary(() => import("@/routes/settings/images/server"));
+const ImagesMaas = lazyWithErrorBoundary(() => import("@/routes/settings/images/maas"));
+const ImageTransfer = lazyWithErrorBoundary(() => import("@/routes/settings/images/transfer"));
+const Account = lazyWithErrorBoundary(() => import("@/routes/account"));
+const PersonalDetails = lazyWithErrorBoundary(() => import("@/routes/personalDetails"));
+const Password = lazyWithErrorBoundary(() => import("@/routes/account/password"));
 
 export const routes = createRoutesFromElements(
   <Route element={<MainLayout />} path="/">
     <Route element={<Logout />} path="logout" />
     <Route element={<Login />} path="login" />
-
     <Route element={<RequireLogin />}>
       <Route element={<NotFound />} path="*" />
       <Route index loader={() => redirect("/sites")} />
