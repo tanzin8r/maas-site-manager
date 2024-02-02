@@ -6,7 +6,15 @@ import { userFactory } from "@/mocks/factories";
 import { createMockCurrentUserResolver, createMockGetUsersResolver } from "@/mocks/resolvers";
 import * as router from "@/utils/router";
 import { apiUrls } from "@/utils/test-urls";
-import { renderWithMemoryRouter, screen, setupServer, userEvent, waitFor, within } from "@/utils/test-utils";
+import {
+  renderWithMemoryRouter,
+  screen,
+  setupServer,
+  userEvent,
+  waitFor,
+  waitForLoadingToFinish,
+  within,
+} from "@/utils/test-utils";
 
 const userWithoutFullName = userFactory.build({ full_name: "" });
 const users = [...userFactory.buildList(2), userWithoutFullName];
@@ -32,6 +40,7 @@ it("renders a populated user table", async () => {
 
   expect(screen.getByRole("table", { name: "users" })).toBeInTheDocument();
 
+  await waitForLoadingToFinish();
   await waitFor(() => expect(screen.getAllByRole("rowgroup")).toHaveLength(2));
   const tableBody = screen.getAllByRole("rowgroup")[1];
   expect(within(tableBody).getAllByRole("row")).toHaveLength(users.length);
@@ -51,6 +60,7 @@ it("renders a populated user table", async () => {
 it("can switch between username and full name display", async () => {
   renderWithMemoryRouter(<UserList />);
 
+  await waitForLoadingToFinish();
   await waitFor(() => expect(screen.getAllByRole("rowgroup")).toHaveLength(2));
   let tableBody = screen.getAllByRole("rowgroup")[1];
   expect(within(tableBody).getAllByRole("row")).toHaveLength(users.length);

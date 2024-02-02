@@ -291,6 +291,7 @@ export const useImagesInfiniteQuery = ({
     refetchInterval,
     queryFn: ({ pageParam: { page } }) => getImages({ page, size: pageSize, sortBy }),
     getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage) return undefined;
       const fetchedItemsCount = allPages.reduce((total, page) => total + page.items.length, 0);
       const nextPage =
         fetchedItemsCount < lastPage.total ? { page: lastPage.page + 1, size: DEFAULT_PAGE_SIZE } : undefined;

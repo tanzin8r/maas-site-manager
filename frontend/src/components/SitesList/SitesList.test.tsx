@@ -4,7 +4,7 @@ import { siteFactory } from "@/mocks/factories";
 import { createMockSitesResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";
 import { apiUrls } from "@/utils/test-urls";
-import { renderWithMemoryRouter, screen, userEvent, waitFor, within } from "@/utils/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor, waitForLoadingToFinish, within } from "@/utils/test-utils";
 
 const sites = siteFactory.buildList(2);
 const mockServer = createMockGetServer(apiUrls.sites, createMockSitesResolver(sites));
@@ -33,6 +33,7 @@ it("displays populated sites table", async () => {
 
   expect(screen.getByRole("table", { name: /sites/i })).toBeInTheDocument();
 
+  await waitForLoadingToFinish();
   await waitFor(() => expect(screen.getAllByRole("rowgroup")).toHaveLength(2));
   const tableBody = screen.getAllByRole("rowgroup")[1];
   expect(within(tableBody).getAllByRole("row")).toHaveLength(sites.length);

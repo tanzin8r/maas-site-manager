@@ -27,8 +27,3 @@ test("TableCaption.Error renders error message", () => {
   render(<TableCaption.Error error={error} />);
   expect(screen.getByText("Test error message")).toBeInTheDocument();
 });
-
-test("TableCaption.Loading renders spinner with text", () => {
-  render(<TableCaption.Loading />);
-  expect(screen.getByText("Loading...")).toBeInTheDocument();
-});

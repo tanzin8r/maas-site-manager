@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { RenderOptions, RenderResult } from "@testing-library/react";
-import { screen, render } from "@testing-library/react";
+import { screen, render, waitForElementToBeRemoved } from "@testing-library/react";
 
 import apiClient from "@/api";
 import MainLayout from "@/components/MainLayout";
@@ -12,7 +12,7 @@ import { AppLayoutContextProvider, AuthContextProvider, RowSelectionContextProvi
 import type { MemoryRouterProps } from "@/utils/router";
 import { MemoryRouter } from "@/utils/router";
 
-const Providers = ({ children }: { children: React.ReactNode }) => {
+export const Providers = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -52,13 +52,13 @@ const customRender: (ui: ReactElement, options?: Omit<RenderOptions, "wrapper">)
 interface MemoryRenderOptions extends MemoryRouterProps, Omit<RenderOptions, "wrapper"> {
   withMainLayout?: boolean;
 }
-const renderWithMemoryRouter = (ui: ReactElement, options?: MemoryRenderOptions) => {
+export const renderWithMemoryRouter = (ui: ReactElement, options?: MemoryRenderOptions) => {
   const { basename, initialEntries, initialIndex, withMainLayout } = options || {};
   const Providers = makeProvidersWithMemoryRouter({ basename, initialEntries, initialIndex, withMainLayout });
   return render(ui, { wrapper: Providers, ...options });
 };
 
-const getByTextContent = (text: string | RegExp) => {
+export const getByTextContent = (text: string | RegExp) => {
   return screen.getByText((_, element) => {
     const hasText = (element: Element | null) => {
       if (element) {
@@ -77,13 +77,12 @@ const getByTextContent = (text: string | RegExp) => {
   });
 };
 
+export const waitForLoadingToFinish = () => waitForElementToBeRemoved(screen.queryByText(/loading/i));
+
 export { screen, within, waitFor, act, renderHook, fireEvent } from "@testing-library/react";
 
 export type { RenderResult } from "@testing-library/react";
 
 export { customRender as render };
 export { default as userEvent } from "@testing-library/user-event";
-export { renderWithMemoryRouter };
-export { Providers };
 export { setupServer } from "msw/node";
-export { getByTextContent };

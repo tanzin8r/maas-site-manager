@@ -108,9 +108,7 @@ const RequestsTable = ({
           <TableCaption.Error error={error} />
         </TableCaption>
       ) : isPending ? (
-        <TableCaption>
-          <TableCaption.Loading />
-        </TableCaption>
+        <DynamicTable.Loading table={table} />
       ) : table.getRowModel().rows.length < 1 ? (
         <TableCaption>
           <TableCaption.Title>No outstanding requests</TableCaption.Title>

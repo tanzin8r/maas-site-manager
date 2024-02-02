@@ -6,7 +6,7 @@ import TokensList from "./TokensList";
 import { tokenFactory } from "@/mocks/factories";
 import { createMockDeleteTokenResolver, createMockGetTokensResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
-import { waitFor, screen, renderWithMemoryRouter, within, userEvent } from "@/utils/test-utils";
+import { waitFor, screen, renderWithMemoryRouter, within, userEvent, waitForLoadingToFinish } from "@/utils/test-utils";
 
 const tokens = tokenFactory.buildList(2);
 const handlers = [
@@ -38,6 +38,7 @@ it("should display tokens table on mount with loading text", () => {
 it("should display table with tokens", async () => {
   renderWithMemoryRouter(<TokensList />);
 
+  await waitForLoadingToFinish();
   await waitFor(() => expect(screen.getAllByRole("rowgroup")).toHaveLength(2));
   const tableBody = screen.getAllByRole("rowgroup")[1];
   expect(within(tableBody).getAllByRole("row")).toHaveLength(tokens.length);
@@ -49,10 +50,7 @@ it("should display table with tokens", async () => {
 it("should display a token count description", async () => {
   renderWithMemoryRouter(<TokensList />);
 
-  // Wait for data to load
-  await waitFor(() => {
-    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
-  });
+  await waitForLoadingToFinish();
 
   expect(screen.getByText(new RegExp(`showing 2 out of 2 tokens`, "i"))).toBeInTheDocument();
 });
@@ -80,10 +78,7 @@ it("Export button is enabled regardless of row selection", async () => {
 it("displays a notification after a successful single deletion", async () => {
   renderWithMemoryRouter(<TokensList />);
 
-  // Wait for data to load
-  await waitFor(() => {
-    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
-  });
+  await waitForLoadingToFinish();
 
   await userEvent.click(screen.getAllByRole("checkbox")[1]);
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));
@@ -99,10 +94,7 @@ it("displays a notification after a successful single deletion", async () => {
 it("display a different notification for multiple deletions", async () => {
   renderWithMemoryRouter(<TokensList />);
 
-  // Wait for data to load
-  await waitFor(() => {
-    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
-  });
+  await waitForLoadingToFinish();
 
   const checkboxes = screen.getAllByRole("checkbox");
   await userEvent.click(checkboxes[1]);
@@ -122,10 +114,7 @@ it.skip("displays an error notification after failed deletion", async () => {
   );
   renderWithMemoryRouter(<TokensList />);
 
-  // Wait for data to load
-  await waitFor(() => {
-    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
-  });
+  await waitForLoadingToFinish();
 
   await userEvent.click(screen.getAllByRole("checkbox")[1]);
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));

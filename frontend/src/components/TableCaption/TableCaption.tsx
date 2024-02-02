@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 
-import { Notification, Spinner } from "@canonical/react-components";
+import { Notification } from "@canonical/react-components";
 
 import ErrorMessage from "@/components/ErrorMessage";
 
@@ -36,11 +36,8 @@ const Error = ({ error }: React.ComponentProps<typeof ErrorMessage>) => (
   </div>
 );
 
-const Loading = () => <Spinner text="Loading..." />;
-
 TableCaption.Title = Title;
 TableCaption.Description = Description;
-TableCaption.Loading = Loading;
 TableCaption.Error = Error;
 
 export default TableCaption;

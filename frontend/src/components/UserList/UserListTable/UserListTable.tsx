@@ -216,9 +216,7 @@ const UserListTable = ({
           <TableCaption.Error error={error} />
         </TableCaption>
       ) : isPending ? (
-        <TableCaption>
-          <TableCaption.Loading />
-        </TableCaption>
+        <DynamicTable.Loading table={userTable} />
       ) : (
         <DynamicTable.Body>
           {userTable.getRowModel().rows.map((row) => (

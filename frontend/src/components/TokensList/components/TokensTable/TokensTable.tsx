@@ -135,9 +135,7 @@ const TokensTable = ({ data, error, isPending }: Pick<useTokensQueryResult, "dat
           <TableCaption.Error error={error} />
         </TableCaption>
       ) : isPending ? (
-        <TableCaption>
-          <TableCaption.Loading />
-        </TableCaption>
+        <DynamicTable.Loading table={tokenTable} />
       ) : tokenTable.getRowModel().rows.length < 1 ? (
         <TableCaption>
           <TableCaption.Title>No tokens available</TableCaption.Title>

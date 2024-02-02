@@ -1,5 +1,5 @@
 import { rest } from "msw";
-import type { RestRequest, restContext, ResponseResolver } from "msw";
+import type { RestRequest, restContext, ResponseResolver, DelayMode } from "msw";
 
 import {
   upstreamImageSourceFactory,
@@ -30,7 +30,7 @@ import { isDev } from "@/constants";
 import staticTileImage from "@/mocks/assets/static-tile.png";
 import { apiUrls } from "@/utils/test-urls";
 
-export const mockResponseDelay = isDev ? 0 : 0;
+export const mockResponseDelay: DelayMode | number = isDev ? "real" : 0;
 export const sitesList = siteFactory.buildList(155);
 export const tokensList = tokenFactory.buildList(150);
 export const usersList = userFactory.buildList(20);

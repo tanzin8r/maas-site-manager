@@ -6,7 +6,7 @@ import { SiteDetailsContext } from "@/context/SiteDetailsContext";
 import { siteFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
-import { render, waitFor, screen, userEvent, setupServer } from "@/utils/test-utils";
+import { render, screen, userEvent, setupServer, waitForLoadingToFinish } from "@/utils/test-utils";
 
 const site = siteFactory.build();
 const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
@@ -17,10 +17,7 @@ const renderForm = async () => {
       <EditSite />
     </SiteDetailsContext.Provider>,
   );
-  // Wait for form to load
-  await waitFor(async () => {
-    expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
-  });
+  await waitForLoadingToFinish();
 
   return view;
 };
