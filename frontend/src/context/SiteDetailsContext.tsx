@@ -1,6 +1,6 @@
 import { getSelectedEntityContext, getSelectedEntityContextProvider, useSelectedEntityContext } from "./utils";
 
-import type { Site } from "@/api/types";
+import type { Site } from "@/api/client";
 
 export const SiteDetailsContextProvider = getSelectedEntityContextProvider<Site["id"]>("siteDetails");
 export const SiteDetailsContext = getSelectedEntityContext<Site["id"]>("siteDetails");

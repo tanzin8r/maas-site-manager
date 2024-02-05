@@ -4,9 +4,9 @@ import type { ColumnDef, Column } from "@tanstack/react-table";
 
 import ImagesTable from "./ImagesTable";
 
+import type { Image } from "@/api";
 import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext, useRowSelection } from "@/context";
-import type { Image } from "@/mocks/factories";
 
 export type ImageColumnDef = ColumnDef<Image, Partial<Image>>;
 export type ImageColumn = Column<Image, unknown>;

@@ -4,7 +4,7 @@ import { ExternalLink } from "@canonical/maas-react-components";
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { Column, ColumnDef } from "@tanstack/react-table";
 
-import type { PendingSite } from "@/api-client/models/PendingSite";
+import type { PendingSite } from "@/api";
 import DateTime from "@/components/DateTime";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";

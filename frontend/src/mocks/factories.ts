@@ -3,20 +3,16 @@ import { sub, add } from "date-fns";
 import { Factory } from "fishery";
 import { uniqueNamesGenerator, adjectives, colors, animals, starWars } from "unique-names-generator";
 
-import type { UpstreamImageSource, TSettings } from "@/api/handlers";
-import type { Token } from "@/api/types";
+import { ConnectionStatus, TimeZone } from "@/api";
+import type { Site, SiteData, Settings, Image, UpstreamImage, UpstreamImageSource, User } from "@/api";
 import type {
   PendingSite,
   AccessTokenResponse,
   SitesGetResponse,
   UsersGetResponse,
   PendingSitesGetResponse,
-} from "@/api-client";
-import { ConnectionStatus } from "@/api-client/models/ConnectionStatus";
-import type { Site } from "@/api-client/models/Site";
-import type { SiteData } from "@/api-client/models/SiteData";
-import { TimeZone } from "@/api-client/models/TimeZone";
-import type { User } from "@/api-client/models/User";
+  Token,
+} from "@/api/client";
 import type { SiteMarkerType } from "@/components/Map/types";
 
 export const connections: ConnectionStatus[] = [
@@ -160,26 +156,10 @@ export const enrollmentRequestFactory = Factory.define<PendingSite>(({ sequence 
   };
 });
 
-// TODO: replace with auto-generated types from the API client https://warthogs.atlassian.net/browse/MAASENG-2570
-export type Image = {
-  id: number;
-  release: string;
-  architecture: string;
-  name: string;
-  size: number;
-  downloaded: number;
-  number_of_sites_synced: number;
-  is_custom_image: boolean;
-  last_synced: string | null; // <ISO 8601 date string>
-};
-
-// TODO: replace with auto-generated types from the API client https://warthogs.atlassian.net/browse/MAASENG-2569
-export type UpstreamImage = Pick<Image, "id" | "release" | "architecture" | "name" | "size">;
-
 // TODO: replace with actual Settings type
 // once settings api is updated
 // https://warthogs.atlassian.net/browse/MAASENG-2594
-export const settingsFactory = Factory.define<TSettings>(() => ({
+export const settingsFactory = Factory.define<Settings>(() => ({
   service_url: "http://localhost:3000",
   images_connect_to_maas: true,
 }));

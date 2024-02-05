@@ -5,7 +5,7 @@ import type { FormikHelpers } from "formik";
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 
-import type { User } from "@/api/types";
+import type { User } from "@/api/client";
 import { useCurrentUserQuery, useUpdateUserMutation } from "@/hooks/react-query";
 
 type PersonalDetailsUpdateFormValues = Pick<User, "email" | "full_name" | "username">;

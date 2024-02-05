@@ -1,6 +1,6 @@
 import LocalTime from "./LocalTime";
 
-import { TimeZone } from "@/api-client";
+import { TimeZone } from "@/api/client";
 import { siteFactory } from "@/mocks/factories";
 import { render, screen } from "@/utils/test-utils";
 

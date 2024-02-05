@@ -10,7 +10,7 @@
     "build": "tsc && vite build",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "generate-api-client": "openapi --input http://localhost:8000/api/openapi.json --output ./src/api-client --name ApiClient --exportSchemas=true --useOptions",
+    "generate-api-client": "openapi --input http://localhost:8000/api/openapi.json --output ./src/api/client --name ApiClient --exportSchemas=true --useOptions",
     "preview": "vite preview",
     "playwright-test": "playwright test",
     "playwright-ui": "playwright test --ui",

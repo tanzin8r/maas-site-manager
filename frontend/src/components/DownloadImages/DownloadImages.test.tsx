@@ -2,7 +2,7 @@ import { rest } from "msw";
 
 import DownloadImages from "./DownloadImages";
 
-import type { UpstreamImage } from "@/mocks/factories";
+import type { UpstreamImage } from "@/api";
 import { upstreamImageFactory, upstreamImageSourceFactory } from "@/mocks/factories";
 import {
   createMockSelectUpstreamImagesResolver,

@@ -33,7 +33,7 @@ export default defineConfig({
         "src/mocks/**/*",
         "src/routes/**/*",
         "**/types.ts",
-        "src/api-client/**/*",
+        "src/api/client/**/*",
       ],
       include: ["src/**/*.{ts,tsx}"],
       reporter: ["text", "json", "html"],

@@ -1,16 +1,15 @@
 import { apiClient } from "./api";
-import type { Token, User } from "./types";
 
+import type { Image, UpstreamImage, TSettings, TSettingsPatchRequest, UpstreamImageSource } from "@/api";
 import type {
+  Token,
+  User,
   SitesGetResponse,
   Body_post_v1_login_post,
   PendingSitesPostRequest,
   Site,
   TokensPostRequest,
-  SettingsPatchRequest,
-  Settings,
-} from "@/api-client";
-import type { Image, UpstreamImage } from "@/mocks/factories";
+} from "@/api/client";
 import { apiUrls } from "@/utils/test-urls";
 
 export const postLogin = async (data: Body_post_v1_login_post) => {
@@ -25,10 +24,6 @@ export const postLogin = async (data: Body_post_v1_login_post) => {
   }
 };
 
-// TODO: replace with actual Settings type
-// once settings api is updated
-// https://warthogs.atlassian.net/browse/MAASENG-2594
-export type TSettings = Settings & { images_connect_to_maas: boolean };
 export const getSettings = async () => {
   try {
     const response = await apiClient.default.getV1SettingsGet();
@@ -38,10 +33,6 @@ export const getSettings = async () => {
   }
 };
 
-// TODO: replace with actual SettingsPatchRequest type
-// once settings api is updated
-// https://warthogs.atlassian.net/browse/MAASENG-2594
-export type TSettingsPatchRequest = SettingsPatchRequest & { images_connect_to_maas: boolean };
 export const updateSettings = async (data: TSettingsPatchRequest) => {
   try {
     const response = await apiClient.default.patchV1SettingsPatch({ requestBody: data });
@@ -232,12 +223,6 @@ export const getUpstreamImages = async (params: Record<string, number>) => {
   });
   const data = (await response.json()) as { items: UpstreamImage[]; page: number; total: number; size: number };
   return data;
-};
-
-export type UpstreamImageSource = {
-  upstreamSource: string;
-  keepUpdated: boolean;
-  credentials: string;
 };
 
 // TODO: replace with api client once API supports it https://warthogs.atlassian.net/browse/MAASENG-2569

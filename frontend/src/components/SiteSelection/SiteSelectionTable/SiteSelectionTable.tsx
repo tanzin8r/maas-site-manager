@@ -4,7 +4,7 @@ import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-tabl
 import classNames from "classnames";
 import pick from "lodash/fp/pick";
 
-import type { Site } from "@/api/types";
+import type { Site } from "@/api/client";
 import type { SitesColumnDef } from "@/components/SitesList/SitesTable/SitesTable";
 
 type Props = {

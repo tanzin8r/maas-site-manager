@@ -1,8 +1,8 @@
 import { Icon } from "@canonical/react-components";
 
+import type { Image } from "@/api";
 import Placeholder from "@/components/Placeholder";
 import { useSitesQuery } from "@/hooks/react-query";
-import type { Image } from "@/mocks/factories";
 import { formatUTCDateString } from "@/utils";
 
 const SyncedStatus = ({ image }: { image: Image }) => {

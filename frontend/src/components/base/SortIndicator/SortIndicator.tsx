@@ -1,8 +1,8 @@
 import { Icon } from "@canonical/react-components";
 import type { Header } from "@tanstack/react-table";
 
-import type { Site, User } from "@/api/types";
-import type { Image } from "@/mocks/factories";
+import type { Image } from "@/api";
+import type { Site, User } from "@/api/client";
 
 export const SortIndicator = ({
   header,

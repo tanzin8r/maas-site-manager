@@ -1,4 +1,4 @@
-import type { TimeZone } from "@/api-client";
+import type { TimeZone } from "@/api/client";
 import { getTimeInTimezone, getTimezoneUTCString } from "@/utils";
 
 const LocalTime = ({ timezone }: { timezone: TimeZone }) => {

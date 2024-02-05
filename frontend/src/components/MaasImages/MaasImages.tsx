@@ -1,17 +1,12 @@
-import React from "react";
-
 import { ContentSection, FormSection } from "@canonical/maas-react-components";
 import { Button, Input } from "@canonical/react-components";
 import type { FormikHelpers } from "formik";
 import { Formik, Form, Field } from "formik";
 
-import type { TSettingsPatchRequest } from "@/api/handlers";
+import type { TSettingsPatchRequest } from "@/api";
 import { useAppLayoutContext } from "@/context";
 import { useSettingsQuery, useUpdateSettingsMutation } from "@/hooks/react-query";
 
-// TODO: replace with actual Settings type from "@/api-client"
-// once settings api is updated
-// https://warthogs.atlassian.net/browse/MAASENG-2594
 type FormValues = Pick<TSettingsPatchRequest, "images_connect_to_maas">;
 
 const formKeys: Record<keyof FormValues, keyof FormValues> = {

@@ -1,6 +1,6 @@
 import TokensTable from "./TokensTable";
 
-import type { Token } from "@/api/types";
+import type { Token } from "@/api/client";
 import { tokenFactory } from "@/mocks/factories";
 import { render, screen, within } from "@/utils/test-utils";
 

@@ -1,6 +1,6 @@
 import type { Row } from "@tanstack/react-table";
 
-import type { Image } from "@/mocks/factories";
+import type { Image } from "@/api";
 
 type SelectGroupCheckboxProps = { row: Row<Image> };
 

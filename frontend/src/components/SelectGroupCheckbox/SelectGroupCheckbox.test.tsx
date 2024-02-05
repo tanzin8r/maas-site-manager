@@ -2,7 +2,8 @@ import type { Row } from "@tanstack/react-table";
 
 import SelectGroupCheckbox from "./SelectGroupCheckbox";
 
-import { imageFactory, type Image } from "@/mocks/factories";
+import type { Image } from "@/api";
+import { imageFactory } from "@/mocks/factories";
 import { render, userEvent, screen } from "@/utils/test-utils";
 
 const renderSelectGroupCheckbox = (rowProps: Partial<Row<Image>> = {}) => {

@@ -1,6 +1,6 @@
 import SitesTable from "./SitesTable";
 
-import { TimeZone } from "@/api-client/models/TimeZone";
+import { TimeZone } from "@/api";
 import { enrollmentRequestFactory, siteFactory, sitesQueryResultFactory, statsFactory } from "@/mocks/factories";
 import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
 import { createMockGetServer } from "@/mocks/server";

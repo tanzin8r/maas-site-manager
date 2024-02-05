@@ -5,7 +5,7 @@ import { Button, Card, Icon, Notification, Spinner } from "@canonical/react-comp
 import classNames from "classnames";
 import get from "lodash/get";
 
-import type { Site } from "@/api/types";
+import type { Site } from "@/api/client";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import AggregatedStatus from "@/components/SitesList/SitesTable/AggregatedStatus/AggregatedStatus";
 import {

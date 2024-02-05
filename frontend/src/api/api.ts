@@ -2,8 +2,8 @@ import * as Sentry from "@sentry/browser";
 
 import { FetchHttpRequestWithInterceptors } from "./FetchHttpRequestWithInterceptors";
 
+import { ApiClient } from "@/api/client";
 import { baseURL } from "@/api/config";
-import { ApiClient } from "@/api-client";
 
 const getToken = async () => {
   let authToken;

@@ -4,7 +4,7 @@ import type { ColumnDef, Column, Row, Getter } from "@tanstack/react-table";
 import { flexRender, useReactTable, getCoreRowModel } from "@tanstack/react-table";
 import pick from "lodash/fp/pick";
 
-import type { Token } from "@/api/types";
+import type { Token } from "@/api/client";
 import DynamicTable from "@/components/DynamicTable";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import TableCaption from "@/components/TableCaption";

@@ -1,8 +1,7 @@
-import type { ApiError } from "@/api-client";
-import type { ApiRequestOptions } from "@/api-client/core/ApiRequestOptions";
-import { BaseHttpRequest } from "@/api-client/core/BaseHttpRequest";
-import { CancelablePromise } from "@/api-client/core/CancelablePromise";
-import { request } from "@/api-client/core/request";
+import { BaseHttpRequest, CancelablePromise } from "@/api/client";
+import type { ApiError } from "@/api/client";
+import type { ApiRequestOptions } from "@/api/client/core/ApiRequestOptions";
+import { request } from "@/api/client/core/request";
 
 export type ResponseInterceptor = (response: unknown, error: ApiError | null) => unknown;
 

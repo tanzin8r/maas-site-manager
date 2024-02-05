@@ -23,13 +23,13 @@ import classNames from "classnames";
 import "./ImagesTable.scss";
 import useImagesTableColumns from "./useImagesTableColumns";
 
+import type { Image } from "@/api";
 import type { ImagesSortKey, SortBy } from "@/api/handlers";
 import DynamicTable from "@/components/DynamicTable";
 import TableCaption from "@/components/TableCaption";
 import SortIndicator from "@/components/base/SortIndicator";
 import { useAppLayoutContext, useRowSelection } from "@/context";
 import { useImagesInfiniteQuery } from "@/hooks/react-query";
-import type { Image } from "@/mocks/factories";
 import { getSortBy } from "@/utils";
 export type ImageColumnDef = ColumnDef<Image, Partial<Image>>;
 export type ImageColumn = Column<Image, unknown>;

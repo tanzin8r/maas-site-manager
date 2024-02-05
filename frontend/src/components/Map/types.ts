@@ -1,4 +1,4 @@
-import type { Site } from "@/api/types";
+import type { Site } from "@/api/client";
 
 export type SiteMarkerType = Pick<Site, "id"> & {
   // Latitute, longitude

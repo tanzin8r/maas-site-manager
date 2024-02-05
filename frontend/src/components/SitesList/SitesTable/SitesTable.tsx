@@ -12,7 +12,7 @@ import ConnectionInfo from "./ConnectionInfo";
 import ColumnsVisibilityControl from "./SitesTableControls/ColumnsVisibilityControl";
 import SitesTableControls from "./SitesTableControls/SitesTableControls";
 
-import type { SitesGetResponse } from "@/api-client";
+import type { SitesGetResponse } from "@/api/client";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import NoSites from "@/components/NoSites";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";

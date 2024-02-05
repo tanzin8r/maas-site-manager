@@ -13,19 +13,16 @@ import {
   settingsFactory,
 } from "./factories";
 
+import type { UpstreamImageSource, Site, SitesGetResponse } from "@/api";
+import type { TokensPostResponse, User } from "@/api/client";
 import type {
   GetSitesQueryParams,
   SortDirection,
   SitesSortKey,
   UserSortKey,
-  UpstreamImageSource,
   SelectUpstreamImagesPayload,
   ImagesSortKey,
 } from "@/api/handlers";
-import type { User } from "@/api/types";
-import type { TokensPostResponse } from "@/api-client";
-import type { Site } from "@/api-client/models/Site";
-import type { SitesGetResponse } from "@/api-client/models/SitesGetResponse";
 import { isDev } from "@/constants";
 import staticTileImage from "@/mocks/assets/static-tile.png";
 import { apiUrls } from "@/utils/test-urls";

@@ -2,6 +2,15 @@ import type { MutateOptions, UseMutationOptions } from "@tanstack/react-query";
 import { useQueryClient, useMutation, useQuery, keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 
 import type apiClient from "@/api";
+import type { Image } from "@/api";
+import type {
+  PendingSitesPostRequest,
+  SitesGetResponse,
+  Site,
+  UsersGetResponse,
+  User,
+  TokensGetResponse,
+} from "@/api/client";
 import {
   deleteTokens,
   postLogin,
@@ -31,15 +40,6 @@ import {
   deleteImages,
   uploadImage,
 } from "@/api/handlers";
-import type {
-  PendingSitesPostRequest,
-  SitesGetResponse,
-  Site,
-  UsersGetResponse,
-  User,
-  TokensGetResponse,
-} from "@/api-client";
-import type { Image } from "@/mocks/factories";
 import { saveToFile } from "@/utils";
 
 export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;

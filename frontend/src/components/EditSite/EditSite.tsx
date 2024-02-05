@@ -3,7 +3,7 @@ import { Field, Form, Formik } from "formik";
 import en from "i18n-iso-countries/langs/en.json";
 import * as Yup from "yup";
 
-import type { Site } from "@/api/types";
+import type { Site } from "@/api/client";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
 import type { SiteDetailsContextValue } from "@/context/SiteDetailsContext";

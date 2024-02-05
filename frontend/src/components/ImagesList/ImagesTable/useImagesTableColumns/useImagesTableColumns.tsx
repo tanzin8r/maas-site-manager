@@ -5,13 +5,13 @@ import { Icon } from "@canonical/react-components";
 import type { ColumnDef, Row, Getter, Table } from "@tanstack/react-table";
 import pluralize from "pluralize";
 
+import type { Image } from "@/api";
 import SyncStatus from "@/components/ImagesList/ImagesTable/SyncStatus";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import SelectGroupCheckbox from "@/components/SelectGroupCheckbox/SelectGroupCheckbox";
 import GroupRowActions from "@/components/base/GroupRowActions";
 import TableActions from "@/components/base/TableActions";
 import { useAppLayoutContext } from "@/context";
-import type { Image } from "@/mocks/factories";
 export type ImageColumnDef = ColumnDef<Image, Partial<Image>>;
 
 const useImagesTableColumns = () => {

@@ -5,8 +5,8 @@ import type { ResponseInterceptor } from "./FetchHttpRequestWithInterceptors";
 import { FetchHttpRequestWithInterceptors } from "./FetchHttpRequestWithInterceptors";
 import { baseURL } from "./config";
 
-import { ApiError, OpenAPI } from "@/api-client";
-import type { ApiRequestOptions } from "@/api-client/core/ApiRequestOptions";
+import { ApiError, OpenAPI } from "@/api/client";
+import type { ApiRequestOptions } from "@/api/client/core/ApiRequestOptions";
 import { apiUrls } from "@/utils/test-urls";
 const server = setupServer();
 

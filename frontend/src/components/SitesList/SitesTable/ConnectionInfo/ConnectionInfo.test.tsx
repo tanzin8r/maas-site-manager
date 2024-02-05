@@ -2,7 +2,7 @@ import * as timezoneMock from "timezone-mock";
 
 import ConnectionInfo, { connectionIcons, connectionLabels } from "./ConnectionInfo";
 
-import { ConnectionStatus } from "@/api-client/models/ConnectionStatus";
+import { ConnectionStatus } from "@/api";
 import { connections } from "@/mocks/factories";
 import { render, screen } from "@/utils/test-utils";
 

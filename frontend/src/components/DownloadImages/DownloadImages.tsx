@@ -3,13 +3,13 @@ import { ContentSection, ExternalLink, MultiSelect } from "@canonical/maas-react
 import { ActionButton, Button, Spinner } from "@canonical/react-components";
 import { Field, Form, Formik } from "formik";
 
+import type { UpstreamImage } from "@/api";
 import { useAppLayoutContext } from "@/context";
 import {
   useSelectUpstreamImagesMutation,
   useUpstreamImageSourceQuery,
   useUpstreamImagesQuery,
 } from "@/hooks/react-query";
-import type { UpstreamImage } from "@/mocks/factories";
 
 type GroupedImages = {
   [key: string]: ReleasesWithArches;

@@ -6,7 +6,7 @@ import type { SortingState, Column, ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
 import pick from "lodash/fp/pick";
 
-import type { User } from "@/api/types";
+import type { User } from "@/api/client";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import TableCaption from "@/components/TableCaption/TableCaption";
 import SortIndicator from "@/components/base/SortIndicator";

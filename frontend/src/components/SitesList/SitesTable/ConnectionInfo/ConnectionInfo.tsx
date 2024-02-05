@@ -2,8 +2,7 @@ import { ExternalLink } from "@canonical/maas-react-components";
 import classNames from "classnames";
 import get from "lodash/get";
 
-import type { Site } from "@/api-client/models/Site";
-import type { SiteData } from "@/api-client/models/SiteData";
+import type { SiteData, Site } from "@/api";
 import TooltipButton from "@/components/base/TooltipButton";
 import docsUrls from "@/config/docsUrls";
 import { formatDistanceToNow } from "@/utils";
