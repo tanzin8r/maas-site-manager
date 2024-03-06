@@ -1,5 +1,5 @@
-from ._count import row_count
-from ._search import (
+from msm.db.queries._count import row_count
+from msm.db.queries._search import (
     filters_from_arguments,
     order_by_from_arguments,
 )

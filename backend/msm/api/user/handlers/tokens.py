@@ -7,22 +7,22 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
-from ....db.models import (
+from msm.api._csv import CSVResponse
+from msm.api._dependencies import (
+    config,
+    services,
+)
+from msm.api.user._auth import authenticated_user
+from msm.db.models import (
     Config,
     Token,
     User,
 )
-from ....schema import (
+from msm.schema import (
     PaginatedResults,
     PaginationParams,
 )
-from ....service import ServiceCollection
-from ..._csv import CSVResponse
-from ..._dependencies import (
-    config,
-    services,
-)
-from .._auth import authenticated_user
+from msm.service import ServiceCollection
 
 v1_router = APIRouter(prefix="/v1")
 

@@ -6,10 +6,9 @@ from datetime import (
 import pytest
 
 from msm.time import now_utc
-
-from ....fixtures.client import Client
-from ....fixtures.factory import Factory
-from ... import api_timestamp
+from tests.api import api_timestamp
+from tests.fixtures.client import Client
+from tests.fixtures.factory import Factory
 
 
 def iso8601_duration(duration: timedelta) -> str:

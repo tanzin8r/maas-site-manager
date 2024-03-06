@@ -12,10 +12,9 @@ from msm.jwt import (
     TokenAudience,
     TokenPurpose,
 )
-
-from ...fixtures.client import Client
-from ...fixtures.factory import Factory
-from ..conftest import make_api_client
+from tests.api.conftest import make_api_client
+from tests.fixtures.client import Client
+from tests.fixtures.factory import Factory
 
 
 @pytest.fixture

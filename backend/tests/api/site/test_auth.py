@@ -10,10 +10,9 @@ import pytest
 from msm.api.site._auth import authenticated_site
 from msm.db.models import Site
 from msm.service import ServiceCollection
-
-from ...fixtures.app import get_api_routes
-from ...fixtures.client import Client
-from ...fixtures.factory import Factory
+from tests.fixtures.app import get_api_routes
+from tests.fixtures.client import Client
+from tests.fixtures.factory import Factory
 
 AUTHENTICATED_ROUTES = (
     ("POST", "/site/v1/details"),

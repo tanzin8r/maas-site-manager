@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from .db import DBConfig
+from tests.fixtures.db import DBConfig
 
 
 @pytest.fixture(autouse=True)

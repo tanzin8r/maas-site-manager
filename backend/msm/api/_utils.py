@@ -10,7 +10,7 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
-from .. import __version__
+from msm import __version__
 
 INVALID_TOKEN_ERROR = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,

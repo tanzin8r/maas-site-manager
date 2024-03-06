@@ -6,13 +6,13 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
-from ....db.models import (
+from msm.api._dependencies import services
+from msm.api.user._auth import authenticated_admin
+from msm.db.models import (
     Settings,
     User,
 )
-from ....service import ServiceCollection
-from ..._dependencies import services
-from .._auth import authenticated_admin
+from msm.service import ServiceCollection
 
 v1_router = APIRouter(prefix="/v1")
 

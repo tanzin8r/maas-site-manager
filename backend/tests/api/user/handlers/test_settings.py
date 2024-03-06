@@ -4,9 +4,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.service import SettingsService
-
-from ....fixtures.client import Client
-from ....fixtures.factory import Factory
+from tests.fixtures.client import Client
+from tests.fixtures.factory import Factory
 
 
 @pytest.fixture

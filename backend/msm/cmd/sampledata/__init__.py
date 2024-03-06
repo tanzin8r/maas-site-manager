@@ -1,5 +1,5 @@
-from .._script import Script
-from ._fixtures import FixturesAction
+from msm.cmd._script import Script
+from msm.cmd.sampledata._fixtures import FixturesAction
 
 
 class SampledataScript(Script):

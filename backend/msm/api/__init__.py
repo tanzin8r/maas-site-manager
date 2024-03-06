@@ -29,25 +29,24 @@ import uvicorn
 from uvicorn.server import logger
 
 import msm
-
-from .. import __version__
-from ..db import (
+from msm import __version__
+from msm.api._prometheus import instrument_prometheus
+from msm.api._utils import create_subapp
+from msm.api.site.handlers import ROUTERS as SITE_API_ROUTERS
+from msm.api.user.handlers import ROUTERS as USER_API_ROUTERS
+from msm.db import (
     Database,
     check_server_version,
 )
-from ..middleware import (
+from msm.middleware import (
     DatabaseMetricsMiddleware,
     TransactionMiddleware,
 )
-from ..service import (
+from msm.service import (
     ConfigService,
     SettingsService,
 )
-from ..settings import Settings
-from ._prometheus import instrument_prometheus
-from ._utils import create_subapp
-from .site.handlers import ROUTERS as SITE_API_ROUTERS
-from .user.handlers import ROUTERS as USER_API_ROUTERS
+from msm.settings import Settings
 
 
 def run() -> None:

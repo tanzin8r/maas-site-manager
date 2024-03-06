@@ -5,8 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from msm.db.models import Settings
 from msm.service import _settings
 from msm.service._settings import SettingsService
-
-from ..fixtures.factory import Factory
+from tests.fixtures.factory import Factory
 
 
 @pytest.mark.asyncio

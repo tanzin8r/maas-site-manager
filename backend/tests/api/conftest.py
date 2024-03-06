@@ -12,8 +12,7 @@ from msm.service import (
     ConfigService,
     ServiceCollection,
 )
-
-from ..fixtures.client import Client
+from tests.fixtures.client import Client
 
 
 def make_api_client(app: FastAPI, config: Config, prefix: str = "") -> Client:

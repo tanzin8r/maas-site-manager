@@ -3,19 +3,19 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from ...db.models import Site
-from ...jwt import (
-    TokenAudience,
-    TokenPurpose,
-)
-from ...service import ServiceCollection
-from ...time import now_utc
-from .._auth import (
+from msm.api._auth import (
     auth_id_from_token,
     bearer_token,
 )
-from .._dependencies import services
-from .._utils import INVALID_TOKEN_ERROR
+from msm.api._dependencies import services
+from msm.api._utils import INVALID_TOKEN_ERROR
+from msm.db.models import Site
+from msm.jwt import (
+    TokenAudience,
+    TokenPurpose,
+)
+from msm.service import ServiceCollection
+from msm.time import now_utc
 
 
 async def authenticated_site(

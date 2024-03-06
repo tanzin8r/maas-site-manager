@@ -6,8 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import User
 from msm.service._user import UserService
-
-from ..fixtures.factory import Factory
+from tests.fixtures.factory import Factory
 
 
 @pytest.fixture

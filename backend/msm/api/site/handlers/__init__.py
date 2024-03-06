@@ -1,4 +1,4 @@
-from . import (
+from msm.api.site.handlers import (
     enroll,
     report,
 )

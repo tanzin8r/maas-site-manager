@@ -1,16 +1,16 @@
 import pytest
 
-from .fixtures.db import (
+from tests.fixtures.db import (
     db,
     db_connection,
     db_setup,
     transaction_middleware_class,
 )
-from .fixtures.env import (
+from tests.fixtures.env import (
     settings_environ,
     unset_settings_environ,
 )
-from .fixtures.factory import factory
+from tests.fixtures.factory import factory
 
 __all__ = [
     "db",

@@ -4,10 +4,10 @@ from typing import (
 )
 from uuid import uuid4
 
-from ..db import models
-from ..db.tables import Config
-from ..jwt import generate_key
-from ._base import DBBackedModelService
+from msm.db import models
+from msm.db.tables import Config
+from msm.jwt import generate_key
+from msm.service._base import DBBackedModelService
 
 
 class ConfigService(DBBackedModelService[models.Config]):

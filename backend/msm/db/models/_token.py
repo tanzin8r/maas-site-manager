@@ -3,7 +3,7 @@ from pydantic import (
     BaseModel,
 )
 
-from ...time import now_utc
+from msm.time import now_utc
 
 
 class Token(BaseModel):

@@ -3,11 +3,11 @@ from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ..time import now_utc
-from ._db import (
+from msm.sampledata._db import (
     ModelCollection,
     SampleDataModel,
 )
+from msm.time import now_utc
 
 
 async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:

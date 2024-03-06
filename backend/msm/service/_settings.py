@@ -4,10 +4,10 @@ from typing import (
     Any,
 )
 
-from ..db import models
-from ..db.tables import Setting
-from ..settings import Settings
-from ._base import DBBackedModelService
+from msm.db import models
+from msm.db.tables import Setting
+from msm.service._base import DBBackedModelService
+from msm.settings import Settings
 
 
 class SettingsService(DBBackedModelService[models.Settings]):

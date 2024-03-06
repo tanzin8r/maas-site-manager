@@ -9,8 +9,7 @@ import pytest
 from msm.cmd import AsyncAction
 from msm.cmd.admin import script
 from msm.password import verify_password
-
-from ..fixtures.factory import Factory
+from tests.fixtures.factory import Factory
 
 
 @pytest.fixture

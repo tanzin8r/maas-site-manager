@@ -3,7 +3,7 @@ from operator import attrgetter
 import sys
 from traceback import format_tb
 
-from ._action import Action
+from msm.cmd._action import Action
 
 
 class Script:

@@ -9,8 +9,8 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ..db.models import Config
-from ..service import (
+from msm.db.models import Config
+from msm.service import (
     ConfigService,
     ServiceCollection,
 )

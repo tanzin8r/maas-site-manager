@@ -7,8 +7,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from msm.api import _update_resource_paths
-
-from ..fixtures.client import Client
+from tests.fixtures.client import Client
 
 test_html = """
 <!DOCTYPE html>

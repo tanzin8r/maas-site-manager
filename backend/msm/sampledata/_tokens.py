@@ -2,12 +2,12 @@ from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ..jwt import (
+from msm.jwt import (
     JWT,
     TokenAudience,
     TokenPurpose,
 )
-from ._db import (
+from msm.sampledata._db import (
     ModelCollection,
     SampleDataModel,
 )

@@ -8,15 +8,15 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordBearer
 
-from ...db.models import User
-from ...jwt import TokenAudience
-from ...service import (
+from msm.api._auth import auth_id_from_token
+from msm.api._dependencies import services
+from msm.api._utils import INVALID_TOKEN_ERROR
+from msm.db.models import User
+from msm.jwt import TokenAudience
+from msm.service import (
     ServiceCollection,
     UserService,
 )
-from .._auth import auth_id_from_token
-from .._dependencies import services
-from .._utils import INVALID_TOKEN_ERROR
 
 OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="v1/login")
 

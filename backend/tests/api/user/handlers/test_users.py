@@ -2,9 +2,8 @@ import pytest
 
 from msm.api.user.handlers.users import User
 from msm.db import models
-
-from ....fixtures.client import Client
-from ....fixtures.factory import Factory
+from tests.fixtures.client import Client
+from tests.fixtures.factory import Factory
 
 
 @pytest.mark.asyncio

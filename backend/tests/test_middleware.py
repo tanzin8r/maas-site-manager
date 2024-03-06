@@ -13,8 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import Database
 from msm.middleware import DatabaseMetricsMiddleware
-
-from .fixtures.client import Client
+from tests.fixtures.client import Client
 
 
 @pytest.fixture

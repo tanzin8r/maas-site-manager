@@ -10,8 +10,8 @@ from itertools import chain
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ..db import Database
-from ..settings import Settings
+from msm.db import Database
+from msm.settings import Settings
 
 
 class Action:

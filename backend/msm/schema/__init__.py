@@ -1,15 +1,15 @@
 """API schema definitions."""
 
-from ._fields import TimeZone
-from ._pagination import (
+from msm.schema._fields import TimeZone
+from msm.schema._pagination import (
     PaginatedResults,
     PaginationParams,
 )
-from ._search import (
+from msm.schema._search import (
     SearchTextParam,
     search_text_param,
 )
-from ._sorting import (
+from msm.schema._sorting import (
     SortParam,
     SortParamParser,
 )

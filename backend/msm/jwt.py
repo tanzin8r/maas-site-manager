@@ -16,7 +16,7 @@ from jose import (
 )
 from strenum import StrEnum
 
-from .time import (
+from msm.time import (
     now_utc,
     utc_from_timestamp,
 )

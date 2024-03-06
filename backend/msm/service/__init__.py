@@ -1,13 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ._config import ConfigService
-from ._settings import SettingsService
-from ._site import (
+from msm.service._config import ConfigService
+from msm.service._settings import SettingsService
+from msm.service._site import (
     InvalidPendingSites,
     SiteService,
 )
-from ._token import TokenService
-from ._user import UserService
+from msm.service._token import TokenService
+from msm.service._user import UserService
 
 
 class ServiceCollection:

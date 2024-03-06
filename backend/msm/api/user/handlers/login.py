@@ -8,18 +8,18 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 
-from ....db.models import Config
-from ....jwt import TokenAudience
-from ....service import ServiceCollection
-from ..._auth import (
+from msm.api._auth import (
     AccessTokenResponse,
     token_response,
 )
-from ..._dependencies import (
+from msm.api._dependencies import (
     config,
     services,
 )
-from .._auth import authenticate_user
+from msm.api.user._auth import authenticate_user
+from msm.db.models import Config
+from msm.jwt import TokenAudience
+from msm.service import ServiceCollection
 
 v1_router = APIRouter(prefix="/v1")
 

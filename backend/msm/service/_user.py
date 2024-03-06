@@ -16,17 +16,17 @@ from sqlalchemy.sql import (
     or_,
 )
 
-from ..db import (
+from msm.db import (
     models,
     queries,
 )
-from ..db.tables import User
-from ..password import (
+from msm.db.tables import User
+from msm.password import (
     hash_password,
     verify_password,
 )
-from ..schema import SortParam
-from ._base import Service
+from msm.schema import SortParam
+from msm.service._base import Service
 
 
 class UserService(Service):

@@ -8,7 +8,7 @@ from pydantic import (
     Field,
 )
 
-from ...schema import TimeZone
+from msm.schema import TimeZone
 
 
 class ConnectionStatus(str, Enum):

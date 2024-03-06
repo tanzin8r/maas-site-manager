@@ -12,7 +12,7 @@ from sqlalchemy import (
     desc,
 )
 
-from ...schema import SortParam
+from msm.schema import SortParam
 
 
 def filters_from_arguments(

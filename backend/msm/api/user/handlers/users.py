@@ -16,8 +16,19 @@ from pydantic import (
     model_validator,
 )
 
-from ....db import models
-from ....schema import (
+from msm.api._dependencies import services
+from msm.api._utils import raise_on_empty_request
+from msm.api.user._auth import (
+    authenticate_user,
+    authenticated_admin,
+    authenticated_user,
+)
+from msm.api.user._forms import (
+    UserFilterParams,
+    user_filter_params,
+)
+from msm.db import models
+from msm.schema import (
     PaginatedResults,
     PaginationParams,
     SearchTextParam,
@@ -25,18 +36,7 @@ from ....schema import (
     SortParamParser,
     search_text_param,
 )
-from ....service import ServiceCollection
-from ..._dependencies import services
-from ..._utils import raise_on_empty_request
-from .._auth import (
-    authenticate_user,
-    authenticated_admin,
-    authenticated_user,
-)
-from .._forms import (
-    UserFilterParams,
-    user_filter_params,
-)
+from msm.service import ServiceCollection
 
 v1_router = APIRouter(prefix="/v1")
 

@@ -5,8 +5,8 @@ from alembic.runtime.environment import EnvironmentContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import Connection
 
-from ...settings import Settings
-from ..tables import METADATA
+from msm.db.tables import METADATA
+from msm.settings import Settings
 
 
 def get_config() -> Config:

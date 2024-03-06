@@ -13,9 +13,8 @@ from msm.api.user._auth import (
 )
 from msm.db.models import User
 from msm.service import ServiceCollection
-
-from ...fixtures.app import get_api_routes
-from ...fixtures.client import Client
+from tests.fixtures.app import get_api_routes
+from tests.fixtures.client import Client
 
 AUTHENTICATED_ROUTES = (
     ("GET", "/api/v1/settings"),

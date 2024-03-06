@@ -19,8 +19,8 @@ from sqlalchemy.dialects.postgresql import (
 )
 from sqlalchemy.types import DateTime
 
-from ..time import now_utc
-from .types import Point
+from msm.db.types import Point
+from msm.time import now_utc
 
 METADATA = MetaData()
 

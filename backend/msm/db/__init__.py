@@ -16,8 +16,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from .alembic import migrate_db
-from .tables import METADATA
+from msm.db.alembic import migrate_db
+from msm.db.tables import METADATA
 
 MIN_POSTGRES_VERSION = (14, 0)
 

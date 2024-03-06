@@ -13,15 +13,15 @@ from fastapi import (
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
 
-from ..db.models import Config
-from ..jwt import (
+from msm.api._dependencies import config
+from msm.api._utils import INVALID_TOKEN_ERROR
+from msm.db.models import Config
+from msm.jwt import (
     JWT,
     InvalidToken,
     TokenAudience,
     TokenPurpose,
 )
-from ._dependencies import config
-from ._utils import INVALID_TOKEN_ERROR
 
 # a dependency callable that returns the token
 BearerToken = Callable[[Request], Awaitable[str | None]]

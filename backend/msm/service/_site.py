@@ -19,17 +19,17 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import insert
 
-from ..db import (
+from msm.db import (
     models,
     queries,
 )
-from ..db.tables import (
+from msm.db.tables import (
     Site,
     SiteData,
 )
-from ..schema import SortParam
-from ..time import now_utc
-from ._base import Service
+from msm.schema import SortParam
+from msm.service._base import Service
+from msm.time import now_utc
 
 LOST_CONNECTION_THRESHOLD = timedelta(seconds=60)
 

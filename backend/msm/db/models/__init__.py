@@ -1,6 +1,6 @@
-from ._config import Config
-from ._settings import Settings
-from ._site import (
+from msm.db.models._config import Config
+from msm.db.models._settings import Settings
+from msm.db.models._site import (
     ConnectionStatus,
     EnrollingSite,
     PendingSite,
@@ -12,8 +12,8 @@ from ._site import (
     SiteDetailsUpdate,
     SiteUpdate,
 )
-from ._token import Token
-from ._user import (
+from msm.db.models._token import Token
+from msm.db.models._user import (
     User,
     UserCreate,
     UserUpdate,

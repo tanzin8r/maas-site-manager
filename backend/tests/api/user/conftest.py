@@ -7,10 +7,9 @@ from msm.db.models import (
     Config,
     User,
 )
-
-from ...fixtures.client import Client
-from ...fixtures.factory import Factory
-from ..conftest import make_api_client
+from tests.api.conftest import make_api_client
+from tests.fixtures.client import Client
+from tests.fixtures.factory import Factory
 
 API_USER_NAME = "user"
 API_ADMIN_NAME = "admin"

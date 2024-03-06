@@ -1,4 +1,4 @@
-from . import (
+from msm.api.user.handlers import (
     login,
     settings,
     sites,

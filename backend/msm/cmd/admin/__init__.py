@@ -1,5 +1,5 @@
-from .._script import Script
-from ._create_user import CreateUserAction
+from msm.cmd._script import Script
+from msm.cmd.admin._create_user import CreateUserAction
 
 
 class AdminScript(Script):

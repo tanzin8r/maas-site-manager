@@ -9,26 +9,26 @@ from fastapi import (
 )
 from pydantic import BaseModel
 
-from ....db.models import (
-    Config,
-    PendingSiteCreate,
-)
-from ....jwt import (
-    TokenAudience,
-    TokenPurpose,
-)
-from ....service import ServiceCollection
-from ..._auth import (
+from msm.api._auth import (
     AccessTokenResponse,
     auth_id_from_token,
     bearer_token,
     token_response,
 )
-from ..._dependencies import (
+from msm.api._dependencies import (
     config,
     services,
 )
-from ..._utils import INVALID_TOKEN_ERROR
+from msm.api._utils import INVALID_TOKEN_ERROR
+from msm.db.models import (
+    Config,
+    PendingSiteCreate,
+)
+from msm.jwt import (
+    TokenAudience,
+    TokenPurpose,
+)
+from msm.service import ServiceCollection
 
 v1_router = APIRouter(prefix="/v1")
 

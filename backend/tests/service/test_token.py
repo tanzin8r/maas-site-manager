@@ -10,8 +10,7 @@ from msm.jwt import (
     TokenPurpose,
 )
 from msm.service._token import TokenService
-
-from ..fixtures.factory import Factory
+from tests.fixtures.factory import Factory
 
 
 @pytest.mark.asyncio

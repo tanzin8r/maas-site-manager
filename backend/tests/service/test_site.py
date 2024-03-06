@@ -13,8 +13,7 @@ from msm.db.models import (
     SiteUpdate,
 )
 from msm.service._site import SiteService
-
-from ..fixtures.factory import Factory
+from tests.fixtures.factory import Factory
 
 
 @pytest.mark.asyncio

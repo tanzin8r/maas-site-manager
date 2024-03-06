@@ -11,18 +11,18 @@ from sqlalchemy import (
     select,
 )
 
-from ..db import (
+from msm.db import (
     models,
     queries,
 )
-from ..db.tables import Token
-from ..jwt import (
+from msm.db.tables import Token
+from msm.jwt import (
     JWT,
     TokenAudience,
     TokenPurpose,
 )
-from ..time import now_utc
-from ._base import Service
+from msm.service._base import Service
+from msm.time import now_utc
 
 
 class TokenService(Service):

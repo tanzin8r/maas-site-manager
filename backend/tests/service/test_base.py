@@ -13,8 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.tables import METADATA
 from msm.service._base import DBBackedModelService
-
-from ..fixtures.factory import Factory
+from tests.fixtures.factory import Factory
 
 SampleTable = Table(
     "sample_table",
