@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/maas-favicon-32px.png" />
+    <script>
+      globalThis.__ROOT_PATH__ = "";
+      globalThis.__assetsPath__ = (path) => [globalThis.__ROOT_PATH__, "%VITE_BASE_URL%", path].filter(Boolean).join("/").replace(/([^:])(\/\/+)/g, '$1/');
+    </script>
+    <link rel="icon" type="image/png" href="%VITE_BASE_URL%maas-favicon-32px.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MAAS Site Manager</title>
   </head>

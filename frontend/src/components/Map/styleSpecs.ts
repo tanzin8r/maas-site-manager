@@ -1,4 +1,6 @@
 import mapStyle from "./map-style.json";
+
+import { basename } from "@/constants";
 export const osm: maplibregl.StyleSpecification = {
   version: 8,
   sources: {
@@ -21,11 +23,11 @@ export const osm: maplibregl.StyleSpecification = {
 
 export const naturalEarth: maplibregl.StyleSpecification = {
   version: 8,
-  glyphs: `${window.location.protocol}//${window.location.host}/assets/fonts/{fontstack}/{range}.pbf`,
+  glyphs: `${window.location.protocol}//${window.location.host}${basename}assets/fonts/{fontstack}/{range}.pbf`,
   sources: {
     naturalearth: {
       type: "vector",
-      url: `pmtiles://${window.location.protocol}//${window.location.host}/natural_earth.vector_v2.pmtiles`,
+      url: `pmtiles://${window.location.protocol}//${window.location.host}${basename}natural_earth.vector_v2.pmtiles`,
     },
   },
   layers: mapStyle.layers as Array<maplibregl.LayerSpecification>,

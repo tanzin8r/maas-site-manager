@@ -7,7 +7,7 @@ requires = [
 [project]
 name = "msm"
 description = "MAAS Site Manager"
-readme = "README.rst"
+readme = "README.md"
 maintainers = [
     {name = "MAAS Developers", email = "maas-devel@lists.launchpad.net"},
 ]
@@ -25,6 +25,8 @@ dynamic = [
 ]
 dependencies = [
   "alembic[tz]",
+  "baize",
+  "beautifulsoup4",
   "fastapi",
   "Jinja2",
   "passlib[bcrypt]",

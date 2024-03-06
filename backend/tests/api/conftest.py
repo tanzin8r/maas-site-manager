@@ -18,7 +18,7 @@ from ..fixtures.client import Client
 
 def make_api_client(app: FastAPI, config: Config, prefix: str = "") -> Client:
     """Return a Client configured for the application API."""
-    client = Client(app=app, base_url=f"http://test{prefix}")
+    client = Client(app=app, base_url=f"http://test{prefix}", trust_env=False)
     client.set_token_config(config.service_identifier, config.token_secret_key)
     return client
 

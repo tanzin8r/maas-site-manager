@@ -16,8 +16,12 @@ async-timeout==4.0.3
     # via asyncpg
 asyncpg==0.29.0
     # via sqlalchemy
+baize==0.20.8
+    # via msm (pyproject.toml)
 bcrypt==4.1.2
     # via passlib
+beautifulsoup4==4.12.3
+    # via msm (pyproject.toml)
 cffi==1.16.0
     # via cryptography
 click==8.1.7

@@ -24,7 +24,9 @@ def site_details(site: Site, stats: SiteData | None = None) -> dict[str, Any]:
         data["stats"] = None
     else:
         data["stats"] = stats.model_dump()
-        data["stats"]["last_seen"] = api_timestamp(data["stats"]["last_seen"])
+        data["stats"]["last_seen"] = api_timestamp(
+            data["stats"]["last_seen"], astimezone=True
+        )
     return data
 
 
@@ -122,7 +124,6 @@ class TestSitesGetHandler:
             machines_ready=30,
             machines_error=40,
             machines_other=5,
-            last_seen=now_utc(),
         )
 
         page = await user_client.get("/sites")

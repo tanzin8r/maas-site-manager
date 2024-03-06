@@ -31,3 +31,13 @@ snap-clean:
 	$(SNAPCRAFT) clean
 	rm -f $(SNAP_FILE)
 .PHONY: snap-clean
+
+
+rock:
+	rockcraft pack -v
+.PHONY: rock
+
+rock-clean:
+	rockcraft clean
+	rm -f maas-site-manager_*.rock
+.PHONY: rock-clean

@@ -6,12 +6,13 @@ import { SiteDetailsContextProvider } from "./context/SiteDetailsContext";
 import { UserSelectionContextProvider } from "./context/UserSelectionContext";
 
 import apiClient from "@/api";
+import { basename } from "@/constants";
 import { AppLayoutContextProvider, AuthContextProvider } from "@/context";
 import routes from "@/routes";
 import { createBrowserRouter, RouterProvider } from "@/utils/router";
 
 const queryClient = new QueryClient();
-const router = createBrowserRouter(routes);
+const router = createBrowserRouter(routes, { basename });
 
 const App: React.FC = () => {
   return (

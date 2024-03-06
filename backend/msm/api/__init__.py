@@ -4,13 +4,22 @@ from contextlib import (
     asynccontextmanager,
 )
 from logging import Logger
+from mimetypes import guess_type
+import os
 from pathlib import Path
-from typing import (
-    Any,
-)
+import re
+from typing import Any
+import urllib.parse
 
-from fastapi import FastAPI
+from baize.asgi.responses import FileResponse as BaizeFileResponse
+from bs4 import BeautifulSoup as bs
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import (
+    HTMLResponse,
+    RedirectResponse,
+    Response as FastApiResponse,
+)
 from prometheus_client import (
     REGISTRY,
     CollectorRegistry,
@@ -87,7 +96,31 @@ def create_app(
         name="msm",
         version=__version__,
         lifespan=lifespan,
+        root_path=os.environ.get("MSM_ROOT_PATH", ""),
     )
+
+    @app.get("/")
+    @app.get("/ui", response_class=RedirectResponse, status_code=301)
+    async def redirect(request: Request) -> RedirectResponse:
+        return RedirectResponse(
+            url="/".join([app.root_path.strip("/"), "ui/"]),
+            headers=request.headers,
+        )
+
+    @app.get("/version")
+    def get_version() -> dict[str, str]:
+        return {"version": app.version}
+
+    @app.get("/ui/{path_name:path}", response_model=None)
+    def get_static(
+        request: Request, path_name: str
+    ) -> FastApiBaizeFileResponse | HTMLResponse:
+        full_path = Path(settings.static_dir) / path_name
+        if full_path.is_file() and path_name != "index.html":
+            return FastApiBaizeFileResponse(full_path)
+        else:
+            return _serve_index_html(settings.static_dir, app.root_path)
+
     if settings.dev_mode:
         app.add_middleware(
             CORSMiddleware,
@@ -117,3 +150,68 @@ def _log_settings(logger: Logger, settings: Settings) -> None:
     logger.info("Application settings:")
     for key, value in sorted(settings.model_dump().items()):
         logger.info(f"  {key}: {value}")
+
+
+def _serve_index_html(static_dir: str, root_path_url: str) -> HTMLResponse:
+    root_path = urllib.parse.urlparse(root_path_url).path
+    index_html_path = Path(static_dir) / "index.html"
+    with index_html_path.open() as f:
+        soup = bs(f, features="html.parser")
+    _update_resource_paths(soup, root_path)
+    return HTMLResponse(content=str(soup), status_code=200)
+
+
+def _update_resource_paths(soup: bs, root_path: str) -> None:
+    """Updates the paths of resources
+    in the HTML to include the root path."""
+    for link in soup.find_all("link", attrs={"href": True}):
+        link["href"] = _replace_ui_path(link["href"], root_path)
+    for script in soup.find_all("script", attrs={"src": True}):
+        script["src"] = _replace_ui_path(script["src"], root_path)
+    scripts = soup.find_all(
+        "script",
+        string=lambda text: "__ROOT_PATH__" in text
+        if text is not None
+        else False,
+    )
+    for script in scripts:
+        script.string = _set_root_path(script.string, root_path)
+
+
+def _replace_ui_path(original_path: str, root_path: str) -> str:
+    return original_path.replace("/ui", f"{root_path}/ui", 1)
+
+
+def _set_root_path(script_content: str, root_path: str) -> str:
+    """Sets the global __ROOT_PATH__ in inline scripts."""
+    return re.sub(
+        r'globalThis\.__ROOT_PATH__\s*=\s*"";',
+        f'globalThis.__ROOT_PATH__="{root_path}";',
+        script_content,
+    )
+
+
+class FastApiBaizeFileResponse(FastApiResponse):
+    _baize_response: BaizeFileResponse
+
+    def __init__(self, path: Path, **kwargs: Any) -> None:
+        filepath = str(kwargs.get("filepath", kwargs.get("path", path)))
+        kwargs.pop("filepath", None)
+        kwargs.pop("path", None)
+        stat_result = os.stat(filepath)
+        self._baize_response = BaizeFileResponse(
+            filepath,
+            **kwargs,
+            content_type=guess_type(filepath)[0],
+            stat_result=stat_result,
+        )
+        super().__init__(
+            media_type=guess_type(filepath)[0],
+            headers={"content-length": str(stat_result.st_size)},
+        )
+
+    def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+        return self._baize_response(*args, **kwargs)
+
+    def __getattr__(self, name):  # type: ignore[no-untyped-def]
+        return getattr(self._baize_response, name)

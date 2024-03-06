@@ -56,6 +56,8 @@ Object.defineProperty(window, "scrollTo", { value: vi.fn(), writable: true });
 
 const originalObserver = window.ResizeObserver;
 
+globalThis.__ROOT_PATH__ = "";
+
 beforeAll(() => {
   // fail a test whenver console.error is called
   // enabled on CI only as it's noisy and not helpful during development

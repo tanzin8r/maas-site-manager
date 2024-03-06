@@ -1,3 +1,4 @@
+import os
 from typing import (
     Any,
     cast,
@@ -16,6 +17,7 @@ from pydantic_settings import (
 from snaphelpers import (
     Snap,
     SnapConfigOptions,
+    SnapEnviron,
     is_snap,
 )
 from sqlalchemy import URL
@@ -64,6 +66,14 @@ class Settings(BaseSettings):
     api_socket: str = Field(
         default="api.socket", validation_alias="MSM_API_SOCKET"
     )
+
+    @property
+    def static_dir(self) -> str:
+        if is_snap():
+            env = SnapEnviron()
+            return f"{env.SNAP}/static"
+        else:
+            return "static"
 
     @classmethod
     def settings_customise_sources(

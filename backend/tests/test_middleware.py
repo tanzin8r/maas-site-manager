@@ -39,7 +39,9 @@ def app(
 @pytest.fixture
 async def client(app: FastAPI) -> AsyncIterator[Client]:
     """Client for the API."""
-    async with Client(app=app, base_url="http://test") as client:
+    async with Client(
+        app=app, base_url="http://test", trust_env=False
+    ) as client:
         yield client
 
 

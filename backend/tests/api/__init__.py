@@ -1,8 +1,12 @@
 from datetime import datetime
 
 
-def api_timestamp(dt: datetime) -> str:
+def api_timestamp(dt: datetime, astimezone: bool = False) -> str:
     """Format a timestamp according to the API outputformat."""
+
+    if astimezone:
+        dt = dt.astimezone()
+
     return (
         dt.isoformat(timespec="microseconds")
         .replace(

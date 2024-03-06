@@ -11,6 +11,7 @@ const commitHash = require("child_process").execSync("git rev-parse --short HEAD
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "./");
   return {
+    base: env.VITE_BASE_URL,
     envDir: "./",
     define: { "import.meta.env.VITE_APP_VERSION": JSON.stringify(commitHash) },
     plugins: [
@@ -44,6 +45,14 @@ export default defineConfig(({ mode }) => {
             yup: ["yup"],
           },
         },
+      },
+    },
+    experimental: {
+      renderBuiltUrl(filename: string, { hostType }: { hostType: "js" | "css" | "html" }) {
+        if (hostType === "js") {
+          return { runtime: `window.__assetsPath__(${JSON.stringify(filename)})` };
+        }
+        return;
       },
     },
   };
