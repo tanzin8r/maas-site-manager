@@ -1,9 +1,10 @@
 import NavigationList from "./NavigationList";
 
+import type { NavItem } from "@/components/Navigation/types";
 import { renderWithMemoryRouter, screen } from "@/utils/test-utils";
 
 it("can render an item", () => {
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       label: "Sites",
       url: "/sites",
@@ -18,7 +19,7 @@ it("can render an item", () => {
 });
 
 it("can render a group", () => {
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       groupTitle: "Group 1",
       navLinks: [

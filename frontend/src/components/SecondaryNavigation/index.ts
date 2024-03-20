@@ -1,1 +1,1 @@
-export { default, secondaryNavItems } from "./SecondaryNavigation";
+export { default } from "./SecondaryNavigation";

@@ -1,9 +1,6 @@
 import { Button, Tooltip } from "@canonical/react-components";
 import classNames from "classnames";
 
-import type { To } from "@/utils/router";
-import { Link } from "@/utils/router";
-
 type Props = {
   className?: string;
   hasBorder?: boolean;
@@ -14,7 +11,6 @@ type Props = {
   deleteTooltip?: string;
   editDisabled?: boolean;
   deleteDisabled?: boolean;
-  editPath?: To;
 };
 
 const TableActions = ({
@@ -26,7 +22,6 @@ const TableActions = ({
   onDelete,
   onExpand,
   editDisabled,
-  editPath,
   deleteDisabled,
 }: Props) => {
   return (
@@ -37,11 +32,9 @@ const TableActions = ({
             appearance="base"
             className="is-dense u-table-cell-padding-overlap table-actions-btn"
             disabled={editDisabled}
-            element={editPath ? Link : undefined}
             hasIcon
             onClick={onEdit}
-            to={editPath ? editPath : undefined}
-            type={editPath ? undefined : "button"}
+            type="button"
           >
             <i className="p-icon--edit">Edit</i>
           </Button>

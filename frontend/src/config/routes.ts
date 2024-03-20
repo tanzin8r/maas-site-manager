@@ -1,14 +1,11 @@
-type RouteConfig = {
-  path: string;
-  title: string;
-  isRedirect?: boolean;
-};
-
-export const protectedRoutes: Record<string, RouteConfig> = {
+export const protectedRoutes = {
+  homepage: {
+    path: "/",
+    title: "Homepage",
+  },
   sites: {
     path: "/sites",
     title: "Sites",
-    isRedirect: true,
   },
   sitesList: {
     path: "/sites/list",
@@ -21,7 +18,6 @@ export const protectedRoutes: Record<string, RouteConfig> = {
   settings: {
     path: "/settings",
     title: "Settings",
-    isRedirect: true,
   },
   requests: {
     path: "/settings/requests",
@@ -42,7 +38,6 @@ export const protectedRoutes: Record<string, RouteConfig> = {
   settingsImages: {
     path: "/settings/images",
     title: "",
-    isRedirect: true,
   },
   settingsImagesServer: {
     path: "/settings/images/server",
@@ -58,8 +53,8 @@ export const protectedRoutes: Record<string, RouteConfig> = {
   },
   account: {
     path: "/account",
-    title: "Account",
-    isRedirect: true,
+    // title is dynamic and based on a user name
+    title: "Account" as string,
   },
   personalDetails: {
     path: "/account/details",
@@ -68,7 +63,6 @@ export const protectedRoutes: Record<string, RouteConfig> = {
   images: {
     path: "/images",
     title: "",
-    isRedirect: true,
   },
   imagesList: {
     path: "/images/list",
@@ -80,13 +74,12 @@ export const protectedRoutes: Record<string, RouteConfig> = {
   },
   logout: {
     path: "/logout",
-    title: "",
-    isRedirect: true,
+    title: "Log out",
   },
 } as const;
 
-export const publicRoutes: Record<string, RouteConfig> = {
-  index: { path: "/", title: "", isRedirect: true },
+export const publicRoutes = {
+  index: { path: "/", title: "" },
   login: {
     path: "/login",
     title: "Login",
@@ -95,9 +88,19 @@ export const publicRoutes: Record<string, RouteConfig> = {
 
 export const routesConfig = { ...publicRoutes, ...protectedRoutes } as const;
 
+const redirectRoutes = [
+  routesConfig.index.path,
+  routesConfig.sites.path,
+  routesConfig.settings.path,
+  routesConfig.settingsImages.path,
+  routesConfig.account.path,
+  routesConfig.images.path,
+  routesConfig.logout.path,
+];
+
 // pages without redirect routes
-export const protectedPages = Object.values(protectedRoutes).filter((route) => !route?.isRedirect);
-export const publicPages = Object.values(publicRoutes).filter((route) => !route?.isRedirect);
+export const protectedPages = Object.values(protectedRoutes).filter((route) => !redirectRoutes.includes(route?.path));
+export const publicPages = Object.values(publicRoutes).filter((route) => !redirectRoutes.includes(route?.path));
 export const pages = [...protectedPages, ...publicPages];
 
 type RoutesConfig = typeof routesConfig;

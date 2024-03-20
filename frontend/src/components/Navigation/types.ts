@@ -1,16 +1,19 @@
-import type { RoutePath } from "@/config/routes";
+import type { RoutePath, RouteTitle } from "@/config/routes";
 
 type BaseNavLink = {
   adminOnly?: boolean;
   external?: boolean;
   icon?: string;
-  label: string;
+  label: RouteTitle;
 };
-export type ExternalNavLink = BaseNavLink & {
+export type ExternalNavLink = {
   external: true;
   url: string;
-  highlight?: RoutePath | RoutePath[];
+  icon?: string;
+  label: string;
+  highlight?: never;
 };
+
 export type LocalNavLink = BaseNavLink & {
   external?: false;
   url: RoutePath;

@@ -5,11 +5,20 @@ import useSecondaryNavContext from "@/hooks/useSecondaryNavContext";
 import { matchPath, Link, useLocation } from "@/utils/router";
 import type { Location } from "@/utils/router";
 
-export type NavItem = {
-  label: RouteTitle;
-  path?: RoutePath;
-  items?: NavItem[];
-};
+export type NavItem =
+  | {
+      label: RouteTitle;
+      path: RoutePath;
+      items?: never;
+    }
+  | {
+      label: string;
+      path?: never;
+      items: {
+        label: RouteTitle;
+        path: RoutePath;
+      }[];
+    };
 
 type ItemProps = { item: NavItem };
 
@@ -84,19 +93,6 @@ const SideNavigationItem = ({ item }: ItemProps) => {
   );
 };
 
-export const secondaryNavItems: NavItem[] = [
-  {
-    label: "Enrollment",
-    items: [
-      { path: "/settings/tokens", label: "Tokens" },
-      {
-        path: "/settings/requests",
-        label: "Requests",
-      },
-    ],
-  },
-];
-
 export type SecondaryNavContext = "settings" | "account";
 
 export type SecondaryNavInfoType = {
@@ -135,13 +131,13 @@ const secondaryNavInfo: SecondaryNavInfoType = {
       {
         label: "Images",
         items: [
-          { path: "settings/images/server", label: "Image server" },
+          { path: "/settings/images/server", label: "Image server" },
           {
-            path: "settings/images/maas",
+            path: "/settings/images/maas",
             label: "maas.io",
           },
           {
-            path: "settings/images/transfer",
+            path: "/settings/images/transfer",
             label: "Transfer images",
           },
         ],
