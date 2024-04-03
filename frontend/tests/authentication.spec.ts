@@ -1,6 +1,7 @@
 import { test, expect, Page } from "@playwright/test";
 import { admin } from "./constants";
 import { routesConfig } from "@/config/routes";
+import { scenarios } from "@/mocks/scenarios";
 
 export const login = async ({ page }: { page: Page }) => {
   await page.getByRole("textbox", { name: "Email" }).type(admin.email);
@@ -8,11 +9,11 @@ export const login = async ({ page }: { page: Page }) => {
   await page.getByRole("button", { name: "Login" }).click();
 };
 
-test(`user is redirected to login page when attempting to visit ${routesConfig.sitesList.path}`, async ({ page }) => {
-  await page.goto(routesConfig.sitesList.path);
-  await expect(page).toHaveURL(
-    `${routesConfig.login.path}?redirectTo=${encodeURIComponent(routesConfig.sitesList.path)}`,
-  );
+test("redirects unauthenticated user to login page when attempting to visit sites list", async ({ page }) => {
+  const protectedRoute = routesConfig.sitesList.path;
+
+  await page.goto(protectedRoute);
+  await expect(page).toHaveURL(`${routesConfig.login.path}?redirectTo=${encodeURIComponent(protectedRoute)}`);
 });
 
 test("user is redirected to enrolled sites list after login", async ({ page }) => {
@@ -33,4 +34,12 @@ test("maintains authentication state after page reload", async ({ page }) => {
   await expect(page).toHaveURL(routesConfig.sitesList.path);
   await page.reload();
   await expect(page).toHaveURL(routesConfig.sitesList.path);
+});
+
+test("redirects to login page when API returns 401", async ({ page }) => {
+  await page.goto(routesConfig.login.path);
+  await login({ page });
+  const protectedRoute = routesConfig.sitesList.path;
+  await page.goto(`${protectedRoute}?scenario=${scenarios.sitesUnauthorized}`);
+  await expect(page).toHaveURL(`${routesConfig.login.path}?redirectTo=${encodeURIComponent(protectedRoute)}`);
 });
