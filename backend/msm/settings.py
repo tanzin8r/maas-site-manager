@@ -4,10 +4,7 @@ from typing import (
     cast,
 )
 
-from pydantic import (
-    Field,
-    SecretStr,
-)
+from pydantic import Field, SecretStr, validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
@@ -69,6 +66,9 @@ class Settings(BaseSettings):
     heartbeat_interval_seconds: int = Field(
         default=300, validation_alias="MSM_HEARTBEAT_INTERVAL_SEC"
     )
+    conn_lost_threshold_seconds: int = Field(
+        default=600, validation_alias="MSM_CONN_LOST_THRESHOLD_SEC"
+    )
 
     @property
     def static_dir(self) -> str:
@@ -109,6 +109,19 @@ class Settings(BaseSettings):
             username=self.db_user,
             password=password,
         )
+
+    @validator("conn_lost_threshold_seconds")
+    def conn_lost_threshold_validator(cls, threshold: int, values: dict[str, Any]) -> int:
+        if (
+            "heartbeat_interval_seconds" in values
+            and threshold <= values["heartbeat_interval_seconds"]
+        ):
+            raise ValueError(
+                f"connection lost threshold ({threshold}s) should be greater "
+                "than heartbeat interval "
+                f"({values['heartbeat_interval_seconds']}s)"
+            )
+        return threshold
 
 
 class SnapSettingsSource(PydanticBaseSettingsSource):

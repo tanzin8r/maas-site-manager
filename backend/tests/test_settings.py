@@ -1,3 +1,4 @@
+from pydantic_core import ValidationError
 import pytest
 from pytest_mock import MockerFixture
 
@@ -42,6 +43,24 @@ class TestSettings:
         )
 
     def test_heartbeat_setting(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("MSM_HEARTBEAT_INTERVAL_SEC", "600")
+        monkeypatch.setenv("MSM_HEARTBEAT_INTERVAL_SEC", "200")
         settings = Settings()
-        assert settings.heartbeat_interval_seconds == 600
+        assert settings.heartbeat_interval_seconds == 200
+
+    def test_conn_lost_threshold_setting(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("MSM_CONN_LOST_THRESHOLD_SEC", "400")
+        settings = Settings()
+        assert settings.conn_lost_threshold_seconds == 400
+
+    def test_conn_lost_thresh_validator(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("MSM_HEARTBEAT_INTERVAL_SEC", "200")
+        monkeypatch.setenv("MSM_CONN_LOST_THRESHOLD_SEC", "100")
+        with pytest.raises(
+            ValidationError,
+            match=r"threshold \(100s\) should be greater than heartbeat",
+        ):
+            settings = Settings()

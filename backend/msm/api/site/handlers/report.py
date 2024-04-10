@@ -16,6 +16,7 @@ from msm.db.models import (
 )
 from msm.service import ServiceCollection
 from msm.settings import Settings
+from msm.time import now_utc
 
 v1_router = APIRouter(prefix="/v1")
 
@@ -44,10 +45,12 @@ class DetailsResponse(BaseModel):
     heartbeat_interval_seconds: int
 
 
-def details_response(*args: Any, heartbeat_interval_seconds: int) -> DetailsResponse:
-    return DetailsResponse(heartbeat_interval_seconds=heartbeat_interval_seconds)
-
-
+def details_response(
+    *args: Any, heartbeat_interval_seconds: int
+) -> DetailsResponse:
+    return DetailsResponse(
+        heartbeat_interval_seconds=heartbeat_interval_seconds
+    )
 
 
 @v1_router.post("/details")
@@ -74,5 +77,6 @@ async def details(
                     }
                 ),
             )
+    await services.sites.update_last_seen(site.id, now_utc())
     interval = await services.sites.get_heartbeat_interval()
     return details_response(heartbeat_interval_seconds=interval)
