@@ -53,11 +53,13 @@ host    msm     msm     0/0     md5
 
 #### Setup using Docker
 
-Ensure that you have a recent version of [Docker](https://docs.docker.com/get-docker/) installed. To start the backend and the database run,
+Ensure that you have a recent version of [Docker](https://docs.docker.com/get-docker/) installed. To build and start the backend and the database run,
 
 ```bash
 docker compose up --build
 ```
+
+After the build has succeeded, `--build` can be omitted when bringing up the containers in the future (unless changes to `backend/Dockerfile` were made).
 
 It is simple to launch a PostgreSQL instance via Docker,
 

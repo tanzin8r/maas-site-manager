@@ -28,8 +28,6 @@ services:
       - egg-info:/app/msm.egg-info/
     ports:
       - "8000:8000"
-    links:
-      - "postgres:db"
     healthcheck:
       test: python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000'))"
       interval: 30s
