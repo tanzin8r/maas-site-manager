@@ -188,15 +188,39 @@ class SiteService(Service):
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.PendingSite, result)
 
-    async def get_coordinates(self) -> Iterable[models.SiteCoordinates]:
-        """Return coordinates for all sites."""
+    async def get_coordinates(
+        self,
+        city: list[str] | None = None,
+        country: list[str] | None = None,
+        name: list[str] | None = None,
+        note: list[str] | None = None,
+        state: list[str] | None = None,
+        postal_code: list[str] | None = None,
+        address: list[str] | None = None,
+        timezone: list[str] | None = None,
+        url: list[str] | None = None,
+    ) -> Iterable[models.SiteCoordinates]:
+        """Return coordinates for all sites, with optional filtering."""
+        filters = queries.filters_from_arguments(
+            Site,
+            address=address,
+            city=city,
+            country=country,
+            name=name,
+            note=note,
+            postal_code=postal_code,
+            state=state,
+            timezone=timezone,
+            url=url,
+        )
+        filters.append(Site.c.accepted == True)
         stmt = (
             select(
                 Site.c.id,
                 Site.c.coordinates,
             )
             .select_from(Site)
-            .where(Site.c.accepted == True)
+            .where(*filters)  # type: ignore[arg-type]
         )
         result = await self.conn.execute(stmt)
         return self.objects_from_result(models.SiteCoordinates, result)

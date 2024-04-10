@@ -141,9 +141,12 @@ async def get(
 async def get_coordinates(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    filter_params: Annotated[
+        SiteFilterParams, Depends(site_filter_parameters)
+    ],
 ) -> Iterable[models.SiteCoordinates]:
     """Return coordinates for all accepted sites."""
-    return await services.sites.get_coordinates()
+    return await services.sites.get_coordinates(**filter_params._asdict())
 
 
 @v1_router.get("/sites/{id}")

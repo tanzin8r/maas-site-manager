@@ -66,6 +66,18 @@ class TestSiteService:
             SiteCoordinates(id=site2.id, coordinates=[20, -2]),
         ]
 
+    async def test_get_coordinates_filter(
+        self,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        await factory.make_Site(coordinates=(10, -1), city="Los Angeles")
+        site2 = await factory.make_Site(coordinates=(20, -2), city="Atlantis")
+        service = SiteService(db_connection)
+        assert list(await service.get_coordinates(city=["Atlantis"])) == [
+            SiteCoordinates(id=site2.id, coordinates=[20, -2]),
+        ]
+
     async def test_create_pending(
         self,
         factory: Factory,

@@ -222,6 +222,36 @@ class TestGetCoordinatesHandler:
             {"id": site2.id, "coordinates": [20, -2]},
         ]
 
+    async def test_coordinates_filter(
+        self,
+        user_client: Client,
+        factory: Factory,
+    ) -> None:
+        site_filters = {
+            "city": "Los Angeles",
+            "country": "USA",
+            "name": "awesomesite9000",
+            "note": "best site",
+            "state": "California",
+            "address": "123 C Street",
+            "postal_code": "90066",
+            "timezone": "US/Pacific",
+            "url": "https://awesome.maas.site",
+        }
+        site = await factory.make_Site(
+            **site_filters,
+            coordinates=(10, -1),
+            connection_status=ConnectionStatus.UNKNOWN,
+            auth_id=None,
+        )
+        await factory.make_Site(coordinates=(20, -2))
+        for k, v in site_filters.items():
+            response = await user_client.get(f"/sites/coordinates?{k}={v}")
+            assert response.status_code == 200
+            assert response.json() == [
+                {"id": site.id, "coordinates": [10, -1]},
+            ]
+
 
 @pytest.mark.asyncio
 class TestSitesGetByIDHandler:

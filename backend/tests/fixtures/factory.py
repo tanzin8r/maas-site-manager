@@ -153,6 +153,10 @@ class Factory:
         url: str | None = None,
         timezone: str | None = None,
         coordinates: tuple[float, float] | None = None,
+        address: str = "",
+        note: str = "",
+        postal_code: str = "",
+        state: str = "",
         connection_status: ConnectionStatus = ConnectionStatus.UNKNOWN,
         auth_id: UUID | None = None,
     ) -> Site:
@@ -176,6 +180,10 @@ class Factory:
                     "timezone": (
                         getattr(TimeZone, timezone) if timezone else ""
                     ),
+                    "address": address,
+                    "note": note,
+                    "postal_code": postal_code,
+                    "state": state,
                     "coordinates": coordinates,
                     "accepted": True,
                     "created": now_utc(),
