@@ -21,11 +21,17 @@ async def service(
 async def test_settings_get(
     factory: Factory, admin_client: Client, service: SettingsService
 ) -> None:
-    await service.update({"service_url": "https://sitemanager.example.com/"})
+    await service.update(
+        {
+            "service_url": "https://sitemanager.example.com/",
+            "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
+        }
+    )
     response = await admin_client.get("/settings")
     assert response.status_code == 200
     assert response.json() == {
-        "service_url": "https://sitemanager.example.com/"
+        "service_url": "https://sitemanager.example.com/",
+        "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
     }
 
 
@@ -35,12 +41,16 @@ async def test_settings_patch(
 ) -> None:
     response = await admin_client.patch(
         "/settings",
-        json={"service_url": "https://sitemanager.example.com"},
+        json={
+            "service_url": "https://sitemanager.example.com",
+            "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
+        },
     )
     assert response.status_code == 200
 
     response = await admin_client.get("/settings")
     assert response.status_code == 200
     assert response.json() == {
-        "service_url": "https://sitemanager.example.com"
+        "service_url": "https://sitemanager.example.com",
+        "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
     }

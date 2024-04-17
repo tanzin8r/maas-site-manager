@@ -71,15 +71,17 @@ async def post(
     authenticated_user: Annotated[User, Depends(authenticated_user)],
     post_request: TokensPostRequest,
 ) -> TokensPostResponse:
-    """Create enrollment tokens for sites.
+    """Create enrolment tokens for sites.
 
     Token duration (TTL) is expressed as an ISO-8601 duration string.
     """
+    settings = await services.settings.get()
     tokens = await services.tokens.create(
         issuer=config.service_identifier,
         duration=post_request.duration,
         count=post_request.count,
         secret_key=config.token_secret_key,
+        enrolment_url=settings.enrolment_url,
     )
     return TokensPostResponse(items=tokens)
 

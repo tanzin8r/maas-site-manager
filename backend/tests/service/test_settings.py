@@ -17,10 +17,15 @@ class TestSettingsService:
             "service_url",
             value="https://sitemanager.example.com",
         )
+        await factory.make_Setting(
+            "enrolment_url",
+            value="https://sitemanager.example.com/site/v1/enrol",
+        )
         service = SettingsService(db_connection)
         settings = await service.get()
         assert settings == Settings(
-            service_url="https://sitemanager.example.com"
+            service_url="https://sitemanager.example.com",
+            enrolment_url="https://sitemanager.example.com/site/v1/enrol",
         )
 
     async def test_get_no_extra_entries(
@@ -54,7 +59,11 @@ class TestSettingsService:
         await service.ensure()
         settings = await factory.get("setting")
         assert settings == [
-            {"name": "service_url", "value": "http://sitemanager:8000"}
+            {
+                "name": "enrolment_url",
+                "value": "http://sitemanager:8000/site/v1/enrol",
+            },
+            {"name": "service_url", "value": "http://sitemanager:8000"},
         ]
 
     async def test_ensure_keep_existing(
@@ -63,11 +72,18 @@ class TestSettingsService:
         await factory.make_Setting(
             "service_url", value="http://sitemanager:8000"
         )
+        await factory.make_Setting(
+            "enrolment_url", value="http://sitemanager:8000/site/v1/enrol"
+        )
         service = SettingsService(db_connection)
         await service.ensure()
         settings = await factory.get("setting")
         assert settings == [
-            {"name": "service_url", "value": "http://sitemanager:8000"}
+            {
+                "name": "enrolment_url",
+                "value": "http://sitemanager:8000/site/v1/enrol",
+            },
+            {"name": "service_url", "value": "http://sitemanager:8000"},
         ]
 
     async def test_ensure_remove_extra(

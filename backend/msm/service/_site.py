@@ -257,10 +257,8 @@ class SiteService(Service):
             )
         return None
 
-    async def get_enrolling(
-        self, auth_id: UUID
-    ) -> models.EnrollingSite | None:
-        """Return details for a site in enrollment process, if found."""
+    async def get_enroling(self, auth_id: UUID) -> models.EnrolingSite | None:
+        """Return details for a site in enrolment process, if found."""
         stmt = (
             select(
                 Site.c.id,
@@ -271,7 +269,7 @@ class SiteService(Service):
         )
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
-            return models.EnrollingSite(**row._asdict())
+            return models.EnrolingSite(**row._asdict())
         return None
 
     async def get_heartbeat_interval(self) -> int:

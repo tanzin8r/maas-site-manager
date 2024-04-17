@@ -45,7 +45,7 @@ class TokenAudience(StrEnum):
 class TokenPurpose(StrEnum):
     """Valid values for the token purpose."""
 
-    ENROLLMENT = "enrollment"
+    ENROLMENT = "enrolment"
     ACCESS = "access"
 
 
@@ -97,6 +97,7 @@ class JWT:
         issuer: str,
         subject: str,
         audience: TokenAudience,
+        enrolment_url: str | None = None,
         purpose: TokenPurpose | None = None,
         data: dict[str, Any] | None = None,
         duration: timedelta = TOKEN_DURATION,
@@ -117,6 +118,8 @@ class JWT:
         }
         if purpose:
             payload["purpose"] = purpose
+        if enrolment_url:
+            payload["enrolment-url"] = enrolment_url
         encoded = jwt.encode(payload, key, algorithm=TOKEN_ALGORITHM)
         return cls(
             payload=payload,

@@ -14,17 +14,17 @@ from tests.fixtures.factory import Factory
 
 
 @pytest.mark.asyncio
-class TestEnrollPostHandler:
+class TestEnrolPostHandler:
     async def test_post(self, factory: Factory, app_client: Client) -> None:
         auth_id = uuid4()
         await factory.make_Token(auth_id=auth_id)
         app_client.authenticate(
             auth_id,
             token_audience=TokenAudience.SITE,
-            token_purpose=TokenPurpose.ENROLLMENT,
+            token_purpose=TokenPurpose.ENROLMENT,
         )
         response = await app_client.post(
-            "/site/v1/enroll",
+            "/site/v1/enrol",
             json={"name": "new-site", "url": "https://site.example.com"},
         )
         assert response.status_code == 202
@@ -41,10 +41,10 @@ class TestEnrollPostHandler:
         app_client.authenticate(
             uuid4(),
             token_audience=TokenAudience.SITE,
-            token_purpose=TokenPurpose.ENROLLMENT,
+            token_purpose=TokenPurpose.ENROLMENT,
         )
         response = await app_client.post(
-            "/site/v1/enroll",
+            "/site/v1/enrol",
             json={"name": "new-site", "url": "https://site.example.com"},
         )
         assert response.status_code == 401
@@ -57,15 +57,15 @@ class TestEnrollPostHandler:
         app_client.authenticate(
             auth_id,
             token_audience=TokenAudience.SITE,
-            token_purpose=TokenPurpose.ENROLLMENT,
+            token_purpose=TokenPurpose.ENROLMENT,
         )
         response = await app_client.post(
-            "/site/v1/enroll",
+            "/site/v1/enrol",
             json={"name": "new-site", "url": "https://site.example.com"},
         )
         assert response.status_code == 401
 
-    async def test_token_missing_enrollment_purpose(
+    async def test_token_missing_enrolment_purpose(
         self, factory: Factory, app_client: Client
     ) -> None:
         auth_id = uuid4()
@@ -75,14 +75,14 @@ class TestEnrollPostHandler:
             token_audience=TokenAudience.SITE,
         )
         response = await app_client.post(
-            "/site/v1/enroll",
+            "/site/v1/enrol",
             json={"name": "new-site", "url": "https://site.example.com"},
         )
         assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-class TestEnrollGetHandler:
+class TestEnrolGetHandler:
     async def test_pending(
         self,
         factory: Factory,
@@ -93,10 +93,10 @@ class TestEnrollGetHandler:
         app_client.authenticate(
             auth_id,
             token_audience=TokenAudience.SITE,
-            token_purpose=TokenPurpose.ENROLLMENT,
+            token_purpose=TokenPurpose.ENROLMENT,
         )
 
-        response = await app_client.get("/site/v1/enroll")
+        response = await app_client.get("/site/v1/enrol")
         assert response.status_code == 204
 
     async def test_accepted(
@@ -110,10 +110,10 @@ class TestEnrollGetHandler:
         app_client.authenticate(
             auth_id,
             token_audience=TokenAudience.SITE,
-            token_purpose=TokenPurpose.ENROLLMENT,
+            token_purpose=TokenPurpose.ENROLMENT,
         )
 
-        response = await app_client.get("/site/v1/enroll")
+        response = await app_client.get("/site/v1/enrol")
         assert response.status_code == 200
         payload = response.json()
         assert payload["token_type"] == "Bearer"

@@ -1,9 +1,9 @@
 from msm.api.site.handlers import (
-    enroll,
+    enrol,
     report,
 )
 
 ROUTERS = (
-    enroll.v1_router,
+    enrol.v1_router,
     report.v1_router,
 )

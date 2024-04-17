@@ -22,7 +22,7 @@ async def make_fixture_tokens(
             issuer=issuer,
             subject=str(uuid4()),
             audience=TokenAudience.SITE,
-            purpose=TokenPurpose.ENROLLMENT,
+            purpose=TokenPurpose.ENROLMENT,
             key=secret_key,
         )
         collection.add(

@@ -2,7 +2,7 @@ from msm.db.models._config import Config
 from msm.db.models._settings import Settings
 from msm.db.models._site import (
     ConnectionStatus,
-    EnrollingSite,
+    EnrolingSite,
     PendingSite,
     PendingSiteCreate,
     Site,
@@ -22,7 +22,7 @@ from msm.db.models._user import (
 __all__ = [
     "Config",
     "ConnectionStatus",
-    "EnrollingSite",
+    "EnrolingSite",
     "PendingSite",
     "PendingSiteCreate",
     "Settings",

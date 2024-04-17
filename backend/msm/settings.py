@@ -111,7 +111,9 @@ class Settings(BaseSettings):
         )
 
     @validator("conn_lost_threshold_seconds")
-    def conn_lost_threshold_validator(cls, threshold: int, values: dict[str, Any]) -> int:
+    def conn_lost_threshold_validator(
+        cls, threshold: int, values: dict[str, Any]
+    ) -> int:
         if (
             "heartbeat_interval_seconds" in values
             and threshold <= values["heartbeat_interval_seconds"]

@@ -126,7 +126,7 @@ class Factory:
             issuer=issuer,
             subject=str(auth_id),
             audience=TokenAudience.SITE,
-            purpose=TokenPurpose.ENROLLMENT,
+            purpose=TokenPurpose.ENROLMENT,
             key=key,
             duration=lifetime,
         )

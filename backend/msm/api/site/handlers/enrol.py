@@ -33,14 +33,14 @@ from msm.service import ServiceCollection
 v1_router = APIRouter(prefix="/v1")
 
 
-class EnrollPostRequest(BaseModel):
-    """Request to enroll a site."""
+class EnrolPostRequest(BaseModel):
+    """Request to enrol a site."""
 
     name: str
     url: str
 
 
-@v1_router.post("/enroll")
+@v1_router.post("/enrol")
 async def post(
     response: Response,
     services: Annotated[ServiceCollection, Depends(services)],
@@ -50,13 +50,13 @@ async def post(
             auth_id_from_token(
                 bearer_token,
                 TokenAudience.SITE,
-                token_purpose=TokenPurpose.ENROLLMENT,
+                token_purpose=TokenPurpose.ENROLMENT,
             )
         ),
     ],
-    post_request: EnrollPostRequest,
+    post_request: EnrolPostRequest,
 ) -> None:
-    """Request to enroll a new site."""
+    """Request to enrol a new site."""
     db_token = await services.tokens.get_by_auth_id(auth_id)
     if db_token is None or db_token.is_expired():
         raise INVALID_TOKEN_ERROR
@@ -70,7 +70,7 @@ async def post(
     response.status_code = status.HTTP_202_ACCEPTED
 
 
-@v1_router.get("/enroll")
+@v1_router.get("/enrol")
 async def get(
     response: Response,
     config: Annotated[Config, Depends(config)],
@@ -81,12 +81,12 @@ async def get(
             auth_id_from_token(
                 bearer_token,
                 TokenAudience.SITE,
-                token_purpose=TokenPurpose.ENROLLMENT,
+                token_purpose=TokenPurpose.ENROLMENT,
             )
         ),
     ],
 ) -> AccessTokenResponse | None:
-    """Check the site enrollment status.
+    """Check the site enrolment status.
 
     If the site is pending, a `204 No Content` response is returned.
 
@@ -94,7 +94,7 @@ async def get(
     used for turther interaction with the API.
 
     """
-    site = await services.sites.get_enrolling(auth_id)
+    site = await services.sites.get_enroling(auth_id)
     if not site:
         raise INVALID_TOKEN_ERROR
     if not site.accepted:

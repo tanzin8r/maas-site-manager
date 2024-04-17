@@ -32,6 +32,7 @@ class TokenService(Service):
         duration: timedelta,
         count: int = 1,
         secret_key: str = "",
+        enrolment_url: str = "",
     ) -> Iterable[models.Token]:
         """Create tokens, returning their expiration and values."""
         data = []
@@ -41,7 +42,8 @@ class TokenService(Service):
                 issuer=issuer,
                 subject=str(auth_id),
                 audience=TokenAudience.SITE,
-                purpose=TokenPurpose.ENROLLMENT,
+                enrolment_url=enrolment_url,
+                purpose=TokenPurpose.ENROLMENT,
                 key=secret_key,
                 duration=duration,
             )

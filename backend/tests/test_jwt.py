@@ -75,14 +75,14 @@ class TestJWT:
             issuer="issuer",
             subject="subject",
             audience=TokenAudience.SITE,
-            purpose=TokenPurpose.ENROLLMENT,
+            purpose=TokenPurpose.ENROLMENT,
         )
         assert (
             JWT.decode(
                 token.encoded,
                 issuer="issuer",
                 audience=TokenAudience.SITE,
-                purpose=TokenPurpose.ENROLLMENT,
+                purpose=TokenPurpose.ENROLMENT,
             )
             == token
         )
@@ -145,5 +145,5 @@ class TestJWT:
                 token.encoded,
                 issuer="issuer",
                 audience=TokenAudience.SITE,
-                purpose=TokenPurpose.ENROLLMENT,
+                purpose=TokenPurpose.ENROLMENT,
             )

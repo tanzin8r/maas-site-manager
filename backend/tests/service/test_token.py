@@ -50,7 +50,7 @@ class TestTokenService:
             key=secret_key,
             issuer=issuer,
             audience=TokenAudience.SITE,
-            purpose=TokenPurpose.ENROLLMENT,
+            purpose=TokenPurpose.ENROLMENT,
         )
         [db_token] = await factory.get("token")
         assert db_token["auth_id"] == uuid.UUID(decoded_token.subject)

@@ -20,5 +20,6 @@ class SettingsService(DBBackedModelService[models.Settings]):
         settings = Settings()
         values = {
             "service_url": f"http://{gethostname()}:{settings.api_port}",
+            "enrolment_url": f"http://{gethostname()}:{settings.api_port}/site/v1/enrol",
         }
         return [{"name": key, "value": values[key]} for key in keys]

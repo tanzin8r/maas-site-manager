@@ -30,6 +30,7 @@ class SettingsPatchRequest(BaseModel):
     """Change application settings."""
 
     service_url: str | None = None
+    enrolment_url: str | None = None
 
 
 @v1_router.patch("/settings")

@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import (
-    EnrollingSite,
+    EnrolingSite,
     PendingSiteCreate,
     Site,
     SiteCoordinates,
@@ -94,7 +94,7 @@ class TestSiteService:
         assert pending_site.name == "site"
         assert pending_site.url == "https://site.example.com"
 
-    async def test_get_enrolling_accepted(
+    async def test_get_enroling_accepted(
         self,
         factory: Factory,
         db_connection: AsyncConnection,
@@ -103,13 +103,11 @@ class TestSiteService:
         site = await factory.make_Site(auth_id=auth_id)
 
         service = SiteService(db_connection)
-        enrolling_site = cast(
-            EnrollingSite, await service.get_enrolling(auth_id)
-        )
-        assert enrolling_site.id == site.id
-        assert enrolling_site.accepted
+        enroling_site = cast(EnrolingSite, await service.get_enroling(auth_id))
+        assert enroling_site.id == site.id
+        assert enroling_site.accepted
 
-    async def test_get_enrolling_pending(
+    async def test_get_enroling_pending(
         self,
         factory: Factory,
         db_connection: AsyncConnection,
@@ -118,19 +116,17 @@ class TestSiteService:
         pending_site = await factory.make_PendingSite(auth_id=auth_id)
 
         service = SiteService(db_connection)
-        enrolling_site = cast(
-            EnrollingSite, await service.get_enrolling(auth_id)
-        )
-        assert enrolling_site.id == pending_site.id
-        assert not enrolling_site.accepted
+        enroling_site = cast(EnrolingSite, await service.get_enroling(auth_id))
+        assert enroling_site.id == pending_site.id
+        assert not enroling_site.accepted
 
-    async def test_get_enrolling_not_found(
+    async def test_get_enroling_not_found(
         self,
         factory: Factory,
         db_connection: AsyncConnection,
     ) -> None:
         service = SiteService(db_connection)
-        assert await service.get_enrolling(uuid4()) is None
+        assert await service.get_enroling(uuid4()) is None
 
     async def test_update_details(
         self,
