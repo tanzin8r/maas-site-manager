@@ -61,6 +61,31 @@ docker compose up --build
 
 After the build has succeeded, `--build` can be omitted when bringing up the containers in the future (unless changes to `backend/Dockerfile` were made).
 
+
+#### nginx TLS proxy in dev environment
+If you need the Site Manager API to provide a self-signed TLS certificate, follow the steps below.
+You will need this if you are planning on issuing an enrolment request from a MAAS instance.
+
+1. To start the `nginx` service when the backend container starts, set `USE_NGINX_TLS_PROXY=1` in `docker-compose.env`.
+2. Start the container with `docker-compose up`. You will need to include the `--build` option if you haven't done so since pulling the change to create the certificate and set up `nginx` within `backend/Dockerfile`.
+3. Once the container has started, copy the certificate onto your machine: `docker cp maas-site-manager_backend_1:/root/certs/msm.crt ~/`. This will copy the certificate to your home directory (change the second path if you would like to copy it elsewhere).
+4. On the MAAS side--the lxd container needs to know that this is a trusted certificate. If using `setup-dev-env.sh` from the `maas-dev-setup` repository, you can enable this by providing the `-c` or `--ca-crt` option and the location of the `msm.crt` file on your machine.
+
+If you are not using the script in step 4 above, follow these steps to tell MAAS that this is a trusted certificate:
+1. `scp` the `msm.crt` file to the lxd container running MAAS: `scp /path/on/your/machine.crt ubuntu@$container_ip:/home/ubuntu/`.
+2. `ssh` to the lxd container and place the file in the correct location. Note this cannot be handled above as we cannot `scp` as root: `sudo cp /home/ubuntu/msm.crt /usr/local/share/ca-certificates`
+3. Update the trusted CA's: `sudo update-ca-certificates`
+4. Add the cert's CN as a hostname with the following commands:
+```bash
+hn=$(openssl x509 -noout -subject -in msm.crt -nameopt multiline | grep commonName | awk '{ print $3 }')
+# here, MAAS_MANAGEMENT_IP_RANGE is the gateway for your maas-kvm lxd network (e.g. 10.20.0.1)
+echo $MAAS_MANAGEMENT_IP_RANGE $hn | sudo tee --append /etc/hosts
+```
+
+#### Starting containers manually
+
+Note: you can stop here if you're using `docker-compose`.
+
 It is simple to launch a PostgreSQL instance via Docker,
 
 ```bash

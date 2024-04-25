@@ -28,6 +28,7 @@ services:
       - egg-info:/app/msm.egg-info/
     ports:
       - "8000:8000"
+      - "443:443"
     healthcheck:
       test: python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000'))"
       interval: 30s
