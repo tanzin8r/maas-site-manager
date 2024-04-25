@@ -285,7 +285,7 @@ yarn generate-api-client
 Setup local environment variables
 
 ```bash
-cp .env.development .env.local.development
+cp .env.development .env.development.local
 ```
 
 Set `VITE_USE_MOCK_DATA` to `false` in `.env.development.local` and start the backend
