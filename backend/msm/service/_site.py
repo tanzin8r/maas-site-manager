@@ -32,8 +32,6 @@ from msm.service._base import Service
 from msm.settings import Settings
 from msm.time import now_utc
 
-LOST_CONNECTION_THRESHOLD = timedelta(seconds=60)
-
 
 class InvalidPendingSites(Exception):
     """Raised when unknown pending site IDs are provided."""
@@ -277,7 +275,10 @@ class SiteService(Service):
         return Settings().heartbeat_interval_seconds
 
     def _select_statement(self) -> Select[Any]:
-        connection_lost_limit = now_utc() - LOST_CONNECTION_THRESHOLD
+        connection_lost_threshold = Settings().conn_lost_threshold_seconds
+        connection_lost_limit = now_utc() - timedelta(
+            seconds=connection_lost_threshold
+        )
         return select(
             Site.c.id,
             Site.c.address,

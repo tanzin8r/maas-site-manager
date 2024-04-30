@@ -9,7 +9,7 @@ from msm.db.models import (
     Site,
     SiteData,
 )
-from msm.service._site import LOST_CONNECTION_THRESHOLD
+from msm.settings import Settings
 from msm.time import now_utc
 from tests.api import api_timestamp
 from tests.fixtures.client import Client
@@ -143,10 +143,11 @@ class TestSitesGetHandler:
         # Set last_seen to 1 second after the
         # lost_connection_threshold setting in order to test
         # that the connection is marked as lost
+        threshold = Settings().conn_lost_threshold_seconds
         await factory.make_SiteData(
             site.id,
             last_seen=(
-                now_utc() - LOST_CONNECTION_THRESHOLD - timedelta(seconds=1)
+                now_utc() - timedelta(seconds=threshold) - timedelta(seconds=1)
             ),
         )
 
