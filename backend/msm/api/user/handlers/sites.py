@@ -8,6 +8,7 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
+    Query,
     status,
 )
 from pydantic import (
@@ -202,4 +203,37 @@ async def delete(
 ) -> None:
     """Delete a site from the database."""
     await services.sites.delete(id)
+    return None
+
+
+@v1_router.delete("/sites", status_code=204)
+async def delete_many(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[models.Site, Depends(authenticated_user)],
+    ids: Annotated[list[int], Query()] = [],
+) -> None:
+    """Delete multiple sites from the database."""
+    # unfortunately, we can't use fastapi to validate that at least one id was
+    # pased, so we need to do it manually
+    if not ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "No ID's provided"},
+        )
+    requested_ids = set(ids)
+    deleted_ids = await services.sites.delete_many(ids)
+    if deleted_ids != requested_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": (
+                    f"The following ID's were not found: {requested_ids - deleted_ids}."
+                    + (
+                        f" The following ID's were deleted: {deleted_ids}"
+                        if deleted_ids
+                        else ""
+                    )
+                )
+            },
+        )
     return None

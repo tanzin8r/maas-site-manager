@@ -158,3 +158,30 @@ class TestSiteService:
         [db_site] = await factory.get("site")
         assert db_site["city"] == "New York"
         assert db_site["country"] == "US"
+
+    async def test_delete(
+        self,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        service = SiteService(db_connection)
+        site1 = await factory.make_Site()
+        site2 = await factory.make_Site()
+        await service.delete(site1.id)
+        db_sites = await factory.get("site")
+        assert len(db_sites) == 1
+        assert db_sites[0]["id"] == site2.id
+
+    async def test_delete_many(
+        self,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        service = SiteService(db_connection)
+        site1 = await factory.make_Site()
+        site2 = await factory.make_Site()
+        site3 = await factory.make_Site()
+        await service.delete_many([site1.id, site2.id])
+        db_sites = await factory.get("site")
+        assert len(db_sites) == 1
+        assert db_sites[0]["id"] == site3.id

@@ -145,6 +145,11 @@ class SiteService(Service):
         stmt = delete(Site).where(Site.c.id == id)
         await self.conn.execute(stmt)
 
+    async def delete_many(self, ids: list[int]) -> set[int]:
+        stmt = delete(Site).where(Site.c.id.in_(ids)).returning(Site.c.id)
+        result = await self.conn.execute(stmt)
+        return set([x[0] for x in result.all()])
+
     async def create_pending(
         self, details: models.PendingSiteCreate
     ) -> models.PendingSite:

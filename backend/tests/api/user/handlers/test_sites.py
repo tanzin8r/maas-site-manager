@@ -301,6 +301,59 @@ class TestSitesDeleteHandler:
         response = await user_client.get(f"/sites/{site.id}")
         assert response.status_code == 404
 
+    async def test_delete_many(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        site1 = await factory.make_Site(name="test1")
+        site2 = await factory.make_Site(name="test2")
+        site3 = await factory.make_Site(name="test3")
+        response = await user_client.delete(
+            f"/sites?ids={site1.id}&ids={site2.id}"
+        )
+        assert response.status_code == 204
+        response = await user_client.get(f"/sites/{site1.id}")
+        assert response.status_code == 404
+        response = await user_client.get(f"/sites/{site2.id}")
+        assert response.status_code == 404
+        response = await user_client.get(f"/sites/{site3.id}")
+        assert response.status_code == 200
+
+    async def test_delete_no_ids(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        site1 = await factory.make_Site()
+        response = await user_client.delete("/sites")
+        assert response.status_code == 400
+        assert "No ID's provided" in response.text
+        response = await user_client.get(f"/sites/{site1.id}")
+        assert response.status_code == 200
+
+    async def test_delete_many_not_found(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        site1 = await factory.make_Site(name="test1")
+        site2 = await factory.make_Site(name="test2")
+        site3 = await factory.make_Site(name="test3")
+        fake_id = 5
+        response = await user_client.delete(
+            f"/sites?ids={site1.id}&ids={site2.id}&ids={fake_id}"
+        )
+        assert response.status_code == 404
+        assert (
+            f"The following ID's were not found: {set([fake_id])}"
+            in response.text
+        )
+        assert (
+            f"The following ID's were deleted: {set([site1.id, site2.id])}"
+            in response.text
+        )
+        response = await user_client.get(f"/sites/{site1.id}")
+        assert response.status_code == 404
+        response = await user_client.get(f"/sites/{site2.id}")
+        assert response.status_code == 404
+        response = await user_client.get(f"/sites/{site3.id}")
+        assert response.status_code == 200
+
 
 @pytest.mark.asyncio
 class TestPendingSitesGetHandler:
