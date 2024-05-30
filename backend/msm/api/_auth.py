@@ -73,6 +73,7 @@ class AccessTokenResponse(BaseModel):
 
     token_type: str
     access_token: str
+    rotation_interval_minutes: int
 
 
 def token_response(
@@ -81,6 +82,10 @@ def token_response(
     audience: TokenAudience,
     purpose: TokenPurpose | None = None,
     duration: timedelta = DEFAULT_TOKEN_DURATION,
+    rotation_interval_minutes: int = (
+        int(DEFAULT_TOKEN_DURATION.total_seconds()) // 60
+    )
+    // 2,
 ) -> AccessTokenResponse:
     """Return an AccessTokenResponse, generating a token."""
     token = JWT.create(
@@ -91,4 +96,8 @@ def token_response(
         key=config.token_secret_key,
         duration=duration,
     )
-    return AccessTokenResponse(token_type="Bearer", access_token=token.encoded)
+    return AccessTokenResponse(
+        token_type="Bearer",
+        access_token=token.encoded,
+        rotation_interval_minutes=rotation_interval_minutes,
+    )

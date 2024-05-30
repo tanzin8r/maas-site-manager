@@ -74,6 +74,10 @@ class TestSettingsService:
                 "name": "token_lifetime_minutes",
                 "value": DEFAULT_TOKEN_DURATION.total_seconds() // 60,
             },
+            {
+                "name": "token_rotation_interval_minutes",
+                "value": (DEFAULT_TOKEN_DURATION.total_seconds() // 60) // 2,
+            },
         ]
 
     async def test_ensure_keep_existing(
@@ -86,6 +90,9 @@ class TestSettingsService:
             "enrolment_url", value="http://sitemanager:8000/site/v1/enrol"
         )
         await factory.make_Setting("token_lifetime_minutes", value=10)
+        await factory.make_Setting(
+            "token_rotation_interval_minutes", value=100
+        )
         service = SettingsService(db_connection)
         await service.ensure()
         settings = await factory.get("setting")
@@ -96,6 +103,7 @@ class TestSettingsService:
             },
             {"name": "service_url", "value": "http://sitemanager:8000"},
             {"name": "token_lifetime_minutes", "value": 10},
+            {"name": "token_rotation_interval_minutes", "value": 100},
         ]
 
     async def test_ensure_remove_extra(

@@ -146,4 +146,5 @@ async def get(
         TokenAudience.SITE,
         purpose=TokenPurpose.ACCESS,
         duration=timedelta(minutes=settings.token_lifetime_minutes),
+        rotation_interval_minutes=settings.token_rotation_interval_minutes,
     )

@@ -24,5 +24,9 @@ class SettingsService(DBBackedModelService[models.Settings]):
             "enrolment_url": f"http://{gethostname()}:{settings.api_port}/site/v1/enrol",
             "token_lifetime_minutes": DEFAULT_TOKEN_DURATION.total_seconds()
             // 60,
+            "token_rotation_interval_minutes": (
+                (DEFAULT_TOKEN_DURATION.total_seconds()) // 60
+            )
+            // 2,
         }
         return [{"name": key, "value": values[key]} for key in keys]

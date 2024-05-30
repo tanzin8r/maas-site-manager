@@ -26,6 +26,7 @@ async def test_settings_get(
             "service_url": "https://sitemanager.example.com/",
             "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
             "token_lifetime_minutes": 10,
+            "token_rotation_interval_minutes": 100,
         }
     )
     response = await admin_client.get("/settings")
@@ -34,6 +35,7 @@ async def test_settings_get(
         "service_url": "https://sitemanager.example.com/",
         "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
         "token_lifetime_minutes": 10,
+        "token_rotation_interval_minutes": 100,
     }
 
 
@@ -47,6 +49,7 @@ async def test_settings_patch(
             "service_url": "https://sitemanager.example.com",
             "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
             "token_lifetime_minutes": 10,
+            "token_rotation_interval_minutes": 100,
         },
     )
     assert response.status_code == 200
@@ -57,4 +60,5 @@ async def test_settings_patch(
         "service_url": "https://sitemanager.example.com",
         "enrolment_url": "https://sitemanager.example.com/site/v1/enrol",
         "token_lifetime_minutes": 10,
+        "token_rotation_interval_minutes": 100,
     }
