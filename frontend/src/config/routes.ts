@@ -1,3 +1,5 @@
+import { hasImagesPage } from "@/featureFlags";
+
 export const protectedRoutes = {
   homepage: {
     path: "/",
@@ -64,10 +66,12 @@ export const protectedRoutes = {
     path: "/images",
     title: "",
   },
-  imagesList: {
-    path: "/images/list",
-    title: "Images",
-  },
+  ...(hasImagesPage && {
+    images: {
+      path: "/images",
+      title: "",
+    },
+  }),
   password: {
     path: "/account/password",
     title: "Password",

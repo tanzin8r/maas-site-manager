@@ -1,6 +1,7 @@
 import classNames from "classnames";
 
 import type { RoutePath, RouteTitle } from "@/config/routes";
+import { hasImagesPage } from "@/featureFlags";
 import useSecondaryNavContext from "@/hooks/useSecondaryNavContext";
 import { matchPath, Link, useLocation } from "@/utils/router";
 import type { Location } from "@/utils/router";
@@ -128,20 +129,24 @@ const secondaryNavInfo: SecondaryNavInfoType = {
         label: "Map",
         path: "/settings/map",
       },
-      {
-        label: "Images",
-        items: [
-          { path: "/settings/images/server", label: "Image server" },
-          {
-            path: "/settings/images/maas",
-            label: "maas.io",
-          },
-          {
-            path: "/settings/images/transfer",
-            label: "Transfer images",
-          },
-        ],
-      },
+      ...(hasImagesPage
+        ? [
+            {
+              label: "Images",
+              items: [
+                { path: "/settings/images/server", label: "Image server" },
+                {
+                  path: "/settings/images/maas",
+                  label: "maas.io",
+                },
+                {
+                  path: "/settings/images/transfer",
+                  label: "Transfer images",
+                },
+              ],
+            },
+          ]
+        : []),
     ],
   },
   account: {

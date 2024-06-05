@@ -13,7 +13,10 @@ export default defineConfig(({ mode }) => {
   return {
     base: env.VITE_BASE_URL,
     envDir: "./",
-    define: { "import.meta.env.VITE_APP_VERSION": JSON.stringify(commitHash) },
+    define: {
+      "import.meta.env.VITE_APP_VERSION": JSON.stringify(commitHash),
+      "process.env": env,
+    },
     plugins: [
       react(),
       AutoImport({
