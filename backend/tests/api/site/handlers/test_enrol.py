@@ -1,7 +1,9 @@
+from collections.abc import AsyncIterator
 from datetime import timedelta
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import Config
 from msm.jwt import (
@@ -9,8 +11,18 @@ from msm.jwt import (
     TokenAudience,
     TokenPurpose,
 )
+from msm.service import SettingsService
 from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
+
+
+@pytest.fixture
+async def service(
+    db_connection: AsyncConnection,
+) -> AsyncIterator[SettingsService]:
+    service = SettingsService(db_connection)
+    await service.ensure()
+    yield service
 
 
 @pytest.mark.asyncio
@@ -293,3 +305,70 @@ class TestEnrolGetHandler:
             audience=TokenAudience.SITE,
         )
         assert token.subject == str(auth_id)
+
+
+@pytest.mark.asyncio
+class TestEnrolRefreshGetHandler:
+    async def test_refresh(
+        self,
+        factory: Factory,
+        api_config: Config,
+        app_client: Client,
+        service: SettingsService,
+    ) -> None:
+        auth_id = uuid4()
+        await factory.make_Site(auth_id=auth_id)
+        app_client.authenticate(
+            auth_id,
+            token_audience=TokenAudience.SITE,
+            token_purpose=TokenPurpose.ACCESS,
+        )
+        response = await app_client.get("/site/v1/enrol/refresh")
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["token_type"] == "Bearer"
+        token = JWT.decode(
+            payload["access_token"],
+            key=api_config.token_secret_key,
+            issuer=api_config.service_identifier,
+            audience=TokenAudience.SITE,
+        )
+        assert token.subject == str(auth_id)
+        assert token.purpose == TokenPurpose.ACCESS
+        settings = await service.get()
+        assert (
+            payload["rotation_interval_minutes"]
+            == settings.token_rotation_interval_minutes
+        )
+        token_duration = token.expiration - token.issued
+        assert (
+            int(token_duration.total_seconds())
+            == settings.token_lifetime_minutes * 60
+        )
+
+    async def test_refresh_unauthorized(
+        self,
+        factory: Factory,
+        app_client: Client,
+    ) -> None:
+        auth_id = uuid4()
+        await factory.make_Site(auth_id=auth_id)
+        response = await app_client.get("site/v1/enrol/refresh")
+        assert response.status_code == 401
+        assert response.json() == {"detail": "Not authenticated"}
+
+    async def test_refresh_invalid_token_purpose(
+        self,
+        factory: Factory,
+        app_client: Client,
+    ) -> None:
+        auth_id = uuid4()
+        await factory.make_Site(auth_id=auth_id)
+        app_client.authenticate(
+            auth_id,
+            token_audience=TokenAudience.SITE,
+            token_purpose=TokenPurpose.ENROLMENT,
+        )
+        response = await app_client.get("/site/v1/enrol/refresh")
+        assert response.status_code == 401
+        assert response.json() == {"detail": "Invalid token"}

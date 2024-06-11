@@ -21,9 +21,11 @@ from msm.api._dependencies import (
     services,
 )
 from msm.api._utils import INVALID_TOKEN_ERROR
+from msm.api.site._auth import authenticated_site
 from msm.db.models import (
     Config,
     PendingSiteCreate,
+    Site,
 )
 from msm.jwt import (
     TokenAudience,
@@ -141,6 +143,34 @@ async def get(
     if not site.accepted:
         response.status_code = status.HTTP_204_NO_CONTENT
         return None
+    settings = await services.settings.get()
+    return token_response(
+        config,
+        auth_id,
+        TokenAudience.SITE,
+        purpose=TokenPurpose.ACCESS,
+        duration=timedelta(minutes=settings.token_lifetime_minutes),
+        rotation_interval_minutes=settings.token_rotation_interval_minutes,
+    )
+
+
+@v1_router.get("/enrol/refresh")
+async def refresh(
+    config: Annotated[Config, Depends(config)],
+    services: Annotated[ServiceCollection, Depends(services)],
+    site: Annotated[Site, Depends(authenticated_site)],
+    auth_id: Annotated[
+        UUID,
+        Depends(
+            auth_id_from_token(
+                bearer_token,
+                TokenAudience.SITE,
+                token_purpose=TokenPurpose.ACCESS,
+            )
+        ),
+    ],
+) -> AccessTokenResponse | None:
+    """Return a new token for site heartbeats"""
     settings = await services.settings.get()
     return token_response(
         config,
