@@ -206,6 +206,19 @@ class TestSitesGetHandler:
         response = await user_client.get("/sites", params=query_params)
         assert response.status_code == 400
 
+    async def test_missing_coordinates(
+        self,
+        user_client: Client,
+        factory: Factory,
+    ) -> None:
+        await factory.make_Site(city="London")
+        await factory.make_Site(city="Denver", coordinates=(1.0, 1.0))
+        response = await user_client.get(
+            "/sites", params="missing_coordinates=true"
+        )
+        assert response.json()["total"] == 1
+        assert response.json()["items"][0]["city"] == "London"
+
 
 @pytest.mark.asyncio
 class TestGetCoordinatesHandler:
