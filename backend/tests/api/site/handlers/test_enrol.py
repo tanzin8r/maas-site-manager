@@ -57,11 +57,8 @@ class TestEnrolPostHandler:
             json=body,
         )
         assert response.status_code == 202
-        # the token is removed
-        assert await factory.get("token") == []
         # a pending site is created
         [pending_site] = await factory.get("site")
-        assert pending_site["auth_id"] == auth_id
         assert pending_site["name"] == body["name"]
         assert pending_site["url"] == body["url"]
         assert pending_site["cluster_uuid"] == body["cluster_uuid"]
@@ -74,6 +71,9 @@ class TestEnrolPostHandler:
             body["metadata"]["longitude"],  # type: ignore[index]
         )
         assert not pending_site["accepted"]
+        # the token is claimed
+        [token] = await factory.get("token")
+        assert token["site_id"] == pending_site["id"]
 
     async def test_post_partial_config(
         self,
@@ -105,11 +105,8 @@ class TestEnrolPostHandler:
             json=body,
         )
         assert response.status_code == 202
-        # the token is removed
-        assert await factory.get("token") == []
         # a pending site is created
         [pending_site] = await factory.get("site")
-        assert pending_site["auth_id"] == auth_id
         assert pending_site["name"] == body["name"]
         assert pending_site["url"] == body["url"]
         assert pending_site["cluster_uuid"] == body["cluster_uuid"]
@@ -119,6 +116,9 @@ class TestEnrolPostHandler:
         assert pending_site["country"] == ""
         assert pending_site["city"] == ""
         assert not pending_site["accepted"]
+        # the token is claimed
+        [token] = await factory.get("token")
+        assert token["site_id"] == pending_site["id"]
 
     async def test_post_no_config(
         self, factory: Factory, app_client: Client
@@ -141,13 +141,45 @@ class TestEnrolPostHandler:
             json=body,
         )
         assert response.status_code == 202
-        # the token is removed
-        assert await factory.get("token") == []
         # a pending site is created
         [pending_site] = await factory.get("site")
-        assert pending_site["auth_id"] == auth_id
         assert pending_site["cluster_uuid"] == body["cluster_uuid"]
         assert not pending_site["accepted"]
+        # the token is claimed
+        [token] = await factory.get("token")
+        assert token["site_id"] == pending_site["id"]
+
+    async def test_post_dont_allow_reuse(
+        self, factory: Factory, app_client: Client
+    ) -> None:
+        auth_id = uuid4()
+        await factory.make_Token(auth_id=auth_id)
+        app_client.authenticate(
+            auth_id,
+            token_audience=TokenAudience.SITE,
+            token_purpose=TokenPurpose.ENROLMENT,
+        )
+        body = {
+            "name": "new-site",
+            "url": "https://site.example.com",
+            "cluster_uuid": str(uuid4()),
+        }
+        response = await app_client.post(
+            "/site/v1/enrol",
+            json=body,
+        )
+        assert response.status_code == 202
+        # a pending site is created
+        body = {
+            "name": "new-site-dup",
+            "url": "https://site.example.com",
+            "cluster_uuid": str(uuid4()),
+        }
+        response = await app_client.post(
+            "/site/v1/enrol",
+            json=body,
+        )
+        assert response.status_code == 401
 
     async def test_no_token_match(
         self, factory: Factory, app_client: Client
@@ -232,14 +264,14 @@ class TestEnrolPostHandler:
         api_config: Config,
         app_client: Client,
     ) -> None:
-        auth_id = uuid4()
         cluster_uuid = str(uuid4())
         await factory.make_Site(
             name="test1",
-            auth_id=auth_id,
+            auth_id=uuid4(),
             cluster_uuid=cluster_uuid,
             url="https://fake.url.com",
         )
+        auth_id = uuid4()
         await factory.make_Token(auth_id=auth_id)
         app_client.authenticate(
             auth_id,
@@ -260,7 +292,6 @@ class TestEnrolPostHandler:
         assert len(sites) == 1
         assert sites[0]["cluster_uuid"] == cluster_uuid
         assert sites[0]["name"] == body["name"]
-        assert sites[0]["auth_id"] == auth_id
         assert sites[0]["url"] == body["url"]
         assert sites[0]["accepted"] == False
 
@@ -301,13 +332,14 @@ class TestEnrolGetHandler:
         assert response.status_code == 200
         payload = response.json()
         assert payload["token_type"] == "Bearer"
-        token = JWT.decode(
+        # check if token is valid
+        JWT.decode(
             payload["access_token"],
             key=api_config.token_secret_key,
             issuer=api_config.service_identifier,
             audience=TokenAudience.SITE,
+            purpose=TokenPurpose.ACCESS,
         )
-        assert token.subject == str(auth_id)
 
 
 @pytest.mark.asyncio
@@ -335,9 +367,9 @@ class TestEnrolRefreshGetHandler:
             key=api_config.token_secret_key,
             issuer=api_config.service_identifier,
             audience=TokenAudience.SITE,
+            purpose=TokenPurpose.ACCESS,
         )
-        assert token.subject == str(auth_id)
-        assert token.purpose == TokenPurpose.ACCESS
+        assert token.subject != str(auth_id)  # it's a new token
         settings = await service.get()
         assert (
             payload["rotation_interval_minutes"]

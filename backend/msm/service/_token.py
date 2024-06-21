@@ -44,6 +44,9 @@ class TokenService(Service):
         count: int = 1,
         secret_key: str = "",
         enrolment_url: str = "",
+        audience: TokenAudience = TokenAudience.SITE,
+        purpose: TokenPurpose = TokenPurpose.ENROLMENT,
+        site_id: int | None = None,
     ) -> Iterable[models.Token]:
         """Create tokens, returning their expiration and values."""
         data = []
@@ -52,9 +55,9 @@ class TokenService(Service):
             token = JWT.create(
                 issuer=issuer,
                 subject=str(auth_id),
-                audience=TokenAudience.SITE,
+                audience=audience,
                 enrolment_url=enrolment_url,
-                purpose=TokenPurpose.ENROLMENT,
+                purpose=purpose,
                 key=secret_key,
                 duration=duration,
             )
@@ -64,20 +67,24 @@ class TokenService(Service):
                     "created": token.issued,
                     "value": token.encoded,
                     "auth_id": auth_id,
+                    "audience": audience,
+                    "purpose": purpose,
+                    "site_id": site_id,
                 }
             )
         result = await self.conn.execute(
             Token.insert().returning(
                 Token.c.id,
                 Token.c.value,
+                Token.c.audience,
+                Token.c.purpose,
                 Token.c.expired,
                 Token.c.created,
+                Token.c.site_id,
             ),
             data,
         )
-        self.token_issued.labels(
-            audience=TokenAudience.SITE, purpose=TokenPurpose.ENROLMENT
-        ).inc(count)
+        self.token_issued.labels(audience=audience, purpose=purpose).inc(count)
         return self.objects_from_result(models.Token, result)
 
     async def get(
@@ -86,11 +93,15 @@ class TokenService(Service):
         limit: int | None = None,
     ) -> tuple[int, Iterable[models.Token]]:
         """Return active tokens."""
-        expired_filter = Token.c.expired > now_utc()
-        count = await queries.row_count(self.conn, Token, expired_filter)
+        expired_filter = [
+            Token.c.expired > now_utc(),
+            Token.c.audience == TokenAudience.SITE,
+            Token.c.purpose == TokenPurpose.ENROLMENT,
+        ]
+        count = await queries.row_count(self.conn, Token, *expired_filter)
         stmt = (
             self._select_statement()
-            .where(expired_filter)
+            .where(*expired_filter)
             .order_by(Token.c.id)
             .offset(offset)
         )
@@ -121,9 +132,19 @@ class TokenService(Service):
         return set([x[0] for x in result.all()])
 
     def _select_statement(self) -> Select[Any]:
-        return select(
-            Token.c.id,
-            Token.c.value,
-            Token.c.expired,
-            Token.c.created,
-        ).select_from(Token)
+        return (
+            select(
+                Token.c.id,
+                Token.c.value,
+                Token.c.audience,
+                Token.c.purpose,
+                Token.c.expired,
+                Token.c.created,
+                Token.c.site_id,
+            )
+            .select_from(Token)
+            .where(
+                Token.c.audience == TokenAudience.SITE,
+                Token.c.purpose == TokenPurpose.ENROLMENT,
+            )
+        )

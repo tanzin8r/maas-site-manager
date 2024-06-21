@@ -16,9 +16,10 @@ from pydantic import BaseModel
 
 from msm.api._dependencies import config
 from msm.api._utils import INVALID_TOKEN_ERROR
-from msm.db.models import Config
+from msm.db.models import Config, Token
 from msm.jwt import (
     DEFAULT_TOKEN_DURATION,
+    DEFAULT_TOKEN_ROTATION,
     JWT,
     InvalidToken,
     TokenAudience,
@@ -82,10 +83,7 @@ def token_response(
     audience: TokenAudience,
     purpose: TokenPurpose | None = None,
     duration: timedelta = DEFAULT_TOKEN_DURATION,
-    rotation_interval_minutes: int = (
-        int(DEFAULT_TOKEN_DURATION.total_seconds()) // 60
-    )
-    // 2,
+    rotation_interval_minutes: int = DEFAULT_TOKEN_ROTATION,
 ) -> AccessTokenResponse:
     """Return an AccessTokenResponse, generating a token."""
     token = JWT.create(
@@ -99,5 +97,17 @@ def token_response(
     return AccessTokenResponse(
         token_type="Bearer",
         access_token=token.encoded,
+        rotation_interval_minutes=rotation_interval_minutes,
+    )
+
+
+def token_response_from_token(
+    token: Token,
+    rotation_interval_minutes: int = DEFAULT_TOKEN_ROTATION,
+) -> AccessTokenResponse:
+    """Return an AccessTokenResponse."""
+    return AccessTokenResponse(
+        token_type="Bearer",
+        access_token=token.value,
         rotation_interval_minutes=rotation_interval_minutes,
     )

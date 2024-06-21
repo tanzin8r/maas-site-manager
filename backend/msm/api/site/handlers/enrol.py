@@ -14,7 +14,7 @@ from msm.api._auth import (
     AccessTokenResponse,
     auth_id_from_token,
     bearer_token,
-    token_response,
+    token_response_from_token,
 )
 from msm.api._dependencies import (
     config,
@@ -79,7 +79,11 @@ async def post(
 ) -> None:
     """Request to enrol a new site."""
     db_token = await services.tokens.get_by_auth_id(auth_id)
-    if db_token is None or db_token.is_expired():
+    if (
+        db_token is None
+        or db_token.is_expired()
+        or db_token.site_id is not None
+    ):
         raise INVALID_TOKEN_ERROR
     metadata = (
         post_request.metadata.model_dump(
@@ -109,7 +113,6 @@ async def post(
             **metadata,
         )
     )
-    await services.tokens.delete(db_token.id)
     response.status_code = status.HTTP_202_ACCEPTED
 
 
@@ -144,12 +147,17 @@ async def get(
         response.status_code = status.HTTP_204_NO_CONTENT
         return None
     settings = await services.settings.get()
-    return token_response(
-        config,
-        auth_id,
-        TokenAudience.SITE,
-        purpose=TokenPurpose.ACCESS,
+    [token] = await services.tokens.create(
+        count=1,
+        issuer=config.service_identifier,
+        secret_key=config.token_secret_key,
         duration=timedelta(minutes=settings.token_lifetime_minutes),
+        purpose=TokenPurpose.ACCESS,
+        audience=TokenAudience.SITE,
+        site_id=site.id,
+    )
+    return token_response_from_token(
+        token,
         rotation_interval_minutes=settings.token_rotation_interval_minutes,
     )
 
@@ -172,11 +180,16 @@ async def refresh(
 ) -> AccessTokenResponse | None:
     """Return a new token for site heartbeats"""
     settings = await services.settings.get()
-    return token_response(
-        config,
-        auth_id,
-        TokenAudience.SITE,
-        purpose=TokenPurpose.ACCESS,
+    [token] = await services.tokens.create(
+        count=1,
+        issuer=config.service_identifier,
+        secret_key=config.token_secret_key,
         duration=timedelta(minutes=settings.token_lifetime_minutes),
+        purpose=TokenPurpose.ACCESS,
+        audience=TokenAudience.SITE,
+        site_id=site.id,
+    )
+    return token_response_from_token(
+        token,
         rotation_interval_minutes=settings.token_rotation_interval_minutes,
     )

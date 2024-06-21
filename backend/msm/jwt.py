@@ -24,6 +24,9 @@ from msm.time import (
 TOKEN_ALGORITHM = "HS256"
 TOKEN_SECRET_KEY_BYTES = 32
 DEFAULT_TOKEN_DURATION = timedelta(days=7)
+DEFAULT_TOKEN_ROTATION = (
+    int(DEFAULT_TOKEN_DURATION.total_seconds()) // 60
+) // 2
 
 
 class InvalidToken(Exception):

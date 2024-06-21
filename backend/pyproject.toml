@@ -9,10 +9,10 @@ name = "msm"
 description = "MAAS Site Manager"
 readme = "README.md"
 maintainers = [
-    {name = "MAAS Developers", email = "maas-devel@lists.launchpad.net"},
+  { name = "MAAS Developers", email = "maas-devel@lists.launchpad.net" },
 ]
 authors = [
-    {name = "MAAS Developers", email = "maas-devel@lists.launchpad.net"},
+  { name = "MAAS Developers", email = "maas-devel@lists.launchpad.net" },
 ]
 requires-python = ">=3.10"
 classifiers = [
@@ -68,16 +68,14 @@ msm = [
 ]
 
 [tool.setuptools.dynamic]
-version = {attr = "msm.__version__"}
+version = { attr = "msm.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["msm*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = [
-  "tests/"
-]
+testpaths = ["tests/"]
 junit_logging = "all"
 junit_suite_name = "maas-site-manager backend tests"
 
@@ -88,15 +86,13 @@ skip_covered = true
 
 [tool.coverage.run]
 source = ["msm"]
-omit = ["msm/db/alembic/env.py"]
+omit = ["msm/db/alembic/env.py", "msm/sampledata/*", "msm/cmd/sampledata/*"]
 
 [tool.mypy]
 install_types = true
 junit_xml = "../junit-mypy.xml"
 non_interactive = true
-plugins = [
-  "pydantic.mypy"
-]
+plugins = ["pydantic.mypy"]
 strict = true
 
 [tool.ruff]

@@ -4,6 +4,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
+    Index,
     Integer,
     MetaData,
     Table,
@@ -66,13 +67,6 @@ Site = Table(
         "created", DateTime(timezone=True), nullable=False, default=now_utc
     ),
     Column("deleted", DateTime(timezone=True), nullable=True, default=None),
-    Column(
-        "auth_id",
-        UUID(as_uuid=True),
-        nullable=False,
-        unique=True,
-        index=True,
-    ),
     Column("cluster_uuid", Text, nullable=False, unique=True, default=""),
 )
 
@@ -102,6 +96,8 @@ Token = Table(
     METADATA,
     Column("id", Integer, primary_key=True),
     Column("value", Text, nullable=False),
+    Column("audience", Text, nullable=False),
+    Column("purpose", Text, nullable=False),
     Column(
         "auth_id",
         UUID(as_uuid=True),
@@ -109,10 +105,17 @@ Token = Table(
         unique=True,
         index=True,
     ),
+    Column(
+        "site_id",
+        Integer,
+        ForeignKey("site.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=True,
+    ),
     Column("expired", DateTime(timezone=True), nullable=False),
     Column(
         "created", DateTime(timezone=True), nullable=False, default=now_utc
     ),
+    Index(None, "audience", "purpose"),
 )
 
 

@@ -86,6 +86,8 @@ class TestSiteService:
         factory: Factory,
         db_connection: AsyncConnection,
     ) -> None:
+        auth_id = uuid4()
+        await factory.make_Token(auth_id=auth_id)
         cluster_uuid = str(uuid4())
         await factory.make_Site(cluster_uuid=cluster_uuid)
         service = SiteService(db_connection)
@@ -93,7 +95,7 @@ class TestSiteService:
             name="test_name",
             url="http://msm.example",
             cluster_uuid=cluster_uuid,
-            auth_id=uuid4(),
+            auth_id=auth_id,
         )
         await service.create_or_update_pending(pending_site)
         db_sites = await factory.get("site")
@@ -111,13 +113,15 @@ class TestSiteService:
         factory: Factory,
         db_connection: AsyncConnection,
     ) -> None:
+        auth_id = uuid4()
+        await factory.make_Token(auth_id=auth_id)
         cluster_uuid = str(uuid4())
         service = SiteService(db_connection)
         pending_site = PendingSiteCreate(
             name="test_name",
             url="http://msm.example",
             cluster_uuid=cluster_uuid,
-            auth_id=uuid4(),
+            auth_id=auth_id,
         )
         site = await service.create_or_update_pending(pending_site)
         assert site.cluster_uuid == cluster_uuid
@@ -129,13 +133,15 @@ class TestSiteService:
         factory: Factory,
         db_connection: AsyncConnection,
     ) -> None:
+        auth_id = uuid4()
+        await factory.make_Token(auth_id=auth_id)
         cluster_uuid = str(uuid4())
         service = SiteService(db_connection)
         pending_site = await service.create_pending(
             PendingSiteCreate(
                 name="site",
                 url="https://site.example.com",
-                auth_id=uuid4(),
+                auth_id=auth_id,
                 cluster_uuid=cluster_uuid,
             )
         )

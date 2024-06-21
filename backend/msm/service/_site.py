@@ -16,6 +16,7 @@ from sqlalchemy import (
     exists,
     func,
     literal,
+    or_,
     select,
     update,
 )
@@ -28,6 +29,7 @@ from msm.db import (
 from msm.db.tables import (
     Site,
     SiteData,
+    Token,
 )
 from msm.schema import SortParam
 from msm.service._base import Service
@@ -41,6 +43,10 @@ class InvalidPendingSites(Exception):
     def __init__(self, ids: Iterable[int]):
         self.ids = sorted(ids)
         super().__init__("Unknown pending sites")
+
+
+class JWTClaimFailed(Exception):
+    """Raised when a Site tries to claim a JWT already in use."""
 
 
 class SiteService(Service):
@@ -117,8 +123,8 @@ class SiteService(Service):
 
     async def get_by_auth_id(self, auth_id: UUID) -> models.Site | None:
         """Get a site by authentication ID."""
-        stmt = self._select_statement_join_data().where(
-            Site.c.auth_id == auth_id
+        stmt = self._select_statement_join_data(with_token=True).where(
+            Token.c.auth_id == auth_id
         )
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
@@ -208,11 +214,25 @@ class SiteService(Service):
             return await self.update_pending(details)
         return await self.create_pending(details)
 
+    async def claim_jwt(self, site_id: int, auth_id: UUID) -> None:
+        """Claim an existing JWT for this site"""
+        claim_stmt = (
+            update(Token)
+            .where(
+                Token.c.auth_id == auth_id,
+                or_(Token.c.site_id == None, Token.c.site_id == site_id),
+            )
+            .values(site_id=site_id)
+        )
+        clain_ret = await self.conn.execute(claim_stmt)
+        if clain_ret.rowcount != 1:
+            raise JWTClaimFailed()
+
     async def update_pending(
         self, details: models.PendingSiteCreate
     ) -> models.PendingSite:
         """Update the site details and mark it as pending."""
-        values = details.model_dump(exclude_none=True)
+        values = details.model_dump(exclude_none=True, exclude={"auth_id"})
         values["accepted"] = False
         stmt = (
             update(Site)
@@ -227,8 +247,10 @@ class SiteService(Service):
             )
         )
         result = await self.conn.execute(stmt)
-        site = result.one()
-        return models.PendingSite(**site._asdict())
+        site = models.PendingSite(**(result.one()._asdict()))
+        if details.auth_id:
+            await self.claim_jwt(site.id, details.auth_id)
+        return site
 
     async def create_pending(
         self, details: models.PendingSiteCreate
@@ -240,12 +262,12 @@ class SiteService(Service):
             Site.c.name,
             Site.c.url,
             Site.c.created,
-            Site.c.auth_id,
             Site.c.cluster_uuid,
         )
         result = await self.conn.execute(stmt, [data])
-        pending_site = result.one()
-        return models.PendingSite(**pending_site._asdict())
+        pending_site = models.PendingSite(**(result.one()._asdict()))
+        await self.claim_jwt(pending_site.id, data["auth_id"])
+        return pending_site
 
     async def get_pending(
         self,
@@ -336,10 +358,14 @@ class SiteService(Service):
 
     async def get_enroling(self, auth_id: UUID) -> models.EnrolingSite | None:
         """Return details for a site in enrolment process, if found."""
-        stmt = self._select_statement(
-            Site.c.id,
-            Site.c.accepted,
-        ).where(Site.c.auth_id == auth_id)
+        stmt = (
+            self._select_statement(
+                Site.c.id,
+                Site.c.accepted,
+            )
+            .select_from(Site.join(Token, Token.c.site_id == Site.c.id))
+            .where(Token.c.auth_id == auth_id)
+        )
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
             return models.EnrolingSite(**row._asdict())
@@ -429,11 +455,19 @@ class SiteService(Service):
     def _select_statement(self, *columns: Any) -> Select[Any]:
         return select(*columns).select_from(Site).where(Site.c.deleted == None)
 
-    def _select_statement_join_data(self) -> Select[Any]:
+    def _select_statement_join_data(
+        self, with_token: bool = False
+    ) -> Select[Any]:
         connection_lost_threshold = Settings().conn_lost_threshold_seconds
         connection_lost_limit = now_utc() - timedelta(
             seconds=connection_lost_threshold
         )
+        from_clause = Site.join(
+            SiteData, SiteData.c.site_id == Site.c.id, isouter=True
+        )
+
+        if with_token:
+            from_clause = from_clause.join(Token, Token.c.site_id == Site.c.id)
         return (
             select(
                 Site.c.id,
@@ -493,11 +527,7 @@ class SiteService(Service):
                     else_=None,
                 ).label("stats"),
             )
-            .select_from(
-                Site.join(
-                    SiteData, SiteData.c.site_id == Site.c.id, isouter=True
-                )
-            )
+            .select_from(from_clause)
             .where(Site.c.deleted == None)
         )
 

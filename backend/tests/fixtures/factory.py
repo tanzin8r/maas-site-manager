@@ -117,6 +117,9 @@ class Factory:
         auth_id: UUID | None = None,
         lifetime: timedelta = timedelta(minutes=5),
         key: str = "",
+        audience: TokenAudience = TokenAudience.SITE,
+        purpose: TokenPurpose = TokenPurpose.ENROLMENT,
+        site_id: int | None = None,
     ) -> Token:
         """Create a Token."""
         id = await self.next_id("token")
@@ -125,8 +128,8 @@ class Factory:
         token = JWT.create(
             issuer=issuer,
             subject=str(auth_id),
-            audience=TokenAudience.SITE,
-            purpose=TokenPurpose.ENROLMENT,
+            audience=audience,
+            purpose=purpose,
             key=key,
             duration=lifetime,
         )
@@ -140,6 +143,9 @@ class Factory:
                     "value": token.encoded,
                     "created": now,
                     "expired": token.expiration,
+                    "audience": audience,
+                    "purpose": purpose,
+                    "site_id": site_id,
                 }
             ],
         )
@@ -190,11 +196,11 @@ class Factory:
                     "coordinates": coordinates,
                     "accepted": True,
                     "created": now_utc(),
-                    "auth_id": auth_id,
                     "cluster_uuid": cluster_uuid,
                 }
             ],
         )
+        await self.make_Token(auth_id=auth_id, site_id=row["id"])
         # compute the name_unique attribute
         site_table = METADATA.tables["site"]
         result = await self.conn.execute(
@@ -230,10 +236,10 @@ class Factory:
                 "url": url,
                 "accepted": False,
                 "created": now_utc(),
-                "auth_id": auth_id,
                 "cluster_uuid": cluster_uuid,
             },
         )
+        await self.make_Token(auth_id=auth_id, site_id=row["id"])
         return PendingSite(**row)
 
     async def make_SiteData(
