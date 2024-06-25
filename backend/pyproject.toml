@@ -26,10 +26,11 @@ dynamic = [
 dependencies = [
   "alembic[tz]",
   "baize",
+  "bcrypt==4.0.1",
   "beautifulsoup4",
   "fastapi",
   "Jinja2",
-  "passlib[bcrypt]",
+  "passlib[bcrypt]", # manually pinning because of https://foss.heptapod.net/python-libs/passlib/-/issues/190 FIXME: can be removed once passlib is updated to 1.7.5
   "prometheus-fastapi-instrumentator",
   "pydantic[email]",
   "pydantic-settings",

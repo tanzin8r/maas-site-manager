@@ -24,8 +24,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="Europe/London",
         url="https://london.canonical.example.com",
         accepted=True,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Austin",
@@ -41,6 +41,7 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         accepted=True,
         auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Boston",
@@ -54,8 +55,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="America/Chicago",
         url="https://boston.canonical.example.com",
         accepted=True,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Shanghai",
@@ -69,8 +70,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="Asia/Shanghai",
         url="https://shanghai.canonical.example.com",
         accepted=False,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Beijing",
@@ -84,8 +85,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="Asia/Shanghai",
         url="https://shanghai.canonical.example.com",
         accepted=True,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Taipei City",
@@ -99,8 +100,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="Asia/Taipei",
         url="https://taiwan.canonical.example.com",
         accepted=True,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Douglas",
@@ -114,8 +115,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="Europe/London",
         url="https://canonical.example.com",
         accepted=False,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Tokyo",
@@ -129,8 +130,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="Japan",
         url="https://japan.canonical.example.com",
         accepted=True,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     collection.add(
         city="Tokyo",
@@ -144,8 +145,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
         timezone="Japan",
         url="https://japan.canonical.example.com",
         accepted=True,
-        auth_id=uuid4(),
         deleted=None,
+        cluster_uuid=str(uuid4()),
     )
     sites = await collection.create(conn)
 

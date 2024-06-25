@@ -28,6 +28,8 @@ async def make_fixture_tokens(
         collection.add(
             auth_id=token.subject,
             value=token.encoded,
+            audience=TokenAudience.SITE,
+            purpose=TokenPurpose.ENROLMENT,
             expired=token.expiration,
         )
     return await collection.create(conn)
