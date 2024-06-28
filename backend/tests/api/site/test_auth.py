@@ -19,6 +19,7 @@ AUTHENTICATED_ROUTES = (
     ("GET", "/site/v1/enrol"),
     ("POST", "/site/v1/enrol"),
     ("GET", "/site/v1/enrol/refresh"),
+    ("GET", "/site/v1/enrol/verify"),
 )
 
 

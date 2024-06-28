@@ -193,3 +193,26 @@ async def refresh(
         token,
         rotation_interval_minutes=settings.token_rotation_interval_minutes,
     )
+
+
+@v1_router.get("/enrol/verify")
+async def verify(
+    services: Annotated[ServiceCollection, Depends(services)],
+    site: Annotated[Site, Depends(authenticated_site)],
+    auth_id: Annotated[
+        UUID,
+        Depends(
+            auth_id_from_token(
+                bearer_token,
+                TokenAudience.SITE,
+                token_purpose=TokenPurpose.ACCESS,
+            )
+        ),
+    ],
+) -> None:
+    """Verify that the new token was successfully installed.
+
+    All other existing Access tokens for this Site are revoked after this call."""
+    await services.sites.remove_old_tokens(
+        site_id=site.id, cur_auth_id=auth_id
+    )

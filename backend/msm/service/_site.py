@@ -13,6 +13,7 @@ from sqlalchemy import (
     Select,
     case,
     cast,
+    delete,
     exists,
     func,
     literal,
@@ -31,6 +32,7 @@ from msm.db.tables import (
     SiteData,
     Token,
 )
+from msm.jwt import TokenAudience, TokenPurpose
 from msm.schema import SortParam
 from msm.service._base import Service
 from msm.settings import Settings
@@ -227,6 +229,16 @@ class SiteService(Service):
         clain_ret = await self.conn.execute(claim_stmt)
         if clain_ret.rowcount != 1:
             raise JWTClaimFailed()
+
+    async def remove_old_tokens(self, site_id: int, cur_auth_id: UUID) -> None:
+        """Remove old access Tokens for this site."""
+        stmt = delete(Token).where(
+            Token.c.site_id == site_id,
+            Token.c.audience == TokenAudience.SITE,
+            Token.c.purpose == TokenPurpose.ACCESS,
+            Token.c.auth_id != cur_auth_id,
+        )
+        await self.conn.execute(stmt)
 
     async def update_pending(
         self, details: models.PendingSiteCreate

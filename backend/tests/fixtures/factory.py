@@ -78,6 +78,18 @@ class Factory:
         )
         return [row._asdict() for row in result]
 
+    async def count(
+        self,
+        table: str,
+        *filters: ColumnOperators,
+    ) -> int:
+        """Count entries from a table."""
+        tbl = METADATA.tables[table]
+        result = await self.conn.execute(
+            func.count().select().select_from(tbl).where(*filters)  # type: ignore[arg-type]
+        )
+        return result.scalar() or 0
+
     async def make_User(
         self,
         username: str | None = None,

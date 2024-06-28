@@ -407,3 +407,45 @@ class TestEnrolRefreshGetHandler:
         response = await app_client.get("/site/v1/enrol/refresh")
         assert response.status_code == 401
         assert response.json() == {"detail": "Invalid token"}
+
+    async def test_refresh_verify(
+        self,
+        factory: Factory,
+        app_client: Client,
+    ) -> None:
+        site = await factory.make_Site()
+        access_auth_ids = [uuid4() for _ in range(2)]
+        for id in access_auth_ids:
+            await factory.make_Token(
+                site_id=site.id, auth_id=id, purpose=TokenPurpose.ACCESS
+            )
+
+        app_client.authenticate(
+            access_auth_ids[-1],
+            token_audience=TokenAudience.SITE,
+            token_purpose=TokenPurpose.ACCESS,
+        )
+        response = await app_client.get("/site/v1/enrol/verify")
+        assert response.status_code == 200
+
+        # try new token, should work
+        app_client.authenticate(
+            access_auth_ids[-1],
+            token_audience=TokenAudience.SITE,
+            token_purpose=TokenPurpose.ACCESS,
+        )
+        response = await app_client.post(
+            "/site/v1/details", json={"name": "abc"}
+        )
+        assert response.status_code == 200
+
+        # try old token, should fail
+        app_client.authenticate(
+            access_auth_ids[0],
+            token_audience=TokenAudience.SITE,
+            token_purpose=TokenPurpose.ACCESS,
+        )
+        response = await app_client.post(
+            "/site/v1/details", json={"name": "abc"}
+        )
+        assert response.status_code == 401

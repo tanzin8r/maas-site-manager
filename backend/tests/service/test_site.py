@@ -13,6 +13,8 @@ from msm.db.models import (
     SiteDetailsUpdate,
     SiteUpdate,
 )
+from msm.db.tables import Token
+from msm.jwt import TokenPurpose
 from msm.service._site import SiteService
 from msm.settings import Settings
 from msm.time import now_utc
@@ -352,3 +354,33 @@ class TestSiteService:
         await service.update_last_seen(site.id, now, update_metrics=True)
         skew = service._registry.get_sample_value("site_heartbeat_skew_sum")
         assert skew == intval
+
+    async def test_remove_old_tokens(
+        self,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        site = await factory.make_Site()
+        auth_ids = [uuid4() for _ in range(2)]
+        for id in auth_ids:
+            await factory.make_Token(
+                site_id=site.id, auth_id=id, purpose=TokenPurpose.ACCESS
+            )
+
+        assert (
+            await factory.count(
+                "token",
+                Token.c.site_id == site.id,
+                Token.c.purpose == TokenPurpose.ACCESS,
+            )
+            == 2
+        )
+        service = SiteService(db_connection)
+        await service.remove_old_tokens(site.id, auth_ids[-1])
+        db_tokens = await factory.get(
+            "token",
+            Token.c.site_id == site.id,
+            Token.c.purpose == TokenPurpose.ACCESS,
+        )
+        assert len(db_tokens) == 1
+        assert db_tokens[0]["auth_id"] == auth_ids[-1]
