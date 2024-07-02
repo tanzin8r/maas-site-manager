@@ -1,10 +1,11 @@
 """initial
 
 Revision ID: 0000
-Revises: 
+Revises:
 Create Date: 2024-01-04 10:22:31.689843+00:00
 
 """
+
 from collections.abc import Sequence
 
 from alembic import op

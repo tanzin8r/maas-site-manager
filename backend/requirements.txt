@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements.txt pyproject.toml
 #
-alembic[tz]==1.13.1
+alembic[tz]==1.13.2
     # via msm (pyproject.toml)
 annotated-types==0.7.0
     # via pydantic
@@ -101,7 +101,7 @@ pydantic[email]==2.7.4
     #   pydantic-settings
 pydantic-core==2.18.4
     # via pydantic
-pydantic-settings==2.3.3
+pydantic-settings==2.3.4
     # via msm (pyproject.toml)
 pygments==2.18.0
     # via rich

@@ -9,7 +9,7 @@ from pytest_mock import MockerFixture
 from msm.api import _update_resource_paths
 from tests.fixtures.client import Client
 
-test_html = """
+test_html = r"""
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -32,7 +32,7 @@ test_html = """
 
 @pytest.fixture(scope="session")
 def static_file_dir(
-    tmp_path_factory: pytest.TempPathFactory
+    tmp_path_factory: pytest.TempPathFactory,
 ) -> Generator[Path, None, None]:
     tmp_file_dir = tmp_path_factory.mktemp("static")
     tmp_valid_path = tmp_file_dir / "valid.js"

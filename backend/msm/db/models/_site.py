@@ -36,9 +36,9 @@ class Site(BaseModel):
     name: str
     city: str = ""
     country: str = ""
-    coordinates: tuple[
-        float, float
-    ] | None  # first item is the lon, second is the lat
+    coordinates: (
+        tuple[float, float] | None
+    )  # first item is the lon, second is the lat
     note: str = ""
     state: str = ""
     address: str = ""
@@ -72,9 +72,9 @@ class SiteCoordinates(BaseModel):
     """Coordinates for a MAAS site."""
 
     id: int
-    coordinates: tuple[
-        float, float
-    ] | None = None  # first item is the lon, second is the lat
+    coordinates: tuple[float, float] | None = (
+        None  # first item is the lon, second is the lat
+    )
 
 
 class SiteUpdate(BaseModel):

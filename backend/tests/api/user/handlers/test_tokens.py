@@ -37,11 +37,7 @@ class TestTokensPost:
         )
         assert response.status_code == 200
         [token] = response.json()["items"]
-
-        # XXX Python3.10 doesn't support parsing ISO timestamps without
-        # microseconds and with Z instead of offset. This can be dropped when
-        # switching to Python3.11 or later
-        expired = token["expired"].replace("Z", ".000000+00:00")
+        expired = token["expired"]
         assert datetime.fromisoformat(expired) < (now_utc() + expiry)
 
 

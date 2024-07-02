@@ -25,14 +25,14 @@ async def db_connection(request: Request) -> AsyncIterator[AsyncConnection]:
 
 
 def services(
-    connection: Annotated[AsyncConnection, Depends(db_connection)]
+    connection: Annotated[AsyncConnection, Depends(db_connection)],
 ) -> Iterator[ServiceCollection]:
     """Provide the ServiceCollection to access services."""
     yield ServiceCollection(connection)
 
 
 async def config(
-    connection: Annotated[AsyncConnection, Depends(db_connection)]
+    connection: Annotated[AsyncConnection, Depends(db_connection)],
 ) -> AsyncIterator[Config]:
     """Return the application configuration."""
     service = ConfigService(connection)
