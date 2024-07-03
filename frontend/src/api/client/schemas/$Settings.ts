@@ -8,5 +8,14 @@ export const $Settings = {
         service_url: {
             type: 'string',
         },
+        enrolment_url: {
+            type: 'string',
+        },
+        token_lifetime_minutes: {
+            type: 'number',
+        },
+        token_rotation_interval_minutes: {
+            type: 'number',
+        },
     },
 } as const;

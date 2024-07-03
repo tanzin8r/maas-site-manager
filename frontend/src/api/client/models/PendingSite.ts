@@ -10,6 +10,7 @@ export type PendingSite = {
     id: number;
     name: string;
     url: string;
+    cluster_uuid: string;
     created: string;
 };
 

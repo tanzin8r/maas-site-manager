@@ -9,7 +9,10 @@
 export type Token = {
     id: number;
     value: string;
+    audience: string;
+    purpose: string;
     expired: string;
     created: string;
+    site_id?: (number | null);
 };
 

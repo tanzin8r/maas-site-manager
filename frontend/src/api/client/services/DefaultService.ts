@@ -139,6 +139,7 @@ export class DefaultService {
      * @throws ApiError
      */
     public getV1SitesGet({
+        missingCoordinates = false,
         page = 1,
         size = 20,
         city,
@@ -152,6 +153,7 @@ export class DefaultService {
         url,
         sortBy,
     }: {
+        missingCoordinates?: boolean,
         page?: number,
         size?: number,
         city?: (Array<string> | null),
@@ -169,6 +171,7 @@ export class DefaultService {
             method: 'GET',
             url: '/v1/sites',
             query: {
+                'missing_coordinates': missingCoordinates,
                 'page': page,
                 'size': size,
                 'city': city,
@@ -189,15 +192,72 @@ export class DefaultService {
     }
 
     /**
+     * Delete Many
+     * Delete multiple sites from the database.
+     * @returns void
+     * @throws ApiError
+     */
+    public deleteManyV1SitesDelete({
+        ids,
+    }: {
+        ids?: Array<number>,
+    }): CancelablePromise<void> {
+        return this.httpRequest.request({
+            method: 'DELETE',
+            url: '/v1/sites',
+            query: {
+                'ids': ids,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
      * Get Coordinates
      * Return coordinates for all accepted sites.
      * @returns SiteCoordinates Successful Response
      * @throws ApiError
      */
-    public getCoordinatesV1SitesCoordinatesGet(): CancelablePromise<Array<SiteCoordinates>> {
+    public getCoordinatesV1SitesCoordinatesGet({
+        city,
+        country,
+        name,
+        note,
+        state,
+        address,
+        postalCode,
+        timezone,
+        url,
+    }: {
+        city?: (Array<string> | null),
+        country?: (Array<string> | null),
+        name?: (Array<string> | null),
+        note?: (Array<string> | null),
+        state?: (Array<string> | null),
+        address?: (Array<string> | null),
+        postalCode?: (Array<string> | null),
+        timezone?: (Array<string> | null),
+        url?: (Array<string> | null),
+    }): CancelablePromise<Array<SiteCoordinates>> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/v1/sites/coordinates',
+            query: {
+                'city': city,
+                'country': country,
+                'name': name,
+                'note': note,
+                'state': state,
+                'address': address,
+                'postal_code': postalCode,
+                'timezone': timezone,
+                'url': url,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
 
@@ -302,7 +362,7 @@ export class DefaultService {
 
     /**
      * Post
-     * Create enrollment tokens for sites.
+     * Create enrolment tokens for sites.
      *
      * Token duration (TTL) is expressed as an ISO-8601 duration string.
      * @returns TokensPostResponse Successful Response
@@ -318,6 +378,29 @@ export class DefaultService {
             url: '/v1/tokens',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Delete Many
+     * Delete several tokens from the database
+     * @returns void
+     * @throws ApiError
+     */
+    public deleteManyV1TokensDelete({
+        ids,
+    }: {
+        ids?: Array<number>,
+    }): CancelablePromise<void> {
+        return this.httpRequest.request({
+            method: 'DELETE',
+            url: '/v1/tokens',
+            query: {
+                'ids': ids,
+            },
             errors: {
                 422: `Validation Error`,
             },

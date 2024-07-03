@@ -8,5 +8,8 @@
  */
 export type SettingsPatchRequest = {
     service_url?: (string | null);
+    enrolment_url?: (string | null);
+    token_lifetime_minutes?: (number | null);
+    token_rotation_interval_minutes?: (number | null);
 };
 

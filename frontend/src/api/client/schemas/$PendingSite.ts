@@ -17,6 +17,10 @@ export const $PendingSite = {
             type: 'string',
             isRequired: true,
         },
+        cluster_uuid: {
+            type: 'string',
+            isRequired: true,
+        },
         created: {
             type: 'string',
             isRequired: true,

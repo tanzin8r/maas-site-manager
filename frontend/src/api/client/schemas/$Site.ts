@@ -46,6 +46,8 @@ export const $Site = {
             type: 'any-of',
             contains: [{
                 type: 'TimeZone',
+            }, {
+                type: 'Enum',
             }],
         },
         url: {

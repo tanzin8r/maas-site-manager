@@ -8,5 +8,8 @@
  */
 export type Settings = {
     service_url?: string;
+    enrolment_url?: string;
+    token_lifetime_minutes?: number;
+    token_rotation_interval_minutes?: number;
 };
 

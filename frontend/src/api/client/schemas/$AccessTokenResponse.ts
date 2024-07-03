@@ -13,5 +13,9 @@ export const $AccessTokenResponse = {
             type: 'string',
             isRequired: true,
         },
+        rotation_interval_minutes: {
+            type: 'number',
+            isRequired: true,
+        },
     },
 } as const;

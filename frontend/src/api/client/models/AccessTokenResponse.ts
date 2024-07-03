@@ -9,5 +9,6 @@
 export type AccessTokenResponse = {
     token_type: string;
     access_token: string;
+    rotation_interval_minutes: number;
 };
 

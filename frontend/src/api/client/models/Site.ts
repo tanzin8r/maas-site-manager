@@ -20,7 +20,7 @@ export type Site = {
     state?: string;
     address?: string;
     postal_code?: string;
-    timezone?: TimeZone;
+    timezone?: (TimeZone | '');
     url?: string;
     name_unique: boolean;
     connection_status: ConnectionStatus;

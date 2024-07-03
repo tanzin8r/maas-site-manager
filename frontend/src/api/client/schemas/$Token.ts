@@ -13,6 +13,14 @@ export const $Token = {
             type: 'string',
             isRequired: true,
         },
+        audience: {
+            type: 'string',
+            isRequired: true,
+        },
+        purpose: {
+            type: 'string',
+            isRequired: true,
+        },
         expired: {
             type: 'string',
             isRequired: true,
@@ -22,6 +30,14 @@ export const $Token = {
             type: 'string',
             isRequired: true,
             format: 'date-time',
+        },
+        site_id: {
+            type: 'any-of',
+            contains: [{
+                type: 'number',
+            }, {
+                type: 'null',
+            }],
         },
     },
 } as const;
