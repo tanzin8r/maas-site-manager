@@ -24,7 +24,7 @@ test("can hide table columns", async ({ page }) => {
     /columns/i,
   ]);
   await page.getByRole("button", { name: "Columns" }).click();
-  await page.getByLabel("submenu").getByRole("checkbox", { name: "connection" }).click({ force: true });
+  await page.getByLabel("columns menu").getByRole("checkbox", { name: "connection" }).click({ force: true });
 
   const updatedColumnHeaders = page.locator("th");
   await expect(updatedColumnHeaders).toHaveCount(columnsCount - 1);

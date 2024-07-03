@@ -45,7 +45,7 @@ export const formatDistanceToNow = (dateString: string) =>
     addSuffix: true,
   });
 
-export const getTimezoneUTCString = (timezone: TimeZone, date?: Date | number) => {
+export const getTimezoneUTCString = (timezone: TimeZone | "", date?: Date | number) => {
   const offset = getTimezoneOffset(timezone, date);
   const sign = offset < 0 ? "-" : "+";
   const absOffset = Math.abs(offset);
@@ -63,7 +63,7 @@ export const formatSiteMarker = (site: SiteCoordinates): SiteMarkerType => ({
   position: site.coordinates as SiteMarkerType["position"],
 });
 
-export const getTimeInTimezone = (date: Date, timezone: TimeZone) => {
+export const getTimeInTimezone = (date: Date, timezone: TimeZone | "") => {
   const time = date.getTime() + getTimezoneOffset(timezone);
   const hours = `${new Date(time).getUTCHours()}`.padStart(2, "0");
   const minutes = `${new Date(time).getUTCMinutes()}`.padStart(2, "0");

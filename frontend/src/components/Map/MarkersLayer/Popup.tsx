@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
+
 import maplibregl from "maplibre-gl";
 import { createPortal } from "react-dom";
 
 import { useMap } from "@/context/MapContext";
 
 interface PopupProps {
-  children: React.ReactNode;
+  children: ReactNode;
   coordinates: [number, number];
   className?: string;
   offset?: number;

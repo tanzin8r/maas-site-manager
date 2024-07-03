@@ -58,21 +58,21 @@ it("should display a token count description", async () => {
 it("disables the Delete button if no rows are selected", async () => {
   renderWithMemoryRouter(<TokensList />);
 
-  expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Delete" })).toBeAriaDisabled();
 
   await userEvent.click(screen.getAllByRole("checkbox")[0]);
 
-  expect(screen.getByRole("button", { name: "Delete" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Delete" })).not.toBeAriaDisabled();
 });
 
 it("Export button is enabled regardless of row selection", async () => {
   renderWithMemoryRouter(<TokensList />);
 
-  expect(screen.getByRole("button", { name: "Export" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Export" })).not.toBeAriaDisabled();
 
   await userEvent.click(screen.getAllByRole("checkbox")[0]);
 
-  expect(screen.getByRole("button", { name: "Export" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Export" })).not.toBeAriaDisabled();
 });
 
 it("displays a notification after a successful single deletion", async () => {

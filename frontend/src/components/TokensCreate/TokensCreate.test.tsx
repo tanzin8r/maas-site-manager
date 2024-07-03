@@ -38,10 +38,10 @@ it("if not all required fields have been entered the submit button is disabled",
   renderWithMemoryRouter(<TokensCreate />);
   const amount = screen.getByLabelText(/Amount of tokens to generate/i);
   const expires = screen.getByLabelText(/Expiration time/i);
-  expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeAriaDisabled();
   await userEvent.type(amount, "1");
   await userEvent.type(expires, "1 month");
-  expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeEnabled();
+  expect(screen.getByRole("button", { name: /Generate tokens/i })).not.toBeAriaDisabled();
 });
 
 it("displays an error for invalid expiration value", async () => {
@@ -58,7 +58,7 @@ it("can generate enrolment tokens", async () => {
   renderWithMemoryRouter(<TokensCreate />);
   const amount = screen.getByLabelText(/Amount of tokens to generate/i);
   const expires = screen.getByLabelText(/Expiration time/i);
-  expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeAriaDisabled();
   // can specify the number of tokens to generate
   await userEvent.type(amount, "1");
   // can specify the token expiration time (e.g. 1 week)
@@ -75,8 +75,8 @@ it("does not display error message on blur if the value has not chagned", async 
   renderWithMemoryRouter(<TokensCreate />);
   const amount = screen.getByLabelText(/Amount of tokens to generate/i);
   await userEvent.type(amount, "{tab}");
-  expect(amount).not.toHaveErrorMessage(/Error/i);
+  expect(amount).not.toHaveErrorMessage(/Please enter a valid number/i);
   // enter a value and then delete it
   await userEvent.type(amount, "1{backspace}");
-  expect(amount).toHaveErrorMessage(/Error/i);
+  expect(amount).toHaveErrorMessage(/Please enter a valid number/i);
 });

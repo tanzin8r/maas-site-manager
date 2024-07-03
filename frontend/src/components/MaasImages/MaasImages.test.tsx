@@ -41,8 +41,8 @@ it("disables inputs when loading", async () => {
   const checkboxInput = screen.getByRole("checkbox", {
     name: "Connect to maas.io and keep selected images up to date.",
   });
-  expect(checkboxInput).toBeDisabled();
-  expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  expect(checkboxInput).toBeAriaDisabled();
+  expect(screen.getByRole("button", { name: "Save" })).toBeAriaDisabled();
 });
 
 it("enables the 'Save' button once there are changes", async () => {
@@ -52,9 +52,9 @@ it("enables the 'Save' button once there are changes", async () => {
   });
   await waitFor(() => expect(checkboxInput).toBeChecked());
   const saveButton = screen.getByRole("button", { name: "Save" });
-  expect(saveButton).toBeDisabled();
+  expect(saveButton).toBeAriaDisabled();
   await userEvent.click(checkboxInput);
-  await waitFor(() => expect(saveButton).toBeEnabled());
+  await waitFor(() => expect(saveButton).not.toBeAriaDisabled());
   await userEvent.click(checkboxInput);
-  expect(saveButton).toBeDisabled();
+  expect(saveButton).toBeAriaDisabled();
 });

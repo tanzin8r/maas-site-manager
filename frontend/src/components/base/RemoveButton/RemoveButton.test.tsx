@@ -14,10 +14,10 @@ it("can display a custom label", () => {
 
 it("can be disabled", () => {
   const { rerender } = render(<RemoveButton />);
-  expect(screen.getByRole("button", { name: "Remove" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Remove" })).not.toBeAriaDisabled();
 
   rerender(<RemoveButton disabled />);
-  expect(screen.getByRole("button", { name: "Remove" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Remove" })).toBeAriaDisabled();
 });
 
 it("can show the 'delete' icon", () => {

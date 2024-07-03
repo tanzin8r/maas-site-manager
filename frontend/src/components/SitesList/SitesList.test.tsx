@@ -44,13 +44,13 @@ it("displays populated sites table", async () => {
 
 it("disables the 'remove' button if no rows are selected", async () => {
   renderWithMemoryRouter(<SitesList />);
-  expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Remove/i })).toBeAriaDisabled();
 });
 
 it("enables the 'remove' button if some rows are selected", async () => {
   renderWithMemoryRouter(<SitesList />);
   await userEvent.click(screen.getByRole("checkbox", { name: /select all/i }));
-  await waitFor(() => expect(screen.getByRole("button", { name: /Remove/i })).toBeEnabled());
+  await waitFor(() => expect(screen.getByRole("button", { name: /Remove/i })).not.toBeAriaDisabled());
 });
 
 it("can hide and unhide columns", async () => {

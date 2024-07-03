@@ -126,6 +126,8 @@ export const tokenFactory = Factory.define<Token>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
   return {
     id: sequence,
+    audience: chance.pickone(["maas", "maas-ui"]),
+    purpose: chance.pickone(["access", "refresh"]),
     value: chance.hash({ length: 64 }),
     expired: new Date(chance.date({ min: add(now, { seconds: 1 }), max: add(now, { days: 1 }) })).toISOString(), //<ISO 8601 date string>,
     created: new Date(chance.date({ min: sub(now, { minutes: 15 }), max: now })).toISOString(), //<ISO 8601 date string>
@@ -136,6 +138,7 @@ export const accessTokenFactory = Factory.define<AccessTokenResponse>(({ sequenc
   const chance = new Chance(`maas-${sequence}`);
   return {
     access_token: chance.hash({ length: 64 }),
+    rotation_interval_minutes: 15,
     token_type: "bearer",
   };
 });
@@ -150,6 +153,7 @@ export const enrollmentRequestFactory = Factory.define<PendingSite>(({ sequence 
   });
   return {
     id: sequence,
+    cluster_uuid: chance.guid(),
     name,
     url: `http://${name}.${chance.tld()}`,
     created: new Date(chance.date({ year: 2023 })).toISOString(), //<ISO 8601 date string>

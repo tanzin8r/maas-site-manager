@@ -59,7 +59,7 @@ describe("DeleteUser", () => {
   it("disables delete button on mount", async () => {
     renderDeleteForm();
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /delete/i })).toBeDisabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: /delete/i })).toBeAriaDisabled());
   });
 
   it("only enables delete button when username is typed", async () => {
@@ -72,11 +72,11 @@ describe("DeleteUser", () => {
     );
     // type random string
     await userEvent.type(input, "test");
-    await expect(screen.getByRole("button", { name: /delete/i })).toBeDisabled();
+    await expect(screen.getByRole("button", { name: /delete/i })).toBeAriaDisabled();
 
     // type correct username
     await userEvent.clear(input);
     await userEvent.type(input, mockUser.username);
-    await expect(screen.getByRole("button", { name: /delete/i })).toBeEnabled();
+    await expect(screen.getByRole("button", { name: /delete/i })).not.toBeAriaDisabled();
   });
 });

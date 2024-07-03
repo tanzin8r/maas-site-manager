@@ -54,7 +54,7 @@ it("displays required validation for Username and Email fields", async () => {
 
 it("disables submit button on mount", async () => {
   render(<PersonalDetailsUpdate />);
-  expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /save/i })).toBeAriaDisabled();
 });
 
 it("displays email validation error for invalid input", async () => {
@@ -81,7 +81,7 @@ it("enables submit button when all required fields are filled", async () => {
   await userEvent.type(usernameInput, "test");
   await userEvent.type(emailInput, "mail@example.com");
 
-  expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
+  expect(screen.getByRole("button", { name: /save/i })).not.toBeAriaDisabled();
 });
 
 it("renders page with prefilled inputs", async () => {

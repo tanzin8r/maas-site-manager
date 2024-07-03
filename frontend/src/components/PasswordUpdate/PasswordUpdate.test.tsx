@@ -14,7 +14,7 @@ it("should render password update form", () => {
 it("submit button is disabled on page mount", async () => {
   render(<PasswordUpdate />);
 
-  expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /save/i })).toBeAriaDisabled();
 });
 
 it("Input helper texts are displayed", () => {
@@ -61,16 +61,16 @@ it("enables submit button only when all fields are filled correctly", async () =
 
   // fill current password field
   await userEvent.type(currentPasswordField, "currentPassword");
-  expect(submitBtn).toBeDisabled();
+  expect(submitBtn).toBeAriaDisabled();
   // fill new password field
   await userEvent.type(newPasswordField, "newPassword");
-  expect(submitBtn).toBeDisabled();
+  expect(submitBtn).toBeAriaDisabled();
   // fill confirm password field with different password
   await userEvent.type(confirmPasswordField, "differentPassword");
-  expect(submitBtn).toBeDisabled();
+  expect(submitBtn).toBeAriaDisabled();
 
   // fill confirm password field with same as new password field
   await userEvent.clear(confirmPasswordField);
   await userEvent.type(confirmPasswordField, "newPassword");
-  expect(submitBtn).toBeEnabled();
+  expect(submitBtn).not.toBeAriaDisabled();
 });

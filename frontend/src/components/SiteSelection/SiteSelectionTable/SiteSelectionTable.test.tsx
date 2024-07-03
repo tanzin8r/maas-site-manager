@@ -1,7 +1,7 @@
 import SiteSelectionTable from "./SiteSelectionTable";
 
 import { siteFactory } from "@/mocks/factories";
-import { renderWithMemoryRouter, screen, userEvent, within } from "@/utils/test-utils";
+import { renderWithMemoryRouter, screen, userEvent, waitFor, within } from "@/utils/test-utils";
 
 const siteDetails = { name: "test site", url: "http://example.com" };
 const site = siteFactory.build(siteDetails);
@@ -33,5 +33,7 @@ it("unselect button has a tooltop", async () => {
 
   const tableBody = screen.getAllByRole("rowgroup")[1];
   await userEvent.hover(within(tableBody).getByRole("button", { name: /unselect/i }));
-  expect(screen.getByRole("tooltip", { name: /remove from selection/i })).toBeInTheDocument();
+  await waitFor(() => {
+    expect(screen.getByRole("tooltip", { name: /remove from selection/i })).toBeInTheDocument();
+  });
 });

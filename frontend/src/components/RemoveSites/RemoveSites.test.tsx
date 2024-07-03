@@ -51,10 +51,10 @@ vi.mock("@/context", async () => {
 it("submit button should not be disabled when something has been typed", async () => {
   render(<RemoveSites />);
   const errorMessage = /Confirmation string is not correct/i;
-  expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Remove/i })).toBeAriaDisabled();
   await userEvent.type(screen.getByRole("textbox"), "invalid text");
   expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /Remove/i })).toBeEnabled();
+  expect(screen.getByRole("button", { name: /Remove/i })).not.toBeAriaDisabled();
 });
 
 it("validation error is shown after user attempts submission", async () => {
@@ -68,10 +68,10 @@ it("validation error is shown after user attempts submission", async () => {
 
 it("does not display error message on blur if the value has not chagned", async () => {
   render(<RemoveSites />);
-  expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Remove/i })).toBeAriaDisabled();
   await userEvent.type(screen.getByRole("textbox"), "{tab}");
   expect(screen.queryByText(/Confirmation string is not correct/i)).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /Remove/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Remove/i })).toBeAriaDisabled();
 });
 
 it("validation error is hidden on change if the user already attempted submission", async () => {

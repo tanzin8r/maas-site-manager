@@ -39,5 +39,5 @@ it("displays 'Delete', 'Download images', and 'Upload Image' buttons", () => {
 it("delete button is disabled when no images are selected", () => {
   renderWithMemoryRouter(<ImagesList />);
 
-  expect(screen.getByRole("button", { name: /Delete/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Delete/i })).toBeAriaDisabled();
 });

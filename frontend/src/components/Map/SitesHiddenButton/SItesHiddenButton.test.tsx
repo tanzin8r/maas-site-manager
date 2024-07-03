@@ -1,6 +1,6 @@
 import SitesHiddenButton from "./SitesHiddenButton";
 
-import { render, screen, userEvent } from "@/utils/test-utils";
+import { render, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 it("renders the site hidden button", () => {
   render(<SitesHiddenButton />);
@@ -13,5 +13,7 @@ it("displays a tooltip on button hover", async () => {
 
   const sitesHiddenBtn = screen.getByRole("button", { name: "show missing sites" });
   await userEvent.hover(sitesHiddenBtn);
-  expect(screen.getByRole("tooltip", { name: /Some MAAS sites are not shown*/i })).toBeInTheDocument();
+  await waitFor(() => {
+    expect(screen.getByRole("tooltip", { name: /Some MAAS sites are not shown*/i })).toBeInTheDocument();
+  });
 });

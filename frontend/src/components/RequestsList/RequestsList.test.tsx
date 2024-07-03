@@ -31,8 +31,8 @@ afterAll(() => {
 it("action buttons are disabled if no row is selected", async () => {
   renderWithMemoryRouter(<RequestsList />);
 
-  expect(screen.getByRole("button", { name: /Accept/i })).toBeDisabled();
-  expect(screen.getByRole("button", { name: /Deny/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Accept/i })).toBeAriaDisabled();
+  expect(screen.getByRole("button", { name: /Deny/i })).toBeAriaDisabled();
 });
 
 it("action buttons are enabled if some rows are selected", async () => {
@@ -41,8 +41,8 @@ it("action buttons are enabled if some rows are selected", async () => {
   await waitForLoadingToFinish();
   await userEvent.click(screen.getByRole("checkbox", { name: /select all/i }));
 
-  await waitFor(() => expect(screen.getByRole("button", { name: /Accept/i })).toBeEnabled());
-  expect(screen.getByRole("button", { name: /Deny/i })).toBeEnabled();
+  await waitFor(() => expect(screen.getByRole("button", { name: /Accept/i })).not.toBeAriaDisabled());
+  expect(screen.getByRole("button", { name: /Deny/i })).not.toBeAriaDisabled();
 });
 
 it("displays a notification and clears selection if a site has been accepted", async () => {
