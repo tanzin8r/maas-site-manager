@@ -8,6 +8,7 @@ import { AbortSignal as NodeAbortSignal, AbortController as NodeAbortController 
 import "vitest-canvas-mock";
 import "vitest-webgl-canvas-mock";
 import { mockResizeObserver, configMocks } from "jsdom-testing-mocks";
+import "@/testing/customMatchers";
 
 config();
 configMocks({ beforeEach, afterEach, afterAll });
