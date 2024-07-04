@@ -33,3 +33,8 @@ async def make_fixture_tokens(
             expired=token.expiration,
         )
     return await collection.create(conn)
+
+
+async def purge_tokens(conn: AsyncConnection) -> None:
+    """Delete all tokens"""
+    return await ModelCollection("token").purge(conn)

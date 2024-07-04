@@ -209,3 +209,8 @@ async def make_fixture_sites(conn: AsyncConnection) -> list[SampleDataModel]:
     )
     await collection.create(conn)
     return sites
+
+
+async def purge_sites(conn: AsyncConnection) -> None:
+    """Delete all sites"""
+    return await ModelCollection("site").purge(conn)

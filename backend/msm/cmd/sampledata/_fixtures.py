@@ -1,5 +1,6 @@
 from argparse import Namespace
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.api import ensure_db_entries
@@ -10,6 +11,9 @@ from msm.sampledata import (
     make_fixture_sites,
     make_fixture_tokens,
     make_fixture_users,
+    purge_sites,
+    purge_tokens,
+    purge_users,
 )
 from msm.service import ConfigService
 
@@ -23,7 +27,16 @@ class FixturesAction(DatabaseAction):
             await self.db.ensure_schema()
             await self.db.execute_in_transaction(ensure_db_entries)
             config = await self._get_config(conn)
-            await self._make_fixtures(conn, config)
+            try:
+                await self._make_fixtures(conn, config)
+            except IntegrityError:
+                print(
+                    "Cannot create sampledata. Your database seems to contain data."
+                )
+                print(
+                    "Try running with 'purge-sampledata' to empty relevant tables."
+                )
+                return 1
 
         return 0
 
@@ -54,3 +67,24 @@ class FixturesAction(DatabaseAction):
                 " "
                 + " | ".join(str(getattr(entry, attrib)) for attrib in attribs)
             )
+
+
+class DeleteFixturesAction(FixturesAction):
+    name = "purge-fixtures"
+    description = "Cleanup the database and delete sample data fixtures"
+
+    async def aexecute(self, options: Namespace) -> int:
+        await self.db.ensure_schema()
+        await self.db.execute_in_transaction(ensure_db_entries)
+        async with self.database_connection() as conn:
+            await self._delete_fixtures(conn)
+        return 0
+
+    async def _delete_fixtures(
+        self,
+        conn: AsyncConnection,
+    ) -> None:
+        await purge_users(conn)
+        await purge_tokens(conn)
+        await purge_sites(conn)
+        print("Purged users, sites, and tokens")

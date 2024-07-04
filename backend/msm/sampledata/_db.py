@@ -21,7 +21,7 @@ class SampleDataModel:
 
 
 class ModelCollection:
-    """Handle inserting and returning table entries with the database."""
+    """Handle inserting, deleting, and returning table entries with the database."""
 
     def __init__(self, table: str):
         self.table_name = table
@@ -35,6 +35,10 @@ class ModelCollection:
     def add(self, **details: Any) -> None:
         """Add an entry to the collection."""
         self._entries.append(details)
+
+    async def purge(self, conn: AsyncConnection) -> None:
+        """Purge (empty) a table"""
+        await conn.execute(METADATA.tables[self.table_name].delete())
 
     async def create(self, conn: AsyncConnection) -> list[SampleDataModel]:
         """Create current entries in the database.

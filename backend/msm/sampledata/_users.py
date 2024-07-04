@@ -24,3 +24,8 @@ async def make_fixture_users(conn: AsyncConnection) -> list[SampleDataModel]:
         is_admin=False,
     )
     return await collection.create(conn)
+
+
+async def purge_users(conn: AsyncConnection) -> None:
+    """Delete all users"""
+    return await ModelCollection("user").purge(conn)
