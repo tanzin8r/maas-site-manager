@@ -15,7 +15,9 @@ export type Sidebar =
   | "downloadImages"
   | "deleteImages"
   | "deleteOrKeepImages"
+  | "sitesMissingData"
   | null;
+
 export const AppLayoutContext = createContext<{
   previousSidebar: Sidebar;
   sidebar: Sidebar;

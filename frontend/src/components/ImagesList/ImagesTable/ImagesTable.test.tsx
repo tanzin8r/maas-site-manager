@@ -7,7 +7,7 @@ import { createMockImagesResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
 import { renderWithMemoryRouter, screen, setupServer, waitFor, within } from "@/utils/test-utils";
 
-const images = imageFactory.buildList(2);
+const images = imageFactory.buildList(2, { name: "Hannah Montana Linux" });
 const initialHandlers = [rest.get(apiUrls.images, createMockImagesResolver(images))] as const;
 const mockServer = setupServer(...initialHandlers);
 
@@ -62,4 +62,23 @@ it("can display error message", async () => {
     />,
   );
   await waitFor(() => expect(screen.getByText("custom error")).toBeInTheDocument());
+});
+
+it("can display images", async () => {
+  renderWithMemoryRouter(<ImagesTableContainer />);
+
+  await waitFor(() => {
+    const table = screen.getByRole("table", { name: /images/ });
+    expect(within(table).queryByText(/Loading/)).not.toBeInTheDocument();
+  });
+
+  const tableBody = screen.getAllByRole("rowgroup")[1];
+
+  const rows = within(tableBody).getAllByRole("row");
+
+  expect(rows[0].textContent).toContain(images[0].name);
+
+  images.forEach((image, i) => {
+    expect(rows[i + 1].textContent).toContain(image.release);
+  });
 });

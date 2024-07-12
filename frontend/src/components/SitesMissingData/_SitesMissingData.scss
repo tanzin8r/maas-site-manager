@@ -1,0 +1,32 @@
+@import "vanilla-framework";
+
+.sites-missing-data {
+  .p-accordion__tab {
+    padding-left: 0;
+  }
+
+  .p-accordion__list {
+    margin-bottom: calc(0.5rem - 1px);
+  }
+
+  .p-accordion__panel {
+    padding-left: 2rem;
+  }
+
+  &__link {
+    padding-left: 2rem;
+  }
+
+  &__form-buttons-wrapper {
+    position: sticky;
+    bottom: 0;
+    background-color: white;
+    z-index: 300;
+  }
+
+  &__form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: $spv--medium;
+  }
+}

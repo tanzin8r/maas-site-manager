@@ -48,7 +48,7 @@ const SitesMap = () => {
       <section aria-label="sites map">
         <Map markers={data?.map?.(formatSiteMarker) ?? null} />
       </section>
-      <SitesHiddenButton />
+      {data?.some((site) => site.coordinates === null) ? <SitesHiddenButton /> : null}
     </ContentSection>
   );
 };

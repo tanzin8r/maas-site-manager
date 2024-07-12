@@ -39,6 +39,7 @@ import {
   getUpstreamImageSource,
   deleteImages,
   uploadImage,
+  updateSitesCoordinates,
 } from "@/api/handlers";
 import { saveToFile } from "@/utils";
 
@@ -47,10 +48,15 @@ export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 const refetchInterval = Number(import.meta.env.VITE_POLLING_INTERVAL_MS);
 
 // TODO: integrate supported API params https://warthogs.atlassian.net/browse/MAASENG-2081
-export const useSitesQuery = ({ page, size, sortBy }: Parameters<typeof apiClient.default.getV1SitesGet>[0]) =>
+export const useSitesQuery = ({
+  missingCoordinates,
+  page,
+  size,
+  sortBy,
+}: Parameters<typeof apiClient.default.getV1SitesGet>[0]) =>
   useQuery<SitesGetResponse>({
-    queryKey: ["sites", page, size, sortBy],
-    queryFn: () => getSites({ page, size, sortBy }),
+    queryKey: ["sites", page, size, sortBy, missingCoordinates],
+    queryFn: () => getSites({ missingCoordinates, page, size, sortBy }),
     placeholderData: keepPreviousData,
     refetchInterval,
   });
@@ -109,6 +115,17 @@ export const useUpdateSiteMutation = (
       options?.onSuccess?.(...args);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
     },
+  });
+};
+
+export const useUpdateSitesCoordinatesMutation = (
+  options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof updateSitesCoordinates>[0], unknown>, "mutationFn">,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateSitesCoordinates,
+    ...options,
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["sitesCoordinates"] }),
   });
 };
 

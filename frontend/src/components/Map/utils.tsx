@@ -28,15 +28,17 @@ export const createElementFromHTML = (htmlString: string): HTMLDivElement => {
 
 export const getGeoJson = (markers: SiteMarkerType[]): GeoJSON.FeatureCollection => ({
   type: "FeatureCollection",
-  features: markers.map((marker) => ({
-    type: "Feature",
-    geometry: {
-      type: "Point",
-      // longitude, latitude
-      coordinates: [marker.position[1], marker.position[0]],
-    },
-    properties: {
-      id: marker.id,
-    },
-  })),
+  features: markers
+    .filter((marker) => marker.position !== null && marker.position !== undefined)
+    .map((marker) => ({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        // longitude, latitude
+        coordinates: [marker.position[1], marker.position[0]],
+      },
+      properties: {
+        id: marker.id,
+      },
+    })),
 });

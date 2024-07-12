@@ -3,6 +3,8 @@ import { Field, Form, Formik } from "formik";
 import en from "i18n-iso-countries/langs/en.json";
 import * as Yup from "yup";
 
+import { coordinateSchema } from "./constants";
+
 import type { Site } from "@/api/client";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
@@ -40,15 +42,7 @@ const EditSiteSchema = Yup.object().shape({
   address: Yup.string(),
   city: Yup.string(),
   postal_code: Yup.string(),
-  coordinates: Yup.string()
-    .matches(
-      /^(-?\d+(\.\d*)?),\s*(-?\d+(\.\d*)?)$/,
-      "Latitude and Longitude input can only contain numerical characters (0-9), a decimal point (.), a comma (,), or a minus (-).",
-    )
-    .matches(
-      /^[-]?([1-8]?\d(\.\d+)?|90(\.0+)?)\s*,\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/,
-      "Invalid latitude and longitude. Please make sure the coordinates provided are valid and separated by a comma (,).",
-    ),
+  coordinates: coordinateSchema,
 });
 
 type SiteFormValues = typeof baseInitialValues;

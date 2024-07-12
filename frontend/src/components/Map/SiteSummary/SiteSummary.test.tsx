@@ -41,3 +41,43 @@ it("displays data for a site", async () => {
   expect(screen.getByTestId("ready")).toHaveTextContent(stats.machines_ready.toString());
   expect(screen.getByTestId("error")).toHaveTextContent(stats.machines_error.toString());
 });
+
+it("displays an error notification when site fetch fails", async () => {
+  mockServer.use(
+    rest.get(`${apiUrls.sites}/:id`, (req, res, ctx) => {
+      return res(ctx.status(500));
+    }),
+  );
+
+  renderWithMemoryRouter(<SiteSummary id={site.id} />);
+
+  await waitFor(() => {
+    expect(screen.getByText("Error while fetching site")).toBeInTheDocument();
+  });
+});
+
+it("opens the edit site sidebar when the edit button is clicked", async () => {
+  // Mocks get hoisted to the top of the file, so we also have to hoist this function
+  // to avoid "setSidebar is undefined" errors
+  const setSidebar = vi.hoisted(() => vi.fn());
+
+  vi.mock("@/context", async () => {
+    const actualContext = await vi.importActual("@/context");
+    return {
+      ...actualContext,
+      useAppLayoutContext: () => ({ setSidebar }),
+    };
+  });
+
+  renderWithMemoryRouter(<SiteSummary id={site.id} />);
+
+  await waitFor(() => {
+    expect(screen.getByText(site.name)).toBeInTheDocument();
+  });
+
+  await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+
+  expect(setSidebar).toHaveBeenCalledWith("editSite");
+
+  vi.restoreAllMocks();
+});

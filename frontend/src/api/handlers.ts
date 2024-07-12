@@ -8,6 +8,7 @@ import type {
   Body_post_v1_login_post,
   PendingSitesPostRequest,
   TokensPostRequest,
+  Site,
 } from "@/api/client";
 import { apiUrls } from "@/utils/test-urls";
 
@@ -77,8 +78,21 @@ export const getSite = async ({ id }: Parameters<typeof apiClient.default.getIdV
 export const updateSite = ({ id, requestBody }: Parameters<typeof apiClient.default.patchV1SitesIdPatch>[0]) =>
   apiClient.default.patchV1SitesIdPatch({ id, requestBody });
 
-export const deleteSites = async ({ ids }: Parameters<typeof apiClient.default.deleteManyV1SitesDelete>[0]) => {
-  return apiClient.default.deleteManyV1SitesDelete({ ids });
+export const deleteSites = async ({ ids }: Parameters<typeof apiClient.default.deleteManyV1SitesDelete>[0]) =>
+  apiClient.default.deleteManyV1SitesDelete({ ids });
+
+export const updateSitesCoordinates = (data: Pick<Site, "id" | "coordinates">[]) => {
+  if (data.length === 0) {
+    throw Error("No sites selected");
+  }
+  try {
+    const responses = data.map(({ id, coordinates }) => {
+      return apiClient.default.patchV1SitesIdPatch({ id, requestBody: { coordinates } });
+    });
+    return Promise.allSettled(responses);
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const postTokens = async (data: TokensPostRequest) => {
