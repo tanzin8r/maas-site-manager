@@ -1,0 +1,60 @@
+sequenceDiagram
+    actor MA as MAAS Admin
+    participant MAAS as MAAS
+    participant MSM as MAAS Site Manager
+    actor User as MSM User
+
+      User->>+MSM: Generate Onboarding Token(s)
+      MSM->>-User: Token(s)
+    rect rgb(245, 245, 245)
+      note left of User: Manually
+      User->>MA: Distribute Onboarding Token  
+    end
+
+    MA->>+MAAS: Initiate onboarding
+    MAAS->>+MSM: Onboarding request + meta data
+    alt valid token
+      MSM-->>MAAS: JWT API token
+      MAAS-->>MA: Success
+    else invalid or expired token
+      MSM-->>-MAAS: Error
+      MAAS-->>-MA: Error
+    end
+
+    MA -->> MA: Onboarding done
+
+    loop Every X
+        MAAS-->>+MSM: Am I authorized?
+        MSM->>-MAAS: No
+    end
+
+    User->>+MSM: Authorize or deny site(s)
+    destroy User
+    MSM-->>-User: OK
+    alt Site authorized by MSM User
+        MAAS-->>+MSM: Am I authorized?
+        MSM->>-MAAS: Yes  <headers: next checkin>
+        MAAS->>MAAS: Switch to sending heartbeats
+    else Site denied by MSM User
+        MAAS-->>+MSM: Am I authorized?
+        MSM->>-MAAS: You've been rejected
+        MAAS->>MAAS: Disconnect from Site Manager
+    end
+
+    loop Every Heartbeat Interval
+        MAAS-->>+MSM: Heartbeat and statisics
+        MSM->>-MAAS: Tasks <headers: next checkin>
+        MAAS-->>MAAS: Execute Task or Update State
+    end
+
+    loop Every Token Rotation Interval
+        activate MAAS
+        MAAS->>+MSM: Get new token
+        MSM-->>-MAAS: Updated token
+        MAAS-->>MAAS: Store new token, remove old token
+        MAAS->>+MSM: Invalidate old token
+        MSM-->>MSM: Remove old token from DB
+        MSM-->>-MAAS: 200, OK
+        deactivate MAAS
+    end
+
