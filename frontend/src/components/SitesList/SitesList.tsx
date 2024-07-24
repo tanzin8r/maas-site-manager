@@ -27,6 +27,7 @@ const SitesList = () => {
     page: debouncedPage,
     size,
     sortBy,
+    q: searchParams.get("q"),
   });
 
   useEffect(() => {

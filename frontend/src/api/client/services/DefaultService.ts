@@ -151,6 +151,7 @@ export class DefaultService {
         postalCode,
         timezone,
         url,
+        q,
         sortBy,
     }: {
         missingCoordinates?: boolean,
@@ -165,6 +166,7 @@ export class DefaultService {
         postalCode?: (Array<string> | null),
         timezone?: (Array<string> | null),
         url?: (Array<string> | null),
+        q?: (string | null),
         sortBy?: (string | null),
     }): CancelablePromise<SitesGetResponse> {
         return this.httpRequest.request({
@@ -183,6 +185,7 @@ export class DefaultService {
                 'postal_code': postalCode,
                 'timezone': timezone,
                 'url': url,
+                'q': q,
                 'sort_by': sortBy,
             },
             errors: {
@@ -230,6 +233,7 @@ export class DefaultService {
         postalCode,
         timezone,
         url,
+        q,
     }: {
         city?: (Array<string> | null),
         country?: (Array<string> | null),
@@ -240,6 +244,7 @@ export class DefaultService {
         postalCode?: (Array<string> | null),
         timezone?: (Array<string> | null),
         url?: (Array<string> | null),
+        q?: (string | null),
     }): CancelablePromise<Array<SiteCoordinates>> {
         return this.httpRequest.request({
             method: 'GET',
@@ -254,6 +259,7 @@ export class DefaultService {
                 'postal_code': postalCode,
                 'timezone': timezone,
                 'url': url,
+                'q': q,
             },
             errors: {
                 422: `Validation Error`,

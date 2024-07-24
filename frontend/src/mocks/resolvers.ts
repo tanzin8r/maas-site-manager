@@ -58,19 +58,27 @@ export const createMockSitesResolver =
     const searchParams = new URLSearchParams(req.url.search);
     const page = Number(searchParams.get("page"));
     const size = Number(searchParams.get("size"));
+    const queryText = searchParams.get("q")?.replace("+", " ");
+
     // sort items
     const items = [...sites];
+
+    // this filters for name only, backend filters for multiple parameters
+    const filteredItems = queryText
+      ? items.filter((site) => site.name.toLowerCase().includes(queryText?.toLowerCase()))
+      : items;
+
     const sortBy = searchParams.get("sortBy") as GetSitesQueryParams["sortBy"];
     if (sortBy) {
       const [field, order] = sortBy.split("-") as [SitesSortKey, SortDirection];
-      items.sort((a, b) => {
+      filteredItems.sort((a, b) => {
         if (order === "asc") {
           return a[field] > b[field] ? 1 : -1;
         }
         return a[field] < b[field] ? 1 : -1;
       });
     }
-    const itemsPage = items.slice((page - 1) * size, page * size);
+    const itemsPage = filteredItems.slice((page - 1) * size, page * size);
 
     const response: SitesGetResponse = {
       items: itemsPage,

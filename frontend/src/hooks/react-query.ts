@@ -47,16 +47,16 @@ export type UseSitesQueryResult = ReturnType<typeof useSitesQuery>;
 
 const refetchInterval = Number(import.meta.env.VITE_POLLING_INTERVAL_MS);
 
-// TODO: integrate supported API params https://warthogs.atlassian.net/browse/MAASENG-2081
 export const useSitesQuery = ({
   missingCoordinates,
   page,
   size,
   sortBy,
+  q,
 }: Parameters<typeof apiClient.default.getV1SitesGet>[0]) =>
   useQuery<SitesGetResponse>({
-    queryKey: ["sites", page, size, sortBy, missingCoordinates],
-    queryFn: () => getSites({ missingCoordinates, page, size, sortBy }),
+    queryKey: ["sites", page, size, sortBy, missingCoordinates, q],
+    queryFn: () => getSites({ missingCoordinates, page, size, sortBy, q }),
     placeholderData: keepPreviousData,
     refetchInterval,
   });

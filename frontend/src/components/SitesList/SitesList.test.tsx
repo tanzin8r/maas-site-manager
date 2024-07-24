@@ -6,7 +6,10 @@ import { createMockGetServer } from "@/mocks/server";
 import { apiUrls } from "@/utils/test-urls";
 import { renderWithMemoryRouter, screen, userEvent, waitFor, waitForLoadingToFinish, within } from "@/utils/test-utils";
 
-const sites = siteFactory.buildList(2);
+const searchSiteName = "SearchTestSite";
+const sites = siteFactory.buildList(3);
+sites[1].name = searchSiteName;
+
 const mockServer = createMockGetServer(apiUrls.sites, createMockSitesResolver(sites));
 
 beforeAll(() => {
@@ -111,14 +114,15 @@ it("toggles select all checkbox on click", async () => {
   expect(checkbox).toBeChecked();
 });
 
-it("adds search text to navigation url", async () => {
-  const searchText = "test";
+it("adds search text to navigation url and narrows down search results", async () => {
+  const searchText = "SearchTestSite";
   renderWithMemoryRouter(<SitesList />);
+  await waitForLoadingToFinish();
   const searchBox = screen.getByRole("searchbox", {
     name: /search and filter/i,
   });
-
   await userEvent.type(searchBox, searchText);
+
   await waitFor(() =>
     expect(
       screen.getByRole("tab", {
@@ -131,4 +135,9 @@ it("adds search text to navigation url", async () => {
       name: /table/i,
     }),
   ).toHaveAttribute("href", `/sites/list?q=${searchText}`);
+
+  await waitFor(() => expect(screen.getAllByRole("rowgroup")).toHaveLength(2));
+  const tableBody = screen.getAllByRole("rowgroup")[1];
+  expect(within(tableBody).getAllByRole("row")).toHaveLength(1);
+  expect(within(tableBody).getAllByRole("row")[0]).toHaveTextContent(searchSiteName);
 });
