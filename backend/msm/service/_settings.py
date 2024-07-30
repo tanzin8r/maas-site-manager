@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+import os
 from socket import gethostname
 from typing import (
     Any,
@@ -19,9 +20,12 @@ class SettingsService(DBBackedModelService[models.Settings]):
     def _default_values(self, keys: Iterable[str]) -> list[dict[str, Any]]:
         # override the method to generate the default service URL
         settings = Settings()
+        base_path = os.environ.get(
+            "MSM_BASE_PATH", f"http://{gethostname()}:{settings.api_port}"
+        )
         values = {
-            "service_url": f"http://{gethostname()}:{settings.api_port}",
-            "enrolment_url": f"http://{gethostname()}:{settings.api_port}/site/v1/enrol",
+            "service_url": base_path,
+            "enrolment_url": f"{base_path}/site/v1/enrol",
             "token_lifetime_minutes": DEFAULT_TOKEN_DURATION.total_seconds()
             // 60,
             "token_rotation_interval_minutes": (
