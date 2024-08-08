@@ -78,6 +78,27 @@ class TestTokenService:
             str(uuid3),
         }
 
+    async def test_get_includes_only_unused(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        uuid1, uuid2 = (uuid.uuid4() for _ in range(2))
+        await factory.make_Site(auth_id=uuid1)
+        await factory.make_Token(auth_id=uuid2, lifetime=timedelta(hours=1))
+
+        service = TokenService(db_connection)
+        count, tokens = await service.get()
+        assert count == 1
+        assert {
+            JWT.decode(
+                token.value,
+                issuer="issuer",
+                audience=TokenAudience.SITE,
+            ).subject
+            for token in tokens
+        } == {
+            str(uuid2),
+        }
+
     async def test_get_by_auth_id(
         self, factory: Factory, db_connection: AsyncConnection
     ) -> None:

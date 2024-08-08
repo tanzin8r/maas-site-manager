@@ -93,15 +93,16 @@ class TokenService(Service):
         limit: int | None = None,
     ) -> tuple[int, Iterable[models.Token]]:
         """Return active tokens."""
-        expired_filter = [
+        filter = [
+            Token.c.site_id == None,
             Token.c.expired > now_utc(),
             Token.c.audience == TokenAudience.SITE,
             Token.c.purpose == TokenPurpose.ENROLMENT,
         ]
-        count = await queries.row_count(self.conn, Token, *expired_filter)
+        count = await queries.row_count(self.conn, Token, *filter)
         stmt = (
             self._select_statement()
-            .where(*expired_filter)
+            .where(*filter)
             .order_by(Token.c.id)
             .offset(offset)
         )
