@@ -96,7 +96,7 @@ class SiteService(Service):
         address: list[str] | None = None,
         timezone: list[str] | None = None,
         url: list[str] | None = None,
-        missing_coordinates: bool = False,
+        coordinates: bool | None = None,
         query: str | None = None,
     ) -> tuple[int, Iterable[models.Site]]:
         """Return accepted sites, with optional filtering."""
@@ -120,8 +120,11 @@ class SiteService(Service):
             )
         )
         filters.append(Site.c.accepted == True)
-        if missing_coordinates:
-            filters.append(Site.c.coordinates == None)
+        if coordinates is not None:
+            if coordinates:
+                filters.append(Site.c.coordinates != None)
+            else:
+                filters.append(Site.c.coordinates == None)
         order_by = queries.order_by_from_arguments(sort_params=sort_params)
         count = await queries.row_count(self.conn, Site, *filters)
         stmt = (

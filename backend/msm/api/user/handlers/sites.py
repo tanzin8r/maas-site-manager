@@ -122,8 +122,9 @@ async def get(
         SiteFilterParams, Depends(site_filter_parameters)
     ],
     sort_params: Annotated[list[SortParam], Depends(site_sort_parameters)],
-    missing_coordinates: bool = Query(  # don't add to SiteFilterParams, since it's also used for /get/coordinates
-        default=False, title="Filter for sites that do not have coordinates"
+    coordinates: bool
+    | None = Query(  # don't add to SiteFilterParams, since it's also used for /get/coordinates
+        default=None, title="Filter for site with coordinates"
     ),
 ) -> SitesGetResponse:
     """Return accepted sites."""
@@ -132,7 +133,7 @@ async def get(
         offset=pagination_params.offset,
         limit=pagination_params.size,
         **filter_params._asdict(),
-        missing_coordinates=missing_coordinates,
+        coordinates=coordinates,
     )
     return SitesGetResponse(
         total=total,

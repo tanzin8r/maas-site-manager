@@ -206,21 +206,28 @@ class TestSitesGetHandler:
         response = await user_client.get("/sites", params=query_params)
         assert response.status_code == 400
 
+    @pytest.mark.parametrize(
+        "query_params, expected_result",
+        [
+            ("coordinates=true", ["Denver"]),
+            ("coordinates=false", ["London"]),
+            ("", ["London", "Denver"]),
+        ],
+    )
     async def test_missing_coordinates(
         self,
         user_client: Client,
         factory: Factory,
+        query_params: str,
+        expected_result: list[str],
     ) -> None:
+        await factory.make_Site(city="London")
         await factory.make_Site(city="Denver", coordinates=(1.0, 1.0))
         await factory.make_Site(city="Paris", accepted=False)
-        await factory.make_Site(city="London")
-        await factory.make_Site(city="Tokyo")
-        response = await user_client.get(
-            "/sites", params="missing_coordinates=true"
-        )
-        assert response.json()["total"] == 2
-        assert response.json()["items"][0]["city"] == "London"
-        assert response.json()["items"][1]["city"] == "Tokyo"
+        response = await user_client.get("/sites", params=query_params)
+        assert response.json()["total"] == len(expected_result)
+        for idx, city in enumerate(expected_result):
+            assert response.json()["items"][idx]["city"] == city
 
 
 @pytest.mark.asyncio
