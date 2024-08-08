@@ -178,6 +178,7 @@ class Factory:
         connection_status: ConnectionStatus = ConnectionStatus.UNKNOWN,
         auth_id: UUID | None = None,
         cluster_uuid: str | None = None,
+        accepted: bool = True,
     ) -> Site:
         """Create a Site."""
         id = await self.next_id("site")
@@ -206,7 +207,7 @@ class Factory:
                     "postal_code": postal_code,
                     "state": state,
                     "coordinates": coordinates,
-                    "accepted": True,
+                    "accepted": accepted,
                     "created": now_utc(),
                     "cluster_uuid": cluster_uuid,
                 }
