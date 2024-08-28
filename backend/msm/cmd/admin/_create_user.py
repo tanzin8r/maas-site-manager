@@ -25,12 +25,14 @@ class CreateUserAction(DatabaseAction):
             help="User e-mail",
         )
         parser.add_argument(
-            "full_name",
-            help="Full name",
-        )
-        parser.add_argument(
             "password",
             help="User password",
+        )
+        parser.add_argument(
+            "full_name",
+            help="Full name",
+            default="",
+            nargs="?",
         )
         parser.add_argument(
             "--admin",
