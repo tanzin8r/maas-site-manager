@@ -34,8 +34,7 @@ export const getGeoJson = (markers: SiteMarkerType[]): GeoJSON.FeatureCollection
       type: "Feature",
       geometry: {
         type: "Point",
-        // longitude, latitude
-        coordinates: [marker.position[1], marker.position[0]],
+        coordinates: marker.position,
       },
       properties: {
         id: marker.id,
