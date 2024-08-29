@@ -10,7 +10,71 @@ TBD:
 
 Description of snap installation
 
-Description of charm installation
+### Charm
+
+Installing the MAAS Site manager charm requires a running k8s Juju controller.
+There is more than one way to create this setup, e.g. 
+[Charm development environment generator](https://github.com/canonical/maas-charm-dev-env-setup/tree/main) or 
+[Getting started on MicroK8s](https://charmhub.io/topics/canonical-observability-stack/tutorials/install-microk8s#heading--configure-microk8s)
+
+
+#### Install MAAS Site manager
+
+```bash
+juju switch $YOUR_MODEL
+juju deploy postgresql-k8s --channel 14/stable
+juju deploy maas-site-manager-k8s
+juju integrate postgresql-k8s maas-site-manager-k8s
+
+# wait for applications to become ready
+juju status --watch 5s
+```
+
+#### Install COS lite
+
+This step is optional but highly recommended.
+
+```bash
+# bind MetalLB to a local IP
+IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')
+microk8s enable metallb:$IPADDR-$IPADDR
+
+# create a model for COS Lite
+juju add-model cos-lite
+
+# get bundle default offer definitions
+curl -L https://raw.githubusercontent.com/canonical/cos-lite-bundle/main/overlays/offers-overlay.yaml -O
+# reduce COS storage requirements (non production env)
+curl -L https://raw.githubusercontent.com/canonical/cos-lite-bundle/main/overlays/storage-small-overlay.yaml -O
+# deploy COS Lite
+juju deploy cos-lite --trust --overlay ./offers-overlay.yaml --overlay ./storage-small-overlay.yaml
+# Prometheus scrape is no longer part of the default offers
+juju offer prometheus:metrics-endpoint prometheus-scrape
+# wait for everything to be ready
+juju status --watch 5s --relations
+
+# integrate
+juju switch $YOUR_MODEL
+juju integrate maas-site-manager-k8s admin/cos-lite.loki-logging
+juju integrate maas-site-manager-k8s admin/cos-lite.grafana-dashboards
+juju integrate maas-site-manager-k8s admin/cos-lite.prometheus-scrape
+```
+
+#### Reverse proxy service
+
+MAAS Site Manager requires a reverse-proxy service. The easiest way to get one 
+is reusing the Traefik service that comes with COS.
+
+```bash
+juju switch cos-lite
+juju offer traefik:ingress
+
+juju switch $YOUR_MODEL
+juju integrate maas-site-manager-k8s admin/cos-lite.traefik
+```
+
+MAAS Site Manager should be available at `http://$IPADDR/$YOUR_MODEL-maas-site-manager-k8s`
+
 
 Any links to relevant webpages
 
