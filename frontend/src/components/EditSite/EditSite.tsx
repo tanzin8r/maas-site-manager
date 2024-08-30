@@ -80,16 +80,17 @@ const EditSiteContent = ({
         state: site.state ?? "",
         country: site.country ?? "",
         postal_code: site.postal_code ?? "",
-        coordinates: site.coordinates ? `${site.coordinates?.[0]}, ${site.coordinates?.[1]}` : "",
+        coordinates: site.coordinates ? `${site.coordinates?.[1]}, ${site.coordinates?.[0]}` : "",
       });
     }
   }, [site]);
 
   const handleSubmit = async (values: SiteFormValues) => {
-    const coordinates = values.coordinates
+    const coordinatesValues = values.coordinates
       .replace(/\s+/g, "")
       .split(",")
       .map((coordinate) => Number(coordinate));
+    const coordinates = [coordinatesValues[1], coordinatesValues[0]];
     const { address, city, postal_code, state, country } = values;
     const requestBody = {
       name: site!.name,

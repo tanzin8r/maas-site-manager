@@ -68,6 +68,7 @@ export const useSitesCoordinatesQuery = (queryText?: string) =>
     placeholderData: keepPreviousData,
     refetchInterval,
   });
+
 export const useSiteQuery = ({ id }: Parameters<typeof apiClient.default.getIdV1SitesIdGet>[0]) =>
   useQuery<Site>({ queryKey: ["sites", id], queryFn: () => getSite({ id }), placeholderData: keepPreviousData });
 
@@ -114,6 +115,7 @@ export const useUpdateSiteMutation = (
     onSuccess: (...args) => {
       options?.onSuccess?.(...args);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
+      queryClient.invalidateQueries({ queryKey: ["sitesCoordinates"] });
     },
   });
 };
