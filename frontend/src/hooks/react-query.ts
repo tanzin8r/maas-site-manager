@@ -266,7 +266,17 @@ export const useCurrentUserQuery = () => useQuery<User>({ queryKey: ["me"], quer
 
 export const useUpdateUserMutation = (
   options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof updateUser>[0], unknown>, "mutationFn">,
-) => useMutation({ mutationFn: updateUser, ...options });
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateUser,
+    ...options,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      options?.onSuccess?.(...args);
+    },
+  });
+};
 
 export const useAddUserMutation = (
   options?: Omit<
