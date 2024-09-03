@@ -204,17 +204,15 @@ export const useMarkers = ({ eventHandlers }: UseMarkers) => {
   );
 
   const updateMarkers = useCallback(() => {
-    if (map) {
-      requestAnimationFrame(() => {
-        const features = map.querySourceFeatures("markers");
-        if (features) {
-          const maxCount = getClustersMaxCount(features);
-          const newMarkers = generateMarkers({ features, maxCount });
-          removeUnusedMarkers(newMarkers);
-          renderMarkers(newMarkers);
-        }
-      });
-    }
+    requestAnimationFrame(() => {
+      const features = map?.querySourceFeatures?.("markers");
+      if (features) {
+        const maxCount = getClustersMaxCount(features);
+        const newMarkers = generateMarkers({ features, maxCount });
+        removeUnusedMarkers(newMarkers);
+        renderMarkers(newMarkers);
+      }
+    });
   }, [map, getClustersMaxCount, generateMarkers, removeUnusedMarkers, renderMarkers]);
 
   const throttledUpdateMarkers = useThrottle(updateMarkers, 100);
