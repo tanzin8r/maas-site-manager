@@ -3,6 +3,7 @@ from typing import cast
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import (
@@ -150,6 +151,69 @@ class TestSiteService:
         assert pending_site.name == "site"
         assert pending_site.url == "https://site.example.com"
         assert pending_site.cluster_uuid == cluster_uuid
+
+    async def test_create_pending_after_remove(
+        self,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        auth_id = uuid4()
+        await factory.make_Token(auth_id=auth_id)
+        cluster_uuid = str(uuid4())
+        service = SiteService(db_connection)
+        orig_site = await service.create_pending(
+            PendingSiteCreate(
+                name="site",
+                url="https://site.example.com",
+                auth_id=auth_id,
+                cluster_uuid=cluster_uuid,
+            )
+        )
+        await service.delete(orig_site.id)
+        new_auth_id = uuid4()
+        await factory.make_Token(auth_id=new_auth_id)
+        new_site = await service.create_pending(
+            PendingSiteCreate(
+                name="the site",
+                url="https://thesite.example.com",
+                auth_id=new_auth_id,
+                cluster_uuid=cluster_uuid,
+            )
+        )
+        assert new_site.id == orig_site.id
+        assert new_site.cluster_uuid == cluster_uuid
+        assert new_site.name == "the site"
+        assert new_site.url == "https://thesite.example.com"
+
+    async def test_create_pending_avoid_clobbing_existing(
+        self,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        auth_id = uuid4()
+        await factory.make_Token(auth_id=auth_id)
+        cluster_uuid = str(uuid4())
+        service = SiteService(db_connection)
+        orig_site = await service.create_pending(
+            PendingSiteCreate(
+                name="site",
+                url="https://site.example.com",
+                auth_id=auth_id,
+                cluster_uuid=cluster_uuid,
+            )
+        )
+        new_auth_id = uuid4()
+        await factory.make_Token(auth_id=new_auth_id)
+
+        with pytest.raises(IntegrityError):
+            await service.create_pending(
+                PendingSiteCreate(
+                    name="the site",
+                    url="https://thesite.example.com",
+                    auth_id=new_auth_id,
+                    cluster_uuid=cluster_uuid,
+                )
+            )
 
     async def test_get_enroling_accepted(
         self,

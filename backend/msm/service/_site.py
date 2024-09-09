@@ -22,6 +22,7 @@ from sqlalchemy import (
     update,
 )
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import IntegrityError
 
 from msm.db import (
     models,
@@ -291,17 +292,42 @@ class SiteService(Service):
         self, details: models.PendingSiteCreate
     ) -> models.PendingSite:
         """Create a pending site."""
-        data = details.model_dump(exclude_none=True)
-        stmt = insert(Site).returning(
-            Site.c.id,
-            Site.c.name,
-            Site.c.url,
-            Site.c.created,
-            Site.c.cluster_uuid,
-        )
-        result = await self.conn.execute(stmt, [data])
+        data = details.model_dump(exclude_none=True, exclude={"auth_id"})
+        try:
+            async with self.conn.begin_nested():
+                stmt = insert(Site).returning(
+                    Site.c.id,
+                    Site.c.name,
+                    Site.c.url,
+                    Site.c.created,
+                    Site.c.cluster_uuid,
+                )
+                result = await self.conn.execute(stmt, [data])
+        except IntegrityError:
+            # Cluster UUID collision, try to recover
+            data["accepted"] = False
+            data["deleted"] = None
+            upstmt = (
+                update(Site)
+                .where(
+                    Site.c.cluster_uuid == details.cluster_uuid,
+                    Site.c.deleted != None,
+                )
+                .values(data)
+                .returning(
+                    Site.c.id,
+                    Site.c.name,
+                    Site.c.url,
+                    Site.c.cluster_uuid,
+                    Site.c.created,
+                )
+            )
+            result = await self.conn.execute(upstmt)
+            if result.rowcount == 0:
+                raise
+
         pending_site = models.PendingSite(**(result.one()._asdict()))
-        await self.claim_jwt(pending_site.id, data["auth_id"])
+        await self.claim_jwt(pending_site.id, details.auth_id)
         return pending_site
 
     async def get_pending(
