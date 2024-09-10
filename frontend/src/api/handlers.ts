@@ -187,6 +187,9 @@ export const addUser = ({ requestBody }: Parameters<typeof apiClient.default.pos
 export const deleteUser = ({ id }: Parameters<typeof apiClient.default.deleteV1UsersIdDelete>[0]) =>
   apiClient.default.deleteV1UsersIdDelete({ id });
 
+export const updateCurrentUser = ({ requestBody }: Parameters<typeof apiClient.default.patchMeV1UsersMePatch>[0]) =>
+  apiClient.default.patchMeV1UsersMePatch({ requestBody });
+
 export const updateCurrentUserPassword = ({
   requestBody,
 }: Parameters<typeof apiClient.default.patchMePasswordV1UsersMePasswordPatch>[0]) =>

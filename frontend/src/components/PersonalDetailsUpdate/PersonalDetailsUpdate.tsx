@@ -6,7 +6,7 @@ import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 
 import type { User } from "@/api/client";
-import { useCurrentUserQuery, useUpdateUserMutation } from "@/hooks/react-query";
+import { useCurrentUserQuery, useUpdateCurrentUserMutation } from "@/hooks/react-query";
 
 type PersonalDetailsUpdateFormValues = Pick<User, "email" | "full_name" | "username">;
 const PersonalDetailsUpdateSchema = Yup.object().shape({
@@ -27,7 +27,7 @@ const PersonalDetailsUpdate = () => {
   });
   const queryClient = useQueryClient();
   const { data, isSuccess } = useCurrentUserQuery();
-  const updateUser = useUpdateUserMutation({
+  const updateUser = useUpdateCurrentUserMutation({
     onSuccess(data) {
       queryClient.setQueryData(["me"], () => data);
     },
@@ -47,7 +47,7 @@ const PersonalDetailsUpdate = () => {
     userData: PersonalDetailsUpdateFormValues,
     { setSubmitting: _ }: FormikHelpers<PersonalDetailsUpdateFormValues>,
   ) => {
-    updateUser.mutate({ id: data!.id, requestBody: { ...userData } });
+    updateUser.mutate({ requestBody: { ...userData } });
   };
 
   return (

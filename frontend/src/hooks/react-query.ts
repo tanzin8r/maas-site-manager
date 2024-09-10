@@ -41,6 +41,7 @@ import {
   uploadImage,
   updateSitesCoordinates,
   updateCurrentUserPassword,
+  updateCurrentUser,
 } from "@/api/handlers";
 import { saveToFile } from "@/utils";
 
@@ -275,6 +276,20 @@ export const useUpdateUserMutation = (
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       options?.onSuccess?.(...args);
+    },
+  });
+};
+
+export const useUpdateCurrentUserMutation = (
+  options?: Omit<UseMutationOptions<any, unknown, Parameters<typeof updateCurrentUser>[0], unknown>, "mutationFn">,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateCurrentUser,
+    ...options,
+    onSuccess: (...args) => {
+      options?.onSuccess?.(...args);
+      queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
 };
