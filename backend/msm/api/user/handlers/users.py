@@ -108,7 +108,6 @@ async def get_me(
 class UsersPatchMeRequest(BaseModel):
     """User Edit Details about themselves."""
 
-    username: str | None = None
     full_name: str | None = None
     email: str | None = None
 
@@ -125,12 +124,11 @@ async def patch_me(
 
     if await services.users.exists(
         email=patch_request.email,
-        username=patch_request.username,
         exclude_id=authenticated_user.id,
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Email or Username already in use."},
+            detail={"message": "Email already in use."},
         )
 
     user = await services.users.update(
