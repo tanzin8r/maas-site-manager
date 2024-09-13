@@ -31,3 +31,9 @@
   grid-column: 1 4;
   margin-top: $spv--small;
 }
+
+.p-popover__container {
+  &:hover {
+    background-color: $color-transparent;
+  }
+}

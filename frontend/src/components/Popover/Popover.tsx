@@ -66,7 +66,7 @@ const Popover = ({ children, className, content, position = "right" }: Props): J
 
   return (
     <button
-      className="p-button--base u-no-padding u-no-margin--bottom u-width--100"
+      className="p-popover__container p-button--base u-no-padding u-no-margin--bottom u-width--100"
       data-testid="popover-container"
       onBlur={handleBlur}
       onClick={handleClick}
