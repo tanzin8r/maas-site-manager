@@ -414,7 +414,7 @@ class TestUsersMePatchHandler:
 
     @pytest.mark.parametrize(
         "new_details",
-        [{"email": "admin2@example.com"}],
+        [{"email": "admin2@example.com"}, {"username": "admin2"}],
     )
     async def test_duplicate_user(
         self,
@@ -425,4 +425,7 @@ class TestUsersMePatchHandler:
         await factory.make_User(username="admin2", email="admin2@example.com")
         response = await admin_client.patch("/users/me", json=new_details)
         assert response.status_code == 400
-        assert response.json()["detail"]["message"] == "Email already in use."
+        assert (
+            response.json()["detail"]["message"]
+            == "Email or Username already in use."
+        )
