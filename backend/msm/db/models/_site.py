@@ -46,6 +46,7 @@ class Site(BaseModel):
     # XXX: mypy can't grok that this is an str/enum with lots of members
     timezone: TimeZone | Literal[""] = ""  # type: ignore[valid-type]
     url: str = ""
+    cluster_uuid: str
     name_unique: bool
     connection_status: ConnectionStatus
     stats: SiteData | None = None

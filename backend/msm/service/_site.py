@@ -98,6 +98,7 @@ class SiteService(Service):
         timezone: list[str] | None = None,
         url: list[str] | None = None,
         coordinates: bool | None = None,
+        cluster_uuid: list[str] | None = None,
         query: str | None = None,
     ) -> tuple[int, Iterable[models.Site]]:
         """Return accepted sites, with optional filtering."""
@@ -112,6 +113,7 @@ class SiteService(Service):
             state=state,
             timezone=timezone,
             url=url,
+            cluster_uuid=cluster_uuid,
         )
         filters.extend(
             queries.query_all_columns(
@@ -366,6 +368,7 @@ class SiteService(Service):
         address: list[str] | None = None,
         timezone: list[str] | None = None,
         url: list[str] | None = None,
+        cluster_uuid: list[str] | None = None,
         query: str | None = None,
     ) -> Iterable[models.SiteCoordinates]:
         """Return coordinates for all sites, with optional filtering."""
@@ -380,6 +383,7 @@ class SiteService(Service):
             state=state,
             timezone=timezone,
             url=url,
+            cluster_uuid=cluster_uuid,
         )
         filters.extend(
             queries.query_all_columns(
@@ -556,6 +560,7 @@ class SiteService(Service):
                 Site.c.state,
                 Site.c.timezone,
                 Site.c.url,
+                Site.c.cluster_uuid,
                 case(
                     (
                         SiteData.c.site_id == None,

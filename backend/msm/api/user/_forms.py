@@ -15,6 +15,7 @@ class SiteFilterParams(NamedTuple):
     state: list[str] | None
     timezone: list[str] | None
     url: list[str] | None
+    cluster_uuid: list[str] | None
     query: str | None
 
 
@@ -58,6 +59,9 @@ async def site_filter_parameters(
         default=None, title="Filter for timezones"
     ),
     url: list[str] | None = Query(default=None, title="Filter for urls"),
+    cluster_uuid: list[str] | None = Query(
+        default=None, title="Filter for MAAS UUIDs"
+    ),
     q: str | None = Query(
         default=None, title="Search for query in string fields"
     ),
@@ -73,6 +77,7 @@ async def site_filter_parameters(
         state=state,
         timezone=timezone,
         url=url,
+        cluster_uuid=cluster_uuid,
         query=q,
     )
 

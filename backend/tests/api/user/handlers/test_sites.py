@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Any
+from uuid import uuid4
 
 import pytest
 
@@ -102,6 +103,22 @@ class TestSitesGetHandler:
         site = await factory.make_Site(timezone="Europe/London")
 
         page1 = await user_client.get("/sites?timezone=Europe/London")
+        assert page1.status_code == 200
+        assert page1.json() == {
+            "page": 1,
+            "size": 20,
+            "total": 1,
+            "items": [site_details(site)],
+        }
+
+    async def test_filter_cluster_uuid(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        uuid = str(uuid4())
+        await factory.make_Site()
+        site = await factory.make_Site(cluster_uuid=uuid)
+
+        page1 = await user_client.get(f"/sites?cluster_uuid={uuid}")
         assert page1.status_code == 200
         assert page1.json() == {
             "page": 1,
