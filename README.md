@@ -13,16 +13,16 @@ Description of snap installation
 ### Charm
 
 Installing the MAAS Site manager charm requires a running k8s Juju controller.
-There is more than one way to create this setup, e.g. 
-[Charm development environment generator](https://github.com/canonical/maas-charm-dev-env-setup/tree/main) or 
+There is more than one way to create this setup, e.g.
+[Charm development environment generator](https://github.com/canonical/maas-charm-dev-env-setup/tree/main) or
 [Getting started on MicroK8s](https://charmhub.io/topics/canonical-observability-stack/tutorials/install-microk8s#heading--configure-microk8s)
-
 
 #### Install MAAS Site manager
 
 ```bash
 juju switch $YOUR_MODEL
 juju deploy postgresql-k8s --channel 14/stable
+# postgres may enter a blocked state, but will return to waiting/idle after some time
 juju deploy maas-site-manager-k8s
 juju integrate postgresql-k8s maas-site-manager-k8s
 
@@ -38,6 +38,8 @@ This step is optional but highly recommended.
 # bind MetalLB to a local IP
 IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')
 microk8s enable metallb:$IPADDR-$IPADDR
+sudo microk8s enable dns
+sudo microk8s enable hostpath-storage
 
 # create a model for COS Lite
 juju add-model cos-lite
@@ -60,21 +62,89 @@ juju integrate maas-site-manager-k8s admin/cos-lite.grafana-dashboards
 juju integrate maas-site-manager-k8s admin/cos-lite.prometheus-scrape
 ```
 
+#### Charm-level tracing
+
+To enable charm-level tracing, follow these steps:
+
+```bash
+# to enable charm-level tracing
+juju deploy tempo-coordinator-k8s --channel edge --trust tempo
+# wait for blocked/idle (missing any worker relation)
+juju status --watch 5s --relations
+juju deploy tempo-worker-k8s --channel edge --trust tempo-worker
+# wait for blocked/idle (missing relation to a coordinator charm)
+juju status --watch 5s --relations
+juju integrate tempo tempo-worker
+# secret-key must be at least 8 characters
+export ACCESS_KEY=accesskey
+export SECRET_KEY=mysoverysecretkey
+juju deploy minio --channel edge --trust --config access-key=$ACCESS_KEY --config secret-key=$SECRET_KEY
+juju status
+# wait for active/idle
+juju deploy s3-integrator --channel edge --trust s3
+juju status
+# wait for s3 to go blocked/idle
+juju run s3/leader sync-s3-credentials access-key=$ACCESS_KEY secret-key=$SECRET_KEY
+
+juju status
+# here, store the IP address of the minio/0 unit
+export MINIO_IP="10.1.64.154"
+```
+
+Next, we need to create a bucket in Minio. First, install the `minio` pip package
+
+```bash
+pip install minio
+```
+
+Then, run the following python script:
+
+```python
+from minio import Minio
+from os import getenv
+# Replace this with IP of the minio unit
+# shown by juju status
+address = getenv("MINIO_IP")
+bucket_name = "tempo"
+
+mc_client = Minio(
+    f"{address}:9000",
+    access_key=getenv("ACCESS_KEY"),
+    secret_key=getenv("SECRET_KEY"),
+    secure=False,
+)
+
+found = mc_client.bucket_exists(bucket_name)
+if not found:
+    mc_client.make_bucket(bucket_name)
+```
+
+Finally, complete the setup:
+
+```bash
+juju config s3 endpoint=minio-0.minio-endpoints.cos-lite.svc.cluster.local:9000 bucket=tempo
+juju integrate tempo s3
+juju integrate tempo:ingress traefik
+juju relate tempo:grafana-source grafana:grafana-source
+```
+
 #### Reverse proxy service
 
-MAAS Site Manager requires a reverse-proxy service. The easiest way to get one 
-is reusing the Traefik service that comes with COS.
+MAAS Site Manager requires a reverse-proxy service. The easiest way to get one
+is reusing the Traefik service that comes with COS. If you have set up charm-level tracing,
+you must use Traefik for the reverse-proxy service.
 
 ```bash
 juju switch cos-lite
 juju offer traefik:ingress
+juju offer tempo:tracing
 
 juju switch $YOUR_MODEL
 juju integrate maas-site-manager-k8s admin/cos-lite.traefik
+juju integrate maas-site-manager-k8s admin/cos-lite.tempo
 ```
 
 MAAS Site Manager should be available at `http://$IPADDR/$YOUR_MODEL-maas-site-manager-k8s`
-
 
 Any links to relevant webpages
 
@@ -125,8 +195,8 @@ docker compose up --build
 
 After the build has succeeded, `--build` can be omitted when bringing up the containers in the future (unless changes to `backend/Dockerfile` were made).
 
-
 #### nginx TLS proxy in dev environment
+
 If you need the Site Manager API to provide a self-signed TLS certificate, follow the steps below.
 You will need this if you are planning on issuing an enrolment request from a MAAS instance.
 
@@ -136,10 +206,12 @@ You will need this if you are planning on issuing an enrolment request from a MA
 4. On the MAAS side, the LXD container needs to know that this is a trusted certificate. If using `setup-dev-env.sh` from the [`maas-dev-setup` repository](https://github.com/canonical/maas-dev-setup), you can enable this by providing the `-c` or `--ca-crt` option and the location of the `msm.crt` file on your machine.
 
 If you are not using the script in step 4 above, follow these steps to tell MAAS that this is a trusted certificate:
+
 1. `scp` the `msm.crt` file to the LXD container running MAAS: `scp /path/on/your/machine.crt ubuntu@$container_ip:/home/ubuntu/`.
 2. `ssh` to the LXD container and place the file in the correct location. Note this cannot be handled above as we cannot `scp` as root: `sudo cp /home/ubuntu/msm.crt /usr/local/share/ca-certificates`
 3. Update the trusted CA's: `sudo update-ca-certificates`
 4. Add the cert's CN as a hostname with the following commands:
+
 ```bash
 hn=$(openssl x509 -noout -subject -in msm.crt -nameopt multiline | grep commonName | awk '{ print $3 }')
 # here, MAAS_MANAGEMENT_IP_RANGE is the gateway for your maas-kvm lxd network (e.g. 10.20.0.1)
@@ -263,19 +335,27 @@ The `--autogenerate` parameter can be omitted to create an empty migration which
 There are other settings, configurable by setting environment variables, to control behaviours of the app.
 
 - heartbeat interval: the time interval at which MSM expects its connected sites to send heartbeat. This is configurable as,
+
 ```bash
 export MSM_HEARTBEAT_INTERVAL_SEC=<value>
 ```
+
 in seconds. The default value is 300s.
+
 - connection lost threshold: threshold value for which a site gets marked as 'connection lost' in MSM. This is configurable as,
+
 ```bash
 export MSM_CONN_LOST_THRESHOLD_SEC=<value>
 ```
+
 in seconds. The default value is 600s. Note that the connection lost threshold has to be greater than the heartbeat interval.
+
 - metrics refresh interval: the time interval at which MSM metrics are refreshed. This is configurable as,
+
 ```bash
 export MSM_METRICS_REFRESH_INTVAL_SEC=<value>
 ```
+
 in seconds. The default value is 300s.
 
 #### Linting and testing
