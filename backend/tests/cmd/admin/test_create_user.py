@@ -18,7 +18,7 @@ def create_user_action() -> Iterator[AsyncAction]:
 
 
 @pytest.mark.usefixtures("settings_environ", "db")
-class TestAdmin:
+class TestCreateUserAction:
     async def test_create_user(
         self, factory: Factory, create_user_action: AsyncAction
     ) -> None:

@@ -4,7 +4,6 @@ from fastapi import (
     APIRouter,
     Depends,
 )
-from pydantic import BaseModel
 
 from msm.api._dependencies import services
 from msm.api._exceptions import raise_on_empty_request
@@ -13,6 +12,7 @@ from msm.db.models import (
     Settings,
     User,
 )
+from msm.db.models._settings import SettingsUpdate
 from msm.service import ServiceCollection
 
 v1_router = APIRouter(prefix="/v1")
@@ -26,20 +26,11 @@ async def get(
     """Return service settings."""
     return await services.settings.get()
 
-
-class SettingsPatchRequest(BaseModel):
-    """Change application settings."""
-
-    service_url: str | None = None
-    token_lifetime_minutes: int | None = None
-    token_rotation_interval_minutes: int | None = None
-
-
 @v1_router.patch("/settings")
 async def patch(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[User, Depends(authenticated_admin)],
-    request: SettingsPatchRequest,
+    request: SettingsUpdate,
 ) -> None:
     raise_on_empty_request(request)
     await services.settings.update(request.model_dump(exclude_none=True))

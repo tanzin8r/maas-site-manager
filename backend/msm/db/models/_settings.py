@@ -13,3 +13,11 @@ class Settings(BaseModel):
     token_rotation_interval_minutes: int = int(
         ((DEFAULT_TOKEN_DURATION.total_seconds()) // 60) // 2
     )
+
+
+class SettingsUpdate(BaseModel):
+    """Change application settings."""
+
+    service_url: str | None = None
+    token_lifetime_minutes: int | None = None
+    token_rotation_interval_minutes: int | None = None

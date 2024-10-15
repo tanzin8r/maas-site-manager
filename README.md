@@ -185,6 +185,11 @@ sudo -i -u postgres createdb -O "msm" "msm"
 host    msm     msm     0/0     md5
 ```
 
+- restart postgres
+```bash
+sudo systemctl restart postgresql
+```
+
 #### Setup using Docker
 
 Ensure that you have a recent version of [Docker](https://docs.docker.com/get-docker/) installed. To build and start the backend and the database run,
