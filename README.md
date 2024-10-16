@@ -1,23 +1,27 @@
 # MAAS Site Manager
 
-MAAS Site Manager can manage multiple MAAS installations ('sites') at the same time. It provides an overview of all connected sites, as well as some statistics for those sites. Furthermore, it enables centralised image management for its connected sites.
+MAAS Site Manager is a tool to manage multiple MAAS installations (called 'sites') at the same time.
+It provides an overview of all connected sites, as well as some statistics for those sites.
+Finally, it can show the physical locations of sites on a map.
 
-This repository contains one sub-folder for each sub-project: backend and frontend.
+This repository contains a sub-folder the backend and the frontend.
 
-## How to install MAAS Site Manager
+## How to install MAAS Site Manager?
 
-TBD:
+The preferred way of installing MAAS Site Manager is using Juju and Kubernetes charms.
 
-Description of snap installation
+### Installing the Juju Controller
 
-### Charm
+Installing the MAAS Site manager charm requires a running Kubernetes (k8s) Juju controller.
 
-Installing the MAAS Site manager charm requires a running k8s Juju controller.
 There is more than one way to create this setup, e.g.
-[Charm development environment generator](https://github.com/canonical/maas-charm-dev-env-setup/tree/main) or
-[Getting started on MicroK8s](https://charmhub.io/topics/canonical-observability-stack/tutorials/install-microk8s#heading--configure-microk8s)
 
-#### Install MAAS Site manager
+  - Use a [charm development environment generator](https://github.com/canonical/maas-charm-dev-env-setup/tree/main) or
+  - [Getting started on MicroK8s](https://charmhub.io/topics/canonical-observability-stack/tutorials/install-microk8s#heading--configure-microk8s)
+
+### Installing MAAS Site Manager
+
+Once you have a k8s Juju controller installing MAAS Site Manager is as simple as:
 
 ```bash
 juju switch $YOUR_MODEL
@@ -30,9 +34,13 @@ juju integrate postgresql-k8s maas-site-manager-k8s
 juju status --watch 5s
 ```
 
-#### Install COS lite
+### Installing COS lite
 
-This step is optional but highly recommended.
+This step is optional but recommended if you want to monitor MAAS Site Manager.
+Currently we are offering limited monitoring capability, mostly exposing the performance of the Site Manager endpoints.
+This will be improved in future versions.
+
+To setup COS lite and integrate MAAS Site Manager with it do the following:
 
 ```bash
 # bind MetalLB to a local IP
@@ -62,7 +70,9 @@ juju integrate maas-site-manager-k8s admin/cos-lite.grafana-dashboards
 juju integrate maas-site-manager-k8s admin/cos-lite.prometheus-scrape
 ```
 
-#### Charm-level tracing
+### Enabling Charm-Level Tracing
+
+For development and debugging it can be useful to enable tracing for your charms. This step is optional.
 
 To enable charm-level tracing, follow these steps:
 
@@ -91,7 +101,7 @@ juju status
 export MINIO_IP="10.1.64.154"
 ```
 
-Next, we need to create a bucket in Minio. First, install the `minio` pip package
+Next, create a bucket in Minio. First, install the `minio` pip package
 
 ```bash
 pip install minio
@@ -128,7 +138,7 @@ juju integrate tempo:ingress traefik
 juju relate tempo:grafana-source grafana:grafana-source
 ```
 
-#### Reverse proxy service
+### Setup a Reverse Proxy
 
 MAAS Site Manager requires a reverse-proxy service. The easiest way to get one
 is reusing the Traefik service that comes with COS. If you have set up charm-level tracing,
@@ -145,8 +155,6 @@ juju integrate maas-site-manager-k8s admin/cos-lite.tempo
 ```
 
 MAAS Site Manager should be available at `http://$IPADDR/$YOUR_MODEL-maas-site-manager-k8s`
-
-Any links to relevant webpages
 
 ## How to set up a development environment
 
@@ -200,7 +208,7 @@ docker compose up --build
 
 After the build has succeeded, `--build` can be omitted when bringing up the containers in the future (unless changes to `backend/Dockerfile` were made).
 
-#### nginx TLS proxy in dev environment
+#### Nginx TLS Proxy in Dev Environment
 
 If you need the Site Manager API to provide a self-signed TLS certificate, follow the steps below.
 You will need this if you are planning on issuing an enrolment request from a MAAS instance.
@@ -544,7 +552,3 @@ sudo snap start --enable maas-site-manager
 
 Once the service is enabled, changing settings will automatically restart it
 with the new ones.
-
-### Charm
-
-TBD
