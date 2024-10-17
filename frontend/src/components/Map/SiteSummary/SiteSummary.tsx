@@ -42,7 +42,7 @@ const SiteSummary = ({ id, ...props }: SiteSummaryProps) => {
         marker.classList.remove("site-marker--active");
       }
     };
-  });
+  }, [id]);
 
   return (
     <Card className="site-summary" onMouseOver={handleMouseOver} title="Site details" {...props}>

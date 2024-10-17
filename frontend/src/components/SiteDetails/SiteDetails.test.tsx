@@ -1,4 +1,8 @@
+import type { ReactNode } from "react";
+
 import { rest } from "msw";
+
+import { SiteMarkerSvg } from "../Map/SiteMarker/SiteMarker";
 
 import SiteDetails from "./SiteDetails";
 
@@ -13,10 +17,11 @@ const stats = statsFactory.build();
 const site = siteFactory.build({ stats });
 const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
 
-const renderForm = () => {
+const renderForm = (children?: ReactNode) => {
   return renderWithMemoryRouter(
     <SiteDetailsContext.Provider value={{ selected: site.id, setSelected: vi.fn() }}>
       <SiteDetails />
+      {children}
     </SiteDetailsContext.Provider>,
   );
 };
@@ -56,4 +61,30 @@ it("renders the correct details for a site", async () => {
   expect(screen.getByTestId("allocated-machines")).toHaveTextContent(stats.machines_allocated.toString());
   expect(screen.getByTestId("ready-machines")).toHaveTextContent(stats.machines_ready.toString());
   expect(screen.getByTestId("error-machines")).toHaveTextContent(stats.machines_error.toString());
+});
+
+it("keeps the increased map marker size when the side panel is open", async () => {
+  renderWithMemoryRouter(<SiteMarkerSvg id={site.id} />);
+
+  renderForm();
+
+  await waitFor(() => {
+    expect(screen.getByLabelText("site location marker")).toHaveClass("site-marker--active");
+  });
+});
+
+it("restores the original marker style on unmount", async () => {
+  renderWithMemoryRouter(<SiteMarkerSvg id={site.id} />);
+
+  const { unmount } = renderForm();
+
+  await waitFor(() => {
+    expect(screen.getByLabelText("site location marker")).toHaveClass("site-marker--active");
+  });
+
+  unmount();
+
+  await waitFor(() => {
+    expect(screen.getByLabelText("site location marker")).not.toHaveClass("site-marker--active");
+  });
 });

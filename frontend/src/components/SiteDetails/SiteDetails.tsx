@@ -23,6 +23,21 @@ const SiteDetailsContent = ({ id }: { id: NonNullable<SiteDetailsContextValue["s
   const { setRowSelection } = useRowSelection("sites");
   const stats = site?.stats;
 
+  useEffect(() => {
+    const marker = document.getElementById(`site-marker-${id}`);
+    if (marker) {
+      marker.classList.add("site-marker--active");
+    }
+
+    // remove marker hover style on unmount
+    return () => {
+      const marker = document.getElementById(`site-marker-${id}`);
+      if (marker) {
+        marker.classList.remove("site-marker--active");
+      }
+    };
+  }, [id]);
+
   return (
     <div className="site-details">
       <Button
