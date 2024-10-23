@@ -1,5 +1,7 @@
 import pytest
 
+from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.api.user.handlers.users import User
 from msm.db import models
 from tests.fixtures.client import Client
@@ -101,23 +103,27 @@ class TestUsersGetHandler:
         assert usernames == expected_result
 
     @pytest.mark.parametrize(
-        "sort_by",
+        "sort_by,error_msg",
         [
-            "id-asc",
-            "username,username",
-            "doesntexist",
+            ("id-asc", "Invalid sort field"),
+            ("username,username", "Duplicate sort parameters detected"),
+            ("doesntexist", "Invalid sort field"),
         ],
     )
     async def test_with_invalid_params(
         self,
         admin_client: Client,
-        factory: Factory,
         sort_by: str,
+        error_msg: str,
     ) -> None:
         response = await admin_client.get(
             "/users", params={"sort_by": sort_by}
         )
         assert response.status_code == 422
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].messages == [error_msg]
 
     async def test_pagination(
         self, admin_client: Client, factory: Factory
@@ -142,7 +148,9 @@ class TestUsersGetHandler:
 
         response = await admin_client.get(f"/users/{user.id + 100}")
         assert response.status_code == 404
-        assert response.json()["error"]["message"] == "User does not exist."
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.MISSING_RESOURCE
+        assert err.error.message == "User does not exist."
 
         response = await admin_client.get(f"/users/{user.id}")
         assert response.status_code == 200
@@ -174,11 +182,15 @@ class TestUsersPostHandler:
             json={},
         )
         assert response.status_code == 422
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+
         missing_fields = set()
 
-        for entry in response.json()["error"]["details"]:
-            missing_fields.add(entry["field"])
-            assert entry["reason"] == "Missing"
+        for entry in err.error.details:
+            missing_fields.add(entry.field)
+            assert entry.reason == "Missing"
 
         assert missing_fields == {
             "full_name",

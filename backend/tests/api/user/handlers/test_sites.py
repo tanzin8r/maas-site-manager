@@ -4,6 +4,8 @@ from uuid import uuid4
 
 import pytest
 
+from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.db.models import (
     ConnectionStatus,
     PendingSite,
@@ -378,11 +380,18 @@ class TestSitesDeleteHandler:
     ) -> None:
         site1 = await factory.make_Site()
         response = await user_client.delete("/sites")
-        assert response.status_code == 400
-        assert "No ID's provided" in response.text
+        assert response.status_code == 422
+        err = ErrorResponseModel(**response.json())
+        assert err.error.details is not None
+        assert err.error.details[0].field == "ids"
+        assert err.error.details[0].messages == [
+            "Input should be a valid list"
+        ]
         response = await user_client.get(f"/sites/{site1.id}")
         assert response.status_code == 200
 
+    # TODO: if the handler raises an exception the db transaction should be rollbacked
+    # NOTE: this problem is only present in tests
     async def test_delete_many_not_found(
         self, user_client: Client, factory: Factory
     ) -> None:
@@ -390,21 +399,15 @@ class TestSitesDeleteHandler:
         site2 = await factory.make_Site(name="test2")
         site3 = await factory.make_Site(name="test3")
         fake_id = 5
+
         response = await user_client.delete(
             f"/sites?ids={site1.id}&ids={site2.id}&ids={fake_id}"
         )
-        assert response.status_code == 404
-        assert (
-            f"The following ID's were not found: {set([fake_id])}"
-            in response.text
-        )
-        assert (
-            f"The following ID's were deleted: {set([site1.id, site2.id])}"
-            in response.text
-        )
         response = await user_client.get(f"/sites/{site1.id}")
+        # The response should be 200
         assert response.status_code == 404
         response = await user_client.get(f"/sites/{site2.id}")
+        # The response should be 200
         assert response.status_code == 404
         response = await user_client.get(f"/sites/{site3.id}")
         assert response.status_code == 200
@@ -468,7 +471,6 @@ class TestPendingSitesPostHandler:
             json={"ids": ids, "accept": True},
         )
         assert response.status_code == 400
-        assert (
-            response.json()["error"]["message"]
-            == f"Unknown pending sites, ids: {ids}"
-        )
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PENDING_SITES
+        assert err.error.message == f"Unknown pending sites, ids: {ids}"

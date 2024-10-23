@@ -6,7 +6,9 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 import pytest
 
-from msm.api._exceptions import request_validation_error_handler
+from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.middleware import request_validation_error_handler
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.api.user.handlers.users import passwords_match
 from msm.schema._pagination import PaginatedResults, PaginationParams
 from tests.fixtures.client import Client
@@ -92,12 +94,13 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "mandatory"
-        assert j["details"][0]["reason"] == "Missing"
-        assert j["details"][0]["messages"][0] == "Field required"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "mandatory"
+        assert err.error.details[0].reason == "Missing"
+        assert err.error.details[0].messages[0] == "Field required"
 
     async def test_extra_field(self, validation_client: Client) -> None:
         response = await validation_client.put(
@@ -105,13 +108,15 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "extra"
-        assert j["details"][0]["reason"] == "ExtraForbidden"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "extra"
+        assert err.error.details[0].reason == "ExtraForbidden"
         assert (
-            j["details"][0]["messages"][0] == "Extra inputs are not permitted"
+            err.error.details[0].messages[0]
+            == "Extra inputs are not permitted"
         )
 
     async def test_bool_wrong_type(self, validation_client: Client) -> None:
@@ -120,13 +125,16 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "flag"
-        assert j["details"][0]["reason"] == "BoolParsing"
-        assert j["details"][0]["messages"][0].startswith(
-            "Input should be a valid boolean"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "flag"
+        assert err.error.details[0].reason == "BoolParsing"
+        assert (
+            err.error.details[0]
+            .messages[0]
+            .startswith("Input should be a valid boolean")
         )
 
     async def test_int_wrong_type(self, validation_client: Client) -> None:
@@ -135,13 +143,16 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "value"
-        assert j["details"][0]["reason"] == "IntParsing"
-        assert j["details"][0]["messages"][0].startswith(
-            "Input should be a valid integer"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "value"
+        assert err.error.details[0].reason == "IntParsing"
+        assert (
+            err.error.details[0]
+            .messages[0]
+            .startswith("Input should be a valid integer")
         )
 
     async def test_string_wrong_type(self, validation_client: Client) -> None:
@@ -150,13 +161,15 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "mandatory"
-        assert j["details"][0]["reason"] == "StringType"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "mandatory"
+        assert err.error.details[0].reason == "StringType"
         assert (
-            j["details"][0]["messages"][0] == "Input should be a valid string"
+            err.error.details[0].messages[0]
+            == "Input should be a valid string"
         )
 
     async def test_string_too_short(self, validation_client: Client) -> None:
@@ -165,13 +178,16 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "mandatory"
-        assert j["details"][0]["reason"] == "StringTooShort"
-        assert j["details"][0]["messages"][0].startswith(
-            "String should have at least"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "mandatory"
+        assert err.error.details[0].reason == "StringTooShort"
+        assert (
+            err.error.details[0]
+            .messages[0]
+            .startswith("String should have at least")
         )
 
     async def test_string_too_long(self, validation_client: Client) -> None:
@@ -180,13 +196,16 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "mandatory"
-        assert j["details"][0]["reason"] == "StringTooLong"
-        assert j["details"][0]["messages"][0].startswith(
-            "String should have at most"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "mandatory"
+        assert err.error.details[0].reason == "StringTooLong"
+        assert (
+            err.error.details[0]
+            .messages[0]
+            .startswith("String should have at most")
         )
 
     async def test_invalid_email(self, validation_client: Client) -> None:
@@ -195,13 +214,16 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "email"
-        assert j["details"][0]["reason"] == "ValueError"
-        assert j["details"][0]["messages"][0].startswith(
-            "An email address must have an @-sign"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "email"
+        assert err.error.details[0].reason == "ValueError"
+        assert (
+            err.error.details[0]
+            .messages[0]
+            .startswith("An email address must have an @-sign")
         )
 
     async def test_invalid_list_item(self, validation_client: Client) -> None:
@@ -210,13 +232,16 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "strlist[1]"
-        assert j["details"][0]["reason"] == "StringType"
-        assert j["details"][0]["messages"][0].startswith(
-            "Input should be a valid string"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "strlist[1]"
+        assert err.error.details[0].reason == "StringType"
+        assert (
+            err.error.details[0]
+            .messages[0]
+            .startswith("Input should be a valid string")
         )
 
     async def test_model_validation(self, validation_client: Client) -> None:
@@ -230,13 +255,14 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "confirm_password"
-        assert j["details"][0]["reason"] == "PasswordMismatch"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "confirm_password"
+        assert err.error.details[0].reason == "PasswordMismatch"
         assert (
-            j["details"][0]["messages"][0]
+            err.error.details[0].messages[0]
             == "'password' and 'confirm_password' do not match."
         )
 
@@ -250,10 +276,11 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "body"
-        assert j["details"][0]["field"] == "details.data"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "body"
+        assert err.error.details[0].field == "details.data"
 
     async def test_path_validation(self, validation_client: Client) -> None:
         response = await validation_client.put(
@@ -262,11 +289,12 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "path"
-        assert j["details"][0]["field"] == "id"
-        assert j["details"][0]["reason"] == "IntParsing"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "path"
+        assert err.error.details[0].field == "id"
+        assert err.error.details[0].reason == "IntParsing"
 
     async def test_get_ok(self, validation_client: Client) -> None:
         response = await validation_client.get("/dummies", params={"page": 1})
@@ -280,8 +308,9 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        j = response.json()["error"]
-        assert j["code"] == "InvalidParameters"
-        assert j["details"][0]["location"] == "query"
-        assert j["details"][0]["field"] == "page"
-        assert j["details"][0]["reason"] == "IntParsing"
+        err = ErrorResponseModel(**response.json())
+        assert err.error.code == ExceptionCode.INVALID_PARAMS
+        assert err.error.details is not None
+        assert err.error.details[0].location == "query"
+        assert err.error.details[0].field == "page"
+        assert err.error.details[0].reason == "IntParsing"

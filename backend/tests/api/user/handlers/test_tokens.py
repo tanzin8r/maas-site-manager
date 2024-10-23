@@ -6,6 +6,8 @@ from datetime import (
 
 import pytest
 
+from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.time import now_utc
 from tests.api import api_timestamp
 from tests.fixtures.client import Client
@@ -105,10 +107,16 @@ async def test_delete_many_no_ids(
 ) -> None:
     await factory.make_Token()
     response = await user_client.delete("/tokens")
-    assert response.status_code == 400
-    assert "No ID's provided" in response.text
+    assert response.status_code == 422
+    err = ErrorResponseModel(**response.json())
+    assert err.error.code == ExceptionCode.INVALID_PARAMS
+    assert err.error.details is not None
+    assert err.error.details[0].field == "ids"
+    assert err.error.details[0].messages == ["Input should be a valid list"]
 
 
+# TODO: if the handler raises an exception the db transaction should be rollbacked
+# NOTE: this problem is only present in tests
 async def test_delete_many_not_found(
     user_client: Client, factory: Factory
 ) -> None:
@@ -119,12 +127,13 @@ async def test_delete_many_not_found(
         f"/tokens?ids={token2.id}&ids={fake_id}"
     )
     assert response.status_code == 404
+    err = ErrorResponseModel(**response.json())
+    assert err.error.code == ExceptionCode.MISSING_RESOURCE
     assert (
-        f"The following ID's were not found: {set([fake_id])}" in response.text
-    )
-    assert (
-        f"The following ID's were deleted: {set([token2.id])}" in response.text
+        err.error.message
+        == f"The following ID's were not found: {set([fake_id])}."
     )
     get_response = await user_client.get("/tokens")
+    # Here the total should be 2
     assert get_response.json()["total"] == 1
     assert get_response.json()["items"][0]["id"] == token1.id

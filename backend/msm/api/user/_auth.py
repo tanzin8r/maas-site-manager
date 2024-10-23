@@ -1,16 +1,16 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import (
-    Depends,
-    HTTPException,
-    status,
-)
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
 from msm.api._auth import auth_id_from_token
 from msm.api._dependencies import services
-from msm.api._exceptions import INVALID_TOKEN_ERROR
+from msm.api.exceptions.catalog import (
+    ForbiddenException,
+    UnauthorizedException,
+)
+from msm.api.exceptions.constants import ExceptionCode
 from msm.db.models import User
 from msm.jwt import TokenAudience
 from msm.service import (
@@ -40,16 +40,18 @@ async def authenticated_user(
 ) -> User:
     if user := await services.users.get_by_auth_id(auth_id):
         return user
-    raise INVALID_TOKEN_ERROR
+    raise UnauthorizedException(
+        code=ExceptionCode.INVALID_TOKEN,
+        message="The token is not valid.",
+    )
 
 
 def authenticated_admin(
     user: Annotated[User, Depends(authenticated_user)],
 ) -> User:
     if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Unauthorized credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise ForbiddenException(
+            code=ExceptionCode.MISSING_PERMISSIONS,
+            message="Unauthorized credentials.",
         )
     return user

@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.service import SettingsService
 from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
@@ -66,10 +67,9 @@ async def test_settings_patch_empty_request(
 ) -> None:
     response = await admin_client.patch("/settings", json={})
     assert response.status_code == 422
-    assert (
-        response.json()["error"]["message"]
-        == "One or more request parameters are invalid"
-    )
-    assert response.json()["error"]["details"][0]["messages"] == [
+    err = ErrorResponseModel(**response.json())
+    assert err.error.message == "One or more request parameters are invalid"
+    assert err.error.details is not None
+    assert err.error.details[0].messages == [
         "Value error, At least one field must be set."
     ]

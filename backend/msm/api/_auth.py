@@ -7,15 +7,14 @@ from uuid import UUID
 
 from fastapi import (
     Depends,
-    HTTPException,
     Request,
-    status,
 )
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
 
 from msm.api._dependencies import config
-from msm.api._exceptions import INVALID_TOKEN_ERROR
+from msm.api.exceptions.catalog import UnauthorizedException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.db.models import Config, Token
 from msm.jwt import (
     DEFAULT_TOKEN_DURATION,
@@ -35,10 +34,9 @@ async def bearer_token(request: Request) -> str:
     authorization = request.headers.get("Authorization")
     scheme, token = get_authorization_scheme_param(authorization)
     if not authorization or scheme.lower() != "bearer":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise UnauthorizedException(
+            code=ExceptionCode.NOT_AUTHENTICATED,
+            message="This endpoint requires authentication.",
         )
     return token
 
@@ -63,7 +61,10 @@ def auth_id_from_token(
                 purpose=token_purpose,
             )
         except (ValueError, InvalidToken):
-            raise INVALID_TOKEN_ERROR
+            raise UnauthorizedException(
+                code=ExceptionCode.INVALID_TOKEN,
+                message="The token is not valid.",
+            )
         return UUID(decoded_token.subject)
 
     return auth_id_dep

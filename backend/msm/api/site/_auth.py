@@ -8,7 +8,8 @@ from msm.api._auth import (
     bearer_token,
 )
 from msm.api._dependencies import services
-from msm.api._exceptions import INVALID_TOKEN_ERROR
+from msm.api.exceptions.catalog import UnauthorizedException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.db.models import Site
 from msm.jwt import (
     TokenAudience,
@@ -37,7 +38,10 @@ async def authenticated_site(
     """
     site = await services.sites.get_by_auth_id(auth_id)
     if not site:
-        raise INVALID_TOKEN_ERROR
+        raise UnauthorizedException(
+            code=ExceptionCode.INVALID_TOKEN,
+            message="The token is not valid.",
+        )
 
     await services.sites.update_last_seen(site.id, now_utc())
     return site

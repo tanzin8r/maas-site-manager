@@ -1,12 +1,11 @@
 from collections.abc import Iterator
 import uuid
 
-from fastapi import (
-    FastAPI,
-    HTTPException,
-)
+from fastapi import FastAPI
 import pytest
 
+from msm.api.exceptions.catalog import UnauthorizedException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.api.site._auth import authenticated_site
 from msm.db.models import Site
 from msm.service import ServiceCollection
@@ -58,10 +57,11 @@ class TestAuthenticatedSite:
     async def test_invalid_auth_id(
         self, api_services: ServiceCollection
     ) -> None:
-        with pytest.raises(HTTPException) as error:
+        with pytest.raises(UnauthorizedException) as error:
             await authenticated_site(api_services, uuid.uuid4())
         assert error.value.status_code == 401
-        assert error.value.headers == {"WWW-Authenticate": "Bearer"}
+        assert error.value.message == "The token is not valid."
+        assert error.value.code == ExceptionCode.INVALID_TOKEN
 
     async def test_update_last_seen(
         self,

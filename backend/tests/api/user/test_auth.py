@@ -1,12 +1,14 @@
 from collections.abc import Iterator
 import uuid
 
-from fastapi import (
-    FastAPI,
-    HTTPException,
-)
+from fastapi import FastAPI
 import pytest
 
+from msm.api.exceptions.catalog import (
+    ForbiddenException,
+    UnauthorizedException,
+)
+from msm.api.exceptions.constants import ExceptionCode
 from msm.api.user._auth import (
     authenticated_admin,
     authenticated_user,
@@ -113,10 +115,11 @@ class TestAuthenticatedUser:
     async def test_invalid_auth_id(
         self, api_services: ServiceCollection
     ) -> None:
-        with pytest.raises(HTTPException) as error:
+        with pytest.raises(UnauthorizedException) as error:
             await authenticated_user(api_services, uuid.uuid4())
         assert error.value.status_code == 401
-        assert error.value.headers == {"WWW-Authenticate": "Bearer"}
+        assert error.value.message == "The token is not valid."
+        assert error.value.code == ExceptionCode.INVALID_TOKEN
 
 
 class TestAuthenticatedAdmin:
@@ -128,7 +131,8 @@ class TestAuthenticatedAdmin:
         assert admin == api_admin
 
     def test_not_admin(self, api_user: User) -> None:
-        with pytest.raises(HTTPException) as error:
+        with pytest.raises(ForbiddenException) as error:
             authenticated_admin(api_user)
+        assert error.value.message == "Unauthorized credentials."
+        assert error.value.code == ExceptionCode.MISSING_PERMISSIONS
         assert error.value.status_code == 403
-        assert error.value.headers == {"WWW-Authenticate": "Bearer"}

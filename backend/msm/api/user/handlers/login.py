@@ -3,8 +3,6 @@ from typing import Annotated
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
-    status,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -16,6 +14,8 @@ from msm.api._dependencies import (
     config,
     services,
 )
+from msm.api.exceptions.catalog import UnauthorizedException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.api.user._auth import authenticate_user
 from msm.db.models import Config
 from msm.jwt import TokenAudience
@@ -34,9 +34,8 @@ async def post(
         services.users, form_data.username, form_data.password
     )
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise UnauthorizedException(
+            code=ExceptionCode.INVALID_CREDENTIALS,
+            message="Wrong username or password.",
         )
     return token_response(config, user.auth_id, TokenAudience.API)

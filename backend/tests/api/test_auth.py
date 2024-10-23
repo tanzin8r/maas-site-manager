@@ -1,6 +1,5 @@
 from uuid import uuid4
 
-from fastapi import HTTPException
 from httpx import Request
 import pytest
 
@@ -9,6 +8,8 @@ from msm.api._auth import (
     bearer_token,
     token_response,
 )
+from msm.api.exceptions.catalog import UnauthorizedException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.db.models import Config
 from msm.jwt import (
     JWT,
@@ -40,10 +41,11 @@ class TestBearerToken:
 
     async def test_no_token(self) -> None:
         request = Request("GET", "/test")
-        with pytest.raises(HTTPException) as error:
+        with pytest.raises(UnauthorizedException) as error:
             await bearer_token(request)  # type: ignore[arg-type]
         assert error.value.status_code == 401
-        assert error.value.headers == {"WWW-Authenticate": "Bearer"}
+        assert error.value.message == "This endpoint requires authentication."
+        assert error.value.code == ExceptionCode.NOT_AUTHENTICATED
 
 
 class TestAuthIDFromToken:
@@ -60,6 +62,8 @@ class TestAuthIDFromToken:
 
     def test_invalid_token(self, api_config: Config) -> None:
         get_auth_id = auth_id_from_token(bearer_token, TokenAudience.API)
-        with pytest.raises(HTTPException) as error:
+        with pytest.raises(UnauthorizedException) as error:
             get_auth_id(api_config, "invalid")
         assert error.value.status_code == 401
+        assert error.value.message == "The token is not valid."
+        assert error.value.code == ExceptionCode.INVALID_TOKEN

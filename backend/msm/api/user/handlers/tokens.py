@@ -4,9 +4,7 @@ from typing import Annotated
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
     Query,
-    status,
 )
 from pydantic import BaseModel
 
@@ -15,6 +13,8 @@ from msm.api._dependencies import (
     config,
     services,
 )
+from msm.api.exceptions.catalog import NotFoundException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.api.user._auth import authenticated_user
 from msm.api.user._forms import (
     TokenFilterParams,
@@ -128,28 +128,14 @@ async def delete(
 async def delete_many(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[Token, Depends(authenticated_user)],
-    ids: Annotated[list[int], Query()] = [],
+    ids: Annotated[list[int], Query()],
 ) -> None:
     """Delete several tokens from the database"""
-    # unfortunately, we can't use fastapi to validate that at least one id was
-    # pased, so we need to do it manually
-    if not ids:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No ID's provided",
-        )
     requested_ids = set(ids)
     deleted_ids = await services.tokens.delete_many(ids)
     if deleted_ids != requested_ids:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=(
-                f"The following ID's were not found: {requested_ids - deleted_ids}."
-                + (
-                    f" The following ID's were deleted: {deleted_ids}"
-                    if deleted_ids
-                    else ""
-                )
-            ),
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message=f"The following ID's were not found: {requested_ids - deleted_ids}.",
         )
     return None

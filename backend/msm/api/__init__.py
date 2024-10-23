@@ -21,18 +21,17 @@ from fastapi.responses import (
 )
 from prometheus_client import REGISTRY, CollectorRegistry
 from sqlalchemy.ext.asyncio import AsyncConnection
-from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
 from uvicorn.server import logger
 
 import msm
 from msm import __version__
-from msm.api._exceptions import (
-    http_exception_handler,
-    request_validation_error_handler,
-)
 from msm.api._prometheus import instrument_prometheus
 from msm.api._utils import create_subapp
+from msm.api.exceptions.middleware import (
+    ExceptionMiddleware,
+    request_validation_error_handler,
+)
 from msm.api.site.handlers import ROUTERS as SITE_API_ROUTERS
 from msm.api.user.handlers import ROUTERS as USER_API_ROUTERS
 from msm.db import Database, check_server_version
@@ -100,9 +99,6 @@ def create_app(
         root_path=root_path,
     )
 
-    # override default exception handler
-    app.add_exception_handler(StarletteHTTPException, http_exception_handler)
-
     @app.get("/")
     @app.get("/ui", response_class=RedirectResponse, status_code=301)
     async def redirect(request: Request) -> RedirectResponse:
@@ -145,10 +141,10 @@ def create_app(
         # e.g. rollback a DB transaction
         a.add_middleware(DatabaseMetricsMiddleware, db=db)
         a.add_middleware(transaction_middleware_class, db=db)
+        a.add_middleware(ExceptionMiddleware)
         a.add_exception_handler(
             RequestValidationError, request_validation_error_handler
         )
-        a.add_exception_handler(StarletteHTTPException, http_exception_handler)
 
     app.mount("/api", user_app)
     app.mount("/site", site_app)

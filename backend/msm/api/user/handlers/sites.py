@@ -8,9 +8,7 @@ from typing import (
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
     Query,
-    status,
 )
 from pydantic import (
     BaseModel,
@@ -19,9 +17,8 @@ from pydantic import (
 )
 
 from msm.api._dependencies import services
-from msm.api._exceptions import (
-    not_found,
-)
+from msm.api.exceptions.catalog import BadRequestException, NotFoundException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.api.user._auth import authenticated_user
 from msm.api.user._forms import (
     SiteFilterParams,
@@ -100,9 +97,9 @@ async def post_pending(
             action.accept,
         )
     except InvalidPendingSites as error:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"{error!s}, ids: {error.ids}",
+        raise BadRequestException(
+            code=ExceptionCode.INVALID_PENDING_SITES,
+            message=f"Unknown pending sites, ids: {error.ids}",
         )
 
     return None
@@ -165,7 +162,9 @@ async def get_id(
     """Return a specific site."""
     if site := await services.sites.get_by_id(id):
         return site
-    raise not_found("Site")
+    raise NotFoundException(
+        code=ExceptionCode.MISSING_RESOURCE, message="Site does not exist."
+    )
 
 
 class SiteUpdateRequest(BaseModel):
@@ -199,7 +198,9 @@ async def patch(
 ) -> models.Site:
     """Modify a site."""
     if not await services.sites.id_exists(id):
-        raise not_found("Site")
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE, message="Site does not exist."
+        )
 
     data = patch_request.model_dump(exclude_none=True)
     await services.sites.update(id, models.SiteUpdate(**data))
@@ -221,28 +222,14 @@ async def delete(
 async def delete_many(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.Site, Depends(authenticated_user)],
-    ids: Annotated[list[int], Query()] = [],
+    ids: Annotated[list[int], Query()],
 ) -> None:
     """Delete multiple sites from the database."""
-    # unfortunately, we can't use fastapi to validate that at least one id was
-    # pased, so we need to do it manually
-    if not ids:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No ID's provided",
-        )
     requested_ids = set(ids)
     deleted_ids = await services.sites.delete_many(ids)
     if deleted_ids != requested_ids:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=(
-                f"The following ID's were not found: {requested_ids - deleted_ids}."
-                + (
-                    f" The following ID's were deleted: {deleted_ids}"
-                    if deleted_ids
-                    else ""
-                )
-            ),
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message=f"The following ID's were not found: {requested_ids - deleted_ids}.",
         )
     return None

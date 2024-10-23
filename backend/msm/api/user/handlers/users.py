@@ -6,8 +6,6 @@ from typing import (
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
-    status,
 )
 from pydantic import (
     BaseModel,
@@ -18,6 +16,12 @@ from pydantic import (
 from pydantic_core import PydanticCustomError
 
 from msm.api._dependencies import services
+from msm.api.exceptions.catalog import (
+    BadRequestException,
+    ForbiddenException,
+    NotFoundException,
+)
+from msm.api.exceptions.constants import ExceptionCode
 from msm.api.user._auth import (
     authenticate_user,
     authenticated_admin,
@@ -146,9 +150,9 @@ async def patch_me(
         username=patch_request.username,
         exclude_id=authenticated_user.id,
     ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email or Username already in use.",
+        raise BadRequestException(
+            code=ExceptionCode.ALREADY_EXISTS,
+            message="Email or Username already in use.",
         )
 
     user = await services.users.update(
@@ -187,9 +191,9 @@ async def patch_me_password(
             patch_request.new_password,
         )
         return None
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Incorrect password for user.",
+    raise BadRequestException(
+        code=ExceptionCode.INVALID_CREDENTIALS,
+        message="Incorrect password for user.",
     )
 
 
@@ -203,9 +207,8 @@ async def get_id(
 
     if user := await services.users.get_by_id(id):
         return User.from_model(user)
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="User does not exist.",
+    raise NotFoundException(
+        code=ExceptionCode.MISSING_RESOURCE, message="User does not exist."
     )
 
 
@@ -235,10 +238,11 @@ async def post(
     if await services.users.exists(
         email=post_request.email, username=post_request.username
     ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email or Username already in use.",
+        raise BadRequestException(
+            code=ExceptionCode.ALREADY_EXISTS,
+            message="Email or Username already in use.",
         )
+
     user = await services.users.create(
         models.UserCreate(**post_request.model_dump())
     )
@@ -279,15 +283,14 @@ async def patch(
     """Admin action to update the details for a user."""
 
     if id == authenticated_admin.id and patch_request.is_admin is False:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin users cannot demote themselves.",
+        raise ForbiddenException(
+            code=ExceptionCode.INVALID_PARAMS,
+            message="Admin users cannot demote themselves.",
         )
 
     if not await services.users.id_exists(id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User does not exist.",
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE, message="User does not exist."
         )
 
     if await services.users.exists(
@@ -295,9 +298,9 @@ async def patch(
         username=patch_request.username,
         exclude_id=id,
     ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email or Username already in use.",
+        raise BadRequestException(
+            code=ExceptionCode.ALREADY_EXISTS,
+            message="Email or Username already in use.",
         )
 
     user = await services.users.update(
@@ -314,9 +317,9 @@ async def delete(
 ) -> None:
     """Delete a user from the database."""
     if authenticated_admin.id == id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete the current user.",
+        raise BadRequestException(
+            code=ExceptionCode.INVALID_PARAMS,
+            message="Cannot delete the current user.",
         )
     await services.users.delete(id)
     return None

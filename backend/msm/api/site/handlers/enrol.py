@@ -20,7 +20,8 @@ from msm.api._dependencies import (
     config,
     services,
 )
-from msm.api._exceptions import INVALID_TOKEN_ERROR
+from msm.api.exceptions.catalog import UnauthorizedException
+from msm.api.exceptions.constants import ExceptionCode
 from msm.api.site._auth import authenticated_site
 from msm.db.models import (
     Config,
@@ -84,7 +85,10 @@ async def post(
         or db_token.is_expired()
         or db_token.site_id is not None
     ):
-        raise INVALID_TOKEN_ERROR
+        raise UnauthorizedException(
+            code=ExceptionCode.INVALID_TOKEN,
+            message="The token is not valid.",
+        )
     metadata = (
         post_request.metadata.model_dump(
             exclude=(set(["longitude", "latitude"]))
@@ -142,7 +146,10 @@ async def get(
     """
     site = await services.sites.get_enroling(auth_id)
     if not site:
-        raise INVALID_TOKEN_ERROR
+        raise UnauthorizedException(
+            code=ExceptionCode.INVALID_TOKEN,
+            message="The token is not valid.",
+        )
     if not site.accepted:
         response.status_code = status.HTTP_204_NO_CONTENT
         return None
