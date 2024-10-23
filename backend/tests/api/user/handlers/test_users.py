@@ -344,8 +344,11 @@ class TestUsersPatchHandler:
         assert response.status_code == 422
         assert (
             response.json()["error"]["message"]
-            == "Expected UsersPatchRequest instance."
+            == "One or more request parameters are invalid"
         )
+        assert response.json()["error"]["details"][0]["messages"] == [
+            "Value error, At least one field must be set."
+        ]
 
     async def test_nonexistent_user(self, admin_client: Client) -> None:
         response = await admin_client.patch(
@@ -454,8 +457,11 @@ class TestUsersMePatchHandler:
         assert response.status_code == 422
         assert (
             response.json()["error"]["message"]
-            == "Expected UsersPatchMeRequest instance."
+            == "One or more request parameters are invalid"
         )
+        assert response.json()["error"]["details"][0]["messages"] == [
+            "Value error, At least one field must be set."
+        ]
 
     @pytest.mark.parametrize(
         "new_details",

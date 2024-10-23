@@ -20,7 +20,7 @@ class UpdateSettingsAction(DatabaseAction):
             help="The base URL for the API.",
             required=False,
             type=str,
-            default=None
+            default=None,
         )
 
         parser.add_argument(
@@ -28,7 +28,7 @@ class UpdateSettingsAction(DatabaseAction):
             help="Lifetime of access tokens in minutes.",
             required=False,
             type=int,
-            default=None
+            default=None,
         )
 
         parser.add_argument(
@@ -36,9 +36,8 @@ class UpdateSettingsAction(DatabaseAction):
             help="Interval for rotating access tokens in minutes.",
             required=False,
             type=int,
-            default=None
+            default=None,
         )
-
 
     async def aexecute(self, options: Namespace) -> int:
         await self._update_setting(
@@ -46,10 +45,7 @@ class UpdateSettingsAction(DatabaseAction):
         )
         return 0
 
-    async def _update_setting(
-        self,
-        request: SettingsUpdate
-    ) -> None:
+    async def _update_setting(self, request: SettingsUpdate) -> None:
         async with self.database_connection() as conn:
             settings = SettingsService(conn)
             await settings.update(request.model_dump(exclude_none=True))

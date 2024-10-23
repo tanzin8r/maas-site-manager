@@ -18,7 +18,6 @@ from pydantic import (
 from pydantic_core import PydanticCustomError
 
 from msm.api._dependencies import services
-from msm.api._exceptions import raise_on_empty_request
 from msm.api.user._auth import (
     authenticate_user,
     authenticated_admin,
@@ -127,6 +126,12 @@ class UsersPatchMeRequest(BaseModel):
     full_name: str | None = None
     email: str | None = None
 
+    @model_validator(mode="after")
+    def check_at_least_one_field_present(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("At least one field must be set.")
+        return self
+
 
 @v1_router.patch("/users/me")
 async def patch_me(
@@ -135,8 +140,6 @@ async def patch_me(
     patch_request: UsersPatchMeRequest,
 ) -> User:
     """Update the details for a user"""
-
-    raise_on_empty_request(patch_request)
 
     if await services.users.exists(
         email=patch_request.email,
@@ -174,7 +177,6 @@ async def patch_me_password(
     patch_request: UsersPasswordPatchRequest,
 ) -> None:
     """Modify the users password."""
-    raise_on_empty_request(patch_request)
     if await authenticate_user(
         services.users,
         authenticated_user.email,
@@ -260,6 +262,12 @@ class UsersPatchRequest(BaseModel):
         passwords_match(self, "password", "confirm_password")
         return self
 
+    @model_validator(mode="after")
+    def check_at_least_one_field_present(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("At least one field must be set.")
+        return self
+
 
 @v1_router.patch("/users/{id}")
 async def patch(
@@ -269,8 +277,6 @@ async def patch(
     patch_request: UsersPatchRequest,
 ) -> User:
     """Admin action to update the details for a user."""
-
-    raise_on_empty_request(patch_request)
 
     if id == authenticated_admin.id and patch_request.is_admin is False:
         raise HTTPException(

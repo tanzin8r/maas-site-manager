@@ -11,7 +11,6 @@ from fastapi import (
 )
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 INVALID_TOKEN_ERROR = HTTPException(
@@ -29,15 +28,6 @@ def not_found(entity: str) -> HTTPException:
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"{entity} does not exist.",
     )
-
-
-def raise_on_empty_request(request: BaseModel) -> None:
-    """Check if given `request` is empty and raise 422 in that case"""
-    if not request.model_dump(exclude_none=True):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Expected {request.__class__.__name__} instance.",
-        )
 
 
 async def http_exception_handler(request: Request, exc: Exception) -> Response:

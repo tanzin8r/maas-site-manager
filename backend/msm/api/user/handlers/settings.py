@@ -6,7 +6,6 @@ from fastapi import (
 )
 
 from msm.api._dependencies import services
-from msm.api._exceptions import raise_on_empty_request
 from msm.api.user._auth import authenticated_admin
 from msm.db.models import (
     Settings,
@@ -26,11 +25,11 @@ async def get(
     """Return service settings."""
     return await services.settings.get()
 
+
 @v1_router.patch("/settings")
 async def patch(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[User, Depends(authenticated_admin)],
     request: SettingsUpdate,
 ) -> None:
-    raise_on_empty_request(request)
     await services.settings.update(request.model_dump(exclude_none=True))

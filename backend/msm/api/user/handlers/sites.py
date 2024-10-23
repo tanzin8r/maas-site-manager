@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from typing import (
     Annotated,
+    Self,
     cast,
 )
 
@@ -14,12 +15,12 @@ from fastapi import (
 from pydantic import (
     BaseModel,
     Field,
+    model_validator,
 )
 
 from msm.api._dependencies import services
 from msm.api._exceptions import (
     not_found,
-    raise_on_empty_request,
 )
 from msm.api.user._auth import authenticated_user
 from msm.api.user._forms import (
@@ -182,6 +183,12 @@ class SiteUpdateRequest(BaseModel):
     # XXX: mypy can't grok that this is an str/enum with lots of members
     timezone: TimeZone | None = None  # type: ignore[valid-type]
 
+    @model_validator(mode="after")
+    def check_at_least_one_field_present(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("At least one field must be set.")
+        return self
+
 
 @v1_router.patch("/sites/{id}")
 async def patch(
@@ -194,7 +201,6 @@ async def patch(
     if not await services.sites.id_exists(id):
         raise not_found("Site")
 
-    raise_on_empty_request(patch_request)
     data = patch_request.model_dump(exclude_none=True)
     await services.sites.update(id, models.SiteUpdate(**data))
     return cast(models.Site, await services.sites.get_by_id(id))

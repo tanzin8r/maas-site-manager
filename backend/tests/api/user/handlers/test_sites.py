@@ -332,6 +332,20 @@ class TestSitesPatchHandler:
         response = await user_client.patch("/sites/42", json={"country": "IT"})
         assert response.status_code == 404
 
+    async def test_patch_empty_request(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        site = await factory.make_Site(coordinates=(0, 0))
+        response = await user_client.patch(f"/sites/{site.id}", json={})
+        assert response.status_code == 422
+        assert (
+            response.json()["error"]["message"]
+            == "One or more request parameters are invalid"
+        )
+        assert response.json()["error"]["details"][0]["messages"] == [
+            "Value error, At least one field must be set."
+        ]
+
 
 @pytest.mark.asyncio
 class TestSitesDeleteHandler:

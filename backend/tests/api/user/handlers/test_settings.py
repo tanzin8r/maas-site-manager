@@ -58,3 +58,18 @@ async def test_settings_patch(
         "token_lifetime_minutes": 10,
         "token_rotation_interval_minutes": 100,
     }
+
+
+@pytest.mark.asyncio
+async def test_settings_patch_empty_request(
+    factory: Factory, admin_client: Client, service: SettingsService
+) -> None:
+    response = await admin_client.patch("/settings", json={})
+    assert response.status_code == 422
+    assert (
+        response.json()["error"]["message"]
+        == "One or more request parameters are invalid"
+    )
+    assert response.json()["error"]["details"][0]["messages"] == [
+        "Value error, At least one field must be set."
+    ]

@@ -19,7 +19,6 @@ def update_settings_action() -> Iterator[AsyncAction]:
 
 @pytest.mark.usefixtures("settings_environ", "db")
 class CreateUpdateSettingsAction:
-
     @pytest.mark.parametrize(
         "setting,value",
         [
@@ -29,11 +28,15 @@ class CreateUpdateSettingsAction:
         ],
     )
     async def test_update_settings(
-        self, factory: Factory, update_settings_action: AsyncAction, setting: str, value: Any,
+        self,
+        factory: Factory,
+        update_settings_action: AsyncAction,
+        setting: str,
+        value: Any,
     ) -> None:
-        await update_settings_action.aexecute(
-            Namespace(**{setting: value})
-        )
+        await update_settings_action.aexecute(Namespace(**{setting: value}))
         raw_settings = await factory.get("setting")
-        settings = {setting["name"]: setting["value"] for setting in raw_settings}
+        settings = {
+            setting["name"]: setting["value"] for setting in raw_settings
+        }
         assert settings[setting] == value

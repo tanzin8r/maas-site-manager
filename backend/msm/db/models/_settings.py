@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Self
+
+from pydantic import BaseModel, model_validator
 
 from msm.jwt import DEFAULT_TOKEN_DURATION
 
@@ -21,3 +23,9 @@ class SettingsUpdate(BaseModel):
     service_url: str | None = None
     token_lifetime_minutes: int | None = None
     token_rotation_interval_minutes: int | None = None
+
+    @model_validator(mode="after")
+    def check_at_least_one_field_present(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("At least one field must be set.")
+        return self
