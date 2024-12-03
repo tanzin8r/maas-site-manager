@@ -55,7 +55,11 @@ const SitesTable = ({
   const [columnVisibility, setColumnVisibility] = useLocalStorageState("sitesTableColumnVisibility", {
     defaultValue: {},
   });
-  const { rowSelection, setRowSelection } = useRowSelection("sites", { clearOnUnmount: true });
+  const { rowSelection, setRowSelection } = useRowSelection("sites", {
+    clearOnUnmount: true,
+    currentPage: paginationProps.currentPage,
+    pageSize: paginationProps.itemsPerPage,
+  });
   const { setSelected: setSiteId } = useSiteDetailsContext();
   const { setSidebar } = useAppLayoutContext();
 

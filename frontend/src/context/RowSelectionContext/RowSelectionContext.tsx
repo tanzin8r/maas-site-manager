@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from "react";
 import React, { createContext, useContext, useState } from "react";
 
+import { usePrevious } from "@canonical/react-components";
 import type { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 
 export type TableId = "sites" | "requests" | "tokens" | "images";
@@ -30,11 +31,17 @@ export const useRowSelectionContext = (id: TableId): RowSelectionContextValue =>
   return useContext(RowSelectionContext);
 };
 
-export const useRowSelection = (
-  id: TableId,
-  { clearOnUnmount } = { clearOnUnmount: false },
-): RowSelectionContextValue => {
+type UseRowSelectionOptions = {
+  clearOnUnmount?: boolean;
+  currentPage?: number;
+  pageSize?: number;
+};
+
+export const useRowSelection = (id: TableId, options?: UseRowSelectionOptions): RowSelectionContextValue => {
+  const { clearOnUnmount = false, currentPage = 1, pageSize = 50 } = options || {};
   const context = useRowSelectionContext(id);
+  const previousPage = usePrevious(currentPage);
+  const previousPageSize = usePrevious(pageSize);
 
   useEffect(() => {
     return () => {
@@ -46,6 +53,20 @@ export const useRowSelection = (
     // to ensure this clears row selection only on unmount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearOnUnmount]);
+
+  // Clear row selection on page change
+  useEffect(() => {
+    if (currentPage !== previousPage) {
+      context.clearRowSelection();
+    }
+  }, [currentPage, previousPage, context]);
+
+  // Clear row selection on page size change
+  useEffect(() => {
+    if (pageSize !== previousPageSize) {
+      context.clearRowSelection();
+    }
+  }, [pageSize, previousPageSize, context]);
 
   return context;
 };

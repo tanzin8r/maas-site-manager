@@ -17,8 +17,8 @@ const DEFAULT_PAGE_SIZE = 50;
 
 const TokensList = () => {
   const { setSidebar } = useAppLayoutContext();
-  const { rowSelection, clearRowSelection } = useRowSelection("tokens");
   const { page, debouncedPage, size, handlePageSizeChange, setPage } = usePagination(DEFAULT_PAGE_SIZE);
+  const { rowSelection, clearRowSelection } = useRowSelection("tokens", { currentPage: page, pageSize: size });
 
   const { error, data, isPending } = useTokensQuery({
     page: debouncedPage,

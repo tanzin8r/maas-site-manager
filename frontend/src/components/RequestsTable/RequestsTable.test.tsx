@@ -6,21 +6,41 @@ import { renderWithMemoryRouter, screen, within } from "@/utils/test-utils";
 
 it("displays a loading text", () => {
   const { rerender } = renderWithMemoryRouter(
-    <RequestsTable data={enrollmentRequestQueryResultFactory.build()} error={null} isPending={true} />,
+    <RequestsTable
+      currentPage={1}
+      data={enrollmentRequestQueryResultFactory.build()}
+      error={null}
+      isPending={true}
+      pageSize={50}
+    />,
   );
 
   const table = screen.getByRole("table", { name: /enrollment requests/i });
   expect(table).toBeInTheDocument();
   expect(within(table).getByText(/Loading/i)).toBeInTheDocument();
 
-  rerender(<RequestsTable data={enrollmentRequestQueryResultFactory.build()} error={null} isPending={false} />);
+  rerender(
+    <RequestsTable
+      currentPage={1}
+      data={enrollmentRequestQueryResultFactory.build()}
+      error={null}
+      isPending={false}
+      pageSize={50}
+    />,
+  );
 
   expect(within(table).queryByText(/Loading/i)).not.toBeInTheDocument();
 });
 
 it("should show a message if there are no open enrolment requests", () => {
   renderWithMemoryRouter(
-    <RequestsTable data={enrollmentRequestQueryResultFactory.build()} error={null} isPending={false} />,
+    <RequestsTable
+      currentPage={1}
+      data={enrollmentRequestQueryResultFactory.build()}
+      error={null}
+      isPending={false}
+      pageSize={50}
+    />,
   );
 
   const table = screen.getByRole("table", { name: /enrollment requests/i });
@@ -31,7 +51,13 @@ it("should show a message if there are no open enrolment requests", () => {
 it("displays enrollment request in each table row correctly", () => {
   const items = enrollmentRequestFactory.buildList(1);
   renderWithMemoryRouter(
-    <RequestsTable data={enrollmentRequestQueryResultFactory.build({ items })} error={null} isPending={false} />,
+    <RequestsTable
+      currentPage={1}
+      data={enrollmentRequestQueryResultFactory.build({ items })}
+      error={null}
+      isPending={false}
+      pageSize={50}
+    />,
   );
 
   const tableBody = screen.getAllByRole("rowgroup")[1];

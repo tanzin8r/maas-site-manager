@@ -29,7 +29,7 @@ const Requests: React.FC = () => {
         />
       </ContentSection.Header>
       <ContentSection.Content>
-        <RequestsTable data={data} error={error} isPending={isPending} />
+        <RequestsTable currentPage={page} data={data} error={error} isPending={isPending} pageSize={size} />
       </ContentSection.Content>
     </ContentSection>
   );

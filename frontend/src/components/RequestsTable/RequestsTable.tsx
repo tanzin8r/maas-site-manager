@@ -18,11 +18,20 @@ export type EnrollmentRequestsColumnDef = ColumnDef<PendingSite, PendingSite[key
 export type EnrollmentRequestsColumn = Column<PendingSite, unknown>;
 
 const RequestsTable = ({
+  currentPage,
   data,
   error,
   isPending,
-}: Pick<UseEnrollmentRequestsQueryResult, "data" | "error" | "isPending">) => {
-  const { rowSelection, setRowSelection } = useRowSelection("requests", { clearOnUnmount: true });
+  pageSize,
+}: Pick<UseEnrollmentRequestsQueryResult, "data" | "error" | "isPending"> & {
+  currentPage: number;
+  pageSize: number;
+}) => {
+  const { rowSelection, setRowSelection } = useRowSelection("requests", {
+    clearOnUnmount: true,
+    currentPage,
+    pageSize,
+  });
 
   const columns = useMemo<EnrollmentRequestsColumnDef[]>(
     () => [
