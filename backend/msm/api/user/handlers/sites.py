@@ -17,8 +17,13 @@ from pydantic import (
 )
 
 from msm.api.dependencies import services
-from msm.api.exceptions.catalog import BadRequestException, NotFoundException
+from msm.api.exceptions.catalog import (
+    BadRequestException,
+    BaseExceptionDetail,
+    NotFoundException,
+)
 from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.api.user.auth import authenticated_user
 from msm.api.user.forms import (
     SiteFilterParams,
@@ -58,7 +63,13 @@ class PendingSitesGetResponse(PaginatedResults):
     items: list[models.PendingSite]
 
 
-@v1_router.get("/sites/pending")
+@v1_router.get(
+    "/sites/pending",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get_pending(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -84,7 +95,15 @@ class PendingSitesPostRequest(BaseModel):
     accept: bool
 
 
-@v1_router.post("/sites/pending", status_code=204)
+@v1_router.post(
+    "/sites/pending",
+    status_code=204,
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+        400: {"model": ErrorResponseModel},
+    },
+)
 async def post_pending(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -100,6 +119,16 @@ async def post_pending(
         raise BadRequestException(
             code=ExceptionCode.INVALID_PENDING_SITES,
             message=f"Unknown pending sites, ids: {error.ids}",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.INVALID_PENDING_SITES,
+                    messages=[
+                        f"Sites {error.ids} either do not exist or are not pending"
+                    ],
+                    field="ids",
+                    location="body",
+                )
+            ],
         )
 
     return None
@@ -111,7 +140,13 @@ class SitesGetResponse(PaginatedResults):
     items: list[models.Site]
 
 
-@v1_router.get("/sites")
+@v1_router.get(
+    "/sites",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -141,7 +176,13 @@ async def get(
     )
 
 
-@v1_router.get("/sites/coordinates")
+@v1_router.get(
+    "/sites/coordinates",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get_coordinates(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -153,7 +194,13 @@ async def get_coordinates(
     return await services.sites.get_coordinates(**filter_params._asdict())
 
 
-@v1_router.get("/sites/{id}")
+@v1_router.get(
+    "/sites/{id}",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get_id(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -163,7 +210,16 @@ async def get_id(
     if site := await services.sites.get_by_id(id):
         return site
     raise NotFoundException(
-        code=ExceptionCode.MISSING_RESOURCE, message="Site does not exist."
+        code=ExceptionCode.MISSING_RESOURCE,
+        message="Site does not exist.",
+        details=[
+            BaseExceptionDetail(
+                reason=ExceptionCode.MISSING_RESOURCE,
+                messages=[f"Site ID {id} does not exist"],
+                field="id",
+                location="path",
+            )
+        ],
     )
 
 
@@ -189,7 +245,14 @@ class SiteUpdateRequest(BaseModel):
         return self
 
 
-@v1_router.patch("/sites/{id}")
+@v1_router.patch(
+    "/sites/{id}",
+    responses={
+        401: {"model": ErrorResponseModel},
+        404: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def patch(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -199,7 +262,16 @@ async def patch(
     """Modify a site."""
     if not await services.sites.id_exists(id):
         raise NotFoundException(
-            code=ExceptionCode.MISSING_RESOURCE, message="Site does not exist."
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Site does not exist.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[f"Site ID {id} does not exist"],
+                    field="id",
+                    location="path",
+                )
+            ],
         )
 
     data = patch_request.model_dump(exclude_none=True)
@@ -207,7 +279,14 @@ async def patch(
     return cast(models.Site, await services.sites.get_by_id(id))
 
 
-@v1_router.delete("/sites/{id}", status_code=204)
+@v1_router.delete(
+    "/sites/{id}",
+    status_code=204,
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def delete(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.Site, Depends(authenticated_user)],
@@ -218,7 +297,14 @@ async def delete(
     return None
 
 
-@v1_router.delete("/sites", status_code=204)
+@v1_router.delete(
+    "/sites",
+    status_code=204,
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def delete_many(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.Site, Depends(authenticated_user)],
@@ -230,6 +316,16 @@ async def delete_many(
     if deleted_ids != requested_ids:
         raise NotFoundException(
             code=ExceptionCode.MISSING_RESOURCE,
-            message=f"The following ID's were not found: {requested_ids - deleted_ids}.",
+            message=f"Some of the requested IDs were not found.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[
+                        f"The following IDs were not found: {requested_ids - deleted_ids}."
+                    ],
+                    field="ids",
+                    location="query",
+                )
+            ],
         )
     return None

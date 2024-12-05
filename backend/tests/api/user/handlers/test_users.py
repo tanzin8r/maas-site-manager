@@ -150,7 +150,9 @@ class TestUsersGetHandler:
         assert response.status_code == 404
         err = ErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.MISSING_RESOURCE
-        assert err.error.message == "User does not exist."
+        assert err.error.details is not None
+        assert err.error.details[0].messages[0] == "User does not exist."
+        assert err.error.message == "Resource not found."
 
         response = await admin_client.get(f"/users/{user.id}")
         assert response.status_code == 200
@@ -232,6 +234,8 @@ class TestUsersPostHandler:
             response.json()["error"]["message"]
             == "Email or Username already in use."
         )
+        assert len(response.json()["error"]["details"]) == 1
+        assert response.json()["error"]["details"][0]["field"] == "email"
 
     async def test_username_taken(self, admin_client: Client) -> None:
         user_details = {
@@ -250,6 +254,47 @@ class TestUsersPostHandler:
             response.json()["error"]["message"]
             == "Email or Username already in use."
         )
+        assert len(response.json()["error"]["details"]) == 1
+        assert response.json()["error"]["details"][0]["field"] == "username"
+
+    async def test_email_and_username_taken(
+        self, admin_client: Client
+    ) -> None:
+        user_details = {
+            "full_name": "A New Admin",
+            "username": "admin",
+            "email": "admin@example.com",
+            "password": "password",
+            "confirm_password": "password",
+        }
+        response = await admin_client.post(
+            "/users",
+            json=user_details,
+        )
+        assert response.status_code == 400
+        assert (
+            response.json()["error"]["message"]
+            == "Email or Username already in use."
+        )
+        assert len(response.json()["error"]["details"]) == 2
+        assert response.json()["error"]["details"][0]["field"] == "email"
+        assert response.json()["error"]["details"][1]["field"] == "username"
+
+    async def test_invalid_email(self, admin_client: Client) -> None:
+        user_details = {
+            "full_name": "A New User",
+            "username": "user123",
+            "email": "not-an.email",
+            "password": "password",
+            "confirm_password": "password",
+        }
+        response = await admin_client.post(
+            "/users",
+            json=user_details,
+        )
+        assert response.status_code == 422
+        assert len(response.json()["error"]["details"]) == 1
+        assert response.json()["error"]["details"][0]["field"] == "email"
 
 
 @pytest.mark.asyncio
@@ -280,9 +325,12 @@ class TestUsersMePasswordPostHandler:
             },
         )
         assert response.status_code == 400
+        err = ErrorResponseModel(**response.json())
+        assert err.error.message == "Invalid user credentials."
+        assert err.error.details is not None
         assert (
-            response.json()["error"]["message"]
-            == "Incorrect password for user."
+            err.error.details[0].messages[0]
+            == "Incorrect current password."
         )
 
     async def test_password_change_missing_parameters(
@@ -344,8 +392,11 @@ class TestUsersPatchHandler:
             f"/users/{api_admin.id}", json={"is_admin": False}
         )
         assert response.status_code == 403
+        err = ErrorResponseModel(**response.json())
+        assert err.error.message == "A request parameter is invalid."
+        assert err.error.details is not None
         assert (
-            response.json()["error"]["message"]
+            err.error.details[0].messages[0]
             == "Admin users cannot demote themselves."
         )
 
@@ -367,17 +418,24 @@ class TestUsersPatchHandler:
             "/users/10000000", json={"full_name": "ghost_in_the_test"}
         )
         assert response.status_code == 404
-        assert response.json()["error"]["message"] == "User does not exist."
+        err = ErrorResponseModel(**response.json())
+        assert err.error.message == "Resource not found."
+        assert err.error.details is not None
+        assert err.error.details[0].messages[0] == "User does not exist."
 
     @pytest.mark.parametrize(
-        "new_details",
-        [{"email": "admin@example.com"}, {"username": "admin"}],
+        "new_details,which_taken",
+        [
+            ({"email": "admin@example.com"}, "email"),
+            ({"username": "admin"}, "username"),
+        ],
     )
     async def test_duplicate_user(
         self,
         admin_client: Client,
         factory: Factory,
         new_details: dict[str, str],
+        which_taken: str,
     ) -> None:
         user = await factory.make_User()
 
@@ -389,6 +447,8 @@ class TestUsersPatchHandler:
             response.json()["error"]["message"]
             == "Email or Username already in use."
         )
+        assert len(response.json()["error"]["details"]) == 1
+        assert response.json()["error"]["details"][0]["field"] == which_taken
 
     async def test_password_validation(
         self, api_admin: models.User, admin_client: Client
@@ -428,6 +488,25 @@ class TestUsersPatchHandler:
         assert resp[1]["reason"] == "StringTooShort"
         assert resp[2]["reason"] == "StringTooShort"
 
+    async def test_invalid_email(
+        self, admin_client: Client, factory: Factory
+    ) -> None:
+        user = await factory.make_User()
+        user_details = {
+            "full_name": "A New User",
+            "username": "user123",
+            "email": "not-an.email",
+            "password": "password",
+            "confirm_password": "password",
+        }
+        response = await admin_client.patch(
+            f"/users/{user.id}",
+            json=user_details,
+        )
+        assert response.status_code == 422
+        assert len(response.json()["error"]["details"]) == 1
+        assert response.json()["error"]["details"][0]["field"] == "email"
+
 
 @pytest.mark.asyncio
 class TestUsersDeleteHandler:
@@ -445,8 +524,12 @@ class TestUsersDeleteHandler:
     ) -> None:
         response = await admin_client.delete(f"/users/{api_admin.id}")
         assert response.status_code == 400
+
+        err = ErrorResponseModel(**response.json())
+        assert err.error.message == "A request parameter is invalid."
+        assert err.error.details is not None
         assert (
-            response.json()["error"]["message"]
+            err.error.details[0].messages[0]
             == "Cannot delete the current user."
         )
 
@@ -476,14 +559,18 @@ class TestUsersMePatchHandler:
         ]
 
     @pytest.mark.parametrize(
-        "new_details",
-        [{"email": "admin2@example.com"}, {"username": "admin2"}],
+        "new_details,which_taken",
+        [
+            ({"email": "admin2@example.com"}, "email"),
+            ({"username": "admin2"}, "username"),
+        ],
     )
     async def test_duplicate_user(
         self,
         admin_client: Client,
         factory: Factory,
         new_details: dict[str, str],
+        which_taken: str,
     ) -> None:
         await factory.make_User(username="admin2", email="admin2@example.com")
         response = await admin_client.patch("/users/me", json=new_details)
@@ -492,3 +579,21 @@ class TestUsersMePatchHandler:
             response.json()["error"]["message"]
             == "Email or Username already in use."
         )
+        assert len(response.json()["error"]["details"]) == 1
+        assert response.json()["error"]["details"][0]["field"] == which_taken
+
+    async def test_invalid_email(self, admin_client: Client) -> None:
+        user_details = {
+            "full_name": "A New User",
+            "username": "user123",
+            "email": "not-an.email",
+            "password": "password",
+            "confirm_password": "password",
+        }
+        response = await admin_client.patch(
+            "/users/me",
+            json=user_details,
+        )
+        assert response.status_code == 422
+        assert len(response.json()["error"]["details"]) == 1
+        assert response.json()["error"]["details"][0]["field"] == "email"

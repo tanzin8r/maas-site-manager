@@ -35,7 +35,9 @@ class ErrorBodyResponse(BaseModel):
     message: str
     details: list[BaseExceptionDetail] | None = None
     status_code: int = Field(
-        default=status.HTTP_500_INTERNAL_SERVER_ERROR, exclude=True
+        default=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        exclude=True,
+        examples=[status.HTTP_400_BAD_REQUEST],
     )
 
     @classmethod

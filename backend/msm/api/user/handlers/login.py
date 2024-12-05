@@ -16,6 +16,7 @@ from msm.api.dependencies import (
 )
 from msm.api.exceptions.catalog import UnauthorizedException
 from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import ErrorBodyResponse
 from msm.api.user.auth import authenticate_user
 from msm.db.models import Config
 from msm.jwt import TokenAudience
@@ -24,7 +25,13 @@ from msm.service import ServiceCollection
 v1_router = APIRouter(prefix="/v1")
 
 
-@v1_router.post("/login")
+@v1_router.post(
+    "/login",
+    responses={
+        422: {"model": ErrorBodyResponse},
+        401: {"model": ErrorBodyResponse},
+    },
+)
 async def post(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
@@ -34,6 +41,7 @@ async def post(
         services.users, form_data.username, form_data.password
     )
     if not user:
+        # do not specify details here, as to not clue which parameter is wrong in case of an attack
         raise UnauthorizedException(
             code=ExceptionCode.INVALID_CREDENTIALS,
             message="Wrong username or password.",

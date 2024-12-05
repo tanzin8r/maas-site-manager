@@ -13,8 +13,9 @@ from msm.api.dependencies import (
     config,
     services,
 )
-from msm.api.exceptions.catalog import NotFoundException
+from msm.api.exceptions.catalog import BaseExceptionDetail, NotFoundException
 from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.api.user.auth import authenticated_user
 from msm.api.user.forms import (
     TokenFilterParams,
@@ -40,7 +41,13 @@ class TokensGetResponse(PaginatedResults):
     items: list[Token]
 
 
-@v1_router.get("/tokens")
+@v1_router.get(
+    "/tokens",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -75,7 +82,13 @@ class TokensPostResponse(BaseModel):
     items: list[Token]
 
 
-@v1_router.post("/tokens")
+@v1_router.post(
+    "/tokens",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def post(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
@@ -97,7 +110,13 @@ async def post(
     return TokensPostResponse(items=list(tokens))
 
 
-@v1_router.get("/tokens/export")
+@v1_router.get(
+    "/tokens/export",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get_export(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[User, Depends(authenticated_user)],
@@ -113,7 +132,14 @@ async def get_export(
     return CSVResponse(content=tokens)
 
 
-@v1_router.delete("/tokens/{id}", status_code=204)
+@v1_router.delete(
+    "/tokens/{id}",
+    status_code=204,
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def delete(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[Token, Depends(authenticated_user)],
@@ -124,7 +150,15 @@ async def delete(
     return None
 
 
-@v1_router.delete("/tokens", status_code=204)
+@v1_router.delete(
+    "/tokens",
+    status_code=204,
+    responses={
+        401: {"model": ErrorResponseModel},
+        404: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def delete_many(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[Token, Depends(authenticated_user)],
@@ -136,6 +170,16 @@ async def delete_many(
     if deleted_ids != requested_ids:
         raise NotFoundException(
             code=ExceptionCode.MISSING_RESOURCE,
-            message=f"The following ID's were not found: {requested_ids - deleted_ids}.",
+            message=f"Some of the requested IDs were not found.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[
+                        f"The following IDs were not found: {requested_ids - deleted_ids}."
+                    ],
+                    field="ids",
+                    location="query",
+                )
+            ],
         )
     return None

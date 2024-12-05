@@ -129,9 +129,11 @@ async def test_delete_many_not_found(
     assert response.status_code == 404
     err = ErrorResponseModel(**response.json())
     assert err.error.code == ExceptionCode.MISSING_RESOURCE
+    assert err.error.message == f"Some of the requested IDs were not found."
+    assert err.error.details is not None
     assert (
-        err.error.message
-        == f"The following ID's were not found: {set([fake_id])}."
+        err.error.details[0].messages[0]
+        == f"The following IDs were not found: {set([fake_id])}."
     )
     get_response = await user_client.get("/tokens")
     # Here the total should be 2

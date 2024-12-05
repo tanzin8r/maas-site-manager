@@ -20,8 +20,14 @@ from msm.api.dependencies import (
     config,
     services,
 )
-from msm.api.exceptions.catalog import UnauthorizedException
+from msm.api.exceptions.catalog import (
+    BaseExceptionDetail,
+    UnauthorizedException,
+)
 from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import (
+    ErrorResponseModel,
+)
 from msm.api.site.auth import authenticated_site
 from msm.db.models import (
     Config,
@@ -62,7 +68,13 @@ class EnrolPostRequest(BaseModel):
     metadata: SiteMetadata | None = None
 
 
-@v1_router.post("/enrol")
+@v1_router.post(
+    "/enrol",
+    responses={
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def post(
     response: Response,
     services: Annotated[ServiceCollection, Depends(services)],
@@ -88,6 +100,16 @@ async def post(
         raise UnauthorizedException(
             code=ExceptionCode.INVALID_TOKEN,
             message="The token is not valid.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.INVALID_TOKEN,
+                    messages=[
+                        "The token either does not exist, is expired, or is not correlated with a site."
+                    ],
+                    field="Authorization",
+                    location="header",
+                )
+            ],
         )
     metadata = (
         post_request.metadata.model_dump(
@@ -120,7 +142,12 @@ async def post(
     response.status_code = status.HTTP_202_ACCEPTED
 
 
-@v1_router.get("/enrol")
+@v1_router.get(
+    "/enrol",
+    responses={
+        401: {"model": ErrorResponseModel},
+    },
+)
 async def get(
     response: Response,
     config: Annotated[Config, Depends(config)],
@@ -149,6 +176,16 @@ async def get(
         raise UnauthorizedException(
             code=ExceptionCode.INVALID_TOKEN,
             message="The token is not valid.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.INVALID_TOKEN,
+                    messages=[
+                        "The token does not represent an enrolling site."
+                    ],
+                    field="Authorization",
+                    location="header",
+                )
+            ],
         )
     if not site.accepted:
         response.status_code = status.HTTP_204_NO_CONTENT
@@ -169,7 +206,12 @@ async def get(
     )
 
 
-@v1_router.get("/enrol/refresh")
+@v1_router.get(
+    "/enrol/refresh",
+    responses={
+        401: {"model": ErrorResponseModel},
+    },
+)
 async def refresh(
     config: Annotated[Config, Depends(config)],
     services: Annotated[ServiceCollection, Depends(services)],
@@ -202,7 +244,12 @@ async def refresh(
     )
 
 
-@v1_router.get("/enrol/verify")
+@v1_router.get(
+    "/enrol/verify",
+    responses={
+        401: {"model": ErrorResponseModel},
+    },
+)
 async def verify(
     services: Annotated[ServiceCollection, Depends(services)],
     site: Annotated[Site, Depends(authenticated_site)],

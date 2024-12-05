@@ -18,10 +18,12 @@ from pydantic_core import PydanticCustomError
 from msm.api.dependencies import services
 from msm.api.exceptions.catalog import (
     BadRequestException,
+    BaseExceptionDetail,
     ForbiddenException,
     NotFoundException,
 )
 from msm.api.exceptions.constants import ExceptionCode
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.api.user.auth import (
     authenticate_user,
     authenticated_admin,
@@ -89,7 +91,40 @@ def passwords_match(
         )
 
 
-@v1_router.get("/users")
+async def check_for_existing_user(
+    services: ServiceCollection,
+    username: str | None = None,
+    email: str | None = None,
+    exclude_id: int | None = None,
+) -> list[BaseExceptionDetail]:
+    """
+    Check if the given user already exists. Return a list of BaseExceptionDetail for conflicting elements.
+    """
+    details = []
+    conflicting = await services.users.exists(
+        email=email, username=username, exclude_id=exclude_id
+    )
+    if conflicting is not None:
+        for conflict in conflicting:
+            details.append(
+                BaseExceptionDetail(
+                    reason=ExceptionCode.ALREADY_EXISTS,
+                    messages=[f"{conflict} already exists"],
+                    field=conflict,
+                    location="body",
+                )
+            )
+    return details
+
+
+@v1_router.get(
+    "/users",
+    responses={
+        401: {"model": ErrorResponseModel},
+        403: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -114,7 +149,12 @@ async def get(
     )
 
 
-@v1_router.get("/users/me")
+@v1_router.get(
+    "/users/me",
+    responses={
+        401: {"model": ErrorResponseModel},
+    },
+)
 async def get_me(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -128,7 +168,7 @@ class UsersPatchMeRequest(BaseModel):
 
     username: str | None = None
     full_name: str | None = None
-    email: str | None = None
+    email: EmailStr | None = None
 
     @model_validator(mode="after")
     def check_at_least_one_field_present(self) -> Self:
@@ -137,22 +177,31 @@ class UsersPatchMeRequest(BaseModel):
         return self
 
 
-@v1_router.patch("/users/me")
+@v1_router.patch(
+    "/users/me",
+    responses={
+        400: {"model": ErrorResponseModel},
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def patch_me(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
     patch_request: UsersPatchMeRequest,
 ) -> User:
     """Update the details for a user"""
-
-    if await services.users.exists(
-        email=patch_request.email,
-        username=patch_request.username,
-        exclude_id=authenticated_user.id,
-    ):
+    details = await check_for_existing_user(
+        services,
+        patch_request.username,
+        patch_request.email,
+        authenticated_user.id,
+    )
+    if details:
         raise BadRequestException(
             code=ExceptionCode.ALREADY_EXISTS,
             message="Email or Username already in use.",
+            details=details,
         )
 
     user = await services.users.update(
@@ -174,7 +223,14 @@ class UsersPasswordPatchRequest(BaseModel):
         return self
 
 
-@v1_router.patch("/users/me/password")
+@v1_router.patch(
+    "/users/me/password",
+    responses={
+        400: {"model": ErrorResponseModel},
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def patch_me_password(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
@@ -193,11 +249,27 @@ async def patch_me_password(
         return None
     raise BadRequestException(
         code=ExceptionCode.INVALID_CREDENTIALS,
-        message="Incorrect password for user.",
+        message="Invalid user credentials.",
+        details=[
+            BaseExceptionDetail(
+                reason=ExceptionCode.INVALID_CREDENTIALS,
+                messages=["Incorrect current password."],
+                field="current_password",
+                location="body",
+            )
+        ],
     )
 
 
-@v1_router.get("/users/{id}")
+@v1_router.get(
+    "/users/{id}",
+    responses={
+        401: {"model": ErrorResponseModel},
+        403: {"model": ErrorResponseModel},
+        404: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def get_id(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -208,7 +280,16 @@ async def get_id(
     if user := await services.users.get_by_id(id):
         return User.from_model(user)
     raise NotFoundException(
-        code=ExceptionCode.MISSING_RESOURCE, message="User does not exist."
+        code=ExceptionCode.MISSING_RESOURCE,
+        message="Resource not found.",
+        details=[
+            BaseExceptionDetail(
+                reason=ExceptionCode.MISSING_RESOURCE,
+                messages=["User does not exist."],
+                field="id",
+                location="path",
+            )
+        ],
     )
 
 
@@ -217,7 +298,7 @@ class UsersPostRequest(BaseModel):
 
     full_name: str
     username: str
-    email: str
+    email: EmailStr
     password: str = Field(min_length=8, max_length=100)
     confirm_password: str = Field(min_length=8, max_length=100)
     is_admin: bool = False
@@ -228,19 +309,31 @@ class UsersPostRequest(BaseModel):
         return self
 
 
-@v1_router.post("/users")
+@v1_router.post(
+    "/users",
+    responses={
+        400: {"model": ErrorResponseModel},
+        401: {"model": ErrorResponseModel},
+        403: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def post(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
     post_request: UsersPostRequest,
 ) -> User:
     """Create a user."""
-    if await services.users.exists(
-        email=post_request.email, username=post_request.username
-    ):
+    details = await check_for_existing_user(
+        services,
+        post_request.username,
+        post_request.email,
+    )
+    if details:
         raise BadRequestException(
             code=ExceptionCode.ALREADY_EXISTS,
             message="Email or Username already in use.",
+            details=details,
         )
 
     user = await services.users.create(
@@ -254,7 +347,7 @@ class UsersPatchRequest(BaseModel):
 
     full_name: str | None = None
     username: str | None = None
-    email: str | None = None
+    email: EmailStr | None = None
     password: str | None = Field(default=None, min_length=8, max_length=100)
     confirm_password: str | None = Field(
         default=None, min_length=8, max_length=100
@@ -273,7 +366,16 @@ class UsersPatchRequest(BaseModel):
         return self
 
 
-@v1_router.patch("/users/{id}")
+@v1_router.patch(
+    "/users/{id}",
+    responses={
+        400: {"model": ErrorResponseModel},
+        401: {"model": ErrorResponseModel},
+        403: {"model": ErrorResponseModel},
+        404: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def patch(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -285,22 +387,39 @@ async def patch(
     if id == authenticated_admin.id and patch_request.is_admin is False:
         raise ForbiddenException(
             code=ExceptionCode.INVALID_PARAMS,
-            message="Admin users cannot demote themselves.",
+            message="A request parameter is invalid.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.INVALID_PARAMS,
+                    messages=["Admin users cannot demote themselves."],
+                    field="id",
+                    location="path",
+                )
+            ],
         )
 
     if not await services.users.id_exists(id):
         raise NotFoundException(
-            code=ExceptionCode.MISSING_RESOURCE, message="User does not exist."
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Resource not found.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=["User does not exist."],
+                    field="id",
+                    location="path",
+                )
+            ],
         )
 
-    if await services.users.exists(
-        email=patch_request.email,
-        username=patch_request.username,
-        exclude_id=id,
-    ):
+    details = await check_for_existing_user(
+        services, patch_request.username, patch_request.email, id
+    )
+    if details:
         raise BadRequestException(
             code=ExceptionCode.ALREADY_EXISTS,
             message="Email or Username already in use.",
+            details=details,
         )
 
     user = await services.users.update(
@@ -309,7 +428,16 @@ async def patch(
     return User.from_model(user)
 
 
-@v1_router.delete("/users/{id}", status_code=204)
+@v1_router.delete(
+    "/users/{id}",
+    status_code=204,
+    responses={
+        400: {"model": ErrorResponseModel},
+        401: {"model": ErrorResponseModel},
+        403: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def delete(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[models.User, Depends(authenticated_admin)],
@@ -319,7 +447,15 @@ async def delete(
     if authenticated_admin.id == id:
         raise BadRequestException(
             code=ExceptionCode.INVALID_PARAMS,
-            message="Cannot delete the current user.",
+            message="A request parameter is invalid.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.INVALID_PARAMS,
+                    messages=["Cannot delete the current user."],
+                    field="id",
+                    location="path",
+                )
+            ],
         )
     await services.users.delete(id)
     return None

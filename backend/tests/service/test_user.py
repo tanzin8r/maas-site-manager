@@ -28,11 +28,11 @@ class TestUserService:
     @pytest.mark.parametrize(
         "email,username,exists",
         [
-            ("", "", False),
-            ("admin@example.com", "admin", True),
-            ("admin@example.com", "nonexistent_admin", True),
-            ("nonexistent_admin@example.com", "admin", True),
-            ("nonexistent_admin@example.com", "nonexistent_admin", False),
+            ("", "", None),
+            ("admin@example.com", "admin", ["email", "username"]),
+            ("admin@example.com", "nonexistent_admin", ["email"]),
+            ("nonexistent_admin@example.com", "admin", ["username"]),
+            ("nonexistent_admin@example.com", "nonexistent_admin", None),
         ],
     )
     async def test_exists(
@@ -41,7 +41,7 @@ class TestUserService:
         service: UserService,
         email: str,
         username: str,
-        exists: bool,
+        exists: list[str] | None,
     ) -> None:
         assert await service.exists(email=email, username=username) == exists
 
@@ -61,9 +61,10 @@ class TestUserService:
         email: str,
         username: str,
     ) -> None:
-        assert not await service.exists(
+        conflict = await service.exists(
             email=email, username=username, exclude_id=user.id
         )
+        assert conflict is None
 
     @pytest.mark.parametrize(
         "id,exists",

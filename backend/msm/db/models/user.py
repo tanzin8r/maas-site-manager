@@ -21,7 +21,7 @@ class User(BaseModel):
 class UserCreate(BaseModel):
     """Creating a new user"""
 
-    email: str
+    email: EmailStr
     username: str
     full_name: str
     password: str
@@ -33,6 +33,6 @@ class UserUpdate(BaseModel):
 
     username: str | None = None
     full_name: str | None = None
-    email: str | None = None
+    email: EmailStr | None = None
     password: str | None = None
     is_admin: bool | None = None

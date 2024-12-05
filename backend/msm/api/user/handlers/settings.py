@@ -6,6 +6,7 @@ from fastapi import (
 )
 
 from msm.api.dependencies import services
+from msm.api.exceptions.responses import ErrorResponseModel
 from msm.api.user.auth import authenticated_admin
 from msm.db.models import (
     Settings,
@@ -17,7 +18,13 @@ from msm.service import ServiceCollection
 v1_router = APIRouter(prefix="/v1")
 
 
-@v1_router.get("/settings")
+@v1_router.get(
+    "/settings",
+    responses={
+        403: {"model": ErrorResponseModel},
+        401: {"model": ErrorResponseModel},
+    },
+)
 async def get(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[User, Depends(authenticated_admin)],
@@ -26,7 +33,14 @@ async def get(
     return await services.settings.get()
 
 
-@v1_router.patch("/settings")
+@v1_router.patch(
+    "/settings",
+    responses={
+        403: {"model": ErrorResponseModel},
+        401: {"model": ErrorResponseModel},
+        422: {"model": ErrorResponseModel},
+    },
+)
 async def patch(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_admin: Annotated[User, Depends(authenticated_admin)],

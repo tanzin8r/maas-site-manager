@@ -125,9 +125,9 @@ class UserService(Service):
         email: str | None = None,
         username: str | None = None,
         exclude_id: int | None = None,
-    ) -> bool:
+    ) -> list[str] | None:
         if not email and not username:
-            return False
+            return None
         elif not username:
             user_filter = User.c.email == email
         elif not email:
@@ -139,9 +139,20 @@ class UserService(Service):
         if exclude_id is not None:
             user_filter = and_(user_filter, User.c.id != exclude_id)
         search = await self.conn.execute(
-            select(User.c.id).select_from(User).filter(user_filter)
+            select(User.c.id, User.c.email, User.c.username)
+            .select_from(User)
+            .filter(user_filter)
         )
-        return search.first() is not None
+        existing = search.first()
+        if existing is None:
+            return None
+        user = existing._asdict()
+        conflicting = []
+        if email == user["email"]:
+            conflicting.append("email")
+        if username == user["username"]:
+            conflicting.append("username")
+        return conflicting
 
     async def update_password(
         self,
