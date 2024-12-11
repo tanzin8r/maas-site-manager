@@ -3,6 +3,7 @@ import React, { createContext, useContext, useReducer } from "react";
 
 import useLocalStorageState from "use-local-storage-state";
 
+import type { MutationErrorResponse } from "@/api";
 import type { FetchHttpRequestWithInterceptors } from "@/api/FetchHttpRequestWithInterceptors";
 import type { ApiClient, Body_post_v1_login_post } from "@/api/client";
 import { OpenAPI } from "@/api/client";
@@ -14,7 +15,7 @@ interface AuthContextType {
   login: ({ username, password }: Pick<Body_post_v1_login_post, "username" | "password">) => void;
   logout: () => Promise<void>;
   isError: boolean;
-  failureReason: unknown | null;
+  error: MutationErrorResponse | null;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -22,7 +23,7 @@ export const AuthContext = createContext<AuthContextType>({
   login: () => null,
   logout: () => new Promise(() => {}),
   isError: false,
-  failureReason: null,
+  error: null,
 });
 
 export const actionTypes = {
@@ -71,7 +72,7 @@ export const AuthContextProvider = ({ apiClient, children }: { apiClient: ApiCli
     localStorage.removeItem("jwtToken");
   }, []);
 
-  const { mutateAsync, isError, failureReason } = useLoginMutation();
+  const { mutateAsync, isError, error } = useLoginMutation();
 
   const initialState: AuthState = {
     authToken: persistedAuthToken ? persistedAuthToken : null,
@@ -128,7 +129,7 @@ export const AuthContextProvider = ({ apiClient, children }: { apiClient: ApiCli
         login,
         logout,
         isError,
-        failureReason,
+        error,
       }}
     >
       {children}

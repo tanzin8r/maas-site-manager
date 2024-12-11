@@ -272,7 +272,12 @@ export const useUpdateSettingsMutation = (
   });
 };
 
-export const useLoginMutation = () => useMutation({ mutationFn: postLogin });
+export const useLoginMutation = (
+  options?: Omit<
+    UseMutationOptions<any, MutationErrorResponse, Parameters<typeof postLogin>[0], unknown>,
+    "mutationFn"
+  >,
+) => useMutation({ mutationFn: postLogin, ...options });
 
 export const useCurrentUserQuery = () => useQuery<User>({ queryKey: ["me"], queryFn: getCurrentUser });
 

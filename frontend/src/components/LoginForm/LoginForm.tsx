@@ -2,8 +2,11 @@ import { useCallback, useEffect } from "react";
 
 import { Notification, Col, Row, Strip, Input, useId, Label, Card, Button } from "@canonical/react-components";
 import type { FormikHelpers } from "formik";
-import { Field, Form, Formik } from "formik";
+import { Field, Formik } from "formik";
 import * as Yup from "yup";
+
+import ErrorMessage from "../ErrorMessage";
+import FormikFormContent from "../base/FormikFormContent";
 
 import { useAuthContext } from "@/context";
 import { useNavigate, useSearchParams } from "@/utils/router";
@@ -27,10 +30,7 @@ const LoginForm = () => {
   const passwordId = `password=${id}`;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login, isError, failureReason, status } = useAuthContext();
-  // TODO: update error response types  https://warthogs.atlassian.net/browse/MAASENG-2082
-  /* @ts-ignore-next-line */
-  const failureDetails = failureReason?.body?.detail;
+  const { login, isError, error, status } = useAuthContext();
   const handleRedirect = useCallback(() => {
     // send user back to the page they tried to visit
     // { replace: true } avoids going back to login page once authenticated
@@ -58,7 +58,7 @@ const LoginForm = () => {
           <Row>
             <Col emptyLarge={4} size={6}>
               <Notification role="alert" severity="negative" title="Error">
-                {failureDetails && typeof failureDetails === "string" ? failureDetails : "An unknown error occurred"}
+                <ErrorMessage error={error} />
               </Notification>
             </Col>
           </Row>
@@ -76,7 +76,7 @@ const LoginForm = () => {
                 validationSchema={LoginFormSchema}
               >
                 {({ isSubmitting, errors, touched, isValid, dirty }) => (
-                  <Form aria-labelledby={headingId}>
+                  <FormikFormContent aria-labelledby={headingId} errors={[error]}>
                     <Label htmlFor={emailId}>Email</Label>
                     <Field
                       as={Input}
@@ -98,7 +98,7 @@ const LoginForm = () => {
                     <Button appearance="positive" disabled={!dirty || !isValid || isSubmitting} type="submit">
                       Login
                     </Button>
-                  </Form>
+                  </FormikFormContent>
                 )}
               </Formik>
             </Card>
