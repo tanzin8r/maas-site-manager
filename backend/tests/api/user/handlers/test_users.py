@@ -1,7 +1,12 @@
 import pytest
 
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    BadRequestErrorResponseModel,
+    ForbiddenErrorResponseModel,
+    NotFoundErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.api.user.handlers.users import User
 from msm.db import models
 from tests.fixtures.client import Client
@@ -120,7 +125,7 @@ class TestUsersGetHandler:
             "/users", params={"sort_by": sort_by}
         )
         assert response.status_code == 422
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].messages == [error_msg]
@@ -148,7 +153,7 @@ class TestUsersGetHandler:
 
         response = await admin_client.get(f"/users/{user.id + 100}")
         assert response.status_code == 404
-        err = ErrorResponseModel(**response.json())
+        err = NotFoundErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.MISSING_RESOURCE
         assert err.error.details is not None
         assert err.error.details[0].messages[0] == "User does not exist."
@@ -184,7 +189,7 @@ class TestUsersPostHandler:
             json={},
         )
         assert response.status_code == 422
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
 
@@ -325,12 +330,11 @@ class TestUsersMePasswordPostHandler:
             },
         )
         assert response.status_code == 400
-        err = ErrorResponseModel(**response.json())
+        err = BadRequestErrorResponseModel(**response.json())
         assert err.error.message == "Invalid user credentials."
         assert err.error.details is not None
         assert (
-            err.error.details[0].messages[0]
-            == "Incorrect current password."
+            err.error.details[0].messages[0] == "Incorrect current password."
         )
 
     async def test_password_change_missing_parameters(
@@ -392,7 +396,7 @@ class TestUsersPatchHandler:
             f"/users/{api_admin.id}", json={"is_admin": False}
         )
         assert response.status_code == 403
-        err = ErrorResponseModel(**response.json())
+        err = ForbiddenErrorResponseModel(**response.json())
         assert err.error.message == "A request parameter is invalid."
         assert err.error.details is not None
         assert (
@@ -418,7 +422,7 @@ class TestUsersPatchHandler:
             "/users/10000000", json={"full_name": "ghost_in_the_test"}
         )
         assert response.status_code == 404
-        err = ErrorResponseModel(**response.json())
+        err = NotFoundErrorResponseModel(**response.json())
         assert err.error.message == "Resource not found."
         assert err.error.details is not None
         assert err.error.details[0].messages[0] == "User does not exist."
@@ -525,7 +529,7 @@ class TestUsersDeleteHandler:
         response = await admin_client.delete(f"/users/{api_admin.id}")
         assert response.status_code == 400
 
-        err = ErrorResponseModel(**response.json())
+        err = BadRequestErrorResponseModel(**response.json())
         assert err.error.message == "A request parameter is invalid."
         assert err.error.details is not None
         assert (

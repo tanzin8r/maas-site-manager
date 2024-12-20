@@ -23,7 +23,12 @@ from msm.api.exceptions.catalog import (
     NotFoundException,
 )
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    BadRequestErrorResponseModel,
+    NotFoundErrorResponseModel,
+    UnauthorizedErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.api.user.auth import authenticated_user
 from msm.api.user.forms import (
     SiteFilterParams,
@@ -66,8 +71,8 @@ class PendingSitesGetResponse(PaginatedResults):
 @v1_router.get(
     "/sites/pending",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get_pending(
@@ -99,9 +104,9 @@ class PendingSitesPostRequest(BaseModel):
     "/sites/pending",
     status_code=204,
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
-        400: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
+        400: {"model": BadRequestErrorResponseModel},
     },
 )
 async def post_pending(
@@ -143,8 +148,8 @@ class SitesGetResponse(PaginatedResults):
 @v1_router.get(
     "/sites",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get(
@@ -179,8 +184,8 @@ async def get(
 @v1_router.get(
     "/sites/coordinates",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get_coordinates(
@@ -197,8 +202,8 @@ async def get_coordinates(
 @v1_router.get(
     "/sites/{id}",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get_id(
@@ -246,9 +251,9 @@ class SiteUpdateRequest(BaseModel):
 @v1_router.patch(
     "/sites/{id}",
     responses={
-        401: {"model": ErrorResponseModel},
-        404: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def patch(
@@ -281,8 +286,8 @@ async def patch(
     "/sites/{id}",
     status_code=204,
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def delete(
@@ -299,8 +304,8 @@ async def delete(
     "/sites",
     status_code=204,
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def delete_many(

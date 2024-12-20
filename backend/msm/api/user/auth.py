@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 from msm.api.auth import auth_id_from_token
 from msm.api.dependencies import services
 from msm.api.exceptions.catalog import (
+    BaseExceptionDetail,
     ForbiddenException,
     UnauthorizedException,
 )
@@ -43,6 +44,14 @@ async def authenticated_user(
     raise UnauthorizedException(
         code=ExceptionCode.INVALID_TOKEN,
         message="The token is not valid.",
+        details=[
+            BaseExceptionDetail(
+                reason=ExceptionCode.INVALID_TOKEN,
+                messages=["The token is not valid."],
+                field="Authorization",
+                location="header",
+            )
+        ],
     )
 
 
@@ -53,5 +62,15 @@ def authenticated_admin(
         raise ForbiddenException(
             code=ExceptionCode.MISSING_PERMISSIONS,
             message="Unauthorized credentials.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_PERMISSIONS,
+                    messages=[
+                        "The current user does not have permissions to perform this action."
+                    ],
+                    field="Authorization",
+                    location="header",
+                )
+            ],
         )
     return user

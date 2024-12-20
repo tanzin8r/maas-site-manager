@@ -16,7 +16,10 @@ from msm.api.dependencies import (
 )
 from msm.api.exceptions.catalog import UnauthorizedException
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorBodyResponse
+from msm.api.exceptions.responses import (
+    UnauthorizedErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.api.user.auth import authenticate_user
 from msm.db.models import Config
 from msm.jwt import TokenAudience
@@ -28,8 +31,8 @@ v1_router = APIRouter(prefix="/v1")
 @v1_router.post(
     "/login",
     responses={
-        422: {"model": ErrorBodyResponse},
-        401: {"model": ErrorBodyResponse},
+        422: {"model": ValidationErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
     },
 )
 async def post(

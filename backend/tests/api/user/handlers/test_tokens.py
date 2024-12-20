@@ -7,7 +7,10 @@ from datetime import (
 import pytest
 
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    NotFoundErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.time import now_utc
 from tests.api import api_timestamp
 from tests.fixtures.client import Client
@@ -108,7 +111,7 @@ async def test_delete_many_no_ids(
     await factory.make_Token()
     response = await user_client.delete("/tokens")
     assert response.status_code == 422
-    err = ErrorResponseModel(**response.json())
+    err = ValidationErrorResponseModel(**response.json())
     assert err.error.code == ExceptionCode.INVALID_PARAMS
     assert err.error.details is not None
     assert err.error.details[0].field == "ids"
@@ -127,7 +130,7 @@ async def test_delete_many_not_found(
         f"/tokens?ids={token2.id}&ids={fake_id}"
     )
     assert response.status_code == 404
-    err = ErrorResponseModel(**response.json())
+    err = NotFoundErrorResponseModel(**response.json())
     assert err.error.code == ExceptionCode.MISSING_RESOURCE
     assert err.error.message == f"Some of the requested IDs were not found."
     assert err.error.details is not None

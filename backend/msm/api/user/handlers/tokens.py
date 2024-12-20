@@ -15,7 +15,11 @@ from msm.api.dependencies import (
 )
 from msm.api.exceptions.catalog import BaseExceptionDetail, NotFoundException
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    NotFoundErrorResponseModel,
+    UnauthorizedErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.api.user.auth import authenticated_user
 from msm.api.user.forms import (
     TokenFilterParams,
@@ -44,8 +48,8 @@ class TokensGetResponse(PaginatedResults):
 @v1_router.get(
     "/tokens",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get(
@@ -85,8 +89,8 @@ class TokensPostResponse(BaseModel):
 @v1_router.post(
     "/tokens",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def post(
@@ -113,8 +117,8 @@ async def post(
 @v1_router.get(
     "/tokens/export",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get_export(
@@ -136,8 +140,8 @@ async def get_export(
     "/tokens/{id}",
     status_code=204,
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def delete(
@@ -154,9 +158,9 @@ async def delete(
     "/tokens",
     status_code=204,
     responses={
-        401: {"model": ErrorResponseModel},
-        404: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def delete_many(

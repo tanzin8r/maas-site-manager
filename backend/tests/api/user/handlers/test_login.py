@@ -1,7 +1,7 @@
 import pytest
 
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import UnauthorizedErrorResponseModel
 from msm.db.models import User
 from tests.fixtures.client import Client
 
@@ -25,6 +25,6 @@ async def test_post_fails_with_wrong_password(
         data={"username": api_admin.email, "password": "incorrect_pass"},
     )
     assert response.status_code == 401
-    err = ErrorResponseModel(**response.json())
+    err = UnauthorizedErrorResponseModel(**response.json())
     assert err.error.code == ExceptionCode.INVALID_CREDENTIALS
     assert err.error.message == "Wrong username or password."

@@ -23,7 +23,13 @@ from msm.api.exceptions.catalog import (
     NotFoundException,
 )
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    BadRequestErrorResponseModel,
+    ForbiddenErrorResponseModel,
+    NotFoundErrorResponseModel,
+    UnauthorizedErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.api.user.auth import (
     authenticate_user,
     authenticated_admin,
@@ -120,9 +126,9 @@ async def check_for_existing_user(
 @v1_router.get(
     "/users",
     responses={
-        401: {"model": ErrorResponseModel},
-        403: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get(
@@ -152,7 +158,7 @@ async def get(
 @v1_router.get(
     "/users/me",
     responses={
-        401: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
     },
 )
 async def get_me(
@@ -180,9 +186,9 @@ class UsersPatchMeRequest(BaseModel):
 @v1_router.patch(
     "/users/me",
     responses={
-        400: {"model": ErrorResponseModel},
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        400: {"model": BadRequestErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def patch_me(
@@ -226,9 +232,9 @@ class UsersPasswordPatchRequest(BaseModel):
 @v1_router.patch(
     "/users/me/password",
     responses={
-        400: {"model": ErrorResponseModel},
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        400: {"model": BadRequestErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def patch_me_password(
@@ -264,10 +270,10 @@ async def patch_me_password(
 @v1_router.get(
     "/users/{id}",
     responses={
-        401: {"model": ErrorResponseModel},
-        403: {"model": ErrorResponseModel},
-        404: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def get_id(
@@ -312,10 +318,10 @@ class UsersPostRequest(BaseModel):
 @v1_router.post(
     "/users",
     responses={
-        400: {"model": ErrorResponseModel},
-        401: {"model": ErrorResponseModel},
-        403: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        400: {"model": BadRequestErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def post(
@@ -369,11 +375,11 @@ class UsersPatchRequest(BaseModel):
 @v1_router.patch(
     "/users/{id}",
     responses={
-        400: {"model": ErrorResponseModel},
-        401: {"model": ErrorResponseModel},
-        403: {"model": ErrorResponseModel},
-        404: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        400: {"model": BadRequestErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def patch(
@@ -432,10 +438,10 @@ async def patch(
     "/users/{id}",
     status_code=204,
     responses={
-        400: {"model": ErrorResponseModel},
-        401: {"model": ErrorResponseModel},
-        403: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        400: {"model": BadRequestErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def delete(

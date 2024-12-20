@@ -8,7 +8,10 @@ from fastapi import (
 from pydantic import BaseModel
 
 from msm.api.dependencies import services
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    UnauthorizedErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.api.site.auth import authenticated_site
 from msm.db.models import (
     Site,
@@ -42,8 +45,8 @@ class DetailsPostRequest(BaseModel):
 @v1_router.post(
     "/details",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def details(

@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import UnauthorizedErrorResponseModel
 from msm.db.models import Config
 from msm.jwt import (
     JWT,
@@ -391,7 +391,7 @@ class TestEnrolRefreshGetHandler:
         await factory.make_Site(auth_id=auth_id)
         response = await app_client.get("site/v1/enrol/refresh")
         assert response.status_code == 401
-        err = ErrorResponseModel(**response.json())
+        err = UnauthorizedErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.NOT_AUTHENTICATED
         assert err.error.message == "This endpoint requires authentication."
 
@@ -409,7 +409,7 @@ class TestEnrolRefreshGetHandler:
         )
         response = await app_client.get("/site/v1/enrol/refresh")
         assert response.status_code == 401
-        err = ErrorResponseModel(**response.json())
+        err = UnauthorizedErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_TOKEN
         assert err.error.message == "The token is not valid."
 

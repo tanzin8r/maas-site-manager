@@ -8,7 +8,7 @@ import pytest
 
 from msm.api.exceptions.constants import ExceptionCode
 from msm.api.exceptions.middleware import request_validation_error_handler
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import ValidationErrorResponseModel
 from msm.api.user.handlers.users import passwords_match
 from msm.schema.pagination import PaginatedResults, PaginationParams
 from tests.fixtures.client import Client
@@ -94,7 +94,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -108,7 +108,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -125,7 +125,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -143,7 +143,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -161,7 +161,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -178,7 +178,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -196,7 +196,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -214,7 +214,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -232,7 +232,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -255,7 +255,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -276,7 +276,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "body"
@@ -289,7 +289,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "path"
@@ -308,7 +308,7 @@ class TestValidationExceptionHandler:
         )
         assert response.status_code == 422
 
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PARAMS
         assert err.error.details is not None
         assert err.error.details[0].location == "query"

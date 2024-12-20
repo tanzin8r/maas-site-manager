@@ -5,7 +5,10 @@ from uuid import uuid4
 import pytest
 
 from msm.api.exceptions.constants import ExceptionCode
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    BadRequestErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.db.models import (
     ConnectionStatus,
     Coordinates,
@@ -397,7 +400,7 @@ class TestSitesDeleteHandler:
         site1 = await factory.make_Site()
         response = await user_client.delete("/sites")
         assert response.status_code == 422
-        err = ErrorResponseModel(**response.json())
+        err = ValidationErrorResponseModel(**response.json())
         assert err.error.details is not None
         assert err.error.details[0].field == "ids"
         assert err.error.details[0].messages == [
@@ -487,6 +490,6 @@ class TestPendingSitesPostHandler:
             json={"ids": ids, "accept": True},
         )
         assert response.status_code == 400
-        err = ErrorResponseModel(**response.json())
+        err = BadRequestErrorResponseModel(**response.json())
         assert err.error.code == ExceptionCode.INVALID_PENDING_SITES
         assert err.error.message == f"Unknown pending sites, ids: {ids}"

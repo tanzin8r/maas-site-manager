@@ -26,7 +26,8 @@ from msm.api.exceptions.catalog import (
 )
 from msm.api.exceptions.constants import ExceptionCode
 from msm.api.exceptions.responses import (
-    ErrorResponseModel,
+    UnauthorizedErrorResponseModel,
+    ValidationErrorResponseModel,
 )
 from msm.api.site.auth import authenticated_site
 from msm.db.models import (
@@ -71,8 +72,8 @@ class EnrolPostRequest(BaseModel):
 @v1_router.post(
     "/enrol",
     responses={
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def post(
@@ -131,7 +132,7 @@ async def post(
 @v1_router.get(
     "/enrol",
     responses={
-        401: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
     },
 )
 async def get(
@@ -195,7 +196,7 @@ async def get(
 @v1_router.get(
     "/enrol/refresh",
     responses={
-        401: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
     },
 )
 async def refresh(
@@ -233,7 +234,7 @@ async def refresh(
 @v1_router.get(
     "/enrol/verify",
     responses={
-        401: {"model": ErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
     },
 )
 async def verify(

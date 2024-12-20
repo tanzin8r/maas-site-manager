@@ -6,7 +6,11 @@ from fastapi import (
 )
 
 from msm.api.dependencies import services
-from msm.api.exceptions.responses import ErrorResponseModel
+from msm.api.exceptions.responses import (
+    ForbiddenErrorResponseModel,
+    UnauthorizedErrorResponseModel,
+    ValidationErrorResponseModel,
+)
 from msm.api.user.auth import authenticated_admin
 from msm.db.models import (
     Settings,
@@ -21,8 +25,8 @@ v1_router = APIRouter(prefix="/v1")
 @v1_router.get(
     "/settings",
     responses={
-        403: {"model": ErrorResponseModel},
-        401: {"model": ErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
     },
 )
 async def get(
@@ -36,9 +40,9 @@ async def get(
 @v1_router.patch(
     "/settings",
     responses={
-        403: {"model": ErrorResponseModel},
-        401: {"model": ErrorResponseModel},
-        422: {"model": ErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
     },
 )
 async def patch(

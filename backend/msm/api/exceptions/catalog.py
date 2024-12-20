@@ -46,13 +46,5 @@ class NotFoundException(MsmBaseException):
     status_code = status.HTTP_404_NOT_FOUND
 
 
-class AlreadyExistsException(MsmBaseException):
-    status_code = status.HTTP_409_CONFLICT
-
-
-class PreconditionFailedException(MsmBaseException):
-    status_code = status.HTTP_412_PRECONDITION_FAILED
-
-
 class InternalServerErrorException(MsmBaseException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
