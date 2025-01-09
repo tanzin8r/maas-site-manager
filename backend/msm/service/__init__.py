@@ -5,6 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.service.base import Service
 from msm.service.config import ConfigService
+from msm.service.images import (
+    BootAssetService,
+    BootSourceSelectionService,
+    BootSourceService,
+)
 from msm.service.settings import SettingsService
 from msm.service.site import InvalidPendingSites, SiteService
 from msm.service.token import TokenService
@@ -19,11 +24,22 @@ class ServiceCollection:
         self.tokens = TokenService(connection)
         self.users = UserService(connection)
         self.settings = SettingsService(connection)
+        self.boot_assets = BootAssetService(connection)
+        self.boot_sources = BootSourceService(connection)
+        self.boot_source_selections = BootSourceSelectionService(connection)
 
     @property
     def services(self) -> Iterable[Service]:
         """Service collection."""
-        return [self.sites, self.tokens, self.users, self.settings]
+        return [
+            self.sites,
+            self.tokens,
+            self.users,
+            self.settings,
+            self.boot_assets,
+            self.boot_sources,
+            self.boot_source_selections,
+        ]
 
     @classmethod
     def register_metrics(cls, registry: CollectorRegistry) -> None:
@@ -37,6 +53,9 @@ class ServiceCollection:
 
 
 __all__ = [
+    "BootAssetService",
+    "BootSourceService",
+    "BootSourceSelectionService",
     "ConfigService",
     "InvalidPendingSites",
     "ServiceCollection",

@@ -1,6 +1,8 @@
 from uuid import uuid4
 
 from sqlalchemy import (
+    ARRAY,
+    BigInteger,
     Boolean,
     Column,
     ForeignKey,
@@ -136,4 +138,79 @@ SiteData = Table(
     Column("machines_error", Integer, nullable=False, default=0),
     Column("machines_other", Integer, nullable=False, default=0),
     Column("last_seen", DateTime(timezone=True)),
+)
+
+
+BootSource = Table(
+    "boot_source",
+    METADATA,
+    Column("id", Integer, primary_key=True),
+    Column("priority", Integer, nullable=False, default=1),
+    Column("url", Text, nullable=False),
+    Column("keyring", Text, nullable=True),
+    Column("sync_interval", Integer),
+)
+
+BootSourceSelection = Table(
+    "boot_source_selection",
+    METADATA,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "boot_source_id", Integer, ForeignKey("boot_source.id"), nullable=False
+    ),
+    Column("label", Text, nullable=False),
+    Column("os", Text, nullable=False),
+    Column("release", Text, nullable=False),
+    Column("arches", ARRAY(Text), nullable=False),
+)
+
+BootAsset = Table(
+    "boot_asset",
+    METADATA,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "boot_source_id", Integer, ForeignKey("boot_source.id"), nullable=False
+    ),
+    Column("kind", Integer, nullable=False, default=0),
+    Column("label", Text, nullable=False),
+    Column("os", Text, nullable=False),
+    Column("release", Text, nullable=False),
+    Column("codename", Text, nullable=False),
+    Column("title", Text, nullable=False),
+    Column("arch", Text, nullable=False),
+    Column("subarch", Text, nullable=False),
+    Column("compatibility", ARRAY(Text), nullable=False),
+    Column("flavor", Text, nullable=False),
+    Column("base_image", Text, nullable=False),
+    Column("eol", DateTime, nullable=False),
+    Column("esm_eol", DateTime, nullable=False),
+)
+
+BootAssetVersion = Table(
+    "boot_asset_version",
+    METADATA,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "boot_asset_id", Integer, ForeignKey("boot_asset.id"), nullable=False
+    ),
+    Column("version", Text, nullable=False),
+)
+
+BootAssetItem = Table(
+    "boot_asset_item",
+    METADATA,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "boot_asset_version_id",
+        Integer,
+        ForeignKey("boot_asset_version.id"),
+        nullable=False,
+    ),
+    Column("ftype", Text, nullable=False),
+    Column("sha256", Text, nullable=False),
+    Column("path", Text, nullable=False),
+    Column("size", BigInteger, nullable=False),
+    Column("source_package", Text, nullable=True),
+    Column("source_version", Text, nullable=True),
+    Column("source_release", Text, nullable=True),
 )

@@ -41,6 +41,16 @@ class TestSampleData:
         assert len(user) == 2
         token = await factory.get("token")
         assert len(token) == 10
+        boot_source_selection = await factory.get("boot_source_selection")
+        assert len(boot_source_selection) == 2
+        boot_source = await factory.get("boot_source")
+        assert len(boot_source) == 2
+        boot_asset = await factory.get("boot_asset")
+        assert len(boot_asset) == 2
+        boot_asset_version = await factory.get("boot_asset_version")
+        assert len(boot_asset_version) == 2
+        boot_asset_item = await factory.get("boot_asset_item")
+        assert len(boot_asset_item) == 2
 
         await purge_sampledata_action._delete_fixtures(db_connection)
         site = await factory.get("site")
@@ -49,3 +59,13 @@ class TestSampleData:
         assert len(user) == 0
         token = await factory.get("token")
         assert len(token) == 0
+        boot_source_selection = await factory.get("boot_source_selection")
+        assert len(boot_source_selection) == 0
+        boot_source = await factory.get("boot_source")
+        assert len(boot_source) == 0
+        boot_asset = await factory.get("boot_asset")
+        assert len(boot_asset) == 0
+        boot_asset_version = await factory.get("boot_asset_version")
+        assert len(boot_asset_version) == 0
+        boot_asset_item = await factory.get("boot_asset_item")
+        assert len(boot_asset_item) == 0

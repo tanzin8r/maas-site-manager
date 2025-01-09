@@ -1,4 +1,15 @@
 from msm.db.models.config import Config
+from msm.db.models.images import (
+    BootAsset,
+    BootAssetItem,
+    BootAssetKind,
+    BootAssetLabel,
+    BootAssetVersion,
+    BootSource,
+    BootSourceSelection,
+    BootSourceSelectionUpdate,
+    BootSourceUpdate,
+)
 from msm.db.models.settings import Settings
 from msm.db.models.site import (
     ConnectionStatus,
@@ -21,6 +32,15 @@ from msm.db.models.user import (
 )
 
 __all__ = [
+    "BootAsset",
+    "BootAssetItem",
+    "BootAssetKind",
+    "BootAssetLabel",
+    "BootAssetVersion",
+    "BootSource",
+    "BootSourceUpdate",
+    "BootSourceSelection",
+    "BootSourceSelectionUpdate",
     "Config",
     "ConnectionStatus",
     "Coordinates",

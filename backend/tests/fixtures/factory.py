@@ -22,6 +22,11 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import (
+    BootAsset,
+    BootAssetKind,
+    BootAssetLabel,
+    BootSource,
+    BootSourceSelection,
     ConnectionStatus,
     Coordinates,
     PendingSite,
@@ -310,6 +315,88 @@ class Factory:
     async def make_Setting(self, name: str, value: Any = None) -> None:
         """Create an entry in the global settings."""
         await self.create("setting", {"name": name, "value": value})
+
+    async def make_BootSource(
+        self,
+        priority: int = 1,
+        url: str = "",
+        keyring: str | None = None,
+        sync_interval: int = 0,
+    ) -> BootSource:
+        [row] = await self.create(
+            "boot_source",
+            [
+                {
+                    "priority": priority,
+                    "url": url,
+                    "keyring": keyring,
+                    "sync_interval": sync_interval,
+                }
+            ],
+        )
+        return BootSource(**row)
+
+    async def make_BootSourceSelection(
+        self,
+        boot_source_id: int,
+        label: str = BootAssetLabel.STABLE,
+        os: str = "",
+        release: str = "",
+        arches: list[str] = [],
+    ) -> BootSourceSelection:
+        [row] = await self.create(
+            "boot_source_selection",
+            [
+                {
+                    "boot_source_id": boot_source_id,
+                    "label": label,
+                    "os": os,
+                    "release": release,
+                    "arches": arches,
+                }
+            ],
+        )
+        return BootSourceSelection(**row)
+
+    async def make_BootAsset(
+        self,
+        boot_source_id: int,
+        kind: int = BootAssetKind.OS,
+        label: str = BootAssetLabel.STABLE,
+        os: str = "",
+        release: str = "",
+        codename: str = "",
+        title: str = "",
+        arch: str = "",
+        subarch: str = "",
+        compatibility: list[str] = [],
+        flavor: str = "",
+        base_image: str = "",
+        eol: datetime = now_utc(),
+        esm_eol: datetime = now_utc(),
+    ) -> BootAsset:
+        [row] = await self.create(
+            "boot_asset",
+            [
+                {
+                    "boot_source_id": boot_source_id,
+                    "kind": kind,
+                    "label": label,
+                    "os": os,
+                    "release": release,
+                    "codename": codename,
+                    "title": title,
+                    "arch": arch,
+                    "subarch": subarch,
+                    "compatibility": compatibility,
+                    "flavor": flavor,
+                    "base_image": base_image,
+                    "eol": eol,
+                    "esm_eol": esm_eol,
+                }
+            ],
+        )
+        return BootAsset(**row)
 
 
 @pytest.fixture
