@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from hashlib import sha256
 
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -116,8 +116,8 @@ DmFoRWTU6CpKtwIg/lb1ncbslH2xAFeUX6ASHXR8vBOnIXWss21FuAaNmWe4lmw=
         compatibility=["generic"],
         flavor="generic",
         base_image="Ubuntu",
-        eol=datetime(2029, 4, 1),
-        esm_eol=datetime(2036, 4, 1),
+        eol=datetime(2029, 4, 1, tzinfo=UTC),
+        esm_eol=datetime(2036, 4, 1, tzinfo=UTC),
     )
 
     collection.add(
@@ -133,8 +133,8 @@ DmFoRWTU6CpKtwIg/lb1ncbslH2xAFeUX6ASHXR8vBOnIXWss21FuAaNmWe4lmw=
         compatibility=["generic"],
         flavor="generic",
         base_image="Ubuntu",
-        eol=datetime(2027, 4, 1),
-        esm_eol=datetime(2034, 4, 1),
+        eol=datetime(2027, 4, 1, tzinfo=UTC),
+        esm_eol=datetime(2034, 4, 1, tzinfo=UTC),
     )
 
     boot_assets = await collection.create(conn)

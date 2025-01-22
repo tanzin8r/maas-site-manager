@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -17,6 +17,7 @@ from msm.service import (
     BootSourceSelectionService,
     BootSourceService,
 )
+from msm.time import now_utc
 from tests.fixtures.factory import Factory
 
 
@@ -40,8 +41,8 @@ class TestBootAssetService:
             compatibility=["test", "compatibility"],
             flavor="test flavor",
             base_image="test base image",
-            eol=datetime.now() + timedelta(days=3650),
-            esm_eol=datetime.now() + timedelta(days=5000),
+            eol=now_utc() + timedelta(days=3650),
+            esm_eol=now_utc() + timedelta(days=5000),
         )
         boot_asset = await factory.make_BootAsset(
             boot_source.id,
@@ -86,8 +87,8 @@ class TestBootAssetService:
             compatibility=["test", "compatibility"],
             flavor="test flavor",
             base_image="test base image",
-            eol=datetime.now() + timedelta(days=3650),
-            esm_eol=datetime.now() + timedelta(days=5000),
+            eol=now_utc() + timedelta(days=3650),
+            esm_eol=now_utc() + timedelta(days=5000),
         )
         service = BootAssetService(db_connection)
         boot_asset = await service.create(expected_boot_asset)
@@ -115,8 +116,8 @@ class TestBootAssetService:
             compatibility=["test", "compatibility"],
             flavor="test flavor",
             base_image="test base image",
-            eol=datetime.now() + timedelta(days=3650),
-            esm_eol=datetime.now() + timedelta(days=5000),
+            eol=now_utc() + timedelta(days=3650),
+            esm_eol=now_utc() + timedelta(days=5000),
         )
         boot_asset = await factory.make_BootAsset(
             boot_source.id,

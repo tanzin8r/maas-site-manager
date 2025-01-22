@@ -182,8 +182,8 @@ BootAsset = Table(
     Column("compatibility", ARRAY(Text), nullable=False),
     Column("flavor", Text, nullable=False),
     Column("base_image", Text, nullable=False),
-    Column("eol", DateTime, nullable=False),
-    Column("esm_eol", DateTime, nullable=False),
+    Column("eol", DateTime(timezone=True), nullable=False),
+    Column("esm_eol", DateTime(timezone=True), nullable=False),
 )
 
 BootAssetVersion = Table(

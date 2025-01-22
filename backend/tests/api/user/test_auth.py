@@ -19,6 +19,9 @@ from tests.fixtures.app import get_api_routes
 from tests.fixtures.client import Client
 
 AUTHENTICATED_ROUTES = (
+    ("GET", "/api/v1/bootassets"),
+    ("GET", "/api/v1/bootasset-sources"),
+    ("GET", "/api/v1/bootasset-sources/{id}/selections"),
     ("GET", "/api/v1/settings"),
     ("PATCH", "/api/v1/settings"),
     ("GET", "/api/v1/sites"),
