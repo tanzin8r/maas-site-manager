@@ -60,7 +60,8 @@ export const getTimezoneUTCString = (timezone: TimeZone | "", date?: Date | numb
 
 export const formatSiteMarker = (site: SiteCoordinates): SiteMarkerType => ({
   id: site.id,
-  position: site.coordinates as SiteMarkerType["position"],
+  // In GeoJSON, longitude comes before latitude: https://datatracker.ietf.org/doc/html/rfc7946#section-3.1.1
+  position: [site.coordinates?.longitude, site.coordinates?.latitude] as SiteMarkerType["position"],
 });
 
 export const getTimeInTimezone = (date: Date, timezone: TimeZone | "") => {

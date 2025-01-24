@@ -45,7 +45,7 @@ it("prefills form data", async () => {
   expect(screen.getByRole("textbox", { name: "Address" })).toHaveValue(site.address);
   expect(screen.getByRole("textbox", { name: "Postal code" })).toHaveValue(site.postal_code);
   expect(screen.getByRole("textbox", { name: "Latitude and Longitude" })).toHaveValue(
-    `${site.coordinates![1]}, ${site.coordinates![0]}`,
+    `${site.coordinates?.latitude}, ${site.coordinates?.longitude}`,
   );
 });
 

@@ -1,7 +1,7 @@
 import type { Site } from "@/api/client";
 
 export type SiteMarkerType = Pick<Site, "id"> & {
-  // Latitute, longitude
+  // Longitude, latitude https://datatracker.ietf.org/doc/html/rfc7946#section-3.1.1
   position: [number, number];
 };
 

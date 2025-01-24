@@ -55,7 +55,7 @@ export const markerFactory = Factory.define<SiteMarkerType>(({ sequence }) => {
 
 const coordinatesFactory = Factory.define<Site["coordinates"]>(({ sequence }) => {
   const chance = new Chance(`maas-${sequence}`);
-  return [chance.latitude(), chance.longitude()];
+  return { latitude: chance.latitude(), longitude: chance.longitude() };
 });
 
 export const siteFactory = Factory.define<NonNullable<Site>>(({ sequence }) => {

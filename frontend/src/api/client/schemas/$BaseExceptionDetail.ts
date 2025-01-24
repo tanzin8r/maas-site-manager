@@ -2,10 +2,21 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $UsersPatchMeRequest = {
-    description: `User Edit Details about themselves.`,
+export const $BaseExceptionDetail = {
+    description: `Additional details for an exception.`,
     properties: {
-        username: {
+        reason: {
+            type: 'string',
+            isRequired: true,
+        },
+        messages: {
+            type: 'array',
+            contains: {
+                type: 'string',
+            },
+            isRequired: true,
+        },
+        field: {
             type: 'any-of',
             contains: [{
                 type: 'string',
@@ -13,19 +24,10 @@ export const $UsersPatchMeRequest = {
                 type: 'null',
             }],
         },
-        full_name: {
+        location: {
             type: 'any-of',
             contains: [{
                 type: 'string',
-            }, {
-                type: 'null',
-            }],
-        },
-        email: {
-            type: 'any-of',
-            contains: [{
-                type: 'string',
-                format: 'email',
             }, {
                 type: 'null',
             }],

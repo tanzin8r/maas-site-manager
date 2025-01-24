@@ -7,7 +7,7 @@ import type { Body_post_v1_login_post } from '../models/Body_post_v1_login_post'
 import type { PendingSitesGetResponse } from '../models/PendingSitesGetResponse';
 import type { PendingSitesPostRequest } from '../models/PendingSitesPostRequest';
 import type { Settings } from '../models/Settings';
-import type { SettingsPatchRequest } from '../models/SettingsPatchRequest';
+import type { SettingsUpdate } from '../models/SettingsUpdate';
 import type { Site } from '../models/Site';
 import type { SiteCoordinates } from '../models/SiteCoordinates';
 import type { SitesGetResponse } from '../models/SitesGetResponse';
@@ -45,7 +45,8 @@ export class DefaultService {
             formData: formData,
             mediaType: 'application/x-www-form-urlencoded',
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -60,6 +61,10 @@ export class DefaultService {
         return this.httpRequest.request({
             method: 'GET',
             url: '/v1/settings',
+            errors: {
+                401: `Unauthorized`,
+                403: `Forbidden`,
+            },
         });
     }
 
@@ -71,7 +76,7 @@ export class DefaultService {
     public patchV1SettingsPatch({
         requestBody,
     }: {
-        requestBody: SettingsPatchRequest,
+        requestBody: SettingsUpdate,
     }): CancelablePromise<any> {
         return this.httpRequest.request({
             method: 'PATCH',
@@ -79,7 +84,9 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -105,7 +112,8 @@ export class DefaultService {
                 'size': size,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -127,7 +135,9 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -192,7 +202,8 @@ export class DefaultService {
                 'sort_by': sortBy,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -206,7 +217,7 @@ export class DefaultService {
     public deleteManyV1SitesDelete({
         ids,
     }: {
-        ids?: Array<number>,
+        ids: Array<number>,
     }): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'DELETE',
@@ -215,7 +226,8 @@ export class DefaultService {
                 'ids': ids,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -268,7 +280,8 @@ export class DefaultService {
                 'q': q,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -291,7 +304,8 @@ export class DefaultService {
                 'id': id,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -318,7 +332,9 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                404: `Not Found`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -341,7 +357,8 @@ export class DefaultService {
                 'id': id,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -376,7 +393,8 @@ export class DefaultService {
                 'site_id': siteId,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -400,7 +418,8 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -414,7 +433,7 @@ export class DefaultService {
     public deleteManyV1TokensDelete({
         ids,
     }: {
-        ids?: Array<number>,
+        ids: Array<number>,
     }): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'DELETE',
@@ -423,7 +442,9 @@ export class DefaultService {
                 'ids': ids,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                404: `Not Found`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -458,7 +479,8 @@ export class DefaultService {
                 'site_id': siteId,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -481,7 +503,8 @@ export class DefaultService {
                 'id': id,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -525,7 +548,9 @@ export class DefaultService {
                 'search_text': searchText,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -547,7 +572,10 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -562,6 +590,9 @@ export class DefaultService {
         return this.httpRequest.request({
             method: 'GET',
             url: '/v1/users/me',
+            errors: {
+                401: `Unauthorized`,
+            },
         });
     }
 
@@ -582,7 +613,9 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -604,7 +637,9 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -627,7 +662,10 @@ export class DefaultService {
                 'id': id,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                404: `Not Found`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -654,7 +692,11 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                404: `Not Found`,
+                422: `Unprocessable Entity`,
             },
         });
     }
@@ -677,7 +719,10 @@ export class DefaultService {
                 'id': id,
             },
             errors: {
-                422: `Validation Error`,
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                422: `Unprocessable Entity`,
             },
         });
     }

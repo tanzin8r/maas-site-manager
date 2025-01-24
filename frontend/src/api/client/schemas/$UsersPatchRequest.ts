@@ -25,6 +25,7 @@ export const $UsersPatchRequest = {
             type: 'any-of',
             contains: [{
                 type: 'string',
+                format: 'email',
             }, {
                 type: 'null',
             }],

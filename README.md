@@ -16,8 +16,8 @@ Installing the MAAS Site manager charm requires a running Kubernetes (k8s) Juju 
 
 There is more than one way to create this setup, e.g.
 
-  - Use a [charm development environment generator](https://github.com/canonical/maas-charm-dev-env-setup/tree/main) or
-  - [Getting started on MicroK8s](https://charmhub.io/topics/canonical-observability-stack/tutorials/install-microk8s#heading--configure-microk8s)
+- Use a [charm development environment generator](https://github.com/canonical/maas-charm-dev-env-setup/tree/main) or
+- [Getting started on MicroK8s](https://charmhub.io/topics/canonical-observability-stack/tutorials/install-microk8s#heading--configure-microk8s)
 
 ### Installing MAAS Site Manager
 
@@ -194,6 +194,7 @@ host    msm     msm     0/0     md5
 ```
 
 - restart postgres
+
 ```bash
 sudo systemctl restart postgresql
 ```
@@ -306,10 +307,24 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO public;
 ```
 
+#### Sample data
+
 There is sample data available for testing. To load this, do the following:
 
 - export the `MSM_DB_*` environment variables as needed
 - run `tox run -e sampledata -- create-fixtures`
+
+If you're running the backend with docker, you'll need to access the container first:
+
+```bash
+docker compose exec backend bash
+```
+
+The command to generate sample data is almost the same, but with the path for tox included:
+
+```bash
+~/.local/bin/tox run -e sampledata -- create-fixtures
+```
 
 If you used the test data, you can generate a token for the pre-existing `admin` user with,
 
@@ -503,7 +518,7 @@ Run `yarn upgrade-all` to attempt to upgrade all packages to latest version.
 
 ##### Fonts
 
-Noto Sans fonts in pbf format compatible with MapLibre GL JS (located in `/frontend/public/`) are sourced from  [protomaps](https://github.com/protomaps/basemaps-assets/tree/main/fonts).
+Noto Sans fonts in pbf format compatible with MapLibre GL JS (located in `/frontend/public/`) are sourced from [protomaps](https://github.com/protomaps/basemaps-assets/tree/main/fonts).
 
 ##### Tiles
 

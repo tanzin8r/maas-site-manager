@@ -2,13 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $HTTPValidationError = {
+export const $ValidationErrorResponseModel = {
     properties: {
-        detail: {
-            type: 'array',
-            contains: {
-                type: 'ValidationError',
-            },
+        error: {
+            type: 'ValidationErrorBodyResponse',
+            isRequired: true,
         },
     },
 } as const;

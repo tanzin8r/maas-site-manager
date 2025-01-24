@@ -26,10 +26,7 @@ export const $SiteUpdateRequest = {
         coordinates: {
             type: 'any-of',
             contains: [{
-                type: 'array',
-                contains: {
-                    type: 'number',
-                },
+                type: 'Coordinates',
             }, {
                 type: 'null',
             }],

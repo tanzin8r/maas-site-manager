@@ -16,6 +16,7 @@ export const $UsersPostRequest = {
         email: {
             type: 'string',
             isRequired: true,
+            format: 'email',
         },
         password: {
             type: 'string',

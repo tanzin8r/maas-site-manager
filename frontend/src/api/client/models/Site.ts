@@ -4,6 +4,7 @@
 /* eslint-disable */
 
 import type { ConnectionStatus } from './ConnectionStatus';
+import type { Coordinates } from './Coordinates';
 import type { SiteData } from './SiteData';
 import type { TimeZone } from './TimeZone';
 
@@ -15,7 +16,7 @@ export type Site = {
     name: string;
     city?: string;
     country?: string;
-    coordinates: (any[] | null);
+    coordinates: (Coordinates | null);
     note?: string;
     state?: string;
     address?: string;

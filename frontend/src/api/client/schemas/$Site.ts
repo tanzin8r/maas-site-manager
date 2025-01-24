@@ -22,9 +22,7 @@ export const $Site = {
         coordinates: {
             type: 'any-of',
             contains: [{
-                type: 'any[]',
-                maxItems: 2,
-                minItems: 2,
+                type: 'Coordinates',
             }, {
                 type: 'null',
             }],

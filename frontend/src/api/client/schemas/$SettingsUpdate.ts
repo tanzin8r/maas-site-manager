@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $SettingsPatchRequest = {
+export const $SettingsUpdate = {
     description: `Change application settings.`,
     properties: {
         service_url: {

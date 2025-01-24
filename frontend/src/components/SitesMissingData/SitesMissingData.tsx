@@ -4,6 +4,9 @@ import type { FormikErrors } from "formik";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import * as Yup from "yup";
 
+import type { CoordinatesFormValue } from "../EditSite/types";
+import { parseCoordinatesFormValue } from "../EditSite/utils";
+
 import type { Site } from "@/api";
 import { coordinateSchema } from "@/components/EditSite/constants";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
@@ -13,7 +16,7 @@ import { useSitesQuery, useUpdateSitesCoordinatesMutation } from "@/hooks/react-
 import "./_SitesMissingData.scss";
 
 type SitesMissingDataValues = {
-  sitesCoordinates: { id: Site["id"]; coordinates: string }[];
+  sitesCoordinates: { id: Site["id"]; coordinates: CoordinatesFormValue }[];
 };
 
 const SitesMissingDataSchema = Yup.object().shape({
@@ -82,10 +85,7 @@ const SitesMissingData = () => {
 
     const toSubmit = filteredValues.map(({ id, coordinates }) => ({
       id,
-      coordinates: coordinates
-        .replace(/\s+/g, "")
-        .split(",")
-        .map((coordinate) => Number(coordinate)),
+      coordinates: parseCoordinatesFormValue(coordinates),
     }));
 
     updateSites.mutate(toSubmit);

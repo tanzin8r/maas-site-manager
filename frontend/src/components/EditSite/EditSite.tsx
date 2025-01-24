@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import { ActionButton, Button, Input, Label, Notification, Spinner, Select } from "@canonical/react-components";
 import { Field, Formik } from "formik";
 import en from "i18n-iso-countries/langs/en.json";
@@ -6,6 +8,8 @@ import * as Yup from "yup";
 import FormikFormContent from "../base/FormikFormContent";
 
 import { coordinateSchema } from "./constants";
+import type { CoordinatesFormValue } from "./types";
+import { parseCoordinatesFormValue } from "./utils";
 
 import type { Site } from "@/api/client";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
@@ -23,15 +27,10 @@ const countryOptions = [
   })),
 ] as const;
 
-type Coordinates =
-  NonNullable<Site["coordinates"]> extends (infer T)[]
-    ? T extends number
-      ? `${NonNullable<T>},${NonNullable<T>}`
-      : ""
-    : "";
+type EditSiteFormValues = Record<keyof Pick<Site, "country" | "state" | "address" | "city" | "postal_code">, string> &
+  Record<"coordinates", CoordinatesFormValue>;
 
-const baseInitialValues: Record<keyof Pick<Site, "country" | "state" | "address" | "city" | "postal_code">, string> &
-  Record<"coordinates", Coordinates> = {
+const baseInitialValues: EditSiteFormValues = {
   country: "",
   state: "",
   address: "",
@@ -83,17 +82,13 @@ const EditSiteContent = ({
         state: site.state ?? "",
         country: site.country ?? "",
         postal_code: site.postal_code ?? "",
-        coordinates: site.coordinates ? `${site.coordinates?.[1]}, ${site.coordinates?.[0]}` : "",
+        coordinates: site.coordinates ? `${site.coordinates?.latitude}, ${site.coordinates?.longitude}` : "",
       });
     }
   }, [site]);
 
   const handleSubmit = async (values: SiteFormValues) => {
-    const coordinatesValues = values.coordinates
-      .replace(/\s+/g, "")
-      .split(",")
-      .map((coordinate) => Number(coordinate));
-    const coordinates = [coordinatesValues[1], coordinatesValues[0]];
+    const coordinates = parseCoordinatesFormValue(values.coordinates);
     const { address, city, postal_code, state, country } = values;
     const requestBody = {
       name: site!.name,

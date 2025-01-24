@@ -6,7 +6,7 @@
 /**
  * Change application settings.
  */
-export type SettingsPatchRequest = {
+export type SettingsUpdate = {
     service_url?: (string | null);
     token_lifetime_minutes?: (number | null);
     token_rotation_interval_minutes?: (number | null);

@@ -3,7 +3,7 @@ import { Field, Formik } from "formik";
 
 import FormikFormContent from "./FormikFormContent";
 
-import type { MutationErrorResponse } from "@/api";
+import { ExceptionCode, type MutationErrorResponse } from "@/api";
 import { render, screen, waitFor } from "@/utils/test-utils";
 
 const renderForm = ({ apiErrors }: { apiErrors: MutationErrorResponse[] }) => {
@@ -36,7 +36,7 @@ it("displays detailed API errors on the relevant fields", async () => {
   const errorResponse: MutationErrorResponse = {
     body: {
       error: {
-        code: "Bad request",
+        code: ExceptionCode.INVALID_PARAMETERS,
         message: "Validation error",
         details: [
           { field: "email", messages: ["Email is already taken"], reason: "Validation error" },

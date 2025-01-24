@@ -3,11 +3,13 @@
 /* tslint:disable */
 /* eslint-disable */
 
+import type { Coordinates } from './Coordinates';
+
 /**
  * Coordinates for a MAAS site.
  */
 export type SiteCoordinates = {
     id: number;
-    coordinates?: (any[] | null);
+    coordinates?: (Coordinates | null);
 };
 
