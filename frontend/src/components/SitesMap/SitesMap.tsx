@@ -46,7 +46,8 @@ const SitesMap = () => {
         />
       </ContentSection.Header>
       <section aria-label="sites map">
-        <Map markers={data?.map?.(formatSiteMarker) ?? null} />
+        {/* Make sure to  filter out sites without coordinates, otherwise they get rendered at 0,0 */}
+        <Map markers={data?.filter((site) => site.coordinates).map?.(formatSiteMarker) ?? null} />
       </section>
       {data?.some((site) => site.coordinates === null) ? <SitesHiddenButton /> : null}
     </ContentSection>

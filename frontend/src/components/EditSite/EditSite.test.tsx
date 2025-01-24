@@ -2,6 +2,8 @@ import { rest } from "msw";
 
 import EditSite from "./EditSite";
 
+import type { MutationErrorResponse } from "@/api";
+import { ExceptionCode } from "@/api";
 import { SiteDetailsContext } from "@/context/SiteDetailsContext";
 import { siteFactory } from "@/mocks/factories";
 import { createMockSiteResolver } from "@/mocks/resolvers";
@@ -130,4 +132,40 @@ it("displays the 'Invalid' message for coordinates with a decimal point but no d
       /Invalid latitude and longitude. Please make sure the coordinates provided are valid and separated by a comma \(,\)./i,
     ),
   ).toBeInTheDocument();
+});
+
+it("displays error messages from the backend on the coordinates field", async () => {
+  const errorResponse: MutationErrorResponse = {
+    body: {
+      error: {
+        code: ExceptionCode.INVALID_PARAMETERS,
+        message: "Validation error",
+        details: [
+          {
+            messages: ["Invalid coordinates"],
+            field: "coordinates.latitude",
+            reason: "Validation error",
+          },
+        ],
+      },
+    },
+  };
+
+  mockServer.use(
+    rest.patch(`${apiUrls.sites}/:id`, (req, res, ctx) => {
+      return res(ctx.status(400), ctx.json(errorResponse.body));
+    }),
+  );
+
+  await renderForm();
+
+  await userEvent.clear(screen.getByRole("textbox", { name: "Latitude and Longitude" }));
+
+  await userEvent.type(screen.getByRole("textbox", { name: "Latitude and Longitude" }), "50, 50");
+
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+  await waitFor(() => {
+    expect(screen.getByText("Invalid coordinates")).toBeInTheDocument();
+  });
 });

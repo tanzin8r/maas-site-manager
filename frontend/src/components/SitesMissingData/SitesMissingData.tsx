@@ -1,33 +1,42 @@
 import { ExternalLink } from "@canonical/maas-react-components";
 import { Accordion, ActionButton, Button, Input, Label, Spinner, Notification } from "@canonical/react-components";
-import type { FormikErrors } from "formik";
+import type { FormikErrors, FormikHelpers } from "formik";
 import { Field, Form, Formik, useFormikContext } from "formik";
+import { mapValues } from "lodash";
 import * as Yup from "yup";
 
+import { coordinateSchema } from "../EditSite/constants";
 import type { CoordinatesFormValue } from "../EditSite/types";
 import { parseCoordinatesFormValue } from "../EditSite/utils";
 
 import type { Site } from "@/api";
-import { coordinateSchema } from "@/components/EditSite/constants";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
-import { useSitesQuery, useUpdateSitesCoordinatesMutation } from "@/hooks/react-query";
+import { useSitesQuery, useUpdateSiteMutation } from "@/hooks/react-query";
 
 import "./_SitesMissingData.scss";
 
 type SitesMissingDataValues = {
-  sitesCoordinates: { id: Site["id"]; coordinates: CoordinatesFormValue }[];
+  sitesCoordinates: {
+    [key: Site["id"]]: {
+      coordinates: CoordinatesFormValue;
+    };
+  };
 };
 
 const SitesMissingDataSchema = Yup.object().shape({
-  sitesCoordinates: Yup.array().of(Yup.object().shape({ id: Yup.number(), coordinates: coordinateSchema })),
+  sitesCoordinates: Yup.lazy((object) =>
+    // since we don't know site IDs in advance, we use yup.lazy and lodash.mapValues to
+    // create the schema *after* the sites are received
+    Yup.object(mapValues(object, () => Yup.object().shape({ coordinates: coordinateSchema }))),
+  ),
 });
 
-const SiteMissingDataField = ({ site, index }: { site: Site; index: number }) => {
+const SiteMissingDataField = ({ site }: { site: Site }) => {
   const fieldId = useId();
   const { touched, errors } = useFormikContext<SitesMissingDataValues>();
 
-  const fieldErrors = errors.sitesCoordinates?.[index] as FormikErrors<
+  const fieldErrors = errors.sitesCoordinates?.[site.id] as FormikErrors<
     SitesMissingDataValues["sitesCoordinates"][number]
   >;
 
@@ -42,10 +51,10 @@ const SiteMissingDataField = ({ site, index }: { site: Site; index: number }) =>
                 <Label>Latitude and Longitude</Label>
                 <Field
                   as={Input}
-                  error={touched.sitesCoordinates?.[index]?.coordinates && fieldErrors?.coordinates}
+                  error={touched.sitesCoordinates?.[site.id]?.coordinates && fieldErrors?.coordinates}
                   help="Coordinates need to be a comma-separated pair."
                   id={fieldId}
-                  name={`sitesCoordinates[${index}].coordinates`}
+                  name={`sitesCoordinates[${site.id}].coordinates`}
                   type="text"
                 />
               </>
@@ -73,27 +82,55 @@ const SiteMissingDataField = ({ site, index }: { site: Site; index: number }) =>
 const SitesMissingData = () => {
   const headingId = useId();
   const { setSidebar } = useAppLayoutContext();
-  const updateSites = useUpdateSitesCoordinatesMutation({
-    onSuccess: () => setSidebar(null),
+  const { data, error, isPending } = useSitesQuery({ coordinates: false, page: 1, size: 20 });
+  const sites = data?.items;
+
+  // Store formik helpers in a ref, since we can't access formik context here, and storing them in state
+  // would trigger re-renders, while the hook uses an out of date `null` value.
+  const formikHelpers = useRef<FormikHelpers<SitesMissingDataValues> | null>(null);
+  const updateSite = useUpdateSiteMutation({
+    onError: (error, variables) => {
+      const errorMessage = error.body.error.details?.[0].messages[0];
+      if (formikHelpers.current) {
+        formikHelpers.current.setFieldError(`sitesCoordinates[${variables.id}].coordinates`, errorMessage);
+      }
+    },
   });
 
-  const handleSubmit = (values: SitesMissingDataValues) => {
-    const { sitesCoordinates } = values;
+  useEffect(() => {
+    // Close the side panel if there's no more sites with missing data
+    if (!isPending && !error && sites && sites.length === 0) {
+      setSidebar(null);
+    }
+  }, [sites, isPending, error, setSidebar]);
 
-    // Filter out sites with no coordinates - user doesn't have to add coords for every site
-    const filteredValues = sitesCoordinates.filter(({ coordinates }) => coordinates);
+  const handleSubmit = async (values: SitesMissingDataValues, helpers: FormikHelpers<SitesMissingDataValues>) => {
+    const { sitesCoordinates } = values;
+    formikHelpers.current = helpers;
+
+    // Cast id to number since Formik converts it to string
+    const keys = Object.keys(sitesCoordinates).map((id) => Number(id));
+    const filteredValues = keys.reduce((acc: { id: number; coordinates: CoordinatesFormValue }[], id) => {
+      // Only submit fields that have coordinates
+      if (sitesCoordinates[id].coordinates) {
+        acc.push({ id, coordinates: sitesCoordinates[id].coordinates });
+      }
+      return acc;
+    }, []);
 
     const toSubmit = filteredValues.map(({ id, coordinates }) => ({
       id,
       coordinates: parseCoordinatesFormValue(coordinates),
     }));
 
-    updateSites.mutate(toSubmit);
+    toSubmit.forEach((site) => {
+      updateSite.mutate({ id: site.id, requestBody: { coordinates: site.coordinates } });
+    });
+
+    // Need to call this manually, otherwise Formik gets stuck in a submitting state
+    // and the Submit button will always be disabled
+    helpers.setSubmitting(false);
   };
-
-  const { data, error, isPending } = useSitesQuery({ coordinates: false, page: 1, size: 20 });
-
-  const sites = data?.items;
 
   if (isPending) {
     return <Spinner text="Loading..." />;
@@ -112,16 +149,11 @@ const SitesMissingData = () => {
   }
 
   const initialValues: SitesMissingDataValues = {
-    sitesCoordinates: sites.map((site) => ({ id: site.id, coordinates: "" })),
+    sitesCoordinates: sites.reduce((acc, site) => Object.assign(acc, { [site.id]: { coordinates: "" } }), {}),
   };
 
   return (
     <div className="sites-missing-data">
-      {!!updateSites.failureReason && (
-        <Notification severity="negative" title="Error while updating sites">
-          <ErrorMessage error={updateSites.failureReason} />
-        </Notification>
-      )}
       <h3 className="p-heading--4 u-no-margin" id={headingId}>
         Sites with missing data
       </h3>
@@ -132,6 +164,11 @@ const SitesMissingData = () => {
         {/* TODO: Enable the link below once we have filtering on the sites list https://warthogs.atlassian.net/browse/MAASENG-3442 */}
         {/* <Link to="/sites/list?missing_coordinates=true">Show missing MAAS sites in table view</Link> */}
       </p>
+      {!!updateSite.error && (
+        <Notification severity="negative" title="Error while updating sites">
+          <ErrorMessage error={updateSite.error} />
+        </Notification>
+      )}
       <strong className="u-uppercase p-text--small">
         Name
         <br />
@@ -140,8 +177,8 @@ const SitesMissingData = () => {
       <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={SitesMissingDataSchema}>
         {({ dirty, isValid, isSubmitting, resetForm }) => (
           <Form aria-labelledby={headingId}>
-            {sites.map((site, index) => (
-              <SiteMissingDataField index={index} key={site.id} site={site} />
+            {sites.map((site) => (
+              <SiteMissingDataField key={site.id} site={site} />
             ))}
             <div className="sites-missing-data__form-buttons-wrapper">
               <hr />

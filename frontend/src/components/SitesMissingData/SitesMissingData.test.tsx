@@ -2,6 +2,8 @@ import { rest } from "msw";
 
 import SitesMissingData from "./SitesMissingData";
 
+import type { MutationErrorResponse } from "@/api";
+import { ExceptionCode } from "@/api";
 import { siteFactory } from "@/mocks/factories";
 import { createMockSitesResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
@@ -127,9 +129,25 @@ it("displays error messages if sites fail to fetch", async () => {
 });
 
 it("displays error messages after failed submission", async () => {
+  const errorResponse: MutationErrorResponse = {
+    body: {
+      error: {
+        code: ExceptionCode.INVALID_PARAMETERS,
+        message: "Validation error",
+        details: [
+          {
+            messages: ["Invalid coordinates"],
+            field: "coordinates.latitude",
+            reason: "Validation error",
+          },
+        ],
+      },
+    },
+  };
+
   mockServer.use(
     rest.patch(`${apiUrls.sites}/:id`, (req, res, ctx) => {
-      return res(ctx.status(400));
+      return res(ctx.status(400), ctx.json(errorResponse.body));
     }),
     rest.get(`${apiUrls.sites}`, createMockSitesResolver([siteFactory.build({ coordinates: null })])),
   );
@@ -146,5 +164,9 @@ it("displays error messages after failed submission", async () => {
 
   await waitFor(() => {
     expect(screen.getByText(/Error while updating sites/i)).toBeInTheDocument();
+  });
+
+  await waitFor(() => {
+    expect(screen.getByText(/Invalid coordinates/i)).toBeInTheDocument();
   });
 });

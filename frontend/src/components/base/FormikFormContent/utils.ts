@@ -19,10 +19,13 @@ export const getFieldErrorsFromErrorResponse = (error: MutationErrorResponse): F
   if (error.body.error.details) {
     for (const detail of error.body.error.details) {
       if (detail.field) {
+        // Errors for coordinates are seperated into coordinates.latitude and coordinates.longitude,
+        // but we only display one coordinates field in the UI, so errors from both need to go here.
+        const field = detail.field.includes("coordinates") ? "coordinates" : detail.field;
         if (detail.messages.length > 0) {
-          fieldErrors[detail.field] = detail.messages.join(" ");
+          fieldErrors[field] = detail.messages.join(" ");
         } else {
-          fieldErrors[detail.field] = "An unknown error occurred when processing this field.";
+          fieldErrors[field] = "An unknown error occurred when processing this field.";
         }
       }
     }
