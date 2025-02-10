@@ -17,12 +17,10 @@ const Tokens = lazyWithErrorBoundary(() => import("@/routes/tokens/tokens"));
 const Requests = lazyWithErrorBoundary(() => import("@/routes/requests"));
 const Users = lazyWithErrorBoundary(() => import("@/routes/users"));
 const MapSettings = lazyWithErrorBoundary(() => import("@/components/MapSettings"));
-const ImageServer = lazyWithErrorBoundary(() => import("@/routes/settings/images/server"));
-const ImagesMaas = lazyWithErrorBoundary(() => import("@/routes/settings/images/maas"));
-const ImageTransfer = lazyWithErrorBoundary(() => import("@/routes/settings/images/transfer"));
 const Account = lazyWithErrorBoundary(() => import("@/routes/account"));
 const PersonalDetails = lazyWithErrorBoundary(() => import("@/routes/personalDetails"));
 const Password = lazyWithErrorBoundary(() => import("@/routes/account/password"));
+const ImageSources = lazyWithErrorBoundary(() => import("@/routes/settings/images/source"));
 
 export const routes = createRoutesFromElements(
   <Route element={<MainLayout />} path="/">
@@ -51,9 +49,7 @@ export const routes = createRoutesFromElements(
         {hasImagesPage ? (
           <Route path="images">
             <Route element={<RequireLogin />} index loader={() => redirect("/settings/images/server")} />
-            <Route element={<ImageServer />} path="server" />
-            <Route element={<ImagesMaas />} path="maas" />
-            <Route element={<ImageTransfer />} path="transfer" />
+            <Route element={<ImageSources />} path="source" />
           </Route>
         ) : null}
       </Route>

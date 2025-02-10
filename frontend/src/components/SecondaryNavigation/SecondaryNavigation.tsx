@@ -133,17 +133,7 @@ const secondaryNavInfo: SecondaryNavInfoType = {
         ? [
             {
               label: "Images",
-              items: [
-                { path: "/settings/images/server", label: "Image server" },
-                {
-                  path: "/settings/images/maas",
-                  label: "maas.io",
-                },
-                {
-                  path: "/settings/images/transfer",
-                  label: "Transfer images",
-                },
-              ],
+              items: [{ path: "/settings/images/source", label: "Source" }],
             },
           ]
         : []),

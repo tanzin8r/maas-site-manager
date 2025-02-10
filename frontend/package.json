@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "clean": "rm -rf dist node_modules",
     "predev": "yarn run download-map-assets",
     "dev": "vite",
     "prebuild": "yarn run download-map-assets",

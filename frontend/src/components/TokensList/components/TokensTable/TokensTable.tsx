@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 
 import type { ColumnDef, Column, Row, Getter } from "@tanstack/react-table";
 import { flexRender, useReactTable, getCoreRowModel } from "@tanstack/react-table";
-import pick from "lodash/fp/pick";
 
 import type { Token } from "@/api/client";
 import DynamicTable from "@/components/DynamicTable";
@@ -12,12 +11,7 @@ import CopyButton from "@/components/base/CopyButton";
 import TooltipButton from "@/components/base/TooltipButton";
 import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
 import type { useTokensQueryResult } from "@/hooks/react-query";
-import { copyToClipboard, formatDistanceToNow, formatUTCDateString } from "@/utils";
-
-const createAccessor =
-  <T, K extends keyof T>(keys: K[] | K) =>
-  (row: T) =>
-    pick(keys, row);
+import { copyToClipboard, createAccessor, formatDistanceToNow, formatUTCDateString } from "@/utils";
 
 export type TokenColumnDef = ColumnDef<Token, Partial<Token>>;
 export type TokenColumn = Column<Token, unknown>;

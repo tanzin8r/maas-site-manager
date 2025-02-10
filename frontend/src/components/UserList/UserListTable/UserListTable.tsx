@@ -4,7 +4,6 @@ import { Button, Icon, Tooltip } from "@canonical/react-components";
 import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 import type { SortingState, Column, ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
-import pick from "lodash/fp/pick";
 
 import type { User } from "@/api/client";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
@@ -13,12 +12,8 @@ import SortIndicator from "@/components/base/SortIndicator";
 import { useAppLayoutContext } from "@/context";
 import { useUserSelectionContext } from "@/context/UserSelectionContext";
 import { useCurrentUserQuery, type useUsersQueryResult } from "@/hooks/react-query";
+import { createAccessor } from "@/utils";
 import { useNavigate } from "@/utils/router";
-
-const createAccessor =
-  <T, K extends keyof T>(keys: K[] | K) =>
-  (row: T) =>
-    pick(keys, row);
 
 export type UserColumnDef = ColumnDef<User, User>;
 export type UserColumn = Column<User, unknown>;

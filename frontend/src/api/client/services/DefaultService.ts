@@ -4,6 +4,9 @@
 /* eslint-disable */
 import type { AccessTokenResponse } from '../models/AccessTokenResponse';
 import type { Body_post_v1_login_post } from '../models/Body_post_v1_login_post';
+import type { BootAssetsGetResponse } from '../models/BootAssetsGetResponse';
+import type { BootSourceSelectionsGetResponse } from '../models/BootSourceSelectionsGetResponse';
+import type { BootSourcesGetResponse } from '../models/BootSourcesGetResponse';
 import type { PendingSitesGetResponse } from '../models/PendingSitesGetResponse';
 import type { PendingSitesPostRequest } from '../models/PendingSitesPostRequest';
 import type { Settings } from '../models/Settings';
@@ -28,6 +31,101 @@ import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class DefaultService {
 
     constructor(public readonly httpRequest: BaseHttpRequest) { }
+
+    /**
+     * Get Boot Assets
+     * Return boot assets.
+     * @returns BootAssetsGetResponse Successful Response
+     * @throws ApiError
+     */
+    public getBootAssetsV1BootassetsGet({
+        sortBy,
+        page = 1,
+        size = 20,
+    }: {
+        sortBy?: (string | null),
+        page?: number,
+        size?: number,
+    }): CancelablePromise<BootAssetsGetResponse> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/v1/bootassets',
+            query: {
+                'sort_by': sortBy,
+                'page': page,
+                'size': size,
+            },
+            errors: {
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+            },
+        });
+    }
+
+    /**
+     * Get Boot Sources
+     * Return boot sources.
+     * @returns BootSourcesGetResponse Successful Response
+     * @throws ApiError
+     */
+    public getBootSourcesV1BootassetSourcesGet({
+        sortBy,
+        page = 1,
+        size = 20,
+    }: {
+        sortBy?: (string | null),
+        page?: number,
+        size?: number,
+    }): CancelablePromise<BootSourcesGetResponse> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/v1/bootasset-sources',
+            query: {
+                'sort_by': sortBy,
+                'page': page,
+                'size': size,
+            },
+            errors: {
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+            },
+        });
+    }
+
+    /**
+     * Get Boot Source Selections
+     * Return boot source selections.
+     * @returns BootSourceSelectionsGetResponse Successful Response
+     * @throws ApiError
+     */
+    public getBootSourceSelectionsV1BootassetSourcesIdSelectionsGet({
+        id,
+        sortBy,
+        page = 1,
+        size = 20,
+    }: {
+        id: number,
+        sortBy?: (string | null),
+        page?: number,
+        size?: number,
+    }): CancelablePromise<BootSourceSelectionsGetResponse> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/v1/bootasset-sources/{id}/selections',
+            path: {
+                'id': id,
+            },
+            query: {
+                'sort_by': sortBy,
+                'page': page,
+                'size': size,
+            },
+            errors: {
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+            },
+        });
+    }
 
     /**
      * Post

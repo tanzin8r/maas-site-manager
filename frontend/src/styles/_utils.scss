@@ -98,3 +98,10 @@
   text-overflow: clip !important;
   white-space: nowrap !important;
 }
+
+
+.u-table-cell-padding-overlap {
+  margin-right: 0;
+  padding-left: $sph--small;
+  padding-right: $sph--small;
+}
