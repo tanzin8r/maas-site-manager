@@ -64,3 +64,20 @@ class TestSettings:
             match=r"threshold \(100s\) should be greater than heartbeat",
         ):
             settings = Settings()
+
+    def test_s3_settings(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        s3_settings = {
+            "MSM_S3_ACCESS_KEY": "test-access-key",
+            "MSM_S3_SECRET_KEY": "test-secret-key",
+            "MSM_S3_ENDPOINT": "test-endpoint",
+            "MSM_S3_BUCKET": "test-bucket",
+            "MSM_S3_PATH": "test-path",
+        }
+        for k in s3_settings:
+            monkeypatch.setenv(k, s3_settings[k])
+        settings = Settings()
+        assert settings.s3_access_key == s3_settings["MSM_S3_ACCESS_KEY"]
+        assert settings.s3_secret_key == s3_settings["MSM_S3_SECRET_KEY"]
+        assert settings.s3_endpoint == s3_settings["MSM_S3_ENDPOINT"]
+        assert settings.s3_bucket == s3_settings["MSM_S3_BUCKET"]
+        assert settings.s3_path == s3_settings["MSM_S3_PATH"]

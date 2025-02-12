@@ -21,7 +21,7 @@ There is more than one way to create this setup, e.g.
 
 ### Installing MAAS Site Manager
 
-Once you have a k8s Juju controller installing MAAS Site Manager is as simple as:
+Once you have a k8s Juju controller, install MAAS Site Manager and Postgresql:
 
 ```bash
 juju switch $YOUR_MODEL
@@ -32,6 +32,23 @@ juju integrate postgresql-k8s maas-site-manager-k8s
 
 # wait for applications to become ready
 juju status --watch 5s
+```
+
+### Object Storage
+MAAS Site Manager requires an object storage service, such as Ceph. For a development environment, follow [this](https://canonical-microceph.readthedocs-hosted.com/en/squid-stable/tutorial/get-started/) guide to set up microceph.
+
+
+Once microceph is set up, install the `s3-integrator` charm and relate it to MAAS Site Manager:
+
+```bash
+# the endpoint config parameter here is taken from the output of `sudo microceph status`
+juju deploy s3-integrator --channel latest/stable --config endpoint=10.207.11.156 bucket=msm-images path=/images
+
+# the access key an secret key used here come from the `sudo radosgw-admin key create` command in the microceph setup tutorial
+juju run s3-integrator/leader sync-s3-credentials access-key=accesskey secret-key=mysecretkey
+
+# integrate s3-integrator with maas-site-manager-k8s
+juju integrate maas-site-manager-k8s s3-integrator
 ```
 
 ### Installing COS lite

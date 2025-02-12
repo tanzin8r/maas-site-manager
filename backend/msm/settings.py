@@ -54,6 +54,22 @@ class Settings(BaseSettings):
     api_socket: str = Field(
         default="api.socket", validation_alias="MSM_API_SOCKET"
     )
+    s3_access_key: str | None = Field(
+        default=None,
+        validation_alias="MSM_S3_ACCESS_KEY",
+    )
+    s3_secret_key: str | None = Field(
+        default=None,
+        validation_alias="MSM_S3_SECRET_KEY",
+    )
+    s3_endpoint: str | None = Field(
+        default=None,
+        validation_alias="MSM_S3_ENDPOINT",
+    )
+    s3_bucket: str | None = Field(
+        default=None, validation_alias="MSM_S3_BUCKET"
+    )
+    s3_path: str | None = Field(default=None, validation_alias="MSM_S3_PATH")
     heartbeat_interval_seconds: int = Field(
         default=300, validation_alias="MSM_HEARTBEAT_INTERVAL_SEC"
     )
