@@ -7,7 +7,7 @@ import type { BootSource } from "./types";
 export const fakeBootSources: { items: BootSource[] } = {
   items: [
     {
-      id: 1,
+      id: 0,
       url: "custom",
       keyring: "",
       sync_interval: 0,
@@ -25,7 +25,7 @@ export const fakeBootSources: { items: BootSource[] } = {
       total_images: 100,
     },
     {
-      id: 1,
+      id: 2,
       url: "somewhere-else.long-domain-name.abc.xyz",
       keyring: "abcdefghijklmnopqrstuvwxyz",
       sync_interval: 150,
@@ -34,7 +34,7 @@ export const fakeBootSources: { items: BootSource[] } = {
       total_images: 100,
     },
     {
-      id: 1,
+      id: 3,
       url: "another-really-long-name.a-domain-somewhere.abc.xyz",
       keyring: "abcdefghijklmnopqrstuvwxyz",
       sync_interval: 0,

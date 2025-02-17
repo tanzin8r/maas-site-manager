@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from "react";
 
 import type { OnChangeFn } from "@tanstack/react-table";
 
-export type Entity = "siteDetails" | "userSelection";
+export type Entity = "siteDetails" | "userSelection" | "bootSource";
 
 type SelectedEntityContextValue<T extends string | number | null = null> = {
   selected: T | null;

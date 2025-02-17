@@ -1,6 +1,7 @@
 import "@/styles/App.scss";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { BootSourceContextProvider } from "./context/BootSourceContext";
 import { RowSelectionContextProviders } from "./context/RowSelectionContext";
 import { SiteDetailsContextProvider } from "./context/SiteDetailsContext";
 import { UserSelectionContextProvider } from "./context/UserSelectionContext";
@@ -22,7 +23,9 @@ const App: React.FC = () => {
           <RowSelectionContextProviders>
             <UserSelectionContextProvider>
               <SiteDetailsContextProvider>
-                <RouterProvider router={router} />
+                <BootSourceContextProvider>
+                  <RouterProvider router={router} />
+                </BootSourceContextProvider>
               </SiteDetailsContextProvider>
             </UserSelectionContextProvider>
           </RowSelectionContextProviders>

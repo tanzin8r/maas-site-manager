@@ -21,6 +21,7 @@ export const sidebarLabels: Record<NonNullable<Sidebar>, string> = {
   deleteImages: "Delete images",
   deleteOrKeepImages: "Delete images",
   sitesMissingData: "Sites with missing data",
+  deleteBootSource: "Delete image source",
 };
 
 export const sidebarComponent: Record<NonNullable<Sidebar>, React.FC> = {
@@ -37,6 +38,7 @@ export const sidebarComponent: Record<NonNullable<Sidebar>, React.FC> = {
   deleteImages: lazy(() => import("@/components/DeleteImages")),
   deleteOrKeepImages: lazy(() => import("@/components/DeleteOrKeepImages")),
   sitesMissingData: lazy(() => import("@/components/SitesMissingData")),
+  deleteBootSource: lazy(() => import("@/components/DeleteImageSource")),
 } as const;
 
 export const SidebarComponents = ({ sidebar }: { sidebar: NonNullable<Sidebar> }) => {

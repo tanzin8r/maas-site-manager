@@ -5,10 +5,12 @@ import type { BootSourceColumnDef } from "./types";
 import { BootSourceStatus } from "./types";
 
 import { useAppLayoutContext } from "@/context";
+import { useBootSourceContext } from "@/context/BootSourceContext";
 import { createAccessor } from "@/utils";
 
 export const useImageSourceTableColumns = () => {
   const { setSidebar } = useAppLayoutContext();
+  const { setSelected } = useBootSourceContext();
 
   return useMemo<BootSourceColumnDef[]>(
     () => [
@@ -139,10 +141,10 @@ export const useImageSourceTableColumns = () => {
         id: "actions",
         enableSorting: false,
         header: () => <div>Actions</div>,
-        accessorFn: createAccessor("url"),
+        accessorFn: createAccessor(["url", "id"]),
         accessorKey: "url",
         cell: ({ getValue }) => {
-          const { url } = getValue();
+          const { url, id } = getValue();
           return (
             <div>
               <Button
@@ -150,7 +152,10 @@ export const useImageSourceTableColumns = () => {
                 aria-label="Edit image source"
                 className="is-dense u-table-cell-padding-overlap"
                 // TODO: enable this once side panel is available https://warthogs.atlassian.net/browse/MAASENG-4381
-                onClick={() => setSidebar(null)}
+                onClick={() => {
+                  setSelected(id);
+                  setSidebar(null);
+                }}
               >
                 <Icon name="edit" />
               </Button>
@@ -159,8 +164,10 @@ export const useImageSourceTableColumns = () => {
                   appearance="base"
                   aria-label="Delete image source"
                   className="is-dense u-table-cell-padding-overlap"
-                  // TODO: enable this once side panel is available https://warthogs.atlassian.net/browse/MAASENG-4382
-                  onClick={() => setSidebar(null)}
+                  onClick={() => {
+                    setSelected(id);
+                    setSidebar("deleteBootSource");
+                  }}
                 >
                   <Icon name="delete" />
                 </Button>
@@ -170,6 +177,6 @@ export const useImageSourceTableColumns = () => {
         },
       },
     ],
-    [setSidebar],
+    [setSidebar, setSelected],
   );
 };
