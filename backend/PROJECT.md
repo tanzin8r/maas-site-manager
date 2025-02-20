@@ -27,9 +27,7 @@ msm
 │   └── queries
 ├── sampledata
 ├── schema
-├── service
-└── snap
-    └── templates
+└── service
 ```
 
 In general each top-level package should contain "private" sub-packages
@@ -226,7 +224,6 @@ Additional support modules are:
   `msm-sampledata` script.
 - `msm.schema` contains helpers and schema definitions related to common API
   request parameters handing, such as pagination, sorting and search filters.
-- `msm.snap` contains logic related to the snap setup, including snap hooks.
 
 ## Authentication
 

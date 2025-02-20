@@ -1,6 +1,0 @@
-#!/bin/bash -e
-
-package_version="$(python3 -c 'import msm; print(msm.__version__)')"
-git_hash="$(git rev-parse --short HEAD)"
-
-echo "${package_version}-${git_hash}"

@@ -543,44 +543,4 @@ Natural Earth Vector tiles sourced from <https://github.com/lukasmartinelli/natu
 
 ## Building for production
 
-### Snap
-
-To build the snap run
-
-```bash
-snapcraft -v -o maas-site-manager.snap
-```
-
-The resulting snap can be installed via
-
-```bash
-sudo snap install --dangerous ./maas-site-manager.snap
-```
-
-After installation, the service won't be enabled automatically and needs to be
-configured.
-
-The snap provides a few settings.
-
-For database configuration:
-
-- `db.host`: host to connect to (defaults: `localhost`)
-- `db.port`: port to connect to (default: `5432`)
-- `db.name`: database name (default: `msm`)
-- `db.user`: database username (default: empty)
-- `db.password`: database password (default: empty)
-
-These can be set, after installing the snap via
-
-```bash
-sudo snap set maas-site-manager db.host=<hostname> db.name=<name> db.password=<password>
-```
-
-After setting the configuration, the service can be enabled
-
-```bash
-sudo snap start --enable maas-site-manager
-```
-
-Once the service is enabled, changing settings will automatically restart it
-with the new ones.
+TBD

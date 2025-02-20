@@ -20,19 +20,6 @@ ci-dep-docker-prepare:
 .PHONY: ci-dep-docker-prepare
 
 
-SNAPCRAFT := SNAPCRAFT_BUILD_INFO=1 snapcraft -v
-SNAP_FILE := maas-site-manager.snap
-
-snap:
-	$(SNAPCRAFT) -o $(SNAP_FILE)
-.PHONY: snap
-
-snap-clean:
-	$(SNAPCRAFT) clean
-	rm -f $(SNAP_FILE)
-.PHONY: snap-clean
-
-
 rock:
 	rockcraft pack -v
 .PHONY: rock

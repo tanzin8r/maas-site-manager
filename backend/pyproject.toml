@@ -36,7 +36,6 @@ dependencies = [
   "python-jose[cryptography]",
   "python-multipart",
   "pytz",
-  "snap-helpers",
   "sqlalchemy[postgresql-asyncpg,postgresql-psycopg]",
   "strenum",                                           # emulate enum.StrEnum, which is available in Python3.11
   "ujson",                                             # faster JSON encoding/decoding (for fastapi)
@@ -55,13 +54,11 @@ optional-dependencies.testing = [
 scripts.msm-admin = "msm.cmd.admin:script"
 scripts.msm-api = "msm.api:run"
 scripts.msm-sampledata = "msm.cmd.sampledata:script"
-entry-points."snaphelpers.hooks".configure = "msm.snap:configure_hook"
 
 [tool.setuptools.package-data]
 msm = [
   "db/alembic/alembic.ini",
   "db/alembic/script.py.mako",
-  "snap/templates/*",
 ]
 
 [tool.setuptools.dynamic]

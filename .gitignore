@@ -60,9 +60,6 @@ logs
 /backend/.tox
 /backend/build
 
-# Snap files
-/*.snap
-
 # CI
 junit*.xml
 

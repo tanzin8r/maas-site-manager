@@ -1,13 +1,11 @@
-from typing import Any, cast
+from typing import Any
 
 from pydantic import Field, SecretStr, validator
-from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
 )
-from snaphelpers import Snap, SnapConfigOptions, SnapEnviron, is_snap
 from sqlalchemy import URL
 
 
@@ -28,27 +26,22 @@ class Settings(BaseSettings):
     db_host: str = Field(
         default="localhost",
         validation_alias="MSM_DB_HOST",
-        json_schema_extra={"snap-key": "db.host"},
     )
     db_port: int = Field(
         default=5432,
         validation_alias="MSM_DB_PORT",
-        json_schema_extra={"snap-key": "db.port"},
     )
     db_name: str | None = Field(
         default=None,
         validation_alias="MSM_DB_NAME",
-        json_schema_extra={"snap-key": "db.name"},
     )
     db_user: str | None = Field(
         default=None,
         validation_alias="MSM_DB_USER",
-        json_schema_extra={"snap-key": "db.user"},
     )
     db_password: SecretStr | None = Field(
         default=None,
         validation_alias="MSM_DB_PASSWORD",
-        json_schema_extra={"snap-key": "db.password"},
     )
     api_port: int = Field(default=8000, validation_alias="MSM_API_PORT")
     api_socket: str = Field(
@@ -82,11 +75,7 @@ class Settings(BaseSettings):
 
     @property
     def static_dir(self) -> str:
-        if is_snap():
-            env = SnapEnviron()
-            return f"{env.SNAP}/static"
-        else:
-            return "static"
+        return "static"
 
     @classmethod
     def settings_customise_sources(
@@ -104,7 +93,7 @@ class Settings(BaseSettings):
             dotenv_settings,
             file_secret_settings,
         )
-        return (*sources, SnapSettingsSource(settings_cls))
+        return sources
 
     def db_dsn(self, async_engine: bool = True) -> URL:
         """The DSN, from configured settings."""
@@ -134,44 +123,3 @@ class Settings(BaseSettings):
                 f"({values['heartbeat_interval_seconds']}s)"
             )
         return threshold
-
-
-class SnapSettingsSource(PydanticBaseSettingsSource):
-    """Source to get configurations options from the snap.
-
-    This looks up fields in snap settings if they define a `snap-key` attribute
-    in `json_schema_extra`.
-    """
-
-    # top-level snap config keys
-    SNAP_KEYS = frozenset(["db"])
-
-    def get_field_value(
-        self, field: FieldInfo, field_name: str
-    ) -> tuple[Any, str, bool]:
-        # empty method since settings are returned in __call__
-        return None, "", False
-
-    def __call__(self) -> dict[str, Any]:
-        snap_configs = self._get_snap_configs()
-        if snap_configs is None:
-            return {}
-
-        settings: dict[str, Any] = {}
-        for field in self.settings_cls.model_fields.values():
-            if not field.json_schema_extra:
-                continue
-
-            schema_extra = cast(dict[str, Any], field.json_schema_extra)
-            if snap_key := schema_extra.get("snap-key"):
-                if (value := snap_configs.get(snap_key)) is not None:
-                    key = cast(str, field.validation_alias)
-                    settings[key] = value
-
-        return settings
-
-    def _get_snap_configs(self) -> SnapConfigOptions | None:
-        """Return snap configs, or None if not running in a snap."""
-        if not is_snap():
-            return None
-        return Snap().config.get_options(*self.SNAP_KEYS)
