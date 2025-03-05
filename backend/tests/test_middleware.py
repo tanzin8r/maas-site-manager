@@ -7,6 +7,7 @@ from fastapi import (
     FastAPI,
     Request,
 )
+from httpx import ASGITransport
 import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -24,7 +25,7 @@ def app(
 ) -> Iterator[FastAPI]:
     app = FastAPI()
     app.add_middleware(DatabaseMetricsMiddleware, db=db)
-    app.add_middleware(transaction_middleware_class, db=db)
+    app.add_middleware(transaction_middleware_class, db=db)  # type: ignore
 
     @app.get("/{count}")
     async def get(request: Request, count: int) -> Any:
@@ -39,7 +40,9 @@ def app(
 async def client(app: FastAPI) -> AsyncIterator[Client]:
     """Client for the API."""
     async with Client(
-        app=app, base_url="http://test", trust_env=False
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        trust_env=False,
     ) as client:
         yield client
 

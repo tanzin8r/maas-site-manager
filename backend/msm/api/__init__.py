@@ -140,7 +140,7 @@ def create_app(
         # handlers here also to allow middlewares to react to errors,
         # e.g. rollback a DB transaction
         a.add_middleware(DatabaseMetricsMiddleware, db=db)
-        a.add_middleware(transaction_middleware_class, db=db)
+        a.add_middleware(transaction_middleware_class, db=db)  # type: ignore
         a.add_middleware(ExceptionMiddleware)
         a.add_exception_handler(
             RequestValidationError, request_validation_error_handler
@@ -179,9 +179,9 @@ def _update_resource_paths(soup: bs, root_path: str) -> None:
     """Updates the paths of resources
     in the HTML to include the root path."""
     for link in soup.find_all("link", attrs={"href": True}):
-        link["href"] = _replace_ui_path(link["href"], root_path)
+        link["href"] = _replace_ui_path(link["href"], root_path)  # type: ignore
     for script in soup.find_all("script", attrs={"src": True}):
-        script["src"] = _replace_ui_path(script["src"], root_path)
+        script["src"] = _replace_ui_path(script["src"], root_path)  # type: ignore
     scripts = soup.find_all(
         "script",
         string=lambda text: "__ROOT_PATH__" in text
@@ -189,7 +189,7 @@ def _update_resource_paths(soup: bs, root_path: str) -> None:
         else False,
     )
     for script in scripts:
-        script.string = _set_root_path(script.string, root_path)
+        script.string = _set_root_path(script.string, root_path)  # type: ignore
 
 
 def _replace_ui_path(original_path: str, root_path: str) -> str:

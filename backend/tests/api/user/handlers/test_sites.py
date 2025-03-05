@@ -403,9 +403,7 @@ class TestSitesDeleteHandler:
         err = ValidationErrorResponseModel(**response.json())
         assert err.error.details is not None
         assert err.error.details[0].field == "ids"
-        assert err.error.details[0].messages == [
-            "Input should be a valid list"
-        ]
+        assert err.error.details[0].messages == ["Field required"]
         response = await user_client.get(f"/sites/{site1.id}")
         assert response.status_code == 200
 

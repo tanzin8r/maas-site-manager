@@ -3,6 +3,7 @@ from typing import Annotated, Self
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from httpx import ASGITransport
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 import pytest
 
@@ -75,7 +76,9 @@ def validation_app() -> Iterator[FastAPI]:
 async def validation_client(validation_app: FastAPI) -> AsyncIterator[Client]:
     """Client for the API."""
     async with Client(
-        app=validation_app, base_url="http://test", trust_env=False
+        transport=ASGITransport(app=validation_app),
+        base_url="http://test",
+        trust_env=False,
     ) as client:
         yield client
 

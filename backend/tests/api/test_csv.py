@@ -42,8 +42,11 @@ def test_csv_response() -> None:
     ]
     response = CSVResponse(content=tokens)
 
-    assert response.body.decode() == (
-        "id,value,audience,purpose,expired,created,site_id\r\n"
-        f"1,{uuid1},site,enrollment,{isoformat(expired1)},{isoformat(created1)},\r\n"
-        f"2,{uuid2},site,enrollment,{isoformat(expired2)},{isoformat(created2)},\r\n"
+    assert (
+        response.body.decode()  # type: ignore
+        == (
+            "id,value,audience,purpose,expired,created,site_id\r\n"
+            f"1,{uuid1},site,enrollment,{isoformat(expired1)},{isoformat(created1)},\r\n"
+            f"2,{uuid2},site,enrollment,{isoformat(expired2)},{isoformat(created2)},\r\n"
+        )
     )

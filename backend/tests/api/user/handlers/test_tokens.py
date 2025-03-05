@@ -115,7 +115,7 @@ async def test_delete_many_no_ids(
     assert err.error.code == ExceptionCode.INVALID_PARAMS
     assert err.error.details is not None
     assert err.error.details[0].field == "ids"
-    assert err.error.details[0].messages == ["Input should be a valid list"]
+    assert err.error.details[0].messages == ["Field required"]
 
 
 # TODO: if the handler raises an exception the db transaction should be rollbacked

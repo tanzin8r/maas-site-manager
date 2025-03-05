@@ -1,6 +1,7 @@
 from collections.abc import AsyncIterator, Iterator
 
 from fastapi import FastAPI
+from httpx import ASGITransport
 from prometheus_client import CollectorRegistry
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -17,7 +18,11 @@ from tests.fixtures.client import Client
 
 def make_api_client(app: FastAPI, config: Config, prefix: str = "") -> Client:
     """Return a Client configured for the application API."""
-    client = Client(app=app, base_url=f"http://test{prefix}", trust_env=False)
+    client = Client(
+        transport=ASGITransport(app=app),
+        base_url=f"http://test{prefix}",
+        trust_env=False,
+    )
     client.set_token_config(config.service_identifier, config.token_secret_key)
     return client
 
