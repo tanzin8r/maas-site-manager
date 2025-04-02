@@ -1,5 +1,6 @@
 from datetime import datetime
 from logging import getLogger
+from os.path import join
 from typing import Annotated, Any, Self
 from urllib.parse import urlparse
 
@@ -482,7 +483,7 @@ class S3MultipartUploadTarget(BaseTarget):  # type: ignore
             )
         )
 
-    def upload_current_chunk(self) -> None:
+    def upload(self) -> None:
         multipart_upload_part = self.s3.MultipartUploadPart(
             self.s3_bucket, self.filename, self.upload_id, self.part_no
         )
@@ -491,6 +492,9 @@ class S3MultipartUploadTarget(BaseTarget):  # type: ignore
             ChecksumAlgorithm="SHA256",
         )
         self.parts.append({"ETag": part["ETag"], "PartNumber": self.part_no})
+
+    def upload_current_chunk(self) -> None:
+        self.upload()
         self.part_no += 1
         self.bytes_sent += len(self.current_chunk)
         self.current_chunk = b""
@@ -606,7 +610,10 @@ async def post_images(
     )
     s3_upload_target = S3MultipartUploadTarget(
         settings,
-        str(tmp_item.id),
+        join(
+            settings.s3_path if settings.s3_path else "",
+            str(tmp_item.id),
+        ),
         api_settings.max_image_upload_size_gb,
     )
     parser.register("file", s3_upload_target)
@@ -629,6 +636,9 @@ async def post_images(
                     )
                 ],
             )
+        except BadRequestException:
+            await services.boot_asset_items.delete(tmp_item.id)
+            raise
     try:
         boot_asset_item = await services.boot_asset_items.update(
             tmp_item.id,

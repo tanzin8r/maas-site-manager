@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import json
+import os
 
 import pytest
 from pytest_mock import MockerFixture
@@ -475,6 +476,245 @@ class TestBootAssetItemsPostHandler:
         }
         resp = await user_client.post(
             f"/bootasset-versions/{999}/items", json=data
+        )
+        assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestCustomImageUploadHandler:
+    async def test_post(
+        self,
+        user_client: Client,
+        factory: Factory,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        mock_resource = mocker.patch(
+            "msm.api.user.handlers.images.boto3.resource"
+        )
+        mock_upload = mocker.patch(
+            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
+        )
+        mock_complete_upload = mocker.patch(
+            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
+        )
+        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+        monkeypatch.setenv("MSM_S3_PATH", "test/path")
+
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        boot_asset_version = await factory.make_BootAssetVersion(ba.id)
+        test_file_content = "This is a test file."
+        data = {
+            "ftype": "kernel",
+            "sha256": "testblaksjdflkj",
+            "path": "/item",
+            "size": len(test_file_content),
+            "source_package": "ubukernel",
+            "source_version": "23.4.1",
+            "source_release": "noble",
+        }
+        try:
+            test_filename = "testfile"
+            with open(test_filename, "w") as f:
+                f.write(test_file_content)
+            with open(test_filename, "rb") as f:
+                file_data = {"file": f}
+                resp = await user_client.post(
+                    f"/bootasset-items/{boot_asset_version.id}",
+                    data=data,
+                    files=file_data,
+                )
+                assert resp.status_code == 200
+                mock_resource.assert_called_with(
+                    "s3",
+                    use_ssl=False,
+                    verify=False,
+                    endpoint_url="http://test-endpoint",
+                    aws_access_key_id="test-access-key",
+                    aws_secret_access_key="test-secret-key",
+                )
+                mock_upload.assert_called_once()
+                mock_complete_upload.assert_called_once()
+                stored = await factory.get("boot_asset_item")
+                assert len(stored) == 1
+                assert stored[0] == data | {
+                    "id": 1,
+                    "boot_asset_version_id": boot_asset_version.id,
+                    "bytes_synced": len(test_file_content),
+                }
+        finally:
+            os.remove(test_filename)
+
+    async def test_post_filepath_is_correct(
+        self,
+        user_client: Client,
+        factory: Factory,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        mock_s3_target = mocker.patch(
+            "msm.api.user.handlers.images.S3MultipartUploadTarget"
+        )
+        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+        monkeypatch.setenv("MSM_S3_PATH", "test/path")
+
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        boot_asset_version = await factory.make_BootAssetVersion(ba.id)
+        test_file_content = "This is a test file."
+        data = {
+            "ftype": "kernel",
+            "sha256": "testblaksjdflkj",
+            "path": "/item",
+            "size": len(test_file_content),
+            "source_package": "ubukernel",
+            "source_version": "23.4.1",
+            "source_release": "noble",
+        }
+        try:
+            test_filename = "testfile"
+            with open(test_filename, "w") as f:
+                f.write(test_file_content)
+            with open(test_filename, "rb") as f:
+                file_data = {"file": f}
+                resp = await user_client.post(
+                    f"/bootasset-items/{boot_asset_version.id}",
+                    data=data,
+                    files=file_data,
+                )
+                mock_s3_target.assert_called_with(
+                    mocker.ANY, "test/path/1", mocker.ANY
+                )
+        finally:
+            os.remove(test_filename)
+
+    async def test_post_wrong_file_size(
+        self,
+        user_client: Client,
+        factory: Factory,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        mock_resource = mocker.patch(
+            "msm.api.user.handlers.images.boto3.resource"
+        )
+        mock_upload = mocker.patch(
+            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
+        )
+        mock_complete_upload = mocker.patch(
+            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
+        )
+        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+        monkeypatch.setenv("MSM_S3_PATH", "test/path")
+
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        boot_asset_version = await factory.make_BootAssetVersion(ba.id)
+        test_file_content = "This is a test file."
+        data = {
+            "ftype": "kernel",
+            "sha256": "testblaksjdflkj",
+            "path": "/item",
+            "size": len(test_file_content) + 1,
+            "source_package": "ubukernel",
+            "source_version": "23.4.1",
+            "source_release": "noble",
+        }
+        try:
+            test_filename = "testfile"
+            with open(test_filename, "w") as f:
+                f.write(test_file_content)
+            with open(test_filename, "rb") as f:
+                file_data = {"file": f}
+                resp = await user_client.post(
+                    f"/bootasset-items/{boot_asset_version.id}",
+                    data=data,
+                    files=file_data,
+                )
+                assert resp.status_code == 400
+                assert (
+                    json.loads(resp.text)["error"]["message"]
+                    == "The size of the uploaded file does not match the 'size' parameter in the request"
+                )
+                stored = await factory.get("boot_asset_item")
+                assert len(stored) == 0
+        finally:
+            os.remove(test_filename)
+
+    async def test_post_bad_parameters(
+        self,
+        user_client: Client,
+        factory: Factory,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        mock_resource = mocker.patch(
+            "msm.api.user.handlers.images.boto3.resource"
+        )
+        mock_upload = mocker.patch(
+            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
+        )
+        mock_complete_upload = mocker.patch(
+            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
+        )
+        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+        monkeypatch.setenv("MSM_S3_PATH", "test/path")
+
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        boot_asset_version = await factory.make_BootAssetVersion(ba.id)
+        test_file_content = "This is a test file."
+        data = {
+            "ftype": "kernel",
+            "sha256": "testblaksjdflkj",
+            "path": "/item",
+            "size": "this should have been an integer",
+            "source_package": "ubukernel",
+            "source_version": "23.4.1",
+            "source_release": "noble",
+        }
+        try:
+            test_filename = "testfile"
+            with open(test_filename, "w") as f:
+                f.write(test_file_content)
+            with open(test_filename, "rb") as f:
+                file_data = {"file": f}
+                resp = await user_client.post(
+                    f"/bootasset-items/{boot_asset_version.id}",
+                    data=data,
+                    files=file_data,
+                )
+                assert resp.status_code == 400
+                assert (
+                    json.loads(resp.text)["error"]["message"]
+                    == "Invalid type for size, expected <class 'int'>"
+                )
+                stored = await factory.get("boot_asset_item")
+                assert len(stored) == 0
+        finally:
+            os.remove(test_filename)
+
+    async def test_post_missing_version(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        boot_asset_version = await factory.make_BootAssetVersion(ba.id)
+        resp = await user_client.post(
+            f"/bootasset-items/{boot_asset_version.id + 1}",
         )
         assert resp.status_code == 404
 

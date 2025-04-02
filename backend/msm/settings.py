@@ -1,4 +1,3 @@
-
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import (
     BaseSettings,
@@ -131,3 +130,11 @@ class Settings(BaseSettings):
                 f"({info.data['heartbeat_interval_seconds']}s)"
             )
         return threshold
+
+    @field_validator("s3_path")
+    def s3_path_validator(
+        cls, path: str | None, info: ValidationInfo
+    ) -> str | None:
+        if not path:
+            return path
+        return path.lstrip("/")
