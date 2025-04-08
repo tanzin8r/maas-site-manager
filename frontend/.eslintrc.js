@@ -33,9 +33,11 @@ module.exports = {
       version: "detect",
     },
     "import/resolver": {
-      typescript: {
-        alias: { "@": path.resolve(__dirname, "src") },
+      alias: {
+        map: [["@", path.resolve(__dirname, "src")]],
+        extensions: [".js", ".jsx", ".ts", ".tsx"], 
       },
+      typescript: {}, // Keep this for TypeScript resolution  
       node: {
         extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
@@ -176,8 +178,8 @@ module.exports = {
       plugins: ["no-only-tests"],
       rules: {
         "no-only-tests/no-only-tests": "error",
-        "testing-library/await-async-query": "error",
-        "testing-library/no-await-sync-query": "error",
+        "testing-library/await-async-queries": "error",
+        "testing-library/no-await-sync-queries": "error",
         "testing-library/prefer-find-by": "off",
         "testing-library/prefer-explicit-assert": "error",
         "testing-library/prefer-user-event": [

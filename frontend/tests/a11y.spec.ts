@@ -27,7 +27,7 @@ const a11yTest =
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
         .analyze();
 
-      await expect(accessibilityScanResults.violations).toEqual([]);
+      expect(accessibilityScanResults.violations).toEqual([]);
     });
 
 test.describe("protected routes", () => {

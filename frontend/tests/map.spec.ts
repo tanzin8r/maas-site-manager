@@ -10,6 +10,8 @@ test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(routesConfig.sitesMap.path);
   const map = page.getByRole("region", { name: "sites map" });
+
+  // eslint-disable-next-line playwright/no-standalone-expect
   await expect(map).toBeVisible({ timeout: LONG_EXPECTATION_TIMEOUT });
 });
 
