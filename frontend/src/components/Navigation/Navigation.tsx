@@ -45,7 +45,12 @@ const generateNavItemsAccount = (userName = "User"): LocalNavLink[] => [
 export const navItemsBottom: ExternalNavLink[] = [
   { external: true, icon: "information", label: "Documentation", url: "https://maas.io/docs" },
   { external: true, icon: "comments", label: "Community", url: "https://discourse.maas.io/" },
-  { external: true, icon: "submit-bug", label: "Report a bug", url: "" }, // TODO: Replace this with actual link once known
+  {
+    external: true,
+    icon: "submit-bug",
+    label: "Report a bug",
+    url: "https://bugs.launchpad.net/maas-site-manager/+filebug",
+  },
 ];
 
 type NavProps = {

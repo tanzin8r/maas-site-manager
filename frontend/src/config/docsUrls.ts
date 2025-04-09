@@ -1,8 +1,8 @@
 const docsUrls = {
-  baseDocsLink: "",
-  configFile: "",
-  enrollmentRequest: "",
-  troubleshooting: "",
+  baseDocsLink: "/",
+  configFile: "/",
+  enrollmentRequest: "/",
+  troubleshooting: "/",
 };
 
 export default docsUrls;

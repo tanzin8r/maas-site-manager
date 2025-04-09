@@ -11,7 +11,13 @@ import { createMockCurrentUserResolver } from "@/mocks/resolvers";
 import { getApiUrl } from "@/utils/test-urls";
 import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/utils/test-utils";
 
-const mockServer = setupServer(rest.get(getApiUrl("/users/me"), createMockCurrentUserResolver()));
+const mockServer = setupServer(
+  rest.get(getApiUrl("/users/me"), createMockCurrentUserResolver()),
+  rest.get("https://maas.io/docs", (req, res, ctx) => res(ctx.status(200))),
+  rest.get("https://discourse.maas.io/", (req, res, ctx) => res(ctx.status(200))),
+  // have to use a splat path here since the actual URL contains a `+`, which throws type errors
+  rest.get("https://bugs.launchpad.net/maas-site-manager/*", (req, res, ctx) => res(ctx.status(200))),
+);
 
 beforeAll(() => {
   vi.stubGlobal("location", { origin: "http://localhost:8000" });
@@ -69,11 +75,13 @@ it("links to MAAS discourse at the bottom of the nav", async () => {
   expect(screen.getByRole("link", { name: "Community" })).toHaveAttribute("href", "https://discourse.maas.io/");
 });
 
-it.skip("links to the bug report page at the bottom of the nav", async () => {
-  // TODO: Enable this test once a bug report link is available https://warthogs.atlassian.net/browse/MAASENG-1588
+it("links to the bug report page at the bottom of the nav", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn />);
 
-  expect(screen.getByRole("link", { name: "Report a bug" })).toHaveAttribute("href", "");
+  expect(screen.getByRole("link", { name: "Report a bug" })).toHaveAttribute(
+    "href",
+    "https://bugs.launchpad.net/maas-site-manager/+filebug",
+  );
 });
 
 it("removes focus from the current element after clicking the link", async () => {
@@ -81,6 +89,7 @@ it("removes focus from the current element after clicking the link", async () =>
 
   const navigationLinks = screen.getAllByRole("link");
   for (const link of navigationLinks) {
+    // console.log(`${link.textContent}: ${link.getAttribute("href")}`);
     await userEvent.click(link);
     expect(link).not.toHaveFocus();
   }
@@ -104,15 +113,6 @@ it("should be collapsed on user logout", async () => {
   renderWithMemoryRouter(<Navigation isLoggedIn={false} />);
 
   expect(screen.getByRole("banner", { name: "main navigation" })).toHaveClass("is-collapsed");
-});
-
-it("removes focus from the current element after clicking the link", async () => {
-  renderWithMemoryRouter(<Navigation isLoggedIn />);
-  const navigationLinks = screen.getAllByRole("link");
-  for (const link of navigationLinks) {
-    await userEvent.click(link);
-    expect(link).not.toHaveFocus();
-  }
 });
 
 it("does not display in-app navigation links when logged out", () => {

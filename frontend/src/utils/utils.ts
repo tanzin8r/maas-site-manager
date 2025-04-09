@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/browser";
 import type { SortingState } from "@tanstack/react-table";
 import { formatDistanceToNowStrict, parseISO } from "date-fns";
-import { getTimezoneOffset, format, utcToZonedTime } from "date-fns-tz";
+import { getTimezoneOffset, format, toZonedTime } from "date-fns-tz";
 import * as countries from "i18n-iso-countries";
 import { getName } from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
@@ -72,7 +72,7 @@ export const getTimeInTimezone = (date: Date, timezone: TimeZone | "") => {
 };
 
 export const formatUTCDateString = (dateString: string) =>
-  format(utcToZonedTime(parseISO(dateString), "UTC"), "yyyy-MM-dd HH:mm", { timeZone: "UTC" });
+  format(toZonedTime(parseISO(dateString), "UTC"), "yyyy-MM-dd HH:mm", { timeZone: "UTC" });
 
 export const unsecureCopyToClipboard = (text: string, callback?: (text: string) => void) => {
   const textArea = document.createElement("textarea");

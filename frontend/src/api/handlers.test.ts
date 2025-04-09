@@ -31,20 +31,20 @@ afterAll(() => {
 });
 
 it("requires name, amount and expiration time", async () => {
-  // @ts-expect-error
-  expect(postTokens({})).rejects.toThrowError();
-  expect(postTokens({ count: 1, duration: durationFactory.build() })).resolves.toBeDefined();
+  // @ts-expect-error Empty objects aren't normally allowed as a prop, but we're trying to force an error here
+  await expect(postTokens({})).rejects.toThrow();
+  await expect(postTokens({ count: 1, duration: durationFactory.build() })).resolves.toBeDefined();
 });
 
 it("requires ids and accept values", async () => {
-  // @ts-expect-error
-  expect(postEnrollmentRequests({})).rejects.toThrowError();
-  expect(postEnrollmentRequests({ ids: [], accept: false })).resolves.toEqual(undefined);
-  expect(postEnrollmentRequests({ ids: [], accept: true })).resolves.toEqual(undefined);
+  // @ts-expect-error Empty objects aren't normally allowed as a prop, but we're trying to force an error here
+  await expect(postEnrollmentRequests({})).rejects.toThrow();
+  await expect(postEnrollmentRequests({ ids: [], accept: false })).resolves.toEqual(undefined);
+  await expect(postEnrollmentRequests({ ids: [], accept: true })).resolves.toEqual(undefined);
 });
 
 it("returns the user object", async () => {
-  expect(getCurrentUser()).resolves.toEqual(
+  await expect(getCurrentUser()).resolves.toEqual(
     expect.objectContaining({
       id: expect.any(Number),
       username: expect.any(String),

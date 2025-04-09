@@ -185,7 +185,7 @@ export const useTokensCreateMutation = (
 
 export const useExportTokensToFileQuery = ({ id }: Parameters<typeof apiClient.default.getV1TokensGet>[0]) => {
   const [isPending, setisPending] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<unknown | null>(null);
 
   const exportTokens = async (parameters: Parameters<typeof getTokensExport>[0]) => {
     setError(null);
