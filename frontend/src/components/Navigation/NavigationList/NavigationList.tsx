@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { useId, useMemo } from "react";
 
 import { Navigation } from "@canonical/maas-react-components";
@@ -53,7 +54,7 @@ const NavigationItemGroup = ({ group, path, onClick }: { group: NavGroup } & Pic
   );
 };
 
-const NavigationList = ({ hideDivider = false, items, path, onClick }: Props): JSX.Element => {
+const NavigationList = ({ hideDivider = false, items, path, onClick }: Props): ReactElement => {
   return (
     <Navigation.List className={classNames({ "no-divider": hideDivider })}>
       {items.map((item, i) => {

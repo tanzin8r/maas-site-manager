@@ -80,7 +80,8 @@ test("closes the form when navigating away", async ({ page }) => {
   await page.getByRole("banner", { name: /main/i }).getByRole("link", { name: /Sites/ }).click();
 
   await page.goBack();
-  await expect(page.getByRole("form", { name: /Add user/i })).toBeHidden();
+  // eslint-disable-next-line playwright/no-wait-for-selector
+  await page.waitForSelector('form[aria-label="Add user"]', { state: "detached" });
 });
 
 test("can delete a user", async ({ page }) => {
