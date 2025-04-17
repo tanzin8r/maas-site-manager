@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+import { ContentSection } from "@canonical/maas-react-components";
+import { Application, AppMain, Spinner } from "@canonical/react-components";
 import classNames from "classnames";
 
 import { Aside } from "./Aside";
@@ -24,9 +26,9 @@ const MainLayout: React.FC = () => {
   const isSideNavVisible = matchPath("/settings/*", pathname) || matchPath("/account/*", pathname);
 
   return (
-    <div className="l-application">
+    <Application>
       <Navigation isLoggedIn={isLoggedIn} />
-      <main className="l-main is-maas-site-manager">
+      <AppMain className="is-maas-site-manager">
         <h1 className="u-visually-hidden">{getPageTitle(pathname as RoutePath)}</h1>
         <div className={classNames("l-main__nav", { "is-open": isSideNavVisible })}>
           <SecondaryNavigation isOpen={!!isSideNavVisible} />
@@ -34,15 +36,21 @@ const MainLayout: React.FC = () => {
         <div className="l-main__content">
           <div className="row">
             <div className="col-12">
-              <Suspense>
+              <Suspense
+                fallback={
+                  <ContentSection>
+                    <Spinner text="Loading..." />
+                  </ContentSection>
+                }
+              >
                 <Outlet />
               </Suspense>
             </div>
           </div>
         </div>
-      </main>
+      </AppMain>
       <Aside />
-    </div>
+    </Application>
   );
 };
 

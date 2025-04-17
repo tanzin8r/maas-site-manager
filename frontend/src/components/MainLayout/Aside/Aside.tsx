@@ -1,7 +1,7 @@
 import { Suspense, useEffect } from "react";
 
-import { Col, Row, useOnEscapePressed, usePrevious } from "@canonical/react-components";
-import classNames from "classnames";
+import { ContentSection } from "@canonical/maas-react-components";
+import { Col, Row, Spinner, useOnEscapePressed, usePrevious, AppAside } from "@canonical/react-components";
 
 import { useAppLayoutContext } from "@/context";
 import type { Sidebar } from "@/context/AppLayoutContext";
@@ -70,17 +70,26 @@ export const Aside = () => {
   });
 
   return (
-    <aside
+    <AppAside
       aria-hidden={!sidebar}
       aria-label={sidebar ? sidebarLabels[sidebar] : undefined}
-      className={classNames("l-aside is-maas-site-manager", { "is-collapsed": !sidebar })}
+      className="is-maas-site-manager"
+      collapsed={!sidebar}
       id="aside-panel"
     >
       <Row>
         <Col size={12}>
-          <Suspense>{sidebar && <SidebarComponents sidebar={sidebar} />}</Suspense>
+          <Suspense
+            fallback={
+              <ContentSection>
+                <Spinner text="Loading..." />
+              </ContentSection>
+            }
+          >
+            {sidebar && <SidebarComponents sidebar={sidebar} />}
+          </Suspense>
         </Col>
       </Row>
-    </aside>
+    </AppAside>
   );
 };
