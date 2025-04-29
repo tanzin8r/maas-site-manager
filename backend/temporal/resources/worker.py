@@ -13,6 +13,9 @@ from temporallib.worker import (  # type: ignore
 )
 from workflows.download_upstream import (  # type: ignore
     DownloadUpstreamImage,
+    GetOrCreateAsset,
+    GetOrCreateItem,
+    GetOrCreateVersion,
 )
 
 logger = logging.getLogger(__name__)
@@ -26,10 +29,18 @@ async def run_worker() -> None:
     activities = ImageManagementActivity()
     worker = Worker(
         client=client,
-        workflows=[DownloadUpstreamImage],
+        workflows=[
+            DownloadUpstreamImage,
+            GetOrCreateAsset,
+            GetOrCreateItem,
+            GetOrCreateVersion,
+        ],
         activities=[
             activities.download_asset,
             activities.update_bytes_synced,
+            activities.get_or_create_asset,
+            activities.get_or_create_item,
+            activities.get_or_create_version,
         ],
         worker_opt=WorkerOptions(sentry=SentryOptions()),
     )

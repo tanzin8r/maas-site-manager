@@ -121,7 +121,9 @@ class BootSourceSelectionsGetResponse(PaginatedResults):
 )
 async def get_boot_assets(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
     sort_params: Annotated[
         list[SortParam], Depends(boot_asset_sort_parameters)
     ],
@@ -177,7 +179,9 @@ class BootAssetsPostResponse(BaseModel):
 )
 async def post_boot_assets(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
     post_request: BootAssetsPostRequest,
 ) -> BootAssetsPostResponse:
     if not await services.boot_sources.get_by_id(post_request.boot_source_id):
@@ -325,7 +329,9 @@ class BootAssetVersionPostResponse(BaseModel):
 )
 async def post_boot_asset_version(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
     id: int,
     post_request: BootAssetVersionPostRequest,
 ) -> BootAssetVersionPostResponse:
@@ -387,7 +393,9 @@ class BootAssetVersionsGetResponse(PaginatedResults):
 )
 async def get_boot_asset_versions(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
     sort_params: Annotated[
         list[SortParam], Depends(boot_asset_version_sort_parameters)
     ],
@@ -436,7 +444,9 @@ class BootAssetItemPostResponse(BaseModel):
 )
 async def post_boot_asset_item(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
     id: int,
     post_request: BootAssetItemPostRequest,
 ) -> BootAssetItemPostResponse:
@@ -505,7 +515,9 @@ class BootAssetItemsGetResponse(PaginatedResults):
 )
 async def get_boot_asset_items(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
     sort_params: Annotated[
         list[SortParam], Depends(boot_asset_items_sort_parameters)
     ],

@@ -132,6 +132,8 @@ python-jose[cryptography]==3.4.0
     # via msm (pyproject.toml)
 python-multipart==0.0.20
     # via msm (pyproject.toml)
+python-simplestreams==0.1.0.post59
+    # via msm (pyproject.toml)
 pytz==2025.1
     # via
     #   msm (pyproject.toml)

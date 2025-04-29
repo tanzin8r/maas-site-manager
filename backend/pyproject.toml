@@ -37,6 +37,7 @@ dependencies = [
   "pydantic-settings",
   "python-jose[cryptography]",
   "python-multipart",
+  "python-simplestreams",
   "pytz",
   "sqlalchemy[postgresql-asyncpg,postgresql-psycopg]",
   "streaming-form-data",
@@ -71,7 +72,7 @@ version = { attr = "msm.__version__" }
 [tool.setuptools.packages.find]
 include = [
   "msm*",
-  "temporal*",
+  "temporal/resources/*",
 ]
 
 [tool.ruff]
@@ -95,6 +96,10 @@ testpaths = [
 ]
 junit_logging = "all"
 junit_suite_name = "maas-site-manager backend tests"
+pythonpath = [
+  ".",
+  "temporal/resources",
+]
 
 [tool.coverage.report]
 fail_under = 80.0

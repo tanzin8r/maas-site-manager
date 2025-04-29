@@ -1,4 +1,7 @@
+from dataclasses import asdict
+from datetime import UTC, datetime
 import typing
+from unittest.mock import PropertyMock
 
 from httpx import AsyncClient, Response
 import pytest
@@ -6,7 +9,15 @@ from pytest_mock import MockerFixture
 from temporalio.testing import ActivityEnvironment
 
 from temporal.resources.activities.download_upstream_activities import (
+    BootAsset,
+    BootAssetItem,
+    BootAssetKind,
+    BootAssetLabel,
+    BootAssetVersion,
     DownloadAssetParams,
+    GetOrCreateAssetParams,
+    GetOrCreateItemParams,
+    GetOrCreateVersionParams,
     ImageManagementActivity,
     S3Params,
     S3ResourceManager,
@@ -137,3 +148,225 @@ class TestDownloadUpstreamActivities:
         s3_manager.upload_part.assert_called_once()  # type: ignore
         s3_manager.complete_upload.assert_not_called()  # type: ignore
         s3_manager.abort_upload.assert_called_once()  # type: ignore
+
+    async def test_get_or_create_asset_retrieved(
+        self, mocker: MockerFixture, im_act: typing.Any
+    ) -> None:
+        mock_response = mocker.create_autospec(Response)
+        type(mock_response).status_code = PropertyMock(return_value=200)
+        mock_response.json.return_value = {"items": [{"id": 2}]}
+        im_act.client.get.return_value = mock_response
+
+        act_env = ActivityEnvironment()
+        params = GetOrCreateAssetParams(
+            msm_base_url="http://test.msm.url",
+            msm_jwt="test.msm.jwt",
+            asset=BootAsset(
+                boot_source_id=1,
+                kind=BootAssetKind.BOOTLOADER,
+                label=BootAssetLabel.CANDIDATE,
+                os="ubuntu",
+                arch="amd64",
+                release="24.04",
+            ),
+        )
+        result = await act_env.run(im_act.get_or_create_asset, params)
+        assert result == 2
+        im_act.client.get.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootassets",
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+            params={
+                "kind": params.asset.kind,
+                "label": params.asset.label,
+                "os": params.asset.os,
+                "arch": params.asset.arch,
+            },
+        )
+        im_act.client.post.assert_not_called()
+
+    async def test_get_or_create_asset_created(
+        self, mocker: MockerFixture, im_act: typing.Any
+    ) -> None:
+        mock_response = mocker.create_autospec(Response)
+        type(mock_response).status_code = PropertyMock(return_value=200)
+        mock_response.json.return_value = {"items": []}
+        im_act.client.get.return_value = mock_response
+
+        mock_post_response = mocker.create_autospec(Response)
+        type(mock_post_response).status_code = PropertyMock(return_value=200)
+        mock_post_response.json.return_value = {"id": 2}
+        im_act.client.post.return_value = mock_post_response
+
+        act_env = ActivityEnvironment()
+        params = GetOrCreateAssetParams(
+            msm_base_url="http://test.msm.url",
+            msm_jwt="test.msm.jwt",
+            asset=BootAsset(
+                boot_source_id=1,
+                kind=BootAssetKind.BOOTLOADER,
+                label=BootAssetLabel.CANDIDATE,
+                os="ubuntu",
+                arch="amd64",
+                release="24.04",
+                codename="Noble",
+                title="Noble Bootloader",
+                subarch="amd64",
+                compatibility=["amd64"],
+                flavor="flav",
+                eol=datetime(year=2026, month=3, day=24, tzinfo=UTC),
+                esm_eol=datetime(year=2027, month=3, day=24, tzinfo=UTC),
+            ),
+        )
+        result = await act_env.run(im_act.get_or_create_asset, params)
+        assert result == 2
+        im_act.client.get.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootassets",
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+            params={
+                "kind": params.asset.kind,
+                "label": params.asset.label,
+                "os": params.asset.os,
+                "arch": params.asset.arch,
+            },
+        )
+        im_act.client.post.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootassets",
+            json=asdict(params.asset),
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+        )
+
+    async def test_get_or_create_version_retrieved(
+        self, mocker: MockerFixture, im_act: typing.Any
+    ) -> None:
+        mock_response = mocker.create_autospec(Response)
+        type(mock_response).status_code = PropertyMock(return_value=200)
+        mock_response.json.return_value = {"items": [{"id": 2}]}
+        im_act.client.get.return_value = mock_response
+
+        act_env = ActivityEnvironment()
+        params = GetOrCreateVersionParams(
+            msm_base_url="http://test.msm.url",
+            msm_jwt="test.msm.jwt",
+            version=BootAssetVersion(boot_asset_id=1, version="20250903.1"),
+        )
+        result = await act_env.run(im_act.get_or_create_version, params)
+        assert result == 2
+        im_act.client.get.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootasset-versions",
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+            params={
+                "version": params.version.version,
+                "boot_asset_id": params.version.boot_asset_id,
+            },
+        )
+        im_act.client.post.assert_not_called()
+
+    async def test_get_or_create_version_created(
+        self, mocker: MockerFixture, im_act: typing.Any
+    ) -> None:
+        mock_response = mocker.create_autospec(Response)
+        type(mock_response).status_code = PropertyMock(return_value=200)
+        mock_response.json.return_value = {"items": []}
+        im_act.client.get.return_value = mock_response
+
+        mock_post_response = mocker.create_autospec(Response)
+        type(mock_post_response).status_code = PropertyMock(return_value=200)
+        mock_post_response.json.return_value = {"id": 2}
+        im_act.client.post.return_value = mock_post_response
+
+        act_env = ActivityEnvironment()
+        params = GetOrCreateVersionParams(
+            msm_base_url="http://test.msm.url",
+            msm_jwt="test.msm.jwt",
+            version=BootAssetVersion(boot_asset_id=1, version="20250903.1"),
+        )
+        result = await act_env.run(im_act.get_or_create_version, params)
+        assert result == 2
+        im_act.client.get.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootasset-versions",
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+            params={
+                "version": params.version.version,
+                "boot_asset_id": params.version.boot_asset_id,
+            },
+        )
+        im_act.client.post.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootassets/{params.version.boot_asset_id}/versions",
+            json={"version": params.version.version},
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+        )
+
+    async def test_get_or_create_item_retrieved(
+        self, mocker: MockerFixture, im_act: typing.Any
+    ) -> None:
+        mock_response = mocker.create_autospec(Response)
+        type(mock_response).status_code = PropertyMock(return_value=200)
+        mock_response.json.return_value = {"items": [{"id": 2}]}
+        im_act.client.get.return_value = mock_response
+
+        act_env = ActivityEnvironment()
+        params = GetOrCreateItemParams(
+            msm_base_url="http://test.msm.url",
+            msm_jwt="test.msm.jwt",
+            item=BootAssetItem(
+                boot_asset_version_id=2,
+                ftype="testftype",
+                sha256="alskdjfl2k34jlkvjalsdkjf23l34nik",
+                path="test/path",
+                file_size=200,
+                source_package="testpackage",
+                source_version="testversion",
+                source_release="testrelease",
+            ),
+        )
+        result = await act_env.run(im_act.get_or_create_item, params)
+        assert result == 2
+        im_act.client.get.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootasset-items",
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+            params={"sha256": params.item.sha256},
+        )
+        im_act.client.post.assert_not_called()
+
+    async def test_get_or_create_item_created(
+        self, mocker: MockerFixture, im_act: typing.Any
+    ) -> None:
+        mock_response = mocker.create_autospec(Response)
+        type(mock_response).status_code = PropertyMock(return_value=200)
+        mock_response.json.return_value = {"items": []}
+        im_act.client.get.return_value = mock_response
+
+        mock_post_response = mocker.create_autospec(Response)
+        type(mock_post_response).status_code = PropertyMock(return_value=200)
+        mock_post_response.json.return_value = {"id": 2}
+        im_act.client.post.return_value = mock_post_response
+
+        act_env = ActivityEnvironment()
+        params = GetOrCreateItemParams(
+            msm_base_url="http://test.msm.url",
+            msm_jwt="test.msm.jwt",
+            item=BootAssetItem(
+                boot_asset_version_id=2,
+                ftype="testftype",
+                sha256="alskdjfl2k34jlkvjalsdkjf23l34nik",
+                path="test/path",
+                file_size=200,
+                source_package="testpackage",
+                source_version="testversion",
+                source_release="testrelease",
+            ),
+        )
+        result = await act_env.run(im_act.get_or_create_item, params)
+        assert result == 2
+        im_act.client.get.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootasset-items",
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+            params={"sha256": params.item.sha256},
+        )
+        expected_body = asdict(params.item)
+        expected_body.pop("boot_asset_version_id")
+        im_act.client.post.assert_called_with(
+            f"{params.msm_base_url}/api/v1/bootasset-versions/2/items",
+            json=expected_body,
+            headers={"Authorization": f"bearer {params.msm_jwt}"},
+        )
