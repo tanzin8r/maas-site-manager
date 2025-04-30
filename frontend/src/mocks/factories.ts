@@ -3,16 +3,11 @@ import { add, sub } from "date-fns";
 import { Factory } from "fishery";
 import { adjectives, animals, colors, starWars, uniqueNamesGenerator } from "unique-names-generator";
 
-import type { Image, Settings, Site, SiteData, UpstreamImage, UpstreamImageSource, User } from "@/api";
-import { BootAssetKind, BootAssetLabel, ConnectionStatus, TimeZone } from "@/api";
-import type {
-  AccessTokenResponse,
-  PendingSite,
-  PendingSitesGetResponse,
-  SitesGetResponse,
-  Token,
-  UsersGetResponse,
-} from "@/api/client";
+import type { Settings, Image, UpstreamImage, UpstreamImageSource } from "@/api";
+import { BootAssetKind, BootAssetLabel } from "@/api";
+import type { PendingSite, AccessTokenResponse, UsersGetResponse, PendingSitesGetResponse, Token } from "@/api/client";
+import { TimeZone, ConnectionStatus } from "@/apiclient";
+import type { GetV1SitesGetResponse, Site, SiteData, User } from "@/apiclient";
 import type { SiteMarkerType } from "@/components/Map/types";
 
 export const connections: ConnectionStatus[] = [
@@ -114,7 +109,7 @@ export const userFactory = Factory.define<User>(({ sequence }) => {
 export const enrollmentRequestQueryResultFactory = Factory.define<PendingSitesGetResponse>(() => {
   return { items: [], total: 0, page: 0, size: 0 };
 });
-export const sitesQueryResultFactory = Factory.define<SitesGetResponse>(() => {
+export const sitesQueryResultFactory = Factory.define<GetV1SitesGetResponse>(() => {
   return { items: [], total: 0, page: 0, size: 0 };
 });
 export const usersQueryResultFactory = Factory.define<UsersGetResponse>(() => {

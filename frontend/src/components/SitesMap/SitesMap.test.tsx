@@ -1,12 +1,16 @@
+import { rest } from "msw";
+
 import SitesMap from "@/components/SitesMap";
 import { siteFactory } from "@/mocks/factories";
-import { createMockSitesCoordinatesResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
+import { createMockCurrentUserResolver, createMockSitesCoordinatesResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
-import { renderWithMemoryRouter, screen } from "@/utils/test-utils";
+import { renderWithMemoryRouter, screen, setupServer } from "@/utils/test-utils";
 
 const sites = siteFactory.buildList(2);
-const mockServer = createMockGetServer(apiUrls.sitesCoordinates, createMockSitesCoordinatesResolver(sites));
+const mockServer = setupServer(
+  rest.get(apiUrls.sitesCoordinates, createMockSitesCoordinatesResolver(sites)),
+  rest.get(apiUrls.currentUser, createMockCurrentUserResolver()),
+);
 
 beforeAll(() => {
   mockServer.listen();

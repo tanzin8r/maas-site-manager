@@ -7,7 +7,7 @@ import { getName } from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
 import pick from "lodash/fp/pick";
 
-import type { SiteCoordinates, TimeZone } from "@/api/client";
+import type { SiteCoordinates, TimeZone } from "@/apiclient";
 import type { SiteMarkerType } from "@/components/Map/types";
 
 if (typeof window !== "undefined") {

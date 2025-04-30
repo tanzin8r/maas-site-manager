@@ -4,7 +4,8 @@ import { ExternalLink } from "@canonical/maas-react-components";
 import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import type { Column, ColumnDef } from "@tanstack/react-table";
 
-import type { PendingSite } from "@/api";
+import type { UseEnrollmentRequestsResult } from "@/api/query/enrollmentRequests";
+import type { PendingSite } from "@/apiclient";
 import DateTime from "@/components/DateTime";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
@@ -12,7 +13,6 @@ import TableCaption from "@/components/TableCaption";
 import docsUrls from "@/config/docsUrls";
 import { isDev } from "@/constants";
 import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
-import type { UseEnrollmentRequestsQueryResult } from "@/hooks/react-query";
 
 export type EnrollmentRequestsColumnDef = ColumnDef<PendingSite, PendingSite[keyof PendingSite]>;
 export type EnrollmentRequestsColumn = Column<PendingSite, unknown>;
@@ -23,7 +23,7 @@ const RequestsTable = ({
   error,
   isPending,
   pageSize,
-}: Pick<UseEnrollmentRequestsQueryResult, "data" | "error" | "isPending"> & {
+}: Pick<UseEnrollmentRequestsResult, "data" | "error" | "isPending"> & {
   currentPage: number;
   pageSize: number;
 }) => {
@@ -114,7 +114,7 @@ const RequestsTable = ({
       </thead>
       {error ? (
         <TableCaption>
-          <TableCaption.Error error={error} />
+          <TableCaption.Error error={{ body: error }} />
         </TableCaption>
       ) : isPending ? (
         <DynamicTable.Loading table={table} />

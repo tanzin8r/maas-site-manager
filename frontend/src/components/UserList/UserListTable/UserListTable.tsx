@@ -5,13 +5,13 @@ import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-tabl
 import type { SortingState, Column, ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
 
-import type { User } from "@/api/client";
+import { useCurrentUser, type UseUsersResult } from "@/api/query/users";
+import type { User } from "@/apiclient";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import TableCaption from "@/components/TableCaption/TableCaption";
 import SortIndicator from "@/components/base/SortIndicator";
 import { useAppLayoutContext } from "@/context";
 import { useUserSelectionContext } from "@/context/UserSelectionContext";
-import { useCurrentUserQuery, type useUsersQueryResult } from "@/hooks/react-query";
 import { createAccessor } from "@/utils";
 import { useNavigate } from "@/utils/router";
 
@@ -29,11 +29,11 @@ const UserListTable = ({
   isPending,
   setSorting,
   sorting,
-}: Pick<useUsersQueryResult, "data" | "error" | "isPending"> & SortProps) => {
+}: Pick<UseUsersResult, "data" | "error" | "isPending"> & SortProps) => {
   const [isShowingFullName, setIsShowingFullName] = useState(false);
   const { setSelected: setSelectedUserId } = useUserSelectionContext();
   const { setSidebar } = useAppLayoutContext();
-  const { data: currentUser } = useCurrentUserQuery();
+  const { data: currentUser } = useCurrentUser();
   const currentUsername = currentUser?.username;
   const navigate = useNavigate();
 
@@ -208,7 +208,7 @@ const UserListTable = ({
       </thead>
       {error ? (
         <TableCaption>
-          <TableCaption.Error error={error} />
+          <TableCaption.Error error={{ body: error }} />
         </TableCaption>
       ) : isPending ? (
         <DynamicTable.Loading table={userTable} />

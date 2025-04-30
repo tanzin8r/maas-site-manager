@@ -2,11 +2,11 @@ import { Button, Input, Notification, Spinner } from "@canonical/react-component
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 
+import { useDeleteUser, useUser } from "@/api/query/users";
 import ErrorMessage from "@/components/ErrorMessage";
 import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext, useUserSelectionContext } from "@/context";
 import type { UserSelectionContextValue } from "@/context/UserSelectionContext";
-import { useDeleteUserMutation, useUserQuery } from "@/hooks/react-query";
 
 const initialValues = {
   confirmUsername: "",
@@ -30,9 +30,15 @@ const DeleteUserContent = ({
 }) => {
   const id = useId();
   const { setSidebar } = useAppLayoutContext();
-  const { data: user, error, isError, isPending, isSuccess: getUserSuccess } = useUserQuery({ id: selectedUserId });
+  const {
+    data: user,
+    error,
+    isError,
+    isPending,
+    isSuccess: getUserSuccess,
+  } = useUser({ path: { id: selectedUserId } });
 
-  const deleteUserMutation = useDeleteUserMutation();
+  const deleteUserMutation = useDeleteUser();
   const headingId = `heading-${id}`;
   const confirmInputId = `confirm-${id}`;
   const initialValues = {
@@ -42,7 +48,7 @@ const DeleteUserContent = ({
   const handleSubmit = () => {
     if (getUserSuccess) {
       deleteUserMutation.mutate(
-        { id: user.id },
+        { path: { id: user.id } },
         {
           onSuccess() {
             setSidebar(null);

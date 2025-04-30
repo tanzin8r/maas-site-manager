@@ -5,9 +5,9 @@ import type { SortingState } from "@tanstack/react-table";
 import UserListTable from "./UserListTable";
 
 import type { SortBy, UserSortKey } from "@/api/handlers";
+import { useUsers } from "@/api/query/users";
 import PaginationBar from "@/components/base/PaginationBar/PaginationBar";
 import { useAppLayoutContext } from "@/context";
-import { useUsersQuery } from "@/hooks/react-query";
 import useDebounce from "@/hooks/useDebouncedValue";
 import usePagination from "@/hooks/usePagination";
 import { getSortBy, parseSearchTextToUrlFreeTextSearch } from "@/utils";
@@ -22,11 +22,13 @@ const UserList = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const sortBy = getSortBy(sorting) as SortBy<UserSortKey>;
 
-  const { data, error, isPending } = useUsersQuery({
-    page: debouncedPage,
-    size,
-    sortBy,
-    searchText: parseSearchTextToUrlFreeTextSearch(debounceSearchText),
+  const { data, error, isPending } = useUsers({
+    query: {
+      page: debouncedPage,
+      size,
+      sort_by: sortBy,
+      search_text: parseSearchTextToUrlFreeTextSearch(debounceSearchText),
+    },
   });
 
   useEffect(() => {

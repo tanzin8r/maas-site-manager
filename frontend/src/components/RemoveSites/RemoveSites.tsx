@@ -8,8 +8,8 @@ import * as Yup from "yup";
 
 import ErrorMessage from "../ErrorMessage";
 
+import { useDeleteSites, useSite } from "@/api/query/sites";
 import { useAppLayoutContext, useRowSelection } from "@/context";
-import { useDeleteSitesMutation, useSiteQuery } from "@/hooks/react-query";
 
 const initialValues = {
   confirmText: "",
@@ -38,19 +38,19 @@ const createHandleValidate =
 const RemoveSites = () => {
   const { rowSelection, clearRowSelection } = useRowSelection("sites");
   const { previousSidebar, setSidebar } = useAppLayoutContext();
-  const deleteSitesMutation = useDeleteSitesMutation();
+  const deleteSitesMutation = useDeleteSites();
   const sitesCount = rowSelection && Object.keys(rowSelection).length;
   const id = useId();
   const confirmTextId = `confirm-text-${id}`;
   const headingId = `heading-${id}`;
-  const { data } = useSiteQuery({ id: Number(Object.keys(rowSelection)?.[0]) });
+  const { data } = useSite({ path: { id: Number(Object.keys(rowSelection)?.[0]) } });
   const siteName = data?.name;
   const sitesCountText = sitesCount === 1 ? siteName : pluralize("sites", sitesCount || 0, !!sitesCount);
   const expectedConfirmTextValue = `remove ${sitesCountText}`;
   const handleSubmit = (_values: RemoveSitesFormValues, { setSubmitting }: FormikHelpers<RemoveSitesFormValues>) => {
     const selectedIds = Object.keys(rowSelection).map((id) => Number(id));
     deleteSitesMutation.mutate(
-      { ids: selectedIds },
+      { query: { ids: selectedIds } },
       {
         onSuccess() {
           setSubmitting(false);

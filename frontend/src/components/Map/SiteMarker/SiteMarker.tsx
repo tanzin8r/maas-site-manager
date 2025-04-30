@@ -1,6 +1,6 @@
 import classNames from "classnames";
 
-import type { Site } from "@/api";
+import type { Site } from "@/apiclient";
 import { createElementFromHTML, renderToHtmlString } from "@/components/Map/utils";
 
 export type MarkerAppearance = "base" | "selected";

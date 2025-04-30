@@ -4,13 +4,14 @@ import pluralize from "pluralize";
 
 import TokensTable from "./components/TokensTable/TokensTable";
 
+import { useDeleteTokens, useTokens } from "@/api/query/tokens";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import PaginationBar from "@/components/base/PaginationBar";
 import RemoveButton from "@/components/base/RemoveButton";
 import docsUrls from "@/config/docsUrls";
 import { useAppLayoutContext } from "@/context";
 import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
-import { useDeleteTokensMutation, useTokensQuery, useExportTokensToFileQuery } from "@/hooks/react-query";
+import { useExportTokensToFileQuery } from "@/hooks/react-query";
 import usePagination from "@/hooks/usePagination";
 
 const DEFAULT_PAGE_SIZE = 50;
@@ -20,9 +21,8 @@ const TokensList = () => {
   const { page, debouncedPage, size, handlePageSizeChange, setPage } = usePagination(DEFAULT_PAGE_SIZE);
   const { rowSelection, clearRowSelection } = useRowSelection("tokens", { currentPage: page, pageSize: size });
 
-  const { error, data, isPending } = useTokensQuery({
-    page: debouncedPage,
-    size,
+  const { error, data, isPending } = useTokens({
+    query: { page: debouncedPage, size },
   });
 
   const {
@@ -31,16 +31,14 @@ const TokensList = () => {
     exportTokens,
   } = useExportTokensToFileQuery({ id: Object.keys(rowSelection).map((id) => Number(id)) });
 
-  const tokensDeleteMutation = useDeleteTokensMutation({
-    onSuccess: clearRowSelection,
-  });
+  const tokensDeleteMutation = useDeleteTokens();
 
   const handleTokenDelete = () => {
     const selectedIds = Object.keys(rowSelection).map((id) => Number(id));
-    tokensDeleteMutation.mutate(selectedIds);
+    tokensDeleteMutation.mutate({ query: { ids: selectedIds } }, { onSuccess: clearRowSelection });
   };
 
-  const deletedTokensCount = tokensDeleteMutation.variables?.length;
+  const deletedTokensCount = tokensDeleteMutation.variables?.query.ids.length;
   return (
     <ContentSection>
       {tokensDeleteMutation.isSuccess && deletedTokensCount ? (

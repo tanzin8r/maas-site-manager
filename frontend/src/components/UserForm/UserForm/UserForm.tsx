@@ -1,15 +1,15 @@
 import { ContentSection } from "@canonical/maas-react-components";
 import { ActionButton, Button, Input, Label, Notification, Spinner } from "@canonical/react-components";
-import { useQueryClient } from "@tanstack/react-query";
 import { Field, Formik } from "formik";
 import isEqual from "lodash/isEqual";
 import * as Yup from "yup";
 
+import type { MutationErrorResponse } from "@/api";
+import { useAddUser, useEditUser, useUser } from "@/api/query/users";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import FormikFormContent from "@/components/base/FormikFormContent";
 import { useAppLayoutContext } from "@/context";
 import { useUserSelectionContext } from "@/context/UserSelectionContext";
-import { useAddUserMutation, useUpdateUserMutation, useUserQuery } from "@/hooks/react-query";
 
 const baseInitialValues = {
   username: "",
@@ -65,8 +65,7 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
 
   const { selected: selectedUserId, setSelected: setSelectedUserId } = useUserSelectionContext();
   const { setSidebar } = useAppLayoutContext();
-  const queryClient = useQueryClient();
-  const { data: user, error, isPending } = useUserQuery({ id: selectedUserId!, enabled: type === "edit" });
+  const { data: user, error, isPending } = useUser({ path: { id: selectedUserId! } }, type === "edit");
 
   const resetForm = () => {
     setSidebar(null);
@@ -74,18 +73,8 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
     setInitialValues(baseInitialValues);
   };
 
-  const updateUser = useUpdateUserMutation({
-    onSuccess(data) {
-      queryClient.setQueryData([user?.username ?? "user"], () => data);
-      resetForm();
-    },
-  });
-
-  const addUser = useAddUserMutation({
-    onSuccess() {
-      resetForm();
-    },
-  });
+  const updateUser = useEditUser();
+  const addUser = useAddUser();
 
   const isMutationPending = addUser.isPending || updateUser.isPending;
 
@@ -112,16 +101,19 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
     if (type === "edit") {
       if (!values.password) {
         await NoPasswordUserSchema.validate(values);
-        updateUser.mutate({ id: user!.id, requestBody: { ...userData } });
+        updateUser.mutate({ path: { id: user!.id }, body: { ...userData } }, { onSuccess: resetForm });
       } else {
         await AddUserSchema.validate(values);
-        updateUser.mutate({
-          id: user!.id,
-          requestBody: { ...userData, password: values.password, confirm_password: values.confirm_password },
-        });
+        updateUser.mutate(
+          {
+            path: { id: user!.id },
+            body: { ...userData, password: values.password, confirm_password: values.confirm_password },
+          },
+          { onSuccess: resetForm },
+        );
       }
     } else {
-      addUser.mutate({ requestBody: { ...values } });
+      addUser.mutate({ body: { ...values } }, { onSuccess: resetForm });
     }
   };
 
@@ -155,7 +147,15 @@ const UserForm = ({ type }: { type: "add" | "edit" }) => {
             validationSchema={type === "add" ? AddUserSchema : EditUserSchema}
           >
             {({ isSubmitting, errors, touched, isValid, dirty, values }) => (
-              <FormikFormContent aria-labelledby={headingId} errors={[addUser.error, updateUser.error]}>
+              <FormikFormContent
+                aria-labelledby={headingId}
+                errors={
+                  [
+                    { body: addUser.error?.response?.data },
+                    { body: updateUser.error?.response?.data },
+                  ] as MutationErrorResponse[]
+                }
+              >
                 <h4 className="p-heading--5">Personal details</h4>
                 <Label className="is-required" htmlFor={usernameId}>
                   Username

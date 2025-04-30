@@ -1,12 +1,12 @@
 import { ExternalLink } from "@canonical/maas-react-components";
 
+import { useEnrollmentRequests } from "@/api/query/enrollmentRequests";
 import TableCaption from "@/components/TableCaption";
 import docsUrls from "@/config/docsUrls";
-import { useRequestsCountQuery } from "@/hooks/react-query";
 import { Link } from "@/utils/router";
 
 const NoSites = () => {
-  const { data, isSuccess } = useRequestsCountQuery();
+  const { data, isSuccess } = useEnrollmentRequests({ query: { page: 1, size: 0 } });
 
   return (
     <TableCaption>

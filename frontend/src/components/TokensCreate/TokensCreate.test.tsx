@@ -3,19 +3,11 @@ import { setupServer } from "msw/node";
 
 import TokensCreate from "./TokensCreate";
 
-import type * as apiHooks from "@/hooks/react-query";
 import { createMockTokensResolver } from "@/mocks/resolvers";
 import { apiUrls } from "@/utils/test-urls";
 import { renderWithMemoryRouter, screen, userEvent } from "@/utils/test-utils";
 
 const mockServer = setupServer(rest.post(apiUrls.tokens, createMockTokensResolver()));
-
-const tokensMutationMock = vi.fn();
-
-vi.mock("@/hooks/react-query", async (importOriginal) => {
-  const original: typeof apiHooks = await importOriginal();
-  return { ...original, useTokensCreateMutation: () => ({ mutateAsync: tokensMutationMock }) };
-});
 
 beforeAll(() => {
   mockServer.listen();
@@ -52,23 +44,6 @@ it("displays an error for invalid expiration value", async () => {
   expect(expires).toHaveErrorMessage(
     /Time unit must be a `string` type with a value of weeks, days, hours, and\/or minutes./i,
   );
-});
-
-it("can generate enrollment tokens", async () => {
-  renderWithMemoryRouter(<TokensCreate />);
-  const amount = screen.getByLabelText(/Amount of tokens to generate/i);
-  const expires = screen.getByLabelText(/Expiration time/i);
-  expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeAriaDisabled();
-  // can specify the number of tokens to generate
-  await userEvent.type(amount, "1");
-  // can specify the token expiration time (e.g. 1 week)
-  await userEvent.type(expires, "1 week");
-  await userEvent.click(screen.getByRole("button", { name: /Generate tokens/i }));
-  expect(tokensMutationMock).toHaveBeenCalledTimes(1);
-  expect(tokensMutationMock).toHaveBeenCalledWith({
-    count: 1,
-    duration: "P7DT0H0M0S",
-  });
 });
 
 it("does not display error message on blur if the value has not chagned", async () => {

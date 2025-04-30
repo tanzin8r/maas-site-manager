@@ -1,6 +1,6 @@
 import { getSelectedEntityContext, getSelectedEntityContextProvider, useSelectedEntityContext } from "./utils";
 
-import type { User } from "@/api/client";
+import type { User } from "@/apiclient";
 
 export const UserSelectionContextProvider = getSelectedEntityContextProvider<User["id"]>("userSelection");
 export const UserSelectionContext = getSelectedEntityContext<User["id"]>("userSelection");

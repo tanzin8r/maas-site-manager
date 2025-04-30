@@ -71,5 +71,5 @@ it("shows an error message when submission fails", async () => {
   await waitFor(() => {
     expect(screen.getByText(/Error/i)).toBeInTheDocument();
   });
-  expect(screen.getByText(/Bad Request/i)).toBeInTheDocument();
+  expect(screen.getByText(/Request failed with status code 400/i)).toBeInTheDocument();
 });

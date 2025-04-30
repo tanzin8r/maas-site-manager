@@ -5,7 +5,8 @@ import { Button, Card, Icon, Notification, Spinner } from "@canonical/react-comp
 import classNames from "classnames";
 import get from "lodash/get";
 
-import type { Site } from "@/api/client";
+import { useSite } from "@/api/query/sites";
+import type { Site } from "@/apiclient";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import AggregatedStatus from "@/components/SitesList/SitesTable/AggregatedStatus/AggregatedStatus";
 import {
@@ -15,13 +16,12 @@ import {
 } from "@/components/SitesList/SitesTable/ConnectionInfo/ConnectionInfo";
 import { useAppLayoutContext } from "@/context";
 import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
-import { useSiteQuery } from "@/hooks/react-query";
 
 interface SiteSummaryProps extends DOMAttributes<HTMLElement> {
   id: Site["id"];
 }
 const SiteSummary = ({ id, ...props }: SiteSummaryProps) => {
-  const { data: site, error, isPending } = useSiteQuery({ id });
+  const { data: site, error, isPending } = useSite({ path: { id } });
   const { setSidebar } = useAppLayoutContext();
   const { setSelected: setSiteId } = useSiteDetailsContext();
   const { stats } = site || {};

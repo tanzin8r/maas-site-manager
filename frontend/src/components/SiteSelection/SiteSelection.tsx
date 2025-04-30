@@ -2,7 +2,7 @@ import { ContentSection } from "@canonical/maas-react-components";
 
 import SiteSelectionTable from "./SiteSelectionTable";
 
-import type { Site } from "@/api/client";
+import type { Site } from "@/apiclient";
 
 type Props = {
   selectedSites: Site[];

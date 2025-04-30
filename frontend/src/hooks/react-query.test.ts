@@ -1,7 +1,7 @@
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 
-import { useExportTokensToFileQuery, useSitesQuery, useTokensQuery, useUsersQuery } from "./react-query";
+import { useExportTokensToFileQuery } from "./react-query";
 
 import { siteFactory, tokenFactory, userFactory } from "@/mocks/factories";
 import {
@@ -32,32 +32,6 @@ afterEach(() => {
 });
 afterAll(() => {
   mockServer.close();
-});
-
-it("should return sites", async () => {
-  const { result } = renderHook(() => useSitesQuery({ page: 1, size: 2, sortBy: null }), {
-    wrapper: Providers,
-  });
-
-  await waitFor(() => expect(result.current.isFetchedAfterMount).toBe(true));
-
-  expect(result.current.data!.items).toEqual(sitesData);
-});
-
-it("should return tokens", async () => {
-  const { result } = renderHook(() => useTokensQuery({ page: 1, size: 2 }), { wrapper: Providers });
-
-  await waitFor(() => expect(result.current.isFetchedAfterMount).toBe(true));
-
-  expect(result.current.data!.items).toEqual([tokensData[0], tokensData[1]]);
-});
-
-it("should return users", async () => {
-  const { result } = renderHook(() => useUsersQuery({ page: 1, size: 2, sortBy: null }), { wrapper: Providers });
-
-  await waitFor(() => expect(result.current.isFetchedAfterMount).toBe(true));
-
-  expect(result.current.data!.items).toEqual(usersData);
 });
 
 it("should finish loading when exporting tokens", async () => {

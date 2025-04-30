@@ -3,6 +3,7 @@ import { Spinner, Notification, Button, Icon } from "@canonical/react-components
 import classNames from "classnames";
 import get from "lodash/get";
 
+import { useSite } from "@/api/query/sites";
 import ErrorMessage from "@/components/ErrorMessage";
 import {
   connectionIcons,
@@ -14,11 +15,10 @@ import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext, useRowSelection } from "@/context";
 import type { SiteDetailsContextValue } from "@/context/SiteDetailsContext";
 import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
-import { useSiteQuery } from "@/hooks/react-query";
 import { getCountryName } from "@/utils";
 
 const SiteDetailsContent = ({ id }: { id: NonNullable<SiteDetailsContextValue["selected"]> }) => {
-  const { data: site, error, isPending } = useSiteQuery({ id });
+  const { data: site, error, isPending } = useSite({ path: { id } });
   const { setSidebar } = useAppLayoutContext();
   const { setRowSelection } = useRowSelection("sites");
   const stats = site?.stats;

@@ -4,6 +4,7 @@ import { FetchHttpRequestWithInterceptors } from "./FetchHttpRequestWithIntercep
 
 import { ApiClient } from "@/api/client";
 import { baseURL } from "@/api/config";
+import { client } from "@/apiclient/client.gen";
 
 const getToken = async () => {
   let authToken;
@@ -26,5 +27,10 @@ export const apiClient = new ApiClient(
   },
   FetchHttpRequestWithInterceptors,
 );
+
+client.setConfig({
+  baseURL,
+  auth: getToken,
+});
 
 export default apiClient;

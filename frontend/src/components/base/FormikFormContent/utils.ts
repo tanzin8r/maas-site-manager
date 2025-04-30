@@ -58,7 +58,7 @@ export const isMutationErrorResponse = (error: unknown): error is MutationErrorR
  * @param {Array<MutationErrorResponse | null> | undefined} errors - An array of error responses or null.
  * @returns {void}
  */
-export const useFormikErrors = <V extends object>(errors: (MutationErrorResponse | null)[] | undefined) => {
+export const useFormikErrors = <V extends object>(errors: (MutationErrorResponse | null)[] | undefined): void => {
   const { setFieldError } = useFormikContext<V>();
 
   const previousErrors = usePrevious(errors, false);

@@ -3,20 +3,20 @@ import { useCallback, useMemo, useState } from "react";
 import type { ColumnDef, Column, Row, Getter } from "@tanstack/react-table";
 import { flexRender, useReactTable, getCoreRowModel } from "@tanstack/react-table";
 
-import type { Token } from "@/api/client";
+import type { UseTokensResult } from "@/api/query/tokens";
+import type { Token } from "@/apiclient";
 import DynamicTable from "@/components/DynamicTable";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
 import TableCaption from "@/components/TableCaption";
 import CopyButton from "@/components/base/CopyButton";
 import TooltipButton from "@/components/base/TooltipButton";
 import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
-import type { useTokensQueryResult } from "@/hooks/react-query";
 import { copyToClipboard, createAccessor, formatDistanceToNow, formatUTCDateString } from "@/utils";
 
 export type TokenColumnDef = ColumnDef<Token, Partial<Token>>;
 export type TokenColumn = Column<Token, unknown>;
 
-const TokensTable = ({ data, error, isPending }: Pick<useTokensQueryResult, "data" | "error" | "isPending">) => {
+const TokensTable = ({ data, error, isPending }: Pick<UseTokensResult, "data" | "error" | "isPending">) => {
   const [copiedText, setCopiedText] = useState("");
 
   const { rowSelection, setRowSelection } = useRowSelection("tokens", { clearOnUnmount: true });
@@ -126,7 +126,7 @@ const TokensTable = ({ data, error, isPending }: Pick<useTokensQueryResult, "dat
       </thead>
       {error ? (
         <TableCaption>
-          <TableCaption.Error error={error} />
+          <TableCaption.Error error={{ body: error }} />
         </TableCaption>
       ) : isPending ? (
         <DynamicTable.Loading table={tokenTable} />

@@ -70,7 +70,7 @@ it("enables the submit button only when values have been changed while editing",
 it("shows errors after submission", async () => {
   mockServer.use(
     rest.patch(`${apiUrls.sites}/:id`, (req, res, ctx) => {
-      return res(ctx.status(400));
+      return res(ctx.status(400), ctx.json({ error: { message: "Uh oh!" } }));
     }),
   );
 

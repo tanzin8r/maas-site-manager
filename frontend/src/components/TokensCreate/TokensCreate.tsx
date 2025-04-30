@@ -9,8 +9,9 @@ import FormikFormContent from "../base/FormikFormContent";
 
 import { humanIntervalToISODuration } from "./utils";
 
+import type { MutationErrorResponse } from "@/api";
+import { useCreateTokens } from "@/api/query/tokens";
 import { useAppLayoutContext } from "@/context";
-import { useTokensCreateMutation } from "@/hooks/react-query";
 
 const initialValues = {
   count: "",
@@ -43,18 +44,26 @@ const TokensCreate = () => {
   const headingId = useId();
   const durationId = useId();
   const countId = useId();
-  const tokensCreateMutation = useTokensCreateMutation();
+  const tokensCreateMutation = useCreateTokens();
   const { setSidebar } = useAppLayoutContext();
   const handleSubmit = async (
     { count, duration }: TokensCreateFormValues,
     { setSubmitting }: FormikHelpers<TokensCreateFormValues>,
   ) => {
-    await tokensCreateMutation.mutateAsync({
-      count: Number(count),
-      duration: humanIntervalToISODuration(duration) as string,
-    });
+    await tokensCreateMutation.mutateAsync(
+      {
+        body: {
+          count: Number(count),
+          duration: humanIntervalToISODuration(duration) as string,
+        },
+      },
+      {
+        onSuccess: () => {
+          setSidebar(null);
+        },
+      },
+    );
     setSubmitting(false);
-    setSidebar(null);
   };
 
   return (
@@ -75,7 +84,7 @@ const TokensCreate = () => {
           <FormikFormContent
             aria-labelledby={headingId}
             className="tokens-create"
-            errors={[tokensCreateMutation.error]}
+            errors={[{ body: tokensCreateMutation.error?.response?.data.error } as MutationErrorResponse]}
             noValidate
           >
             <Label htmlFor={countId}>Amount of tokens to generate</Label>

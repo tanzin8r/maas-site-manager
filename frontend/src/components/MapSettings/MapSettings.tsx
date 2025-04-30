@@ -7,7 +7,7 @@ import * as Yup from "yup";
 
 import ErrorMessage from "../ErrorMessage";
 
-import { useCurrentUserQuery } from "@/hooks/react-query";
+import { useCurrentUser } from "@/api/query/users";
 
 type MapSettingsFormValues = {
   acceptedOsmTos: boolean;
@@ -26,7 +26,7 @@ const MapSettings = () => {
     defaultValue: {},
   });
   const [success, setSuccess] = useState(false);
-  const { data: currentUser, isPending, isError, error } = useCurrentUserQuery();
+  const { data: currentUser, isPending, isError, error } = useCurrentUser();
 
   if (isPending) {
     return <Spinner text="Loading..." />;

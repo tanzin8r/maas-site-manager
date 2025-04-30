@@ -34,6 +34,7 @@ export default defineConfig({
         "src/routes/**/*",
         "**/types.ts",
         "src/api/client/**/*",
+        "src/apiclient/**/*",
       ],
       include: ["src/**/*.{ts,tsx}"],
       reporter: [["text"], ["html"], ["cobertura", { file: "../../.cover/cobertura-coverage-frontend.xml" }]],

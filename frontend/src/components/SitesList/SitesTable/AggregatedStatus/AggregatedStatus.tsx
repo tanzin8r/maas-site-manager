@@ -1,6 +1,6 @@
 import { Meter, meterColor as color } from "@canonical/maas-react-components";
 
-import type { Site } from "@/api/client";
+import type { Site } from "@/apiclient";
 import Popover from "@/components/Popover/Popover";
 
 const AggregatedStatus = ({ stats, hideLabel }: { stats: NonNullable<Site["stats"]>; hideLabel?: boolean }) => {

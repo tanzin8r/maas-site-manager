@@ -1,4 +1,4 @@
-import type { BootAsset, Settings, SettingsUpdate, ValidationErrorResponseModel } from "@/api/client";
+import type { BootAsset, ValidationErrorResponseModel } from "@/apiclient";
 
 // TODO: replace with auto-generated type BootAsset when the missing fields are added
 export type Image = BootAsset & {
@@ -14,16 +14,6 @@ export type UpstreamImageSource = {
   keepUpdated: boolean;
   credentials: string;
 };
-
-// TODO: replace with actual Settings type
-// once settings api is updated
-// https://warthogs.atlassian.net/browse/MAASENG-2594
-export type TSettings = Settings & { images_connect_to_maas: boolean };
-
-// TODO: replace with actual SettingsPatchRequest type
-// once settings api is updated
-// https://warthogs.atlassian.net/browse/MAASENG-2594
-export type TSettingsPatchRequest = SettingsUpdate & { images_connect_to_maas: boolean };
 
 export type MutationErrorResponse = {
   body: ValidationErrorResponseModel;

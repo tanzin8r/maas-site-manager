@@ -7,7 +7,8 @@ import * as Yup from "yup";
 import ErrorMessage from "../ErrorMessage";
 import FormikFormContent from "../base/FormikFormContent";
 
-import { useUpdateCurrentUserPasswordMutation } from "@/hooks/react-query";
+import type { MutationErrorResponse } from "@/api";
+import { useChangePassword } from "@/api/query/users";
 const initialValues = {
   current_password: "",
   new_password: "",
@@ -31,13 +32,13 @@ const PasswordUpdate = () => {
   const currentPasswordId = useId();
   const newPasswordId = useId();
   const newPasswordConfirmId = useId();
-  const updatePassword = useUpdateCurrentUserPasswordMutation();
+  const updatePassword = useChangePassword();
 
   const handleSubmit = async (values: PasswordUpdateFormValues, helpers: FormikHelpers<PasswordUpdateFormValues>) => {
     const { current_password, new_password, confirm_password } = values;
     updatePassword.mutate(
       {
-        requestBody: {
+        body: {
           current_password,
           new_password,
           confirm_password,
@@ -61,7 +62,7 @@ const PasswordUpdate = () => {
       )}
       {updatePassword.isError && (
         <Notification severity="negative" title="Error while updating password:">
-          <ErrorMessage error={updatePassword.error} />
+          <ErrorMessage error={{ body: updatePassword.error?.response?.data }} />
         </Notification>
       )}
       <Formik
@@ -74,7 +75,7 @@ const PasswordUpdate = () => {
           <FormikFormContent
             aria-label="update password"
             aria-labelledby={headingId}
-            errors={[updatePassword.error]}
+            errors={[{ body: updatePassword.error?.response?.data } as MutationErrorResponse]}
             noValidate
           >
             <Label htmlFor={currentPasswordId} required>

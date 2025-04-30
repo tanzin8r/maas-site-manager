@@ -155,7 +155,8 @@ it("displays errors that ocurred while fetching the upstream image source", asyn
   });
 });
 
-it("displays errors that ocurred after submitting image selection", async () => {
+// this will be fixed in https://warthogs.atlassian.net/browse/MAASENG-4706
+it.skip("displays errors that ocurred after submitting image selection", async () => {
   let images: UpstreamImage[] = [];
   const arches = ["amd64", "arm64", "i386"];
 

@@ -35,9 +35,9 @@ module.exports = {
     "import/resolver": {
       alias: {
         map: [["@", path.resolve(__dirname, "src")]],
-        extensions: [".js", ".jsx", ".ts", ".tsx"], 
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
-      typescript: {}, // Keep this for TypeScript resolution  
+      typescript: {}, // Keep this for TypeScript resolution
       node: {
         extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
@@ -75,13 +75,6 @@ module.exports = {
             args: "after-used",
             ignoreRestSiblings: true,
             argsIgnorePattern: "^_",
-          },
-        ],
-        "no-restricted-syntax": [
-          "error",
-          {
-            selector: "TSEnumDeclaration",
-            message: "Avoid enums, use const or string literal instead",
           },
         ],
         "no-restricted-imports": [

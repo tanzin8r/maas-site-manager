@@ -8,8 +8,8 @@ import { naturalEarth, osm } from "./styleSpecs";
 import type { MapProps } from "./types";
 import { getGeoJson } from "./utils";
 
+import { useCurrentUser } from "@/api/query/users";
 import MapContainer from "@/components/Map/MapContainer";
-import { useCurrentUserQuery } from "@/hooks/react-query";
 
 const Map: React.FC<MapProps> = ({ markers }) => {
   const [hasAcceptedOsmTos] = useLocalStorageState<MapSettingsStorageState>("hasAcceptedOsmTos", {
@@ -17,7 +17,7 @@ const Map: React.FC<MapProps> = ({ markers }) => {
     defaultValue: {},
   });
 
-  const { data: currentUser, isPending, isSuccess } = useCurrentUserQuery();
+  const { data: currentUser, isPending, isSuccess } = useCurrentUser();
   const geojson = useMemo(() => (markers ? getGeoJson(markers) : null), [markers]);
 
   if (isPending) {

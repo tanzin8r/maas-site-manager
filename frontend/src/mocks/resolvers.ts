@@ -13,17 +13,23 @@ import {
   settingsFactory,
 } from "./factories";
 
-import type { UpstreamImageSource, Site, SitesGetResponse } from "@/api";
+import type { UpstreamImageSource } from "@/api";
 import type api from "@/api";
-import type { TokensPostResponse, User, UsersPasswordPatchRequest } from "@/api/client";
 import type {
-  GetSitesQueryParams,
   SortDirection,
   SitesSortKey,
   UserSortKey,
   SelectUpstreamImagesPayload,
   ImagesSortKey,
 } from "@/api/handlers";
+import type {
+  GetV1SitesGetData,
+  GetV1SitesGetResponse,
+  Site,
+  TokensPostResponse,
+  User,
+  UsersPasswordPatchRequest,
+} from "@/apiclient";
 import { isDev } from "@/constants";
 import staticTileImage from "@/mocks/assets/static-tile.png";
 import { apiUrls } from "@/utils/test-urls";
@@ -68,7 +74,7 @@ export const createMockSitesResolver =
       ? items.filter((site) => site.name.toLowerCase().includes(queryText?.toLowerCase()))
       : items;
 
-    const sortBy = searchParams.get("sortBy") as GetSitesQueryParams["sortBy"];
+    const sortBy = searchParams.get("sortBy") as NonNullable<GetV1SitesGetData["query"]>["sort_by"];
     if (sortBy) {
       const [field, order] = sortBy.split("-") as [SitesSortKey, SortDirection];
       filteredItems.sort((a, b) => {
@@ -80,7 +86,7 @@ export const createMockSitesResolver =
     }
     const itemsPage = filteredItems.slice((page - 1) * size, page * size);
 
-    const response: SitesGetResponse = {
+    const response: GetV1SitesGetResponse = {
       items: itemsPage,
       page,
       total: sites.length,

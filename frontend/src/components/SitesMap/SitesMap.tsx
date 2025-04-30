@@ -2,15 +2,15 @@ import { useState } from "react";
 
 import { ContentSection } from "@canonical/maas-react-components";
 
+import { useSitesCoordinates } from "@/api/query/sites";
 import Map from "@/components/Map";
 import SitesHiddenButton from "@/components/Map/SitesHiddenButton/SitesHiddenButton";
 import SitesTableControls from "@/components/SitesList/SitesTable/SitesTableControls/SitesTableControls";
-import { useSitesCoordinatesQuery } from "@/hooks/react-query";
 import { formatSiteMarker } from "@/utils";
 
 const SitesMap = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(true);
-  const { data, isPending } = useSitesCoordinatesQuery();
+  const { data, isPending } = useSitesCoordinates();
 
   if (isFirstVisit) {
     setIsFirstVisit(false);

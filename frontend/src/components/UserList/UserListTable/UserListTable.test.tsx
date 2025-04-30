@@ -58,7 +58,7 @@ it("shows errors if present", () => {
   renderWithMemoryRouter(
     <UserListTable
       data={usersQueryResultFactory.build()}
-      error={new Error(errorMessage)}
+      error={{ error: { message: errorMessage } }}
       isPending={false}
       setSorting={vi.fn()}
       sorting={[]}

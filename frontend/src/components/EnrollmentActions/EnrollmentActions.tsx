@@ -3,31 +3,41 @@ import { Button, Notification } from "@canonical/react-components";
 
 import EnrollmentNotification from "./EnrollmentNotification";
 
+import { useEnrollmentRequestsAction } from "@/api/query/enrollmentRequests";
 import RemoveButton from "@/components/base/RemoveButton";
-import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
-import { useEnrollmentRequestsMutation } from "@/hooks/react-query";
+import { useRowSelection } from "@/context";
 
 const EnrollmentActions: React.FC = () => {
   const { rowSelection, clearRowSelection } = useRowSelection("requests");
   const selectedIds = Object.keys(rowSelection).map((id) => Number(id));
-  const enrollmentRequestsMutation = useEnrollmentRequestsMutation({ onSuccess: clearRowSelection });
+  const enrollmentRequestsMutation = useEnrollmentRequestsAction();
   const isActionDisabled = Object.keys(rowSelection).length === 0 || enrollmentRequestsMutation.isPending;
   const handleAccept = () =>
-    enrollmentRequestsMutation.mutate({
-      accept: true,
-      ids: selectedIds,
-    });
+    enrollmentRequestsMutation.mutate(
+      {
+        body: {
+          accept: true,
+          ids: selectedIds,
+        },
+      },
+      { onSuccess: clearRowSelection },
+    );
   const handleDeny = () =>
-    enrollmentRequestsMutation.mutate({
-      accept: false,
-      ids: selectedIds,
-    });
+    enrollmentRequestsMutation.mutate(
+      {
+        body: {
+          accept: false,
+          ids: selectedIds,
+        },
+      },
+      { onSuccess: clearRowSelection },
+    );
 
   return (
     <>
       <div className="u-fixed-width enrollment-actions">
         {enrollmentRequestsMutation.isSuccess ? (
-          <EnrollmentNotification {...enrollmentRequestsMutation.variables} />
+          <EnrollmentNotification {...enrollmentRequestsMutation.variables.body} />
         ) : null}
         {enrollmentRequestsMutation.isError ? (
           <Notification role="alert" severity="negative">

@@ -1,3 +1,3 @@
-import type { Coordinates } from "@/api/client";
+import type { Coordinates } from "@/apiclient";
 
 export type CoordinatesFormValue = `${Coordinates["latitude"]}, ${Coordinates["longitude"]}` | "";

@@ -5,10 +5,10 @@ import classNames from "classnames";
 import SitesCount from "./SitesCount";
 import SitesViewControl from "./SitesViewControl";
 
+import type { UseSitesResult } from "@/api/query/sites";
 import RemoveButton from "@/components/base/RemoveButton";
 import { useAppLayoutContext } from "@/context/AppLayoutContext";
 import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
-import type { UseSitesQueryResult } from "@/hooks/react-query";
 import { useLocation } from "@/utils/router";
 
 const SitesTableControls = ({
@@ -21,7 +21,7 @@ const SitesTableControls = ({
   isPending: boolean;
   setSearchText?: (text: string) => void;
   searchText?: string;
-} & Pick<UseSitesQueryResult, "isPending">) => {
+} & Pick<UseSitesResult, "isPending">) => {
   const { pathname } = useLocation();
   const { setSidebar } = useAppLayoutContext();
   const { rowSelection } = useRowSelection("sites");

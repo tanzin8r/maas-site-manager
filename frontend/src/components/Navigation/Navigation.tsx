@@ -5,10 +5,10 @@ import NavigationBanner from "./NavigationBanner";
 import NavigationList from "./NavigationList";
 import type { ExternalNavLink, LocalNavLink } from "./types";
 
+import { useCurrentUser } from "@/api/query/users";
 import BREAKPOINTS from "@/config/breakpoints";
 import type { RoutePath } from "@/config/routes";
 import { hasImagesPage } from "@/featureFlags";
-import { useCurrentUserQuery } from "@/hooks/react-query";
 import { useGlobalKeyShortcut } from "@/hooks/useGlobalKeyShortcut";
 import { useLocation } from "@/utils/router";
 
@@ -58,7 +58,7 @@ type NavProps = {
 };
 
 const AccountNavigationList = ({ handleNavlinkClick, path }: { handleNavlinkClick: () => void; path: RoutePath }) => {
-  const { data } = useCurrentUserQuery();
+  const { data } = useCurrentUser();
   return (
     <NavigationList
       hasIcons

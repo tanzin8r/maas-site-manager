@@ -1,17 +1,19 @@
 import { ContentSection } from "@canonical/maas-react-components";
 
+import { useEnrollmentRequests } from "@/api/query/enrollmentRequests";
 import EnrollmentActions from "@/components/EnrollmentActions";
 import RequestsTable from "@/components/RequestsTable";
 import PaginationBar from "@/components/base/PaginationBar";
-import { useRequestsQuery } from "@/hooks/react-query";
 import usePagination from "@/hooks/usePagination";
 
 const DEFAULT_PAGE_SIZE = 50;
 const Requests: React.FC = () => {
   const { page, debouncedPage, size, handlePageSizeChange, setPage } = usePagination(DEFAULT_PAGE_SIZE);
-  const { error, data, isPending } = useRequestsQuery({
-    page: debouncedPage,
-    size,
+  const { error, data, isPending } = useEnrollmentRequests({
+    query: {
+      page: debouncedPage,
+      size,
+    },
   });
 
   return (

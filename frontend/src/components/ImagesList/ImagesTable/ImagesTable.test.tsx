@@ -29,11 +29,18 @@ it("displays images table", () => {
 });
 
 it("displays loading state", () => {
-  mockServer.resetHandlers(
-    rest.get(apiUrls.images, (req, res, ctx) => {
-      return res(ctx.delay(Infinity));
-    }),
-  );
+  vi.mock("@tanstack/react-query", async () => {
+    const actual = await vi.importActual("@tanstack/react-query");
+    return {
+      ...actual,
+      useQuery: vi.fn().mockReturnValue({
+        data: null,
+        error: null,
+        isPending: true,
+        isFetched: false,
+      }),
+    };
+  });
   renderWithMemoryRouter(<ImagesTableContainer />);
   expect(within(screen.getByRole("table", { name: /images/ })).getByText(/Loading/)).toBeInTheDocument();
 });

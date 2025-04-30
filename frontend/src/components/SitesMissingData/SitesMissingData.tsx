@@ -9,11 +9,10 @@ import { coordinateSchema } from "../EditSite/constants";
 import type { CoordinatesFormValue } from "../EditSite/types";
 import { parseCoordinatesFormValue } from "../EditSite/utils";
 
-import type { Site } from "@/api";
+import { useEditSite, useSites } from "@/api/query/sites";
+import type { Site } from "@/apiclient";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
-import { useSitesQuery, useUpdateSiteMutation } from "@/hooks/react-query";
-
 import "./_SitesMissingData.scss";
 
 type SitesMissingDataValues = {
@@ -82,20 +81,13 @@ const SiteMissingDataField = ({ site }: { site: Site }) => {
 const SitesMissingData = () => {
   const headingId = useId();
   const { setSidebar } = useAppLayoutContext();
-  const { data, error, isPending } = useSitesQuery({ coordinates: false, page: 1, size: 20 });
+  const { data, error, isPending } = useSites({ query: { coordinates: false, page: 1, size: 20 } });
   const sites = data?.items;
 
   // Store formik helpers in a ref, since we can't access formik context here, and storing them in state
   // would trigger re-renders, while the hook uses an out of date `null` value.
   const formikHelpers = useRef<FormikHelpers<SitesMissingDataValues> | null>(null);
-  const updateSite = useUpdateSiteMutation({
-    onError: (error, variables) => {
-      const errorMessage = error.body.error.details?.[0].messages[0];
-      if (formikHelpers.current) {
-        formikHelpers.current.setFieldError(`sitesCoordinates[${variables.id}].coordinates`, errorMessage);
-      }
-    },
-  });
+  const updateSite = useEditSite();
 
   useEffect(() => {
     // Close the side panel if there's no more sites with missing data
@@ -124,7 +116,17 @@ const SitesMissingData = () => {
     }));
 
     toSubmit.forEach((site) => {
-      updateSite.mutate({ id: site.id, requestBody: { coordinates: site.coordinates } });
+      updateSite.mutate(
+        { path: { id: site.id }, body: { coordinates: site.coordinates } },
+        {
+          onError: (error, variables) => {
+            const errorMessage = error.response?.data.error.details?.[0].messages[0];
+            if (formikHelpers.current) {
+              formikHelpers.current.setFieldError(`sitesCoordinates[${variables.path.id}].coordinates`, errorMessage);
+            }
+          },
+        },
+      );
     });
 
     // Need to call this manually, otherwise Formik gets stuck in a submitting state

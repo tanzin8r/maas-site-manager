@@ -12,7 +12,8 @@ import ConnectionInfo from "./ConnectionInfo";
 import ColumnsVisibilityControl from "./SitesTableControls/ColumnsVisibilityControl";
 import SitesTableControls from "./SitesTableControls/SitesTableControls";
 
-import type { SitesGetResponse } from "@/api/client";
+import type { UseSitesResult } from "@/api/query/sites";
+import type { SitesGetResponse } from "@/apiclient";
 import DynamicTable from "@/components/DynamicTable/DynamicTable";
 import NoSites from "@/components/NoSites";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
@@ -27,7 +28,6 @@ import { isDev } from "@/constants";
 import { useAppLayoutContext } from "@/context";
 import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
 import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
-import type { UseSitesQueryResult } from "@/hooks/react-query";
 import { createAccessor, getCountryName } from "@/utils";
 
 export type Site = SitesGetResponse["items"][number];
@@ -47,7 +47,7 @@ const SitesTable = ({
   paginationProps,
   sorting,
   setSorting,
-}: Pick<UseSitesQueryResult, "data" | "isPending" | "error"> & {
+}: Pick<UseSitesResult, "data" | "isPending" | "error"> & {
   searchText: string;
   setSearchText: (text: string) => void;
   paginationProps: PaginationBarProps;

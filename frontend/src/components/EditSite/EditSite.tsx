@@ -11,12 +11,13 @@ import { coordinateSchema } from "./constants";
 import type { CoordinatesFormValue } from "./types";
 import { parseCoordinatesFormValue } from "./utils";
 
-import type { Site } from "@/api/client";
+import type { MutationErrorResponse } from "@/api";
+import { useEditSite, useSite } from "@/api/query/sites";
+import type { Site } from "@/apiclient";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
 import type { SiteDetailsContextValue } from "@/context/SiteDetailsContext";
 import { useSiteDetailsContext } from "@/context/SiteDetailsContext";
-import { useSiteQuery, useUpdateSiteMutation } from "@/hooks/react-query";
 import { getCountryName } from "@/utils";
 
 const countryOptions = [
@@ -66,13 +67,9 @@ const EditSiteContent = ({
 
   const [initialValues, setInitialValues] = useState<SiteFormValues>(baseInitialValues);
   const { previousSidebar, setSidebar } = useAppLayoutContext();
-  const { data: site, error, isPending } = useSiteQuery({ id: siteId });
+  const { data: site, error, isPending } = useSite({ path: { id: siteId } });
 
-  const updateSite = useUpdateSiteMutation({
-    onSuccess() {
-      resetForm();
-    },
-  });
+  const updateSite = useEditSite();
 
   useEffect(() => {
     if (site) {
@@ -100,7 +97,7 @@ const EditSiteContent = ({
       country,
       coordinates,
     };
-    updateSite.mutate({ id: site!.id, requestBody });
+    updateSite.mutate({ path: { id: siteId }, body: requestBody }, { onSuccess: resetForm });
   };
 
   const resetForm = () => {
@@ -121,14 +118,18 @@ const EditSiteContent = ({
             Edit <strong>{site.name}</strong>
           </h3>
           <p>Data not shown in this form is reported by the MAAS site and can't be edited in Site Manager.</p>
-          {updateSite.isError && (
+          {updateSite.isError ? (
             <Notification severity="negative" title="Error while updating site">
-              {updateSite.error instanceof Error ? updateSite.error.message : "An unknown error occured."}
+              {updateSite.error.response?.data.error.message || "An unknown error occurred."}
             </Notification>
-          )}
+          ) : null}
           <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={EditSiteSchema}>
             {({ isSubmitting, errors, touched, isValid, dirty }) => (
-              <FormikFormContent aria-labelledby={headingId} errors={[updateSite.error]}>
+              <FormikFormContent
+                aria-labelledby={headingId}
+                errors={[{ body: updateSite.error?.response?.data } as MutationErrorResponse]}
+                noValidate
+              >
                 <h4 className="p-heading--5">Geolocation data</h4>
                 <Label htmlFor={countryId}>Country/Region</Label>
                 <Field

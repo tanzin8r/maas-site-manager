@@ -1,6 +1,5 @@
 import { ContentSection } from "@canonical/maas-react-components";
 import { Button, Input, Label, Notification } from "@canonical/react-components";
-import { useQueryClient } from "@tanstack/react-query";
 import type { FormikHelpers } from "formik";
 import { Field, Formik } from "formik";
 import * as Yup from "yup";
@@ -8,8 +7,9 @@ import * as Yup from "yup";
 import ErrorMessage from "../ErrorMessage";
 import FormikFormContent from "../base/FormikFormContent";
 
-import type { User } from "@/api/client";
-import { useCurrentUserQuery, useUpdateCurrentUserMutation } from "@/hooks/react-query";
+import type { MutationErrorResponse } from "@/api";
+import { useCurrentUser, useEditCurrentUser } from "@/api/query/users";
+import type { User } from "@/apiclient";
 
 type PersonalDetailsUpdateFormValues = Pick<User, "email" | "full_name" | "username">;
 const PersonalDetailsUpdateSchema = Yup.object().shape({
@@ -28,13 +28,8 @@ const PersonalDetailsUpdate = () => {
     full_name: "",
     email: "",
   });
-  const queryClient = useQueryClient();
-  const { data, isSuccess } = useCurrentUserQuery();
-  const updateUser = useUpdateCurrentUserMutation({
-    onSuccess(data) {
-      queryClient.setQueryData(["me"], () => data);
-    },
-  });
+  const { data, isSuccess } = useCurrentUser();
+  const updateUser = useEditCurrentUser();
 
   useEffect(() => {
     if (isSuccess) {
@@ -51,7 +46,7 @@ const PersonalDetailsUpdate = () => {
     { setSubmitting: _ }: FormikHelpers<PersonalDetailsUpdateFormValues>,
   ) => {
     const { full_name, email, username } = userData;
-    updateUser.mutate({ requestBody: { full_name, username, email } });
+    updateUser.mutate({ body: { full_name, username, email } });
   };
 
   return (
@@ -64,7 +59,7 @@ const PersonalDetailsUpdate = () => {
       )}
       {updateUser.isError && (
         <Notification severity="negative" title="Error while updating details">
-          <ErrorMessage error={updateUser.error} />
+          <ErrorMessage error={{ body: updateUser.error.response?.data }} />
         </Notification>
       )}
       <Formik
@@ -78,7 +73,7 @@ const PersonalDetailsUpdate = () => {
           <FormikFormContent
             aria-label="update personal details"
             aria-labelledby={headingId}
-            errors={[updateUser.error]}
+            errors={[{ body: updateUser.error?.response?.data } as MutationErrorResponse]}
             noValidate
           >
             <Label className="is-required" htmlFor={usernameId}>

@@ -1,7 +1,7 @@
 import { Notification } from "@canonical/react-components";
 import pluralize from "pluralize";
 
-import type { PendingSitesPostRequest } from "@/api";
+import type { PendingSitesPostRequest } from "@/apiclient";
 import { useNavigate } from "@/utils/router";
 
 const EnrollmentNotification = ({ accept, ids }: Partial<PendingSitesPostRequest>) => {
