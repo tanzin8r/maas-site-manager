@@ -13,9 +13,7 @@ from temporallib.worker import (  # type: ignore
 )
 from workflows.download_upstream import (  # type: ignore
     DownloadUpstreamImage,
-    GetOrCreateAsset,
-    GetOrCreateItem,
-    GetOrCreateVersion,
+    GetOrCreateProduct,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,9 +29,7 @@ async def run_worker() -> None:
         client=client,
         workflows=[
             DownloadUpstreamImage,
-            GetOrCreateAsset,
-            GetOrCreateItem,
-            GetOrCreateVersion,
+            GetOrCreateProduct,
         ],
         activities=[
             activities.download_asset,

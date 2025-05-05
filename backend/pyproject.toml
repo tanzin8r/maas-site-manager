@@ -70,9 +70,15 @@ msm = [
 version = { attr = "msm.__version__" }
 
 [tool.setuptools.packages.find]
+where = [
+  ".",
+  "temporal/resources",
+]
 include = [
   "msm*",
-  "temporal/resources/*",
+  "workflows*",
+  "activities*",
+  "management*",
 ]
 
 [tool.ruff]
