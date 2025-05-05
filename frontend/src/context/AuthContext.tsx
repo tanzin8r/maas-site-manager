@@ -4,15 +4,15 @@ import React, { createContext, useContext, useReducer } from "react";
 import useLocalStorageState from "use-local-storage-state";
 
 import type { MutationErrorResponse } from "@/api";
-import type { FetchHttpRequestWithInterceptors } from "@/api/FetchHttpRequestWithInterceptors";
-import type { ApiClient, Body_post_v1_login_post } from "@/api/client";
 import { OpenAPI } from "@/api/client";
-import { useLoginMutation } from "@/hooks/react-query";
+import { useLogin } from "@/api/query/auth";
+import type { PostV1LoginPostData } from "@/apiclient";
+import { client } from "@/apiclient/client.gen";
 type AuthStatus = "initial" | "authenticated" | "unauthorised";
 
 interface AuthContextType {
   status: AuthStatus;
-  login: ({ username, password }: Pick<Body_post_v1_login_post, "username" | "password">) => void;
+  login: ({ username, password }: Pick<PostV1LoginPostData["body"], "username" | "password">) => void;
   logout: () => Promise<void>;
   isError: boolean;
   error: MutationErrorResponse | null;
@@ -66,13 +66,13 @@ const authReducer: Reducer<AuthState, AuthAction> = (state, action) => {
   }
 };
 
-export const AuthContextProvider = ({ apiClient, children }: { apiClient: ApiClient; children: React.ReactNode }) => {
+export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [persistedAuthToken, setPersistedAuthToken] = useLocalStorageState<string>("jwtToken");
   const removePersistedAuthToken = useCallback(() => {
     localStorage.removeItem("jwtToken");
   }, []);
 
-  const { mutateAsync, isError, error } = useLoginMutation();
+  const loginQuery = useLogin();
 
   const initialState: AuthState = {
     authToken: persistedAuthToken ? persistedAuthToken : null,
@@ -97,17 +97,26 @@ export const AuthContextProvider = ({ apiClient, children }: { apiClient: ApiCli
 
   useEffect(() => {
     // Add a response interceptor to handle logout on 401 status
-    (apiClient.request as FetchHttpRequestWithInterceptors).addResponseInterceptor((_response, error) => {
-      if (error?.status === 401) {
-        dispatch({ type: actionTypes.LOGOUT });
-        clearAuthToken();
-      }
-    });
-  }, [apiClient, clearAuthToken]);
+    client.instance.interceptors.response.use(
+      function (response) {
+        return response;
+      },
+      function (error) {
+        if (error?.status === 401) {
+          dispatch({ type: actionTypes.LOGOUT });
+          clearAuthToken();
+        }
+        return Promise.reject(error);
+      },
+    );
+  }, [clearAuthToken]);
 
   const login = async ({ username, password }: { username: string; password: string }) => {
     try {
-      const response = await mutateAsync({ username, password });
+      if (!username || !password) {
+        throw Error("Missing required fields");
+      }
+      const response = await loginQuery.mutateAsync({ body: { username, password } });
       updateAuthToken(response.access_token);
       dispatch({ type: actionTypes.LOGIN_SUCCESS, payload: response.access_token });
     } catch (error) {
@@ -128,8 +137,8 @@ export const AuthContextProvider = ({ apiClient, children }: { apiClient: ApiCli
         status: state.status,
         login,
         logout,
-        isError,
-        error,
+        isError: loginQuery.isError,
+        error: loginQuery.error as MutationErrorResponse | null,
       }}
     >
       {children}

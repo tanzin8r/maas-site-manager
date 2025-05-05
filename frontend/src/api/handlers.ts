@@ -3,21 +3,8 @@ import type { Site, User } from "../apiclient";
 import { apiClient } from "./api";
 
 import type { Image, UpstreamImage, UpstreamImageSource } from "@/api";
-import type { Body_post_v1_login_post } from "@/api/client";
 import { maxPageSize, minPageSize } from "@/components/base/PaginationBar";
 import { apiUrls } from "@/utils/test-urls";
-
-export const postLogin = async (data: Body_post_v1_login_post) => {
-  if (!data?.username || !data?.password) {
-    throw Error("Missing required fields");
-  }
-  try {
-    const response = await apiClient.default.postV1LoginPost({ formData: data });
-    return response;
-  } catch (error) {
-    throw error;
-  }
-};
 
 export type SortDirection = "asc" | "desc";
 

@@ -6,7 +6,6 @@ import { RowSelectionContextProviders } from "./context/RowSelectionContext";
 import { SiteDetailsContextProvider } from "./context/SiteDetailsContext";
 import { UserSelectionContextProvider } from "./context/UserSelectionContext";
 
-import apiClient from "@/api";
 import { basename } from "@/constants";
 import { AppLayoutContextProvider, AuthContextProvider } from "@/context";
 import routes from "@/routes";
@@ -19,7 +18,7 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AppLayoutContextProvider>
-        <AuthContextProvider apiClient={apiClient}>
+        <AuthContextProvider>
           <RowSelectionContextProviders>
             <UserSelectionContextProvider>
               <SiteDetailsContextProvider>

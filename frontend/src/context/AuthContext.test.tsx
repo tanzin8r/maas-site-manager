@@ -1,4 +1,3 @@
-import apiClient from "@/api";
 import { protectedPages } from "@/config/routes";
 import { AuthContextProvider } from "@/context";
 import routes from "@/routes";
@@ -9,7 +8,7 @@ protectedPages.forEach(({ path }) => {
   it(`redirects user to login page from ${path}`, async () => {
     const router = createMemoryRouter(routes, { initialEntries: [path], initialIndex: 0 });
     render(
-      <AuthContextProvider apiClient={apiClient}>
+      <AuthContextProvider>
         <RouterProvider router={router} />
       </AuthContextProvider>,
     );

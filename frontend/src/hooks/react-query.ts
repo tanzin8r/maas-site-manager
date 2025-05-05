@@ -2,9 +2,8 @@ import type { UseMutationOptions } from "@tanstack/react-query";
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import apiClient from "@/api";
-import type { BootAsset, MutationErrorResponse } from "@/api";
+import type { BootAsset } from "@/api";
 import {
-  postLogin,
   getTokensExport,
   getUpstreamImages,
   updateUpstreamImageSource,
@@ -38,13 +37,6 @@ export const useExportTokensToFileQuery = ({ id }: Parameters<typeof apiClient.d
 
   return { error, isPending, exportTokens };
 };
-
-export const useLoginMutation = (
-  options?: Omit<
-    UseMutationOptions<any, MutationErrorResponse, Parameters<typeof postLogin>[0], unknown>,
-    "mutationFn"
-  >,
-) => useMutation({ mutationFn: postLogin, ...options });
 
 const DEFAULT_PAGE_SIZE = 10;
 export const useImagesInfiniteQuery = ({

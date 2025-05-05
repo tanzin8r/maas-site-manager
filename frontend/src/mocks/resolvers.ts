@@ -46,7 +46,11 @@ const accessToken = accessTokenFactory.build();
 
 export const createMockLoginResolver =
   (): ResponseResolver<RestRequest<any, any>, typeof restContext> => async (req, res, ctx) => {
-    const { username, password } = await req.body;
+    const bodyText = await req.text();
+    const formData = new URLSearchParams(bodyText);
+    const username = formData.get("username");
+    const password = formData.get("password");
+
     if (username === "admin@example.com" && password === "admin") {
       return res(ctx.json(accessToken));
     }
