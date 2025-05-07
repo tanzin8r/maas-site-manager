@@ -1269,7 +1269,7 @@ class TestCustomImageUploadHandler:
                     files=file_data,
                 )
             mock_s3_target.assert_called_with(
-                mocker.ANY, "test/path/1", mocker.ANY
+                mocker.ANY, "1", mocker.ANY
             )
 
     async def test_post_wrong_file_size(
@@ -1678,3 +1678,51 @@ class TestBootAssetItemsDeleteHandler:
     ) -> None:
         resp = await user_client.delete(f"/bootasset-items/999")
         assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestBootAssetItemsDownloadHandler:
+    async def test_download(
+        self,
+        user_client: Client,
+        factory: Factory,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        mocker.patch("msm.api.user.handlers.images.boto3.resource")
+        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+        file_path = "ubuntu/noble/boot-kernel"
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        bv = await factory.make_BootAssetVersion(ba.id)
+        bi = await factory.make_BootAssetItem(bv.id, path=file_path)
+
+        resp = await user_client.get(f"/images/latest/stable/{file_path}")
+        assert resp.status_code == 200
+
+    async def test_download_not_found(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        resp = await user_client.get(
+            "/images/latest/stable/ubuntu/noble/unknown-file"
+        )
+        assert resp.status_code == 404
+
+    async def test_invalid_track(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        resp = await user_client.get(
+            "/images/1.0/stable/ubuntu/noble/boot-kernel"
+        )
+        assert resp.status_code == 400
+
+    async def test_invalid_risk(
+        self, user_client: Client, factory: Factory
+    ) -> None:
+        resp = await user_client.get(
+            "/images/latest/edge/ubuntu/noble/boot-kernel"
+        )
+        assert resp.status_code == 400
