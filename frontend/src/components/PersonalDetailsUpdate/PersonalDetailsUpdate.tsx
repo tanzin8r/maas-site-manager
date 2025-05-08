@@ -4,12 +4,11 @@ import type { FormikHelpers } from "formik";
 import { Field, Formik } from "formik";
 import * as Yup from "yup";
 
-import ErrorMessage from "../ErrorMessage";
-import FormikFormContent from "../base/FormikFormContent";
-
 import type { MutationErrorResponse } from "@/api";
 import { useCurrentUser, useEditCurrentUser } from "@/api/query/users";
 import type { User } from "@/apiclient";
+import ErrorMessage from "@/components/ErrorMessage";
+import FormikFormContent from "@/components/base/FormikFormContent";
 
 type PersonalDetailsUpdateFormValues = Pick<User, "email" | "full_name" | "username">;
 const PersonalDetailsUpdateSchema = Yup.object().shape({

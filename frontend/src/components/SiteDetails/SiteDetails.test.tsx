@@ -1,21 +1,17 @@
 import type { ReactNode } from "react";
 
-import { rest } from "msw";
-
-import { SiteMarkerSvg } from "../Map/SiteMarker/SiteMarker";
-
 import SiteDetails from "./SiteDetails";
 
+import { SiteMarkerSvg } from "@/components/Map/SiteMarker/SiteMarker";
 import { SiteDetailsContext } from "@/context/SiteDetailsContext";
 import { siteFactory, statsFactory } from "@/mocks/factories";
-import { createMockSiteResolver } from "@/mocks/resolvers";
+import { sitesResolvers } from "@/testing/resolvers/sites";
 import { getCountryName, getTimeInTimezone, getTimezoneUTCString } from "@/utils";
-import { apiUrls } from "@/utils/test-urls";
 import { screen, renderWithMemoryRouter, setupServer, waitFor, getByTextContent } from "@/utils/test-utils";
 
 const stats = statsFactory.build();
 const site = siteFactory.build({ stats });
-const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
+const mockServer = setupServer(sitesResolvers.getSite.handler([site]));
 
 const renderForm = (children?: ReactNode) => {
   return renderWithMemoryRouter(

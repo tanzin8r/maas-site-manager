@@ -1,6 +1,7 @@
 import type { MultiSelectItem } from "@canonical/maas-react-components";
 import { ContentSection, ExternalLink, MultiSelect } from "@canonical/maas-react-components";
 import { ActionButton, Button, Spinner, Notification } from "@canonical/react-components";
+import type { FormikHelpers } from "formik";
 import { Field, Form, Formik } from "formik";
 
 import ErrorMessage from "../ErrorMessage";
@@ -111,13 +112,18 @@ const DownloadImages = () => {
     },
   });
 
-  const handleSubmit = (values: ReleasesWithArches, images: UpstreamImage[]) => {
+  const handleSubmit = (
+    values: ReleasesWithArches,
+    images: UpstreamImage[],
+    helpers: FormikHelpers<ReleasesWithArches>,
+  ) => {
     const submitData = images.map((image) => ({
       id: image.id,
       download: values[getValueKey(image.codename, image.release)].some((item) => item.value === image.id),
     }));
 
     selectUpstreamImages.mutate(submitData);
+    helpers.setSubmitting(false);
   };
 
   return (
@@ -152,7 +158,7 @@ const DownloadImages = () => {
               <Formik
                 enableReinitialize={true}
                 initialValues={initialValues}
-                onSubmit={(values) => handleSubmit(values, data.items)}
+                onSubmit={(values, helpers) => handleSubmit(values, data.items, helpers)}
               >
                 {({ isSubmitting, dirty, values, setFieldValue }) => (
                   <Form aria-labelledby={headingId}>

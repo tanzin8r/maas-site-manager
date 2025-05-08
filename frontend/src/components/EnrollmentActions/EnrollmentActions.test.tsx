@@ -1,12 +1,12 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import EnrollmentActions from "./EnrollmentActions";
 
-import { createMockPostEnrollmentRequestsResolver } from "@/mocks/resolvers";
+import { enrollmentRequestsResolvers } from "@/testing/resolvers/enrollmentRequests";
 import { apiUrls } from "@/utils/test-urls";
 import { renderWithMemoryRouter, screen, setupServer, userEvent, within } from "@/utils/test-utils";
 
-const mockServer = setupServer(rest.post(apiUrls.enrollmentRequests, createMockPostEnrollmentRequestsResolver()));
+const mockServer = setupServer(enrollmentRequestsResolvers.postEnrollmentRequests.handler());
 
 vi.mock("@/context", async () => {
   const actual = await vi.importActual("@/context");
@@ -42,8 +42,8 @@ it("displays enrollment action buttons", () => {
 
 it("can display an error message on request error", async () => {
   mockServer.use(
-    rest.post(apiUrls.enrollmentRequests, (req, res, ctx) => {
-      return res(ctx.status(400));
+    http.post(apiUrls.enrollmentRequests, () => {
+      return HttpResponse.json(null, { status: 400 });
     }),
   );
   renderWithMemoryRouter(<EnrollmentActions />);

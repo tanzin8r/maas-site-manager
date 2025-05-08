@@ -1,12 +1,13 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import MapSettings from "./MapSettings";
 
-import { createMockCurrentUserResolver } from "@/mocks/resolvers";
+import { userFactory } from "@/mocks/factories";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { apiUrls } from "@/utils/test-urls";
 import { render, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
-const mockServer = setupServer(rest.get(apiUrls.currentUser, createMockCurrentUserResolver({ username: "admin" })));
+const mockServer = setupServer(usersResolvers.getCurrentUser.handler(userFactory.build({ username: "admin" })));
 
 beforeAll(() => {
   mockServer.listen();
@@ -27,8 +28,8 @@ afterAll(() => {
 
 it("shows errors when fetching the current user fails", async () => {
   mockServer.use(
-    rest.get(apiUrls.currentUser, (req, res, ctx) => {
-      return res(ctx.status(500));
+    http.get(apiUrls.currentUser, () => {
+      return new HttpResponse(null, { status: 500 });
     }),
   );
 

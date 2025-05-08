@@ -1,8 +1,8 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import UploadImage from "./UploadImage";
 
-import { createMockUploadImageResolver } from "@/mocks/resolvers";
+import { imagesResolvers } from "@/testing/resolvers/images";
 import { apiUrls } from "@/utils/test-urls";
 import { fireEvent, render, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
@@ -21,7 +21,7 @@ function createDataTransfer(file: File) {
   };
 }
 
-const mockServer = setupServer(rest.post(`${apiUrls.images}`, createMockUploadImageResolver()));
+const mockServer = setupServer(imagesResolvers.uploadImage.handler());
 
 beforeAll(() => {
   mockServer.listen();
@@ -83,8 +83,8 @@ it("shows file type validation errors", async () => {
 // this will be fixed in https://warthogs.atlassian.net/browse/MAASENG-4706
 it.skip("shows errors after submission", async () => {
   mockServer.use(
-    rest.post(`${apiUrls.images}`, (req, res, ctx) => {
-      throw res(ctx.status(400));
+    http.post(apiUrls.images, () => {
+      return HttpResponse.json({ message: "screw you" }, { status: 400 });
     }),
   );
 

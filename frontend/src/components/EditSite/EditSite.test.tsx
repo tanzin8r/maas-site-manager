@@ -1,4 +1,4 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import EditSite from "./EditSite";
 
@@ -6,12 +6,12 @@ import type { MutationErrorResponse } from "@/api";
 import { ExceptionCode } from "@/api";
 import { SiteDetailsContext } from "@/context/SiteDetailsContext";
 import { siteFactory } from "@/mocks/factories";
-import { createMockSiteResolver } from "@/mocks/resolvers";
+import { sitesResolvers } from "@/testing/resolvers/sites";
 import { apiUrls } from "@/utils/test-urls";
 import { render, screen, userEvent, setupServer, waitForLoadingToFinish, waitFor } from "@/utils/test-utils";
 
 const site = siteFactory.build();
-const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
+const mockServer = setupServer(sitesResolvers.getSite.handler([site]));
 
 const renderForm = async () => {
   const view = render(
@@ -52,7 +52,7 @@ it("prefills form data", async () => {
 });
 
 it("shows errors when fetching the site", async () => {
-  mockServer.use(rest.get(`${apiUrls.sites}/:id`, (req, res, ctx) => res(ctx.status(500))));
+  mockServer.use(http.get(`${apiUrls.sites}/:id`, () => new HttpResponse(null, { status: 500 })));
 
   await renderForm();
 
@@ -69,8 +69,8 @@ it("enables the submit button only when values have been changed while editing",
 
 it("shows errors after submission", async () => {
   mockServer.use(
-    rest.patch(`${apiUrls.sites}/:id`, (req, res, ctx) => {
-      return res(ctx.status(400), ctx.json({ error: { message: "Uh oh!" } }));
+    http.patch(`${apiUrls.sites}/:id`, () => {
+      return HttpResponse.json({ error: { message: "Uh oh!" } }, { status: 400 });
     }),
   );
 
@@ -152,8 +152,13 @@ it("displays error messages from the backend on the coordinates field", async ()
   };
 
   mockServer.use(
-    rest.patch(`${apiUrls.sites}/:id`, (req, res, ctx) => {
-      return res(ctx.status(400), ctx.json(errorResponse.body));
+    http.patch(`${apiUrls.sites}/:id`, () => {
+      return new HttpResponse(JSON.stringify(errorResponse.body), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     }),
   );
 

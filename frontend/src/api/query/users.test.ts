@@ -1,15 +1,13 @@
-import { rest } from "msw";
 import { setupServer } from "msw/node";
 
 import { useUsers } from "./users";
 
 import { userFactory } from "@/mocks/factories";
-import { createMockGetUsersResolver } from "@/mocks/resolvers";
-import { apiUrls } from "@/utils/test-urls";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { renderHook, waitFor, Providers } from "@/utils/test-utils";
 
 const usersData = userFactory.buildList(2);
-const mockServer = setupServer(rest.get(apiUrls.users, createMockGetUsersResolver(usersData)));
+const mockServer = setupServer(usersResolvers.listUsers.handler(usersData));
 
 beforeAll(() => {
   mockServer.listen();

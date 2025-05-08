@@ -1,17 +1,16 @@
-import { rest } from "msw";
-
-import { SiteMarkerSvg } from "../SiteMarker/SiteMarker";
+import { http, HttpResponse } from "msw";
 
 import SiteSummary from "./SiteSummary";
 
+import { SiteMarkerSvg } from "@/components/Map/SiteMarker/SiteMarker";
 import { siteFactory, statsFactory } from "@/mocks/factories";
-import { createMockSiteResolver } from "@/mocks/resolvers";
+import { sitesResolvers } from "@/testing/resolvers/sites";
 import { apiUrls } from "@/utils/test-urls";
 import { renderWithMemoryRouter, waitFor, screen, setupServer, userEvent, fireEvent } from "@/utils/test-utils";
 
 const stats = statsFactory.build();
 const site = siteFactory.build({ url: "https://example.com", stats });
-const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
+const mockServer = setupServer(sitesResolvers.getSite.handler([site]));
 
 beforeAll(() => {
   mockServer.listen();
@@ -46,8 +45,8 @@ it("displays data for a site", async () => {
 
 it("displays an error notification when site fetch fails", async () => {
   mockServer.use(
-    rest.get(`${apiUrls.sites}/:id`, (req, res, ctx) => {
-      return res(ctx.status(500));
+    http.get(`${apiUrls.sites}/:id`, () => {
+      return new HttpResponse(null, { status: 500 });
     }),
   );
 

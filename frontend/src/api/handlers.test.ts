@@ -3,20 +3,16 @@ import { setupServer } from "msw/node";
 import { apiClient } from "./api";
 import { getTokensExport } from "./handlers";
 
-import {
-  postTokens as postTokensResolver,
-  postEnrollmentRequests as postEnrollmentRequestsResolver,
-  getCurrentUser as getCurrentUserResolver,
-  getTokensExport as getTokensExportResolver,
-  getTokens as getTokensResolver,
-} from "@/mocks/resolvers";
+import { enrollmentRequestsResolvers } from "@/testing/resolvers/enrollmentRequests";
+import { tokensResolvers } from "@/testing/resolvers/tokens";
+import { usersResolvers } from "@/testing/resolvers/users";
 
 const mockServer = setupServer(
-  postTokensResolver,
-  postEnrollmentRequestsResolver,
-  getCurrentUserResolver,
-  getTokensExportResolver,
-  getTokensResolver,
+  tokensResolvers.createTokens.handler(),
+  enrollmentRequestsResolvers.postEnrollmentRequests.handler(),
+  usersResolvers.getCurrentUser.handler(),
+  tokensResolvers.exportTokens.handler(),
+  tokensResolvers.listTokens.handler(),
 );
 
 beforeAll(() => {

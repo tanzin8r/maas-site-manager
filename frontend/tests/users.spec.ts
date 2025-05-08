@@ -19,7 +19,7 @@ test("can open and close the 'Add user' form", async ({ page }) => {
 
 test("can open and close the 'Edit user' form", async ({ page }) => {
   const rows = page.getByRole("rowgroup");
-  const rowToEdit = rows.nth(1).getByRole("row").nth(0);
+  const rowToEdit = rows.nth(1).getByRole("row").nth(1);
   const formTitle = await rowToEdit.getByRole("cell").nth(0).textContent();
 
   await rowToEdit.getByRole("button", { name: `Edit ${formTitle}` }).click();
@@ -31,7 +31,7 @@ test("can open and close the 'Edit user' form", async ({ page }) => {
 
 test("can open and close the 'Delete user' form", async ({ page }) => {
   const rows = page.getByRole("rowgroup");
-  const rowToDelete = rows.nth(1).getByRole("row").nth(0);
+  const rowToDelete = rows.nth(1).getByRole("row").nth(1);
   const formTitle = await rowToDelete.getByRole("cell").nth(0).textContent();
 
   await rowToDelete.getByRole("button", { name: `Delete ${formTitle}` }).click();
@@ -52,7 +52,7 @@ test("can close forms using the escape key", async ({ page }) => {
 
 test("closes the form after editing a user", async ({ page }) => {
   const rows = page.getByRole("rowgroup");
-  const rowToEdit = rows.nth(1).getByRole("row").nth(0);
+  const rowToEdit = rows.nth(1).getByRole("row").nth(1);
   const formTitle = await rowToEdit.getByRole("cell").nth(0).textContent();
 
   await rowToEdit.getByRole("button", { name: `Edit ${formTitle}` }).click();

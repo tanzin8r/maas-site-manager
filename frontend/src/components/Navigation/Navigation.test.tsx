@@ -2,21 +2,21 @@
  * @vitest-environment happy-dom
  */
 
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
 import Navigation, { navItemsBottom, navItems, settingsNavItems } from "./Navigation";
 
-import { createMockCurrentUserResolver } from "@/mocks/resolvers";
-import { getApiUrl } from "@/utils/test-urls";
+import { userFactory } from "@/mocks/factories";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { renderWithMemoryRouter, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const mockServer = setupServer(
-  rest.get(getApiUrl("/users/me"), createMockCurrentUserResolver()),
-  rest.get("https://maas.io/docs", (req, res, ctx) => res(ctx.status(200))),
-  rest.get("https://discourse.maas.io/", (req, res, ctx) => res(ctx.status(200))),
+  usersResolvers.getCurrentUser.handler(userFactory.build({ username: "admin" })),
+  http.get("https://maas.io/docs", () => new HttpResponse(null, { status: 200 })),
+  http.get("https://discourse.maas.io/", () => new HttpResponse(null, { status: 200 })),
   // have to use a splat path here since the actual URL contains a `+`, which throws type errors
-  rest.get("https://bugs.launchpad.net/maas-site-manager/*", (req, res, ctx) => res(ctx.status(200))),
+  http.get("https://bugs.launchpad.net/maas-site-manager/*", () => new HttpResponse(null, { status: 200 })),
 );
 
 beforeAll(() => {

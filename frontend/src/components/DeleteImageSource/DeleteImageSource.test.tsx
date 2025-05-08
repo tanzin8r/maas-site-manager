@@ -1,7 +1,6 @@
-import { fakeBootSources } from "../ImageSourceList/ImageSourceList";
-
 import DeleteImageSource from "./DeleteImageSource";
 
+import { fakeBootSources } from "@/components/ImageSourceList/ImageSourceList";
 import { BootSourceContext } from "@/context/BootSourceContext";
 import { render, screen } from "@/utils/test-utils";
 

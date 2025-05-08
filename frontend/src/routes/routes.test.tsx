@@ -1,10 +1,9 @@
 import { pages } from "@/config/routes";
-import { allResolvers } from "@/mocks/resolvers";
 import routes from "@/routes";
 import { createMemoryRouter, RouterProvider } from "@/utils/router";
 import { render, screen, waitFor, setupServer } from "@/utils/test-utils";
 
-const mockServer = setupServer(...allResolvers);
+const mockServer = setupServer();
 
 beforeAll(() => {
   mockServer.listen();

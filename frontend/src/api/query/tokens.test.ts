@@ -1,15 +1,13 @@
-import { rest } from "msw";
 import { setupServer } from "msw/node";
 
 import { useTokens } from "./tokens";
 
 import { tokenFactory } from "@/mocks/factories";
-import { createMockGetTokensResolver } from "@/mocks/resolvers";
-import { apiUrls } from "@/utils/test-urls";
+import { tokensResolvers } from "@/testing/resolvers/tokens";
 import { renderHook, waitFor, Providers } from "@/utils/test-utils";
 
 const tokensData = tokenFactory.buildList(10);
-const mockServer = setupServer(rest.get(apiUrls.tokens, createMockGetTokensResolver(tokensData)));
+const mockServer = setupServer(tokensResolvers.listTokens.handler(tokensData));
 
 beforeAll(() => {
   mockServer.listen();

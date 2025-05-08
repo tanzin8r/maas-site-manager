@@ -73,6 +73,10 @@ export const getUpstreamImageSource = async () => {
     },
   });
 
+  if (!response.ok) {
+    throw new Error("Failed to fetch upstream image source");
+  }
+
   const data = (await response.json()) as Omit<UpstreamImageSource, "credentials">;
   return data;
 };
@@ -101,18 +105,15 @@ export type SelectUpstreamImagesPayload = {
 
 // TODO: replace with api client once API supports it https://warthogs.atlassian.net/browse/MAASENG-2569
 export const selectUpstreamImages = async (payload: SelectUpstreamImagesPayload[]) => {
-  try {
-    const response = await fetch(apiUrls.upstreamImages, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    return response;
-  } catch (error) {
-    throw error;
+  const response = await fetch(apiUrls.upstreamImages, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to select upstream images");
   }
 };
 
@@ -147,17 +148,17 @@ export type UploadImagePayload = {
 
 // TODO: replace with api client once API supports it https://warthogs.atlassian.net/browse/MAASENG-2715
 export const uploadImage = async (payload: UploadImagePayload) => {
-  try {
-    const response = await fetch(apiUrls.images, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+  const response = await fetch(apiUrls.images, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 
-    return response;
-  } catch (error) {
-    throw error;
+  if (!response.ok) {
+    throw new Error("Failed to upload image");
   }
+
+  return response;
 };

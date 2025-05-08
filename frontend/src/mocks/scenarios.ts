@@ -1,4 +1,4 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 /**
  * Scenarios that override default MSW resolvers for testing purposes.
@@ -14,8 +14,13 @@ import { rest } from "msw";
 const getApiUrl = (path: string) => `http://localhost:8000/api/v1${path}`;
 const scenariosHandlers = {
   sitesUnauthorized: [
-    rest.get(getApiUrl("/sites"), (req, res, ctx) => {
-      return res(ctx.status(401), ctx.json({ error: "Unauthorized" }));
+    http.get(getApiUrl("/sites"), () => {
+      return new HttpResponse(JSON.stringify({ error: "Unaouthorized" }), {
+        status: 401,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     }),
   ],
 } as const;

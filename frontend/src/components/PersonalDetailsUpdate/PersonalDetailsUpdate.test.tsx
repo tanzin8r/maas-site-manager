@@ -1,15 +1,16 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
 import PersonalDetailsUpdate from "./PersonalDetailsUpdate";
 
-import { createMockCurrentUserResolver, createMockUpdateUserResolver } from "@/mocks/resolvers";
+import { userFactory } from "@/mocks/factories";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { apiUrls } from "@/utils/test-urls";
 import { render, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const mockServer = setupServer(
-  rest.get(apiUrls.currentUser, createMockCurrentUserResolver()),
-  rest.patch(`${apiUrls.users}/:id`, createMockUpdateUserResolver()),
+  usersResolvers.getCurrentUser.handler(userFactory.build({ username: "admin", email: "admin@example.com" })),
+  usersResolvers.updateCurrentUser.handler(),
 );
 
 beforeAll(() => {
@@ -110,18 +111,20 @@ it("displays a success notification on successful update", async () => {
 
   await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
-  expect(
-    screen.getByRole("heading", {
-      name: /details updated/i,
-    }),
-  ).toBeInTheDocument();
+  await waitFor(() => {
+    expect(
+      screen.getByRole("heading", {
+        name: /details updated/i,
+      }),
+    ).toBeInTheDocument();
+  });
   expect(screen.getByText(/your details were updated successfully/i)).toBeInTheDocument();
 });
 
 it("displays an error notification on unsuccessful update", async () => {
   mockServer.use(
-    rest.patch(`${apiUrls.users}/:id`, (req, res, ctx) => {
-      return res(ctx.status(400));
+    http.patch(`${apiUrls.users}/:id`, () => {
+      return new HttpResponse(null, { status: 400 });
     }),
   );
 

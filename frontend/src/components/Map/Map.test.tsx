@@ -1,23 +1,21 @@
-import { rest } from "msw";
-
 import Map from "./Map";
 import { getClusterSize } from "./SiteMarker";
 
 import { markerFactory, siteFactory, statsFactory, userFactory } from "@/mocks/factories";
-import { createMockCurrentUserResolver, createMockSiteResolver, tileHandler } from "@/mocks/resolvers";
-import { apiUrls } from "@/utils/test-urls";
+import { sitesResolvers } from "@/testing/resolvers/sites";
+import { tileHandler } from "@/testing/resolvers/tiles";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { render, renderWithMemoryRouter, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
 const stats = statsFactory.build();
 const site = siteFactory.build({ name: "site-name", url: "https://example.com", stats });
 const currentUser = userFactory.build({ username: "admin" });
 
-const siteHandler = rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site]));
-const currentUserHandler = rest.get(apiUrls.currentUser, createMockCurrentUserResolver(currentUser));
-
-const handlers = [siteHandler, currentUserHandler, tileHandler];
-
-const mockServer = setupServer(...handlers);
+const mockServer = setupServer(
+  sitesResolvers.getSite.handler([site]),
+  usersResolvers.getCurrentUser.handler(currentUser),
+  tileHandler,
+);
 
 vi.mock("./styleSpecs", async () => {
   const actual = await vi.importActual("./styleSpecs");

@@ -1,8 +1,7 @@
 /* eslint-disable testing-library/no-node-access */
-import { allResolvers } from "@/mocks/resolvers";
 import { act, waitFor, setupServer } from "@/utils/test-utils";
 
-const mockServer = setupServer(...allResolvers);
+const mockServer = setupServer();
 
 beforeAll(() => {
   mockServer.listen();

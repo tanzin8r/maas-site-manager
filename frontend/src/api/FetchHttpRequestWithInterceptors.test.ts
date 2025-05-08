@@ -1,4 +1,4 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
 import type { ResponseInterceptor } from "./FetchHttpRequestWithInterceptors";
@@ -32,8 +32,12 @@ beforeEach(() => {
 it("should call interceptor for a successful response", async () => {
   const responseData = { success: true };
   server.use(
-    rest.get(url, (req, res, ctx) => {
-      return res(ctx.json(responseData));
+    http.get(url, () => {
+      return new Response(JSON.stringify(responseData), {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     }),
   );
   const requestOptions = { url: relativeUrl, method: "GET" } as ApiRequestOptions;
@@ -45,8 +49,10 @@ it("should call interceptor for a successful response", async () => {
 
 it("should call interceptor for a failed response", async () => {
   server.use(
-    rest.get(url, (req, res, ctx) => {
-      return res(ctx.status(500), ctx.text("Something went wrong"));
+    http.get(url, () => {
+      return new HttpResponse("Something went wrong", {
+        status: 500,
+      });
     }),
   );
   const requestOptions = { url: relativeUrl, method: "GET" } as ApiRequestOptions;

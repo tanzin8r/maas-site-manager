@@ -1,13 +1,10 @@
-import { rest } from "msw";
-
 import DeleteImagesContainer, { DeleteImages } from "./DeleteImages";
 
 import * as context from "@/context";
-import { createMockDeleteImageResolver } from "@/mocks/resolvers";
-import { apiUrls } from "@/utils/test-urls";
+import { imagesResolvers } from "@/testing/resolvers/images";
 import { getByTextContent, render, screen, setupServer, userEvent } from "@/utils/test-utils";
 
-const mockServer = setupServer(rest.delete(`${apiUrls.images}/:id`, createMockDeleteImageResolver()));
+const mockServer = setupServer(imagesResolvers.deleteImages.handler());
 
 beforeAll(() => {
   mockServer.listen();

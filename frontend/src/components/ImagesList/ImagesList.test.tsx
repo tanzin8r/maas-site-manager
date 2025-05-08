@@ -1,13 +1,12 @@
 import ImagesList from "./ImagesList";
 
 import { imageFactory } from "@/mocks/factories";
-import { createMockImagesResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
-import { apiUrls } from "@/utils/test-urls";
-import { renderWithMemoryRouter, screen } from "@/utils/test-utils";
+import { imagesResolvers } from "@/testing/resolvers/images";
+import { sitesResolvers } from "@/testing/resolvers/sites";
+import { renderWithMemoryRouter, screen, setupServer } from "@/utils/test-utils";
 
 const images = imageFactory.buildList(2);
-const mockServer = createMockGetServer(apiUrls.images, createMockImagesResolver(images));
+const mockServer = setupServer(imagesResolvers.listImages.handler(images), sitesResolvers.listSites.handler());
 
 beforeAll(() => {
   mockServer.listen();

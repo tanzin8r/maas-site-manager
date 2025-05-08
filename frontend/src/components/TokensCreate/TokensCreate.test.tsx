@@ -1,13 +1,19 @@
-import { rest } from "msw";
 import { setupServer } from "msw/node";
 
 import TokensCreate from "./TokensCreate";
 
-import { createMockTokensResolver } from "@/mocks/resolvers";
-import { apiUrls } from "@/utils/test-urls";
+import type * as apiHooks from "@/hooks/react-query";
+import { tokensResolvers } from "@/testing/resolvers/tokens";
 import { renderWithMemoryRouter, screen, userEvent } from "@/utils/test-utils";
 
-const mockServer = setupServer(rest.post(apiUrls.tokens, createMockTokensResolver()));
+const mockServer = setupServer(tokensResolvers.createTokens.handler());
+
+const tokensMutationMock = vi.fn();
+
+vi.mock("@/hooks/react-query", async (importOriginal) => {
+  const original: typeof apiHooks = await importOriginal();
+  return { ...original, useTokensCreateMutation: () => ({ mutateAsync: tokensMutationMock }) };
+});
 
 beforeAll(() => {
   mockServer.listen();

@@ -1,16 +1,22 @@
 import SitesList from "./SitesList";
 
 import { siteFactory } from "@/mocks/factories";
-import { createMockSitesResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
-import { apiUrls } from "@/utils/test-urls";
-import { renderWithMemoryRouter, screen, userEvent, waitFor, waitForLoadingToFinish, within } from "@/utils/test-utils";
+import { sitesResolvers } from "@/testing/resolvers/sites";
+import {
+  renderWithMemoryRouter,
+  screen,
+  setupServer,
+  userEvent,
+  waitFor,
+  waitForLoadingToFinish,
+  within,
+} from "@/utils/test-utils";
 
 const searchSiteName = "SearchTestSite";
 const sites = siteFactory.buildList(3);
 sites[1].name = searchSiteName;
 
-const mockServer = createMockGetServer(apiUrls.sites, createMockSitesResolver(sites));
+const mockServer = setupServer(sitesResolvers.listSites.handler(sites));
 
 beforeAll(() => {
   mockServer.listen();

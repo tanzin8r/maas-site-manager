@@ -1,14 +1,12 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import PasswordUpdate from "./PasswordUpdate";
 
-import { createMockUpdateCurrentUserPasswordResolver } from "@/mocks/resolvers";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { apiUrls } from "@/utils/test-urls";
 import { render, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
-const mockServer = setupServer(
-  rest.patch(`${apiUrls.currentUser}/password`, createMockUpdateCurrentUserPasswordResolver()),
-);
+const mockServer = setupServer(usersResolvers.updateCurrentUserPassword.handler());
 
 beforeAll(() => {
   mockServer.listen();
@@ -109,8 +107,8 @@ it("shows a success message when password is updated", async () => {
 
 it("shows an error message when password update fails", async () => {
   mockServer.use(
-    rest.patch(`${apiUrls.currentUser}/password`, (_req, res, ctx) => {
-      return res(ctx.status(400));
+    http.patch(`${apiUrls.currentUser}/password`, () => {
+      return new HttpResponse(null, { status: 400 });
     }),
   );
 

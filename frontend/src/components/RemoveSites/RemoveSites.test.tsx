@@ -1,17 +1,16 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import RemoveSites from "./RemoveSites";
 
 import { siteFactory, statsFactory } from "@/mocks/factories";
-import { createMockSiteResolver } from "@/mocks/resolvers";
+import { sitesResolvers } from "@/testing/resolvers/sites";
 import { apiUrls } from "@/utils/test-urls";
 import { screen, setupServer, render, userEvent } from "@/utils/test-utils";
 
 const stats = statsFactory.build();
 const site = siteFactory.build({ stats });
 
-const mockServer = setupServer(rest.get(`${apiUrls.sites}/:id`, createMockSiteResolver([site])));
-
+const mockServer = setupServer(sitesResolvers.getSite.handler([site]));
 const errorMessage = /Confirmation string is not correct/i;
 
 beforeAll(() => {
@@ -88,8 +87,8 @@ it("hides validation errors on change if the user already attempted submission",
 
 it("shows error messages from the backend after submission", async () => {
   mockServer.use(
-    rest.delete(apiUrls.sites, (req, res, ctx) => {
-      return res(ctx.status(400));
+    http.delete(apiUrls.sites, () => {
+      return new HttpResponse(null, { status: 400 });
     }),
   );
 

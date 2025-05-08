@@ -32,7 +32,6 @@ const RequestsTable = ({
     currentPage,
     pageSize,
   });
-
   const columns = useMemo<EnrollmentRequestsColumnDef[]>(
     () => [
       {

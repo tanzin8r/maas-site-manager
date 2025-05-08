@@ -1,19 +1,17 @@
-import { rest } from "msw";
 import { setupServer } from "msw/node";
 
 import RequestsList from "./RequestsList";
 
 import { enrollmentRequestFactory } from "@/mocks/factories";
-import { createMockGetEnrollmentRequestsResolver, postEnrollmentRequests } from "@/mocks/resolvers";
-import { apiUrls } from "@/utils/test-urls";
+import { enrollmentRequestsResolvers } from "@/testing/resolvers/enrollmentRequests";
 import { renderWithMemoryRouter, screen, userEvent, waitFor, waitForLoadingToFinish } from "@/utils/test-utils";
 
 const enrollmentRequest = enrollmentRequestFactory.build({ name: "new-maas-site" });
 const enrollmentRequests = [enrollmentRequest, ...enrollmentRequestFactory.buildList(2)];
 
 const mockServer = setupServer(
-  rest.get(apiUrls.enrollmentRequests, createMockGetEnrollmentRequestsResolver(enrollmentRequests)),
-  postEnrollmentRequests,
+  enrollmentRequestsResolvers.listEnrollmentRequests.handler(enrollmentRequests),
+  enrollmentRequestsResolvers.postEnrollmentRequests.handler(),
 );
 
 beforeAll(() => {

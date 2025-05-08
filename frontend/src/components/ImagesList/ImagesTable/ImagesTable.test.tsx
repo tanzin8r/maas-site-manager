@@ -1,22 +1,22 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import ImagesTableContainer, { ImagesTable } from "./ImagesTable";
 
 import { imageFactory } from "@/mocks/factories";
-import { createMockImagesResolver } from "@/mocks/resolvers";
+import { imagesResolvers } from "@/testing/resolvers/images";
+import { sitesResolvers } from "@/testing/resolvers/sites";
 import { apiUrls } from "@/utils/test-urls";
 import { renderWithMemoryRouter, screen, setupServer, waitFor, within } from "@/utils/test-utils";
 
-const images = imageFactory.buildList(2, { codename: "Hannah Montana Linux" });
-const initialHandlers = [rest.get(apiUrls.images, createMockImagesResolver(images))] as const;
-const mockServer = setupServer(...initialHandlers);
+const images = imageFactory.buildList(2, { os: "Hannah Montana Linux" });
+const mockServer = setupServer(imagesResolvers.listImages.handler(images), sitesResolvers.listSites.handler());
 
 beforeAll(() => {
   mockServer.listen();
 });
 
 afterEach(() => {
-  mockServer.resetHandlers(...initialHandlers);
+  mockServer.resetHandlers();
 });
 
 afterAll(() => {
@@ -46,15 +46,15 @@ it("displays loading state", () => {
 });
 
 it("displays empty state if no images are available", async () => {
-  mockServer.resetHandlers(rest.get(apiUrls.images, createMockImagesResolver([])));
+  mockServer.use(imagesResolvers.listImages.handler([]));
   renderWithMemoryRouter(<ImagesTableContainer />);
   await waitFor(() => expect(screen.getByText("No images")).toBeInTheDocument());
 });
 
 it("can display error message", async () => {
-  mockServer.resetHandlers(
-    rest.get(apiUrls.images, (req, res, ctx) => {
-      return res(ctx.status(400, "error"));
+  mockServer.use(
+    http.get(apiUrls.images, () => {
+      return new HttpResponse(null, { status: 400, statusText: "error" });
     }),
   );
   renderWithMemoryRouter(
@@ -78,12 +78,10 @@ it("can display images", async () => {
     const table = screen.getByRole("table", { name: /images/ });
     expect(within(table).queryByText(/Loading/)).not.toBeInTheDocument();
   });
-
   const tableBody = screen.getAllByRole("rowgroup")[1];
 
   const rows = within(tableBody).getAllByRole("row");
-
-  expect(rows[0].textContent).toContain(images[0].codename);
+  expect(rows[0].textContent).toContain(images[0].os);
 
   images.forEach((image, i) => {
     expect(rows[i + 1].textContent).toContain(image.release);

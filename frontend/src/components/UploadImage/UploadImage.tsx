@@ -2,14 +2,14 @@ import { ContentSection, FileUpload } from "@canonical/maas-react-components";
 import type { SelectProps } from "@canonical/react-components";
 import { ActionButton, Button, Input, Label, Notification, Select } from "@canonical/react-components";
 import classNames from "classnames";
+import type { FormikHelpers } from "formik";
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
-
-import ErrorMessage from "../ErrorMessage";
 
 import { ARCHITECTURES, OPERATING_SYSTEM_NAMES, VALID_IMAGE_FILE_TYPES } from "./constants";
 
 import type { UploadImagePayload } from "@/api/handlers";
+import ErrorMessage from "@/components/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
 import { useUploadImageMutation } from "@/hooks/react-query";
 
@@ -86,12 +86,12 @@ const UploadImage = () => {
     image: null,
   };
 
-  const handleSubmit = (values: UploadImageFormValues) => {
+  const handleSubmit = (values: UploadImageFormValues, helpers: FormikHelpers<UploadImageFormValues>) => {
     if (values.image) {
       uploadImageMutation.mutate(values as UploadImagePayload);
     }
+    helpers.setSubmitting(false);
   };
-
   return (
     <ContentSection>
       <ContentSection.Title>Upload image</ContentSection.Title>

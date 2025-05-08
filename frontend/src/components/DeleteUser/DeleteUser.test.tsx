@@ -1,20 +1,15 @@
-import { rest } from "msw";
 import { setupServer } from "msw/node";
 
 import DeleteUser from "./DeleteUser";
 
 import { UserSelectionContext } from "@/context";
 import { userFactory } from "@/mocks/factories";
-import { createMockDeleteUserResolver, createMockGetUserResolver } from "@/mocks/resolvers";
-import { apiUrls } from "@/utils/test-urls";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { render, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const mockUser = userFactory.build({ username: "abc123", id: 2 });
 
-const mockServer = setupServer(
-  rest.delete(`${apiUrls.users}/:id`, createMockDeleteUserResolver()),
-  rest.get(`${apiUrls.users}/:id`, createMockGetUserResolver([mockUser])),
-);
+const mockServer = setupServer(usersResolvers.deleteUser.handler(), usersResolvers.getUser.handler([mockUser]));
 
 beforeAll(() => {
   mockServer.listen();

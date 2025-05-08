@@ -1,12 +1,8 @@
-import { rest } from "msw";
-
 import NoSites from "./NoSites";
 
 import { enrollmentRequestFactory } from "@/mocks/factories";
-import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
-import { apiUrls } from "@/utils/test-urls";
-import { getByTextContent, renderWithMemoryRouter, screen, waitFor } from "@/utils/test-utils";
+import { enrollmentRequestsResolvers } from "@/testing/resolvers/enrollmentRequests";
+import { getByTextContent, renderWithMemoryRouter, screen, setupServer, waitFor } from "@/utils/test-utils";
 
 const renderComponent = () =>
   renderWithMemoryRouter(
@@ -17,10 +13,8 @@ const renderComponent = () =>
   );
 
 const enrollmentRequests = enrollmentRequestFactory.buildList(2);
-const mockServer = createMockGetServer(
-  apiUrls.enrollmentRequests,
-  createMockGetEnrollmentRequestsResolver(enrollmentRequests),
-);
+const mockServer = setupServer(enrollmentRequestsResolvers.listEnrollmentRequests.handler(enrollmentRequests));
+
 beforeAll(() => {
   mockServer.listen();
 });
@@ -64,7 +58,7 @@ it("should display the amount of open enrollment requests", async () => {
 });
 
 it("should display a link to the tokens page if no enrollment requests are open", async () => {
-  mockServer.resetHandlers(rest.get(apiUrls.enrollmentRequests, createMockGetEnrollmentRequestsResolver([])));
+  mockServer.resetHandlers(enrollmentRequestsResolvers.listEnrollmentRequests.handler());
   renderComponent();
   await waitFor(() =>
     expect(

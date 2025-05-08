@@ -2,16 +2,12 @@ import SitesTable from "./SitesTable";
 
 import { TimeZone } from "@/apiclient";
 import { enrollmentRequestFactory, siteFactory, sitesQueryResultFactory, statsFactory } from "@/mocks/factories";
-import { createMockGetEnrollmentRequestsResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
-import { apiUrls } from "@/utils/test-urls";
-import { renderWithMemoryRouter, screen, within } from "@/utils/test-utils";
+import { enrollmentRequestsResolvers } from "@/testing/resolvers/enrollmentRequests";
+import { renderWithMemoryRouter, screen, setupServer, within } from "@/utils/test-utils";
 
 const enrollmentRequests = enrollmentRequestFactory.buildList(2);
-const mockServer = createMockGetServer(
-  apiUrls.enrollmentRequests,
-  createMockGetEnrollmentRequestsResolver(enrollmentRequests),
-);
+const mockServer = setupServer(enrollmentRequestsResolvers.listEnrollmentRequests.handler(enrollmentRequests));
+
 const paginationProps = {
   currentPage: 1,
   dataContext: "MAAS Sites",

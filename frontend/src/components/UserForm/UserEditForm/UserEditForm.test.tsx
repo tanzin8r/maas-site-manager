@@ -1,15 +1,15 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import UserEditForm from "./UserEditForm";
 
 import { UserSelectionContext } from "@/context/UserSelectionContext";
 import { userFactory } from "@/mocks/factories";
-import { createMockGetUserResolver } from "@/mocks/resolvers";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { apiUrls } from "@/utils/test-urls";
 import { render, screen, setupServer, userEvent, waitFor, waitForLoadingToFinish } from "@/utils/test-utils";
 
 const user = userFactory.build({ is_admin: true });
-const mockServer = setupServer(rest.get(`${apiUrls.users}/:id`, createMockGetUserResolver([user])));
+const mockServer = setupServer(usersResolvers.getUser.handler([user]));
 
 const renderEditForm = () => {
   const setSelected = vi.fn();
@@ -54,8 +54,8 @@ it("makes the confirm_password field required if the password field has been fil
 
 it("shows an error message when submission fails", async () => {
   mockServer.use(
-    rest.patch(`${apiUrls.users}/${user.id}`, (_req, res, ctx) => {
-      return res(ctx.status(400));
+    http.patch(`${apiUrls.users}/${user.id}`, () => {
+      return new HttpResponse(null, { status: 400 });
     }),
   );
   renderEditForm();

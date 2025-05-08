@@ -15,7 +15,6 @@ const Requests: React.FC = () => {
       size,
     },
   });
-
   return (
     <ContentSection>
       <ContentSection.Header>

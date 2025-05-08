@@ -27,6 +27,7 @@ export default defineConfig({
     coverage: {
       // exclude index files as they're only used to export other files
       // exclude pages as they're covered by playwright tests
+      // exclude mock Resolvers:https://github.com/mswjs/msw/discussions/942#discussioncomment-1485279
       exclude: [
         ...coverageConfigDefaults.exclude,
         "**/index.ts",
@@ -35,6 +36,7 @@ export default defineConfig({
         "**/types.ts",
         "src/api/client/**/*",
         "src/apiclient/**/*",
+        "src/testing/resolvers/**/*",
       ],
       include: ["src/**/*.{ts,tsx}"],
       reporter: [["text"], ["html"], ["cobertura", { file: "../../.cover/cobertura-coverage-frontend.xml" }]],

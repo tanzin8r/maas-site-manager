@@ -1,11 +1,11 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import SitesMissingData from "./SitesMissingData";
 
 import type { MutationErrorResponse } from "@/api";
 import { ExceptionCode } from "@/api";
 import { siteFactory } from "@/mocks/factories";
-import { createMockSitesResolver } from "@/mocks/resolvers";
+import { sitesResolvers } from "@/testing/resolvers/sites";
 import { apiUrls } from "@/utils/test-urls";
 import {
   setupServer,
@@ -17,7 +17,7 @@ import {
 } from "@/utils/test-utils";
 
 const sites = siteFactory.buildList(5, { coordinates: null });
-const mockServer = setupServer(rest.get(`${apiUrls.sites}`, createMockSitesResolver(sites)));
+const mockServer = setupServer(sitesResolvers.listSites.handler(sites));
 
 beforeAll(() => {
   mockServer.listen();
@@ -119,7 +119,7 @@ it("displays the 'invalid' message for coordinates with a decimal point but no d
 });
 
 it("displays error messages if sites fail to fetch", async () => {
-  mockServer.use(rest.get(`${apiUrls.sites}`, (req, res, ctx) => res(ctx.status(500))));
+  mockServer.use(http.get(`${apiUrls.sites}`, () => new HttpResponse(null, { status: 500 })));
 
   renderWithMemoryRouter(<SitesMissingData />);
 
@@ -146,10 +146,13 @@ it("displays error messages after failed submission", async () => {
   };
 
   mockServer.use(
-    rest.patch(`${apiUrls.sites}/:id`, (req, res, ctx) => {
-      return res(ctx.status(400), ctx.json(errorResponse.body));
+    http.patch(`${apiUrls.sites}/:id`, () => {
+      return new HttpResponse(JSON.stringify(errorResponse.body), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }),
-    rest.get(`${apiUrls.sites}`, createMockSitesResolver([siteFactory.build({ coordinates: null })])),
+    sitesResolvers.updateSites.handler(),
   );
 
   renderWithMemoryRouter(<SitesMissingData />);

@@ -1,16 +1,13 @@
-import { rest } from "msw";
 import { setupServer } from "msw/node";
 
 import SyncStatus from "./SyncStatus";
 
 import { siteFactory, imageFactory } from "@/mocks/factories";
-import { createMockSitesResolver } from "@/mocks/resolvers";
-import { createMockGetServer } from "@/mocks/server";
-import { apiUrls } from "@/utils/test-urls";
+import { sitesResolvers } from "@/testing/resolvers/sites";
 import { renderWithMemoryRouter, screen, waitFor } from "@/utils/test-utils";
 
 const sites = siteFactory.buildList(5);
-const mockServer = createMockGetServer(apiUrls.sites, createMockSitesResolver(sites));
+const mockServer = setupServer(sitesResolvers.listSites.handler(sites));
 
 beforeAll(() => {
   mockServer.listen();
@@ -24,15 +21,6 @@ afterEach(() => {
 afterAll(() => {
   mockServer.close();
 });
-const server = setupServer(
-  rest.get("/api/sites", (req, res, ctx) => {
-    return res(ctx.json({ total: 5 }));
-  }),
-);
-
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
 
 test("displays SyncedStatus when image is synced", async () => {
   const image = imageFactory.build({

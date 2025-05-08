@@ -1,14 +1,10 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import DownloadImages from "./DownloadImages";
 
 import type { UpstreamImage } from "@/api";
 import { upstreamImageFactory, upstreamImageSourceFactory } from "@/mocks/factories";
-import {
-  createMockSelectUpstreamImagesResolver,
-  createMockUpstreamImageSourceResolver,
-  createMockUpstreamImagesResolver,
-} from "@/mocks/resolvers";
+import { imagesResolvers } from "@/testing/resolvers/images";
 import { apiUrls } from "@/utils/test-urls";
 import { renderWithMemoryRouter, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
@@ -20,16 +16,11 @@ const upstreamImageSource = upstreamImageSourceFactory.build({
   keepUpdated: true,
 });
 
-const upstreamImagesHandler = rest.get(apiUrls.upstreamImages, createMockUpstreamImagesResolver(upstreamImages));
-const upstreamImageSourceHandler = rest.get(
-  apiUrls.upstreamImageSource,
-  createMockUpstreamImageSourceResolver(upstreamImageSource),
+const mockServer = setupServer(
+  imagesResolvers.listUpstreamImages.handler(upstreamImages),
+  imagesResolvers.selectUpstreamImages.handler(),
+  imagesResolvers.getImageSource.handler(upstreamImageSource),
 );
-const selectUpstreamImagesHandler = rest.post(apiUrls.upstreamImages, createMockSelectUpstreamImagesResolver());
-
-const handlers = [upstreamImagesHandler, upstreamImageSourceHandler, selectUpstreamImagesHandler];
-
-const mockServer = setupServer(...handlers);
 
 beforeAll(() => {
   mockServer.listen();
@@ -65,10 +56,10 @@ it("displays '...and synced daily' if daily sync is enabled", async () => {
 
   const notSyncedUpstreamSource = upstreamImageSourceFactory.build({ keepUpdated: false });
 
-  mockServer.resetHandlers(
-    upstreamImagesHandler,
-    rest.get(apiUrls.upstreamImageSource, createMockUpstreamImageSourceResolver(notSyncedUpstreamSource)),
-    selectUpstreamImagesHandler,
+  mockServer.use(
+    imagesResolvers.listUpstreamImages.handler(upstreamImages),
+    imagesResolvers.getImageSource.handler(notSyncedUpstreamSource),
+    imagesResolvers.selectUpstreamImages.handler(),
   );
 
   renderWithMemoryRouter(<DownloadImages />);
@@ -97,12 +88,12 @@ it("enables the submit button once the form has been edited", async () => {
   });
 
   const localHandlers = [
-    rest.get(apiUrls.upstreamImages, createMockUpstreamImagesResolver(images)),
-    upstreamImageSourceHandler,
-    selectUpstreamImagesHandler,
+    imagesResolvers.listUpstreamImages.handler(images),
+    imagesResolvers.getImageSource.handler(upstreamImageSource),
+    imagesResolvers.selectUpstreamImages.handler(),
   ];
 
-  mockServer.resetHandlers(...localHandlers);
+  mockServer.use(...localHandlers);
 
   renderWithMemoryRouter(<DownloadImages />);
 
@@ -126,11 +117,14 @@ it("enables the submit button once the form has been edited", async () => {
 });
 
 it("displays errors that ocurred while fetching images", async () => {
-  mockServer.resetHandlers(
-    rest.get(apiUrls.upstreamImages, (req, res, ctx) => {
-      return res(ctx.status(400, "error"));
+  mockServer.use(
+    http.get(apiUrls.upstreamImages, () => {
+      return new HttpResponse(null, {
+        status: 500,
+        statusText: "error",
+      });
     }),
-    upstreamImageSourceHandler,
+    imagesResolvers.getImageSource.handler(upstreamImageSource),
   );
 
   renderWithMemoryRouter(<DownloadImages />);
@@ -141,11 +135,16 @@ it("displays errors that ocurred while fetching images", async () => {
 });
 
 it("displays errors that ocurred while fetching the upstream image source", async () => {
-  mockServer.resetHandlers(
-    rest.get(apiUrls.upstreamImageSource, (req, res, ctx) => {
-      return res(ctx.status(400, "error"));
+  mockServer.use(
+    http.get(apiUrls.upstreamImageSource, () => {
+      return HttpResponse.json(
+        {},
+        {
+          status: 400,
+        },
+      );
     }),
-    upstreamImagesHandler,
+    imagesResolvers.listUpstreamImages.handler(upstreamImages),
   );
 
   renderWithMemoryRouter(<DownloadImages />);
@@ -164,15 +163,13 @@ it.skip("displays errors that ocurred after submitting image selection", async (
     images.push(upstreamImageFactory.build({ codename: "Ubuntu", release: "22.04 LTS", arch: architecture }));
   });
 
-  const localHandlers = [
-    rest.get(apiUrls.upstreamImages, createMockUpstreamImagesResolver(images)),
-    upstreamImageSourceHandler,
-    rest.post(apiUrls.upstreamImages, (req, res, ctx) => {
-      throw res(ctx.status(400, "error"));
+  mockServer.use(
+    imagesResolvers.listUpstreamImages.handler(images),
+    imagesResolvers.getImageSource.handler(upstreamImageSource),
+    http.post(apiUrls.upstreamImages, () => {
+      return HttpResponse.json(null, { status: 400, statusText: "error" });
     }),
-  ];
-
-  mockServer.resetHandlers(...localHandlers);
+  );
 
   renderWithMemoryRouter(<DownloadImages />);
 

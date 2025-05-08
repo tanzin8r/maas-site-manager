@@ -1,11 +1,8 @@
-import { rest } from "msw";
-
 import UserList from "./UserList";
 
 import { userFactory } from "@/mocks/factories";
-import { createMockCurrentUserResolver, createMockGetUsersResolver } from "@/mocks/resolvers";
+import { usersResolvers } from "@/testing/resolvers/users";
 import * as router from "@/utils/router";
-import { apiUrls } from "@/utils/test-urls";
 import {
   renderWithMemoryRouter,
   screen,
@@ -19,8 +16,8 @@ import {
 const userWithoutFullName = userFactory.build({ full_name: "" });
 const users = [...userFactory.buildList(2), userWithoutFullName];
 const mockServer = setupServer(
-  rest.get(apiUrls.users, createMockGetUsersResolver(users)),
-  rest.get(apiUrls.currentUser, createMockCurrentUserResolver(users[0])),
+  usersResolvers.listUsers.handler(users),
+  usersResolvers.getCurrentUser.handler(users[0]),
 );
 
 beforeAll(() => {

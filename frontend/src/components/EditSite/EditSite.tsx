@@ -5,8 +5,6 @@ import { Field, Formik } from "formik";
 import en from "i18n-iso-countries/langs/en.json";
 import * as Yup from "yup";
 
-import FormikFormContent from "../base/FormikFormContent";
-
 import { coordinateSchema } from "./constants";
 import type { CoordinatesFormValue } from "./types";
 import { parseCoordinatesFormValue } from "./utils";
@@ -15,6 +13,7 @@ import type { MutationErrorResponse } from "@/api";
 import { useEditSite, useSite } from "@/api/query/sites";
 import type { Site } from "@/apiclient";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
+import FormikFormContent from "@/components/base/FormikFormContent";
 import { useAppLayoutContext } from "@/context";
 import type { SiteDetailsContextValue } from "@/context/SiteDetailsContext";
 import { useSiteDetailsContext } from "@/context/SiteDetailsContext";

@@ -1,14 +1,14 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 import UserAddForm from "./UserAddForm";
 
 import { userFactory } from "@/mocks/factories";
-import { createMockGetUserResolver } from "@/mocks/resolvers";
+import { usersResolvers } from "@/testing/resolvers/users";
 import { apiUrls } from "@/utils/test-urls";
 import { render, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
 const user = userFactory.build({ is_admin: true });
-const mockServer = setupServer(rest.get(`${apiUrls.users}/:id`, createMockGetUserResolver([user])));
+const mockServer = setupServer(usersResolvers.getUser.handler([user]));
 
 beforeAll(() => {
   mockServer.listen();
@@ -126,8 +126,8 @@ it("displays an error if the password confirmation field does not match the give
 
 it("shows an error message when submission fails", async () => {
   mockServer.use(
-    rest.post(apiUrls.users, (_req, res, ctx) => {
-      return res(ctx.status(400));
+    http.post(apiUrls.users, () => {
+      return new HttpResponse(null, { status: 400 });
     }),
   );
   render(<UserAddForm />);
