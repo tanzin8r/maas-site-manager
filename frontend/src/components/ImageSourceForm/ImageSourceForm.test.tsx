@@ -1,8 +1,21 @@
+import { setupServer } from "msw/node";
+
 import ImageSourceForm from "./ImageSourceForm";
 
 import { AppLayoutContext } from "@/context";
 import { BootSourceContext } from "@/context/BootSourceContext";
-import { render, userEvent, screen } from "@/utils/test-utils";
+import { imageSourceResolvers, mockImageSources } from "@/testing/resolvers/imageSources";
+import { render, userEvent, screen, waitFor } from "@/utils/test-utils";
+
+const mockServer = setupServer(
+  imageSourceResolvers.getImageSource.handler(),
+  imageSourceResolvers.createImageSource.handler(),
+  imageSourceResolvers.updateImageSource.handler(),
+);
+
+beforeAll(() => mockServer.listen());
+afterEach(() => mockServer.resetHandlers());
+afterAll(() => mockServer.close());
 
 it("shows an error for invalid URLs", async () => {
   render(<ImageSourceForm type="add" />);
@@ -38,14 +51,15 @@ it("closes the side panel and resets selected source when 'Cancel' is clicked", 
 
   render(
     <AppLayoutContext.Provider value={{ sidebar: null, setSidebar, previousSidebar: null }}>
-      <BootSourceContext.Provider value={{ selected: 1, setSelected }}>
+      <BootSourceContext.Provider value={{ selected: mockImageSources[0].id, setSelected }}>
         <ImageSourceForm type="edit" />
       </BootSourceContext.Provider>
     </AppLayoutContext.Provider>,
   );
 
+  await waitFor(() => expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument());
   await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-  expect(setSelected).toHaveBeenCalledWith(null);
-  expect(setSidebar).toHaveBeenCalledWith(null);
+  await waitFor(() => expect(setSelected).toHaveBeenCalledWith(null));
+  await waitFor(() => expect(setSidebar).toHaveBeenCalledWith(null));
 });

@@ -2,13 +2,12 @@ import { DynamicTable } from "@canonical/maas-react-components";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import { useImageSourceTableColumns } from "../hooks";
-import type { BootSource } from "../types";
 
+import type { BootSource } from "@/apiclient";
 import TableCaption from "@/components/TableCaption";
 
 type Props = {
-  // temporary until API is ready
-  data: { items: BootSource[] };
+  data: BootSource[];
   error: Error | null;
   isPending: boolean;
 };
@@ -16,7 +15,7 @@ type Props = {
 const ImageSourceListTable = ({ data, error, isPending }: Props) => {
   const columns = useImageSourceTableColumns();
   const imageSourceTable = useReactTable<BootSource>({
-    data: data.items,
+    data: data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,

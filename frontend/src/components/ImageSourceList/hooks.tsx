@@ -1,12 +1,12 @@
 import { Button, Icon, Tooltip } from "@canonical/react-components";
-import classNames from "classnames";
+import type { ColumnDef } from "@tanstack/react-table";
 
-import type { BootSourceColumnDef } from "./types";
-import { BootSourceStatus } from "./types";
-
+import type { BootSource } from "@/apiclient";
 import { useAppLayoutContext } from "@/context";
 import { useBootSourceContext } from "@/context/BootSourceContext";
 import { createAccessor } from "@/utils";
+
+type BootSourceColumnDef = ColumnDef<BootSource, Partial<BootSource>>;
 
 export const useImageSourceTableColumns = () => {
   const { setSidebar } = useAppLayoutContext();
@@ -41,30 +41,31 @@ export const useImageSourceTableColumns = () => {
           );
         },
       },
-      {
-        id: "status",
-        enableSorting: false,
-        header: () => <div className="status-text">Status</div>,
-        accessorFn: createAccessor(["status", "url"]),
-        accessorKey: "status",
-        cell: ({ getValue }) => {
-          const { status, url } = getValue();
-          if (url !== "custom") {
-            return (
-              <div
-                className={classNames("status-icon", {
-                  "is-lost": BootSourceStatus[status] !== BootSourceStatus.connected,
-                  "is-stable": BootSourceStatus[status] === BootSourceStatus.connected,
-                })}
-              >
-                {BootSourceStatus[status]}
-              </div>
-            );
-          } else {
-            return <div />;
-          }
-        },
-      },
+      // TODO: re-activate status once missing fields are added
+      // {
+      //   id: "status",
+      //   enableSorting: false,
+      //   header: () => <div className="status-text">Status</div>,
+      //   accessorFn: createAccessor(["status", "url"]),
+      //   accessorKey: "status",
+      //   cell: ({ getValue }) => {
+      //     const { status, url } = getValue();
+      //     if (url !== "custom") {
+      //       return (
+      //         <div
+      //           className={classNames("status-icon", {
+      //             "is-lost": BootSourceStatus[status] !== BootSourceStatus.connected,
+      //             "is-stable": BootSourceStatus[status] === BootSourceStatus.connected,
+      //           })}
+      //         >
+      //           {BootSourceStatus[status]}
+      //         </div>
+      //       );
+      //     } else {
+      //       return <div />;
+      //     }
+      //   },
+      // },
       {
         id: "syncing",
         enableSorting: false,
@@ -79,7 +80,7 @@ export const useImageSourceTableColumns = () => {
 
           return (
             <div>
-              {sync_interval > 0 ? (
+              {sync_interval! > 0 ? (
                 <Icon aria-label="Source is syncing" name="task-outstanding" />
               ) : (
                 <Icon aria-label="Source is not syncing" name="error-grey" />
@@ -88,28 +89,29 @@ export const useImageSourceTableColumns = () => {
           );
         },
       },
-      {
-        id: "total_images",
-        enableSorting: false,
-        header: () => <div>Number of images</div>,
-        accessorFn: createAccessor("total_images"),
-        accessorKey: "total_images",
-        cell: ({ getValue }) => {
-          const { total_images } = getValue();
-          return <div>{total_images}</div>;
-        },
-      },
+      // TODO: re-activate total_images once missing fields are added
+      // {
+      //   id: "total_images",
+      //   enableSorting: false,
+      //   header: () => <div>Number of images</div>,
+      //   accessorFn: createAccessor("total_images"),
+      //   accessorKey: "total_images",
+      //   cell: ({ getValue }) => {
+      //     const { total_images } = getValue();
+      //     return <div>{total_images}</div>;
+      //   },
+      // },
       {
         id: "keyring",
         enableSorting: false,
         header: () => <div>Signed with GPG key</div>,
-        accessorFn: createAccessor(["keyring", "status", "url"]),
+        accessorFn: createAccessor(["keyring", "url"]),
         accessorKey: "keyring",
         cell: ({ getValue }) => {
-          const { keyring, status, url } = getValue();
+          const { keyring, url } = getValue();
           if (url === "custom") {
             return <div />;
-          } else if (!keyring || status === "gpg_error") {
+          } else if (!keyring) {
             return <Icon aria-label="Not signed with GPG key" name="error-grey" />;
           } else {
             return <Icon aria-label="Signed with GPG key" name="task-outstanding" />;
@@ -153,7 +155,7 @@ export const useImageSourceTableColumns = () => {
                 className="is-dense u-table-cell-padding-overlap"
                 // TODO: enable this once side panel is available https://warthogs.atlassian.net/browse/MAASENG-4381
                 onClick={() => {
-                  setSelected(id);
+                  setSelected(id!);
                   if (url === "custom") {
                     setSidebar("editCustomImagesSource");
                   } else {
@@ -169,7 +171,7 @@ export const useImageSourceTableColumns = () => {
                   aria-label="Delete image source"
                   className="is-dense u-table-cell-padding-overlap"
                   onClick={() => {
-                    setSelected(id);
+                    setSelected(id!);
                     setSidebar("deleteBootSource");
                   }}
                 >

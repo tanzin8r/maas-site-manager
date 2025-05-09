@@ -32,7 +32,7 @@ parts:
       [[ -v http_proxy ]] && yarn config set httpProxy ${http_proxy}
       [[ -v https_proxy ]] && yarn config set httpsProxy ${https_proxy}
       yarn config list
-      YARN_ENABLE_PROGRESS_BARS=false yarn install --immutable
+      YARN_ENABLE_PROGRESS_BARS=false MSW_SKIP_POSTINSTALL=1 yarn install --immutable
       echo "Building frontend"
       yarn run build
       cp -a dist ${CRAFT_PART_INSTALL}/static

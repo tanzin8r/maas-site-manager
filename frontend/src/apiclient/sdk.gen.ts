@@ -21,6 +21,14 @@ import type {
   PostBootSourcesV1BootassetSourcesPostData,
   PostBootSourcesV1BootassetSourcesPostResponse,
   PostBootSourcesV1BootassetSourcesPostError,
+  DeleteBootSourceV1BootassetSourcesIdDeleteData,
+  DeleteBootSourceV1BootassetSourcesIdDeleteError,
+  GetBootSourceByIdV1BootassetSourcesIdGetData,
+  GetBootSourceByIdV1BootassetSourcesIdGetResponse,
+  GetBootSourceByIdV1BootassetSourcesIdGetError,
+  PatchBootSourceV1BootassetSourcesIdPatchData,
+  PatchBootSourceV1BootassetSourcesIdPatchResponse,
+  PatchBootSourceV1BootassetSourcesIdPatchError,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetData,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetResponse,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetError,
@@ -41,9 +49,9 @@ import type {
   PatchBootAssetItemsV1BootassetItemsIdPatchData,
   PatchBootAssetItemsV1BootassetItemsIdPatchResponse,
   PatchBootAssetItemsV1BootassetItemsIdPatchError,
-  PostImagesV1BootassetItemsBootAssetVersionIdPostData,
-  PostImagesV1BootassetItemsBootAssetVersionIdPostResponse,
-  PostImagesV1BootassetItemsBootAssetVersionIdPostError,
+  PostImagesV1ImagesPostData,
+  PostImagesV1ImagesPostResponse,
+  PostImagesV1ImagesPostError,
   PostV1LoginPostData,
   PostV1LoginPostResponse,
   PostV1LoginPostError,
@@ -231,6 +239,76 @@ export const postBootSourcesV1BootassetSourcesPost = <ThrowOnError extends boole
 };
 
 /**
+ * Delete Boot Source
+ */
+export const deleteBootSourceV1BootassetSourcesIdDelete = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteBootSourceV1BootassetSourcesIdDeleteData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    unknown,
+    DeleteBootSourceV1BootassetSourcesIdDeleteError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/bootasset-sources/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get Boot Source By Id
+ */
+export const getBootSourceByIdV1BootassetSourcesIdGet = <ThrowOnError extends boolean = false>(
+  options: Options<GetBootSourceByIdV1BootassetSourcesIdGetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetBootSourceByIdV1BootassetSourcesIdGetResponse,
+    GetBootSourceByIdV1BootassetSourcesIdGetError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/bootasset-sources/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Patch Boot Source
+ */
+export const patchBootSourceV1BootassetSourcesIdPatch = <ThrowOnError extends boolean = false>(
+  options: Options<PatchBootSourceV1BootassetSourcesIdPatchData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchBootSourceV1BootassetSourcesIdPatchResponse,
+    PatchBootSourceV1BootassetSourcesIdPatchError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/bootasset-sources/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
  * Get Boot Source Selections
  * Return boot source selections.
  */
@@ -397,12 +475,12 @@ export const patchBootAssetItemsV1BootassetItemsIdPatch = <ThrowOnError extends 
 /**
  * Post Images
  */
-export const postImagesV1BootassetItemsBootAssetVersionIdPost = <ThrowOnError extends boolean = false>(
-  options: Options<PostImagesV1BootassetItemsBootAssetVersionIdPostData, ThrowOnError>,
+export const postImagesV1ImagesPost = <ThrowOnError extends boolean = false>(
+  options?: Options<PostImagesV1ImagesPostData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<
-    PostImagesV1BootassetItemsBootAssetVersionIdPostResponse,
-    PostImagesV1BootassetItemsBootAssetVersionIdPostError,
+  return (options?.client ?? _heyApiClient).post<
+    PostImagesV1ImagesPostResponse,
+    PostImagesV1ImagesPostError,
     ThrowOnError
   >({
     security: [
@@ -411,7 +489,7 @@ export const postImagesV1BootassetItemsBootAssetVersionIdPost = <ThrowOnError ex
         type: "http",
       },
     ],
-    url: "/v1/bootasset-items/{boot_asset_version_id}",
+    url: "/v1/images",
     ...options,
   });
 };

@@ -9,6 +9,16 @@ export type AccessTokenResponse = {
   rotation_interval_minutes: number;
 };
 
+export type AlreadyExistsErrorBodyResponse = {
+  code?: ExceptionCode;
+  message?: string;
+  details?: Array<BaseExceptionDetail> | null;
+};
+
+export type AlreadyExistsErrorResponseModel = {
+  error: AlreadyExistsErrorBodyResponse;
+};
+
 export type BadRequestErrorBodyResponse = {
   code?: ExceptionCode;
   message?: string;
@@ -58,8 +68,8 @@ export type BootAsset = {
 
 export type BootAssetItem = {
   id: number;
-  boot_asset_version_id: number;
-  ftype: string;
+  boot_asset_version_id?: number | null;
+  ftype: ItemFileType;
   sha256: string;
   path: string;
   file_size: number;
@@ -188,6 +198,13 @@ export type BootSourcesGetResponse = {
   items: Array<BootSource>;
 };
 
+export type BootSourcesPatchRequest = {
+  priority?: number | null;
+  url?: string | null;
+  keyring?: string | null;
+  sync_interval?: number | null;
+};
+
 export type BootSourcesPostRequest = {
   priority: number;
   url: string;
@@ -231,6 +248,26 @@ export type ForbiddenErrorBodyResponse = {
 export type ForbiddenErrorResponseModel = {
   error: ForbiddenErrorBodyResponse;
 };
+
+export enum ItemFileType {
+  ROOT_TGZ = "root-tgz",
+  ROOT_TBZ = "root-tbz",
+  ROOT_TXZ = "root-txz",
+  ROOT_DD = "root-dd",
+  ROOT_DD_TAR = "root-dd.tar",
+  ROOT_DD_RAW = "root-dd.raw",
+  ROOT_DD_BZ2 = "root-dd.bz2",
+  ROOT_DD_GZ = "root-dd.gz",
+  ROOT_DD_XZ = "root-dd.xz",
+  ROOT_DD_TAR_BZ2 = "root-dd.tar.bz2",
+  ROOT_DD_TAR_XZ = "root-dd.tar.xz",
+  ROOT_IMAGE_GZ = "root-image.gz",
+  SQUASHFS = "squashfs",
+  BOOT_KERNEL = "boot-kernel",
+  BOOT_INITRD = "boot-initrd",
+  BOOT_DTB = "boot-dtb",
+  ARCHIVE_TAR_XZ = "archive.tar.xz",
+}
 
 export type NotFoundErrorBodyResponse = {
   code?: ExceptionCode;
@@ -1132,6 +1169,10 @@ export type PostBootAssetsV1BootassetsPostErrors = {
    */
   404: NotFoundErrorResponseModel;
   /**
+   * Conflict
+   */
+  409: AlreadyExistsErrorResponseModel;
+  /**
    * Unprocessable Entity
    */
   422: ValidationErrorResponseModel;
@@ -1216,6 +1257,114 @@ export type PostBootSourcesV1BootassetSourcesPostResponses = {
 export type PostBootSourcesV1BootassetSourcesPostResponse =
   PostBootSourcesV1BootassetSourcesPostResponses[keyof PostBootSourcesV1BootassetSourcesPostResponses];
 
+export type DeleteBootSourceV1BootassetSourcesIdDeleteData = {
+  body?: never;
+  path: {
+    id: number;
+  };
+  query?: never;
+  url: "/v1/bootasset-sources/{id}";
+};
+
+export type DeleteBootSourceV1BootassetSourcesIdDeleteErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type DeleteBootSourceV1BootassetSourcesIdDeleteError =
+  DeleteBootSourceV1BootassetSourcesIdDeleteErrors[keyof DeleteBootSourceV1BootassetSourcesIdDeleteErrors];
+
+export type DeleteBootSourceV1BootassetSourcesIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown;
+};
+
+export type GetBootSourceByIdV1BootassetSourcesIdGetData = {
+  body?: never;
+  path: {
+    id: number;
+  };
+  query?: never;
+  url: "/v1/bootasset-sources/{id}";
+};
+
+export type GetBootSourceByIdV1BootassetSourcesIdGetErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type GetBootSourceByIdV1BootassetSourcesIdGetError =
+  GetBootSourceByIdV1BootassetSourcesIdGetErrors[keyof GetBootSourceByIdV1BootassetSourcesIdGetErrors];
+
+export type GetBootSourceByIdV1BootassetSourcesIdGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: BootSource;
+};
+
+export type GetBootSourceByIdV1BootassetSourcesIdGetResponse =
+  GetBootSourceByIdV1BootassetSourcesIdGetResponses[keyof GetBootSourceByIdV1BootassetSourcesIdGetResponses];
+
+export type PatchBootSourceV1BootassetSourcesIdPatchData = {
+  body: BootSourcesPatchRequest;
+  path: {
+    id: number;
+  };
+  query?: never;
+  url: "/v1/bootasset-sources/{id}";
+};
+
+export type PatchBootSourceV1BootassetSourcesIdPatchErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type PatchBootSourceV1BootassetSourcesIdPatchError =
+  PatchBootSourceV1BootassetSourcesIdPatchErrors[keyof PatchBootSourceV1BootassetSourcesIdPatchErrors];
+
+export type PatchBootSourceV1BootassetSourcesIdPatchResponses = {
+  /**
+   * Successful Response
+   */
+  200: BootSource;
+};
+
+export type PatchBootSourceV1BootassetSourcesIdPatchResponse =
+  PatchBootSourceV1BootassetSourcesIdPatchResponses[keyof PatchBootSourceV1BootassetSourcesIdPatchResponses];
+
 export type GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetData = {
   body?: never;
   path: {
@@ -1271,6 +1420,10 @@ export type PostBootAssetVersionV1BootassetsIdVersionsPostErrors = {
    * Not Found
    */
   404: NotFoundErrorResponseModel;
+  /**
+   * Conflict
+   */
+  409: AlreadyExistsErrorResponseModel;
   /**
    * Unprocessable Entity
    */
@@ -1346,6 +1499,10 @@ export type PostBootAssetItemV1BootassetVersionsIdItemsPostErrors = {
    */
   404: NotFoundErrorResponseModel;
   /**
+   * Conflict
+   */
+  409: AlreadyExistsErrorResponseModel;
+  /**
    * Unprocessable Entity
    */
   422: ValidationErrorResponseModel;
@@ -1372,7 +1529,7 @@ export type GetBootAssetItemsV1BootassetItemsGetData = {
     page?: number;
     size?: number;
     boot_asset_version_id?: Array<number> | null;
-    ftype?: Array<string> | null;
+    ftype?: Array<ItemFileType> | null;
     sha256?: Array<string> | null;
     path?: Array<string> | null;
     file_size?: Array<number> | null;
@@ -1479,16 +1636,14 @@ export type PatchBootAssetItemsV1BootassetItemsIdPatchResponses = {
 export type PatchBootAssetItemsV1BootassetItemsIdPatchResponse =
   PatchBootAssetItemsV1BootassetItemsIdPatchResponses[keyof PatchBootAssetItemsV1BootassetItemsIdPatchResponses];
 
-export type PostImagesV1BootassetItemsBootAssetVersionIdPostData = {
+export type PostImagesV1ImagesPostData = {
   body?: never;
-  path: {
-    boot_asset_version_id: number;
-  };
+  path?: never;
   query?: never;
-  url: "/v1/bootasset-items/{boot_asset_version_id}";
+  url: "/v1/images";
 };
 
-export type PostImagesV1BootassetItemsBootAssetVersionIdPostErrors = {
+export type PostImagesV1ImagesPostErrors = {
   /**
    * Bad Request
    */
@@ -1507,18 +1662,16 @@ export type PostImagesV1BootassetItemsBootAssetVersionIdPostErrors = {
   422: ValidationErrorResponseModel;
 };
 
-export type PostImagesV1BootassetItemsBootAssetVersionIdPostError =
-  PostImagesV1BootassetItemsBootAssetVersionIdPostErrors[keyof PostImagesV1BootassetItemsBootAssetVersionIdPostErrors];
+export type PostImagesV1ImagesPostError = PostImagesV1ImagesPostErrors[keyof PostImagesV1ImagesPostErrors];
 
-export type PostImagesV1BootassetItemsBootAssetVersionIdPostResponses = {
+export type PostImagesV1ImagesPostResponses = {
   /**
    * Successful Response
    */
   200: BootAssetItem;
 };
 
-export type PostImagesV1BootassetItemsBootAssetVersionIdPostResponse =
-  PostImagesV1BootassetItemsBootAssetVersionIdPostResponses[keyof PostImagesV1BootassetItemsBootAssetVersionIdPostResponses];
+export type PostImagesV1ImagesPostResponse = PostImagesV1ImagesPostResponses[keyof PostImagesV1ImagesPostResponses];
 
 export type PostV1LoginPostData = {
   body: BodyPostV1LoginPost;

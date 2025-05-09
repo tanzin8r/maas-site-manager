@@ -10,6 +10,9 @@ import {
   postBootAssetsV1BootassetsPost,
   getBootSourcesV1BootassetSourcesGet,
   postBootSourcesV1BootassetSourcesPost,
+  deleteBootSourceV1BootassetSourcesIdDelete,
+  getBootSourceByIdV1BootassetSourcesIdGet,
+  patchBootSourceV1BootassetSourcesIdPatch,
   getBootSourceSelectionsV1BootassetSourcesIdSelectionsGet,
   postBootAssetVersionV1BootassetsIdVersionsPost,
   getBootAssetVersionsV1BootassetVersionsGet,
@@ -17,7 +20,7 @@ import {
   getBootAssetItemsV1BootassetItemsGet,
   deleteImagesV1BootassetItemsIdDelete,
   patchBootAssetItemsV1BootassetItemsIdPatch,
-  postImagesV1BootassetItemsBootAssetVersionIdPost,
+  postImagesV1ImagesPost,
   postV1LoginPost,
   getV1SettingsGet,
   patchV1SettingsPatch,
@@ -56,6 +59,12 @@ import type {
   PostBootSourcesV1BootassetSourcesPostData,
   PostBootSourcesV1BootassetSourcesPostError,
   PostBootSourcesV1BootassetSourcesPostResponse,
+  DeleteBootSourceV1BootassetSourcesIdDeleteData,
+  DeleteBootSourceV1BootassetSourcesIdDeleteError,
+  GetBootSourceByIdV1BootassetSourcesIdGetData,
+  PatchBootSourceV1BootassetSourcesIdPatchData,
+  PatchBootSourceV1BootassetSourcesIdPatchError,
+  PatchBootSourceV1BootassetSourcesIdPatchResponse,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetData,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetError,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetResponse,
@@ -76,9 +85,9 @@ import type {
   PatchBootAssetItemsV1BootassetItemsIdPatchData,
   PatchBootAssetItemsV1BootassetItemsIdPatchError,
   PatchBootAssetItemsV1BootassetItemsIdPatchResponse,
-  PostImagesV1BootassetItemsBootAssetVersionIdPostData,
-  PostImagesV1BootassetItemsBootAssetVersionIdPostError,
-  PostImagesV1BootassetItemsBootAssetVersionIdPostResponse,
+  PostImagesV1ImagesPostData,
+  PostImagesV1ImagesPostError,
+  PostImagesV1ImagesPostResponse,
   PostV1LoginPostData,
   PostV1LoginPostError,
   PostV1LoginPostResponse,
@@ -407,6 +416,75 @@ export const postBootSourcesV1BootassetSourcesPostMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postBootSourcesV1BootassetSourcesPost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const deleteBootSourceV1BootassetSourcesIdDeleteMutation = (
+  options?: Partial<Options<DeleteBootSourceV1BootassetSourcesIdDeleteData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<DeleteBootSourceV1BootassetSourcesIdDeleteError>,
+  Options<DeleteBootSourceV1BootassetSourcesIdDeleteData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<DeleteBootSourceV1BootassetSourcesIdDeleteError>,
+    Options<DeleteBootSourceV1BootassetSourcesIdDeleteData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteBootSourceV1BootassetSourcesIdDelete({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getBootSourceByIdV1BootassetSourcesIdGetQueryKey = (
+  options: Options<GetBootSourceByIdV1BootassetSourcesIdGetData>,
+) => createQueryKey("getBootSourceByIdV1BootassetSourcesIdGet", options);
+
+export const getBootSourceByIdV1BootassetSourcesIdGetOptions = (
+  options: Options<GetBootSourceByIdV1BootassetSourcesIdGetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBootSourceByIdV1BootassetSourcesIdGet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBootSourceByIdV1BootassetSourcesIdGetQueryKey(options),
+  });
+};
+
+export const patchBootSourceV1BootassetSourcesIdPatchMutation = (
+  options?: Partial<Options<PatchBootSourceV1BootassetSourcesIdPatchData>>,
+): UseMutationOptions<
+  PatchBootSourceV1BootassetSourcesIdPatchResponse,
+  AxiosError<PatchBootSourceV1BootassetSourcesIdPatchError>,
+  Options<PatchBootSourceV1BootassetSourcesIdPatchData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchBootSourceV1BootassetSourcesIdPatchResponse,
+    AxiosError<PatchBootSourceV1BootassetSourcesIdPatchError>,
+    Options<PatchBootSourceV1BootassetSourcesIdPatchData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchBootSourceV1BootassetSourcesIdPatch({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -755,16 +833,13 @@ export const patchBootAssetItemsV1BootassetItemsIdPatchMutation = (
   return mutationOptions;
 };
 
-export const postImagesV1BootassetItemsBootAssetVersionIdPostQueryKey = (
-  options: Options<PostImagesV1BootassetItemsBootAssetVersionIdPostData>,
-) => createQueryKey("postImagesV1BootassetItemsBootAssetVersionIdPost", options);
+export const postImagesV1ImagesPostQueryKey = (options?: Options<PostImagesV1ImagesPostData>) =>
+  createQueryKey("postImagesV1ImagesPost", options);
 
-export const postImagesV1BootassetItemsBootAssetVersionIdPostOptions = (
-  options: Options<PostImagesV1BootassetItemsBootAssetVersionIdPostData>,
-) => {
+export const postImagesV1ImagesPostOptions = (options?: Options<PostImagesV1ImagesPostData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await postImagesV1BootassetItemsBootAssetVersionIdPost({
+      const { data } = await postImagesV1ImagesPost({
         ...options,
         ...queryKey[0],
         signal,
@@ -772,24 +847,24 @@ export const postImagesV1BootassetItemsBootAssetVersionIdPostOptions = (
       });
       return data;
     },
-    queryKey: postImagesV1BootassetItemsBootAssetVersionIdPostQueryKey(options),
+    queryKey: postImagesV1ImagesPostQueryKey(options),
   });
 };
 
-export const postImagesV1BootassetItemsBootAssetVersionIdPostMutation = (
-  options?: Partial<Options<PostImagesV1BootassetItemsBootAssetVersionIdPostData>>,
+export const postImagesV1ImagesPostMutation = (
+  options?: Partial<Options<PostImagesV1ImagesPostData>>,
 ): UseMutationOptions<
-  PostImagesV1BootassetItemsBootAssetVersionIdPostResponse,
-  AxiosError<PostImagesV1BootassetItemsBootAssetVersionIdPostError>,
-  Options<PostImagesV1BootassetItemsBootAssetVersionIdPostData>
+  PostImagesV1ImagesPostResponse,
+  AxiosError<PostImagesV1ImagesPostError>,
+  Options<PostImagesV1ImagesPostData>
 > => {
   const mutationOptions: UseMutationOptions<
-    PostImagesV1BootassetItemsBootAssetVersionIdPostResponse,
-    AxiosError<PostImagesV1BootassetItemsBootAssetVersionIdPostError>,
-    Options<PostImagesV1BootassetItemsBootAssetVersionIdPostData>
+    PostImagesV1ImagesPostResponse,
+    AxiosError<PostImagesV1ImagesPostError>,
+    Options<PostImagesV1ImagesPostData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await postImagesV1BootassetItemsBootAssetVersionIdPost({
+      const { data } = await postImagesV1ImagesPost({
         ...options,
         ...localOptions,
         throwOnError: true,

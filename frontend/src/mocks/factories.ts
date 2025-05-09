@@ -7,7 +7,7 @@ import type { Settings, Image, UpstreamImage, UpstreamImageSource } from "@/api"
 import { BootAssetKind, BootAssetLabel } from "@/api";
 import type { PendingSite, AccessTokenResponse, UsersGetResponse, PendingSitesGetResponse, Token } from "@/api/client";
 import { TimeZone, ConnectionStatus } from "@/apiclient";
-import type { GetV1SitesGetResponse, Site, SiteData, User } from "@/apiclient";
+import type { GetV1SitesGetResponse, Site, SiteData, User, BootSource } from "@/apiclient";
 import type { SiteMarkerType } from "@/components/Map/types";
 
 export const connections: ConnectionStatus[] = [
@@ -206,6 +206,22 @@ export const imageFactory = Factory.define<Image>(({ sequence }) => {
     size: chance.integer({ min: 300 * 1024, max: 4 * 1024 * 1024 }) * 1024,
     downloaded: Math.floor(Math.random() * 3),
     is_custom_image: chance.bool(),
+  };
+});
+
+export const imageSourceFactory = Factory.define<BootSource>(({ sequence }) => {
+  const chance = new Chance(`maas-${sequence}`);
+
+  return {
+    id: chance.integer({ min: 1, max: 100 }),
+    url: chance.pickone([
+      chance.url(),
+      `https://images-${chance.word()}.maas.io`,
+      `http://boot-source-${chance.word()}.domain.${chance.domain()}`,
+    ]),
+    keyring: chance.pickone(["none", "gpg", "gpg-keyring"]),
+    sync_interval: chance.pickone([0, 60, 120, 300, 600]),
+    priority: chance.integer({ min: 1, max: 10 }),
   };
 });
 

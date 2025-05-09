@@ -25,6 +25,7 @@ export type ReleasesWithArches = {
 type ImagesByName = { [key: string]: UpstreamImage[] };
 
 const groupImagesByName = (images: UpstreamImage[]) => {
+  if (!images) return {};
   let imagesByName: ImagesByName = {};
 
   images.forEach((image) => {

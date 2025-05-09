@@ -1,9 +1,12 @@
 import { ContentSection } from "@canonical/maas-react-components";
-import { ActionButton, Button, Input, Label } from "@canonical/react-components";
+import { ActionButton, Button, Input, Label, Notification, Spinner } from "@canonical/react-components";
 import { Field, Formik } from "formik";
 import * as Yup from "yup";
 
-import { fakeBootSources } from "@/components/ImageSourceList/ImageSourceList";
+import type { MutationErrorResponse } from "@/api";
+import { useImageSource, useUpdateImageSource } from "@/api/query/sources";
+import type { PatchBootSourceV1BootassetSourcesIdPatchData } from "@/apiclient";
+import ErrorMessage from "@/components/ErrorMessage";
 import FormikFormContent from "@/components/base/FormikFormContent";
 import { useAppLayoutContext } from "@/context";
 import { useBootSourceContext } from "@/context/BootSourceContext";
@@ -23,8 +26,8 @@ const EditCustomImagesSourceForm = () => {
   const { selected: selectedBootSourceId, setSelected } = useBootSourceContext();
   const { setSidebar } = useAppLayoutContext();
 
-  // TODO: replace with query once API is ready https://warthogs.atlassian.net/browse/MAASENG-4439
-  const bootSource = fakeBootSources.items.find((source) => source.id === selectedBootSourceId);
+  const updateImageSource = useUpdateImageSource();
+  const { data: imageSource, error, isPending } = useImageSource({ path: { id: selectedBootSourceId! } });
 
   const headingId = useId();
   const priorityFieldId = useId();
@@ -36,48 +39,85 @@ const EditCustomImagesSourceForm = () => {
   };
 
   useEffect(() => {
-    if (bootSource) {
+    if (imageSource) {
       setInitialValues({
-        priority: bootSource.priority,
+        priority: imageSource.priority,
       });
     }
-  }, [bootSource]);
+  }, [imageSource]);
+
+  const handleSubmit = (values: CustomImagesSourceFormValues) => {
+    const body: PatchBootSourceV1BootassetSourcesIdPatchData["body"] = {
+      priority: values.priority,
+    };
+    updateImageSource.mutate(
+      {
+        path: { id: selectedBootSourceId! },
+        body,
+      } as PatchBootSourceV1BootassetSourcesIdPatchData,
+      { onSuccess: resetForm },
+    );
+  };
 
   return (
     <ContentSection>
       <ContentSection.Title id={headingId}>Edit Custom images</ContentSection.Title>
-      <Formik initialValues={initialValues} onSubmit={() => {}} validationSchema={CustomImagesSourceSchema}>
-        {({ errors, isSubmitting, touched, dirty, isValid }) => (
-          <FormikFormContent>
-            <Label className="is-required" htmlFor={priorityFieldId}>
-              Priority
-            </Label>
-            <Field
-              as={Input}
-              error={touched.priority && errors.priority}
-              help="If the same image is available from several sources, the image from the source with the higher priority takes precedence. 1 is the highest priority."
-              id={priorityFieldId}
-              name="priority"
-              required
-              type="text"
-            />
-            <hr />
-            <div className="u-flex u-flex--justify-end u-padding-top--medium">
-              <Button appearance="base" onClick={resetForm} type="button">
-                Cancel
-              </Button>
-              <ActionButton
-                appearance="positive"
-                disabled={!dirty || !isValid || isSubmitting}
-                loading={isSubmitting}
-                type="submit"
-              >
-                Save
-              </ActionButton>
-            </div>
-          </FormikFormContent>
+      <ContentSection.Content>
+        {error ? (
+          <Notification severity="negative" title="Error while fetching image source">
+            <ErrorMessage error={error} />
+          </Notification>
+        ) : null}
+        {updateImageSource.isError && (
+          <Notification severity="negative" title="Error while editing image source">
+            <ErrorMessage error={updateImageSource.error} />
+          </Notification>
         )}
-      </Formik>
+        {isPending || !imageSource ? (
+          <Spinner text="Loading..." />
+        ) : (
+          <Formik
+            enableReinitialize={true}
+            initialValues={initialValues}
+            onSubmit={handleSubmit}
+            validationSchema={CustomImagesSourceSchema}
+          >
+            {({ errors, isSubmitting, touched, dirty, isValid }) => (
+              <FormikFormContent
+                aria-labelledby={headingId}
+                errors={[{ body: updateImageSource.error?.response?.data }] as MutationErrorResponse[]}
+              >
+                <Label className="is-required" htmlFor={priorityFieldId}>
+                  Priority
+                </Label>
+                <Field
+                  as={Input}
+                  error={touched.priority && errors.priority}
+                  help="If the same image is available from several sources, the image from the source with the higher priority takes precedence. 1 is the highest priority."
+                  id={priorityFieldId}
+                  name="priority"
+                  required
+                  type="text"
+                />
+                <hr />
+                <div className="u-flex u-flex--justify-end u-padding-top--medium">
+                  <Button appearance="base" onClick={resetForm} type="button">
+                    Cancel
+                  </Button>
+                  <ActionButton
+                    appearance="positive"
+                    disabled={!dirty || !isValid || isSubmitting}
+                    loading={isSubmitting}
+                    type="submit"
+                  >
+                    Save
+                  </ActionButton>
+                </div>
+              </FormikFormContent>
+            )}
+          </Formik>
+        )}
+      </ContentSection.Content>
     </ContentSection>
   );
 };

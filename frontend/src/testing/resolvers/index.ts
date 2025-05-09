@@ -5,6 +5,8 @@ import { sitesResolvers } from "./sites";
 import { tileHandler } from "./tiles";
 import { tokensResolvers } from "./tokens";
 import { usersResolvers } from "./users";
+
+import { imageSourceResolvers } from "@/testing/resolvers/imageSources";
 export const allResolvers = [
   authResolvers.login.handler(),
   enrollmentRequestsResolvers.listEnrollmentRequests.handler(),
@@ -34,4 +36,9 @@ export const allResolvers = [
   usersResolvers.updateCurrentUserPassword.handler(),
   usersResolvers.deleteUser.handler(),
   usersResolvers.createUser.handler(),
+  imageSourceResolvers.listImageSources.handler(),
+  imageSourceResolvers.getImageSource.handler(),
+  imageSourceResolvers.createImageSource.handler(),
+  imageSourceResolvers.updateImageSource.handler(),
+  imageSourceResolvers.deleteImageSource.handler(),
 ];

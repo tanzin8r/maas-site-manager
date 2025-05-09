@@ -1,46 +1,61 @@
+import { setupServer } from "msw/node";
+
 import EditImageSourceForm from "./EditImageSourceForm";
 
-import { fakeBootSources } from "@/components/ImageSourceList/ImageSourceList";
 import { BootSourceContext } from "@/context/BootSourceContext";
-import { render, screen, userEvent } from "@/utils/test-utils";
+import { imageSourceResolvers, mockImageSources } from "@/testing/resolvers/imageSources";
+import { render, screen, userEvent, waitFor } from "@/utils/test-utils";
+
+const mockServer = setupServer(
+  imageSourceResolvers.getImageSource.handler(),
+  imageSourceResolvers.updateImageSource.handler(),
+);
+
+beforeAll(() => mockServer.listen());
+afterEach(() => mockServer.resetHandlers());
+afterAll(() => mockServer.close());
 
 const renderEditForm = () => {
   return render(
-    <BootSourceContext.Provider value={{ selected: fakeBootSources.items[1].id, setSelected: jest.fn() }}>
+    <BootSourceContext.Provider value={{ selected: mockImageSources[1].id, setSelected: jest.fn() }}>
       <EditImageSourceForm />
     </BootSourceContext.Provider>,
   );
 };
 
-it("shows the source's URL in the form title", () => {
+it("shows the source's URL in the form title", async () => {
   renderEditForm();
 
-  expect(screen.getByRole("heading", { name: `Edit ${fakeBootSources.items[1].url}` })).toBeInTheDocument();
+  await waitFor(() =>
+    expect(screen.getByRole("heading", { name: `Edit ${mockImageSources[1].url}` })).toBeInTheDocument(),
+  );
 });
 
-it("pre-fills the form with the source's details", () => {
+it("pre-fills the form with the source's details", async () => {
   renderEditForm();
 
-  expect(screen.getByRole("textbox", { name: "URL" })).toHaveValue(fakeBootSources.items[1].url);
-  expect(screen.getByRole("textbox", { name: "GPG key" })).toHaveValue(fakeBootSources.items[1].keyring);
+  await waitFor(() => expect(screen.getByRole("textbox", { name: "URL" })).toHaveValue(mockImageSources[1].url));
+  expect(screen.getByRole("textbox", { name: "GPG key" })).toHaveValue(mockImageSources[1].keyring);
   expect(screen.getByRole("checkbox", { name: "Automatically sync images" })).toBeChecked(); // sync interval is > 0 on this boot source
-  expect(screen.getByRole("textbox", { name: "Priority" })).toHaveValue(fakeBootSources.items[1].priority.toString());
+  expect(screen.getByRole("textbox", { name: "Priority" })).toHaveValue(mockImageSources[1].priority.toString());
 });
 
 it("shows a caution for changing the URL", async () => {
   renderEditForm();
 
-  expect(
-    screen.getByText(
-      "Changing to an image server with different images might remove some images from MAAS Site Manager and MAAS.",
-    ),
-  ).toBeInTheDocument();
+  await waitFor(() =>
+    expect(
+      screen.getByText(
+        "Changing to an image server with different images might remove some images from MAAS Site Manager and MAAS.",
+      ),
+    ).toBeInTheDocument(),
+  );
 });
 
 it("enables the submit button after a field has changed", async () => {
   renderEditForm();
 
-  expect(screen.getByRole("button", { name: "Save" })).toBeAriaDisabled();
+  await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeAriaDisabled());
 
   await userEvent.click(screen.getByRole("checkbox", { name: "Automatically sync images" }));
 

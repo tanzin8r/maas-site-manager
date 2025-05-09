@@ -2,8 +2,9 @@ import { ContentSection, MainToolbar } from "@canonical/maas-react-components";
 import { Button } from "@canonical/react-components";
 
 import ImageSourceListTable from "./ImageSourceListTable";
-import type { BootSource } from "./types";
 
+import { useImageSources } from "@/api/query/sources";
+import type { BootSource } from "@/apiclient";
 import { useAppLayoutContext } from "@/context";
 
 export const fakeBootSources: { items: BootSource[] } = {
@@ -14,8 +15,6 @@ export const fakeBootSources: { items: BootSource[] } = {
       keyring: "",
       sync_interval: 0,
       priority: 1,
-      status: "connected",
-      total_images: 100,
     },
     {
       id: 1,
@@ -23,8 +22,6 @@ export const fakeBootSources: { items: BootSource[] } = {
       keyring: "abcdefghijklmnopqrstuvwxyz",
       sync_interval: 300,
       priority: 2,
-      status: "connected",
-      total_images: 100,
     },
     {
       id: 2,
@@ -32,8 +29,6 @@ export const fakeBootSources: { items: BootSource[] } = {
       keyring: "abcdefghijklmnopqrstuvwxyz",
       sync_interval: 150,
       priority: 3,
-      status: "unreachable",
-      total_images: 100,
     },
     {
       id: 3,
@@ -41,14 +36,13 @@ export const fakeBootSources: { items: BootSource[] } = {
       keyring: "abcdefghijklmnopqrstuvwxyz",
       sync_interval: 0,
       priority: 4,
-      status: "gpg_error",
-      total_images: 100,
     },
   ],
 };
 
 const ImageSourceList = () => {
   const { setSidebar } = useAppLayoutContext();
+  const { data, error, isPending } = useImageSources();
 
   return (
     <ContentSection>
@@ -63,7 +57,7 @@ const ImageSourceList = () => {
         </MainToolbar>
       </ContentSection.Header>
       <ContentSection.Content>
-        <ImageSourceListTable data={fakeBootSources} error={null} isPending={false} />
+        <ImageSourceListTable data={data.items} error={error} isPending={isPending} />
       </ContentSection.Content>
     </ContentSection>
   );

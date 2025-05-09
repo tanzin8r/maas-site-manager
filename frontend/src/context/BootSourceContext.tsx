@@ -1,6 +1,6 @@
 import { getSelectedEntityContext, getSelectedEntityContextProvider, useSelectedEntityContext } from "./utils";
 
-import type { BootSource } from "@/components/ImageSourceList/types";
+import type { BootSource } from "@/apiclient";
 
 export const BootSourceContextProvider = getSelectedEntityContextProvider<BootSource["id"]>("bootSource");
 export const BootSourceContext = getSelectedEntityContext<BootSource["id"]>("bootSource");
