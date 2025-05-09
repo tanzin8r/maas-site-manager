@@ -1,0 +1,34 @@
+pipeline:
+  - install-dependencies
+  - lint
+  - build
+  - test
+
+jobs:
+  install-dependencies:
+    architectures: amd64
+    series: noble
+    packages:
+      - make
+      - sudo
+    root: true
+    run: |
+      make ci-dep
+  lint:
+    architectures: amd64
+    series: noble
+    root: false
+    run: |
+      make ci-lint
+  build:
+    architectures: amd64
+    series: noble
+    root: false
+    run: |
+      make ci-build
+  test:
+    architectures: amd64
+    series: noble
+    root: false
+    run: |
+      make ci-test
