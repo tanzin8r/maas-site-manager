@@ -249,6 +249,10 @@ export type ForbiddenErrorResponseModel = {
   error: ForbiddenErrorBodyResponse;
 };
 
+export type HttpValidationError = {
+  detail?: Array<ValidationError>;
+};
+
 export enum ItemFileType {
   ROOT_TGZ = "root-tgz",
   ROOT_TBZ = "root-tbz",
@@ -1101,6 +1105,12 @@ export type UsersPostRequest = {
   is_admin?: boolean;
 };
 
+export type ValidationError = {
+  loc: Array<string | number>;
+  msg: string;
+  type: string;
+};
+
 export type ValidationErrorBodyResponse = {
   code?: ExceptionCode;
   message?: string;
@@ -1637,7 +1647,15 @@ export type PatchBootAssetItemsV1BootassetItemsIdPatchResponse =
   PatchBootAssetItemsV1BootassetItemsIdPatchResponses[keyof PatchBootAssetItemsV1BootassetItemsIdPatchResponses];
 
 export type PostImagesV1ImagesPostData = {
-  body?: never;
+  body: {
+    os?: string;
+    release?: string;
+    title?: string;
+    arch?: string;
+    file_size?: number;
+    filename?: string;
+    file?: Blob | File;
+  };
   path?: never;
   query?: never;
   url: "/v1/images";
@@ -1672,6 +1690,46 @@ export type PostImagesV1ImagesPostResponses = {
 };
 
 export type PostImagesV1ImagesPostResponse = PostImagesV1ImagesPostResponses[keyof PostImagesV1ImagesPostResponses];
+
+export type DownloadV1ImagesTrackRiskFilePathGetData = {
+  body?: never;
+  path: {
+    track: string;
+    risk: string;
+    file_path: string;
+  };
+  query?: never;
+  url: "/v1/images/{track}/{risk}/{file_path}";
+};
+
+export type DownloadV1ImagesTrackRiskFilePathGetErrors = {
+  /**
+   * Bad Request
+   */
+  400: BadRequestErrorResponseModel;
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DownloadV1ImagesTrackRiskFilePathGetError =
+  DownloadV1ImagesTrackRiskFilePathGetErrors[keyof DownloadV1ImagesTrackRiskFilePathGetErrors];
+
+export type DownloadV1ImagesTrackRiskFilePathGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown;
+};
 
 export type PostV1LoginPostData = {
   body: BodyPostV1LoginPost;

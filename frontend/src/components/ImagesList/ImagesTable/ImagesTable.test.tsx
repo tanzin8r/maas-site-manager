@@ -53,7 +53,7 @@ it("displays empty state if no images are available", async () => {
 
 it("can display error message", async () => {
   mockServer.use(
-    http.get(apiUrls.images, () => {
+    http.get(apiUrls.bootAssets, () => {
       return new HttpResponse(null, { status: 400, statusText: "error" });
     }),
   );

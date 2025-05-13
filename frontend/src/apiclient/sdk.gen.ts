@@ -4,6 +4,7 @@ import {
   type Options as ClientOptions,
   type TDataShape,
   type Client,
+  formDataBodySerializer,
   urlSearchParamsBodySerializer,
 } from "@hey-api/client-axios";
 
@@ -52,6 +53,8 @@ import type {
   PostImagesV1ImagesPostData,
   PostImagesV1ImagesPostResponse,
   PostImagesV1ImagesPostError,
+  DownloadV1ImagesTrackRiskFilePathGetData,
+  DownloadV1ImagesTrackRiskFilePathGetError,
   PostV1LoginPostData,
   PostV1LoginPostResponse,
   PostV1LoginPostError,
@@ -476,13 +479,14 @@ export const patchBootAssetItemsV1BootassetItemsIdPatch = <ThrowOnError extends 
  * Post Images
  */
 export const postImagesV1ImagesPost = <ThrowOnError extends boolean = false>(
-  options?: Options<PostImagesV1ImagesPostData, ThrowOnError>,
+  options: Options<PostImagesV1ImagesPostData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).post<
+  return (options.client ?? _heyApiClient).post<
     PostImagesV1ImagesPostResponse,
     PostImagesV1ImagesPostError,
     ThrowOnError
   >({
+    ...formDataBodySerializer,
     security: [
       {
         scheme: "bearer",
@@ -490,6 +494,22 @@ export const postImagesV1ImagesPost = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/v1/images",
+    ...options,
+    headers: {
+      "Content-Type": null,
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Download
+ */
+export const downloadV1ImagesTrackRiskFilePathGet = <ThrowOnError extends boolean = false>(
+  options: Options<DownloadV1ImagesTrackRiskFilePathGetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<unknown, DownloadV1ImagesTrackRiskFilePathGetError, ThrowOnError>({
+    url: "/v1/images/{track}/{risk}/{file_path}",
     ...options,
   });
 };

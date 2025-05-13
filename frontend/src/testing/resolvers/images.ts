@@ -10,7 +10,7 @@ const imagesResolvers = {
   listImages: {
     resolved: false,
     handler: (data: Image[] = mockImages) => {
-      return http.get(apiUrls.images, async ({ request }) => {
+      return http.get(apiUrls.bootAssets, async ({ request }) => {
         const searchParams = new URL(request.url).searchParams;
         const page = Number(searchParams.get("page"));
         const size = Number(searchParams.get("size"));
@@ -100,7 +100,7 @@ const imagesResolvers = {
   deleteImages: {
     resolved: false,
     handler: () => {
-      return http.delete(`${apiUrls.images}/:id`, async ({ request }) => {
+      return http.delete(`${apiUrls.bootAssets}/:id`, async ({ request }) => {
         imagesResolvers.deleteImages.resolved = true;
         const ids = await request.json();
 

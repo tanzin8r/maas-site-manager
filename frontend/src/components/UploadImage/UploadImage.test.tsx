@@ -6,7 +6,6 @@ import { imagesResolvers } from "@/testing/resolvers/images";
 import { apiUrls } from "@/utils/test-urls";
 import { fireEvent, render, screen, setupServer, userEvent, waitFor } from "@/utils/test-utils";
 
-// TODO: Update to support multiple files https://warthogs.atlassian.net/browse/MAASENG-2588
 function createDataTransfer(file: File) {
   return {
     files: [file],
@@ -40,32 +39,6 @@ it("renders without crashing", () => {
   expect(screen.getByRole("heading", { name: "Upload image" })).toBeInTheDocument();
 });
 
-it("only shows the 'Base image' dropdown if the selected release is 'Custom'", async () => {
-  render(<UploadImage />);
-
-  expect(screen.queryByRole("combobox", { name: "Base image" })).not.toBeInTheDocument();
-
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: "Release" }), "Custom");
-
-  expect(screen.getByRole("combobox", { name: "Base image" })).toBeInTheDocument();
-});
-
-it("only allows letters, digits, hyphens, and underscores for 'Image ID'", async () => {
-  render(<UploadImage />);
-
-  const imageIdInput = screen.getByRole("textbox", { name: "Image ID" });
-
-  await userEvent.type(imageIdInput, "This is definitely not valid.");
-  await userEvent.tab();
-  expect(screen.getByText("Image ID can only contain letters, digits, hyphens and underscores.")).toBeInTheDocument();
-
-  await userEvent.clear(imageIdInput);
-  await userEvent.type(imageIdInput, "a-valid-image-id_3");
-  expect(
-    screen.queryByText("Image ID can only contain letters, digits, hyphens and underscores."),
-  ).not.toBeInTheDocument();
-});
-
 it("shows file type validation errors", async () => {
   render(<UploadImage />);
 
@@ -80,8 +53,7 @@ it("shows file type validation errors", async () => {
   expect(screen.getByText("File type is invalid.")).toBeInTheDocument();
 });
 
-// this will be fixed in https://warthogs.atlassian.net/browse/MAASENG-4706
-it.skip("shows errors after submission", async () => {
+it("shows errors after submission", async () => {
   mockServer.use(
     http.post(apiUrls.images, () => {
       return HttpResponse.json({ message: "screw you" }, { status: 400 });
@@ -90,13 +62,12 @@ it.skip("shows errors after submission", async () => {
 
   render(<UploadImage />);
 
-  await userEvent.type(screen.getByRole("textbox", { name: "Release title" }), "Kubuntu 24.10");
-  await userEvent.type(screen.getByRole("textbox", { name: "Image ID" }), "kubuntu_24-10");
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: "Release" }), "Custom");
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: "Base image" }), "Ubuntu");
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: "Operating system" }), "Ubuntu");
+  await userEvent.type(screen.getByRole("textbox", { name: "Release title" }), "25.04");
+  await userEvent.type(screen.getByRole("textbox", { name: "Release codename" }), "plucky");
   await userEvent.selectOptions(screen.getByRole("combobox", { name: "Architecture" }), "amd64");
 
-  const file = new File(["kubuntu_24-10"], "kubuntu_24-10.tgz", { type: "application/gzip" });
+  const file = new File(["ubuntu_25-04"], "ubuntu_25-04.tgz", { type: "application/gzip" });
 
   fireEvent.drop(screen.getByRole("button", { name: "Drag and drop files here or click to upload" }), {
     dataTransfer: createDataTransfer(file),

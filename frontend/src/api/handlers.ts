@@ -124,7 +124,7 @@ export const deleteImages = async (data: Image["id"][]) => {
   }
   try {
     const responses = data.map((id) => {
-      return fetch(`${apiUrls.images}/${id}`, {
+      return fetch(`${apiUrls.bootAssets}/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -148,7 +148,7 @@ export type UploadImagePayload = {
 
 // TODO: replace with api client once API supports it https://warthogs.atlassian.net/browse/MAASENG-2715
 export const uploadImage = async (payload: UploadImagePayload) => {
-  const response = await fetch(apiUrls.images, {
+  const response = await fetch(apiUrls.bootAssets, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -3,17 +3,26 @@ import type { SelectProps } from "@canonical/react-components";
 import { ActionButton, Button, Input, Label, Notification, Select } from "@canonical/react-components";
 import classNames from "classnames";
 import type { FormikHelpers } from "formik";
-import { Field, Form, Formik } from "formik";
+import { Field, Formik } from "formik";
 import * as Yup from "yup";
+
+import FormikFormContent from "../base/FormikFormContent";
 
 import { ARCHITECTURES, OPERATING_SYSTEM_NAMES, VALID_IMAGE_FILE_TYPES } from "./constants";
 
-import type { UploadImagePayload } from "@/api/handlers";
+import type { MutationErrorResponse } from "@/api";
+import { useUploadCustomImage } from "@/api/query/images";
 import ErrorMessage from "@/components/ErrorMessage";
 import { useAppLayoutContext } from "@/context";
-import { useUploadImageMutation } from "@/hooks/react-query";
+import "./_UploadImage.scss";
 
-type UploadImageFormValues = Yup.InferType<typeof UploadImageSchema>;
+type UploadImageFormValues = {
+  title: string;
+  release: string;
+  os: string;
+  arch: string;
+  file: File | null;
+};
 
 const isValidFileType = (fileName: string) => {
   if (fileName) {
@@ -28,25 +37,16 @@ const isValidFileType = (fileName: string) => {
   }
 };
 
-const releaseOptions: SelectProps["options"] = [
+const osOptions: SelectProps["options"] = [
   {
-    label: "Select a release",
+    label: "Select an operating system",
     value: "",
     disabled: true,
   },
   ...OPERATING_SYSTEM_NAMES,
 ];
 
-const baseImageOptions: SelectProps["options"] = [
-  {
-    label: "Select a base image",
-    value: "",
-    disabled: true,
-  },
-  ...OPERATING_SYSTEM_NAMES,
-];
-
-const architectureOptions: SelectProps["options"] = [
+const archOptions: SelectProps["options"] = [
   {
     label: "Select an architecture",
     value: "",
@@ -57,38 +57,61 @@ const architectureOptions: SelectProps["options"] = [
 
 const UploadImageSchema: Yup.Schema = Yup.object().shape({
   title: Yup.string().required("Release title is required."),
-  imageId: Yup.string()
-    .matches(/^[a-z0-9-_]*$/, "Image ID can only contain letters, digits, hyphens and underscores.")
-    .required("Image ID is required."),
   release: Yup.string().required("Release is required."),
-  baseImage: Yup.string(),
-  architecture: Yup.string().required("Architecture is required."),
-  image: Yup.mixed((input): input is File => input instanceof File)
+  os: Yup.string().required("OS is required."),
+  arch: Yup.string().required("Architecture is required."),
+  file: Yup.mixed((input): input is File => input instanceof File)
     .required("Image file is required.")
     .test("is-valid-type", "File type is invalid.", (image) => isValidFileType(image && image.name.toLowerCase())),
 });
 
 const UploadImage = () => {
   const { setSidebar } = useAppLayoutContext();
-  const uploadImageMutation = useUploadImageMutation({ onSuccess: () => setSidebar(null) });
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const uploadImageMutation = useUploadCustomImage({
+    onUploadProgress: (progressEvent) => {
+      const { loaded, total } = progressEvent;
+      if (loaded && total) {
+        setUploadProgress(Math.round((loaded * 100) / total));
+      }
+    },
+  });
   const releaseTitleHeadingId = useId();
-  const imageIdHeadingId = useId();
   const releaseHeadingId = useId();
-  const baseImageHeadingId = useId();
-  const architectureHeadingId = useId();
+  const osHeadingId = useId();
+  const archHeadingId = useId();
 
   const initialValues: UploadImageFormValues = {
     title: "",
-    imageId: "",
     release: "",
-    baseImage: "",
-    architecture: "",
-    image: null,
+    os: "",
+    arch: "",
+    file: null,
   };
 
   const handleSubmit = (values: UploadImageFormValues, helpers: FormikHelpers<UploadImageFormValues>) => {
-    if (values.image) {
-      uploadImageMutation.mutate(values as UploadImagePayload);
+    if (values.file) {
+      uploadImageMutation.mutate(
+        {
+          body: {
+            os: values.os,
+            title: values.title,
+            release: values.release,
+            arch: values.arch,
+            file: values.file,
+            filename: values.file.name,
+            file_size: values.file.size,
+          },
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+        {
+          onSuccess: () => {
+            setSidebar(null);
+          },
+        },
+      );
     }
     helpers.setSubmitting(false);
   };
@@ -114,61 +137,59 @@ const UploadImage = () => {
             setFieldTouched,
             setFieldError,
           }) => (
-            <Form className="upload-image-form">
-              <Label id={releaseTitleHeadingId}>Release title</Label>
+            <FormikFormContent
+              className="upload-image-form"
+              errors={[{ body: uploadImageMutation.error?.response?.data }] as MutationErrorResponse[]}
+            >
+              <Label className="is-required" id={osHeadingId}>
+                Operating system
+              </Label>
+              <Field
+                aria-labelledby={osHeadingId}
+                as={Select}
+                error={touched.os && errors.os}
+                help="The operating system the custom image is based on."
+                name="os"
+                options={osOptions}
+                required
+              />
+              <Label className="is-required" id={releaseTitleHeadingId}>
+                Release title
+              </Label>
               <Field
                 aria-labelledby={releaseTitleHeadingId}
                 as={Input}
                 error={touched.title && errors.title}
-                help="The release title that will be shown in the images table."
+                help="The release title that will be shown in the images table, e.g. 24.04 LTS."
                 name="title"
                 required
                 type="text"
               />
-              <Label id={imageIdHeadingId}>Image ID</Label>
+              <Label className="is-required" id={releaseHeadingId}>
+                Release codename
+              </Label>
               <Field
-                aria-labelledby={imageIdHeadingId}
+                aria-labelledby={releaseHeadingId}
                 as={Input}
-                error={touched.imageId && errors.imageId}
-                help="A unique image ID. Can only contain letters, numbers, underscores or hyphens."
-                name="imageId"
+                error={touched.release && errors.release}
+                help="The codename for the release, e.g. 'noble'."
+                name="release"
                 required
                 type="text"
               />
-              <Label id={releaseHeadingId}>Release</Label>
+              <Label className="is-required" id={archHeadingId}>
+                Architecture
+              </Label>
               <Field
-                aria-labelledby={releaseHeadingId}
+                aria-labelledby={archHeadingId}
                 as={Select}
-                error={touched.release && errors.release}
-                name="release"
-                options={releaseOptions}
-                required
-              />
-              {values.release === "Custom" ? (
-                <>
-                  <Label id={baseImageHeadingId}>Base image</Label>
-                  <Field
-                    aria-labelledby={baseImageHeadingId}
-                    as={Select}
-                    error={touched.baseImage && errors.baseImage}
-                    help="The base image the custom image is based on."
-                    name="baseImage"
-                    options={baseImageOptions}
-                    required
-                  />
-                </>
-              ) : null}
-              <Label id={architectureHeadingId}>Architecture</Label>
-              <Field
-                aria-labelledby={architectureHeadingId}
-                as={Select}
-                error={touched.architecture && errors.architecture}
-                name="architecture"
-                options={architectureOptions}
+                error={touched.arch && errors.arch}
+                name="arch"
+                options={archOptions}
                 required
               />
               <div
-                className={classNames("p-form__group p-form-validation", { "is-error": touched.image && errors.image })}
+                className={classNames("p-form__group p-form-validation", { "is-error": touched.file && errors.file })}
               >
                 <Label className="is-required">Upload image</Label>
                 <p className="p-form-help-text">
@@ -178,14 +199,24 @@ const UploadImage = () => {
                   <div className="u-padding-bottom--medium">
                     <Field
                       as={FileUpload}
-                      error={touched.image && errors.image}
-                      name="image"
+                      error={touched.file && errors.file}
+                      files={
+                        values.file
+                          ? [
+                              {
+                                name: values.file.name,
+                                percentUploaded: uploadImageMutation.isPending ? uploadProgress : undefined,
+                              },
+                            ]
+                          : []
+                      }
+                      name="file"
                       onFileUpload={(files: File[]) => {
-                        setFieldTouched("image", true);
+                        setFieldTouched("file", true);
                         if (files.length > 1) {
-                          setFieldError("image", "Only one image can be uploaded at a time.");
+                          setFieldError("file", "Only one image can be uploaded at a time.");
                         } else {
-                          setFieldValue("image", files[0]);
+                          setFieldValue("file", files[0]);
                         }
                       }}
                       required
@@ -213,7 +244,7 @@ const UploadImage = () => {
                   Save
                 </ActionButton>
               </ContentSection.Footer>
-            </Form>
+            </FormikFormContent>
           )}
         </Formik>
       </ContentSection.Content>

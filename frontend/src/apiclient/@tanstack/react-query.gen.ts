@@ -21,6 +21,7 @@ import {
   deleteImagesV1BootassetItemsIdDelete,
   patchBootAssetItemsV1BootassetItemsIdPatch,
   postImagesV1ImagesPost,
+  downloadV1ImagesTrackRiskFilePathGet,
   postV1LoginPost,
   getV1SettingsGet,
   patchV1SettingsPatch,
@@ -88,6 +89,7 @@ import type {
   PostImagesV1ImagesPostData,
   PostImagesV1ImagesPostError,
   PostImagesV1ImagesPostResponse,
+  DownloadV1ImagesTrackRiskFilePathGetData,
   PostV1LoginPostData,
   PostV1LoginPostError,
   PostV1LoginPostResponse,
@@ -833,10 +835,10 @@ export const patchBootAssetItemsV1BootassetItemsIdPatchMutation = (
   return mutationOptions;
 };
 
-export const postImagesV1ImagesPostQueryKey = (options?: Options<PostImagesV1ImagesPostData>) =>
+export const postImagesV1ImagesPostQueryKey = (options: Options<PostImagesV1ImagesPostData>) =>
   createQueryKey("postImagesV1ImagesPost", options);
 
-export const postImagesV1ImagesPostOptions = (options?: Options<PostImagesV1ImagesPostData>) => {
+export const postImagesV1ImagesPostOptions = (options: Options<PostImagesV1ImagesPostData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await postImagesV1ImagesPost({
@@ -873,6 +875,27 @@ export const postImagesV1ImagesPostMutation = (
     },
   };
   return mutationOptions;
+};
+
+export const downloadV1ImagesTrackRiskFilePathGetQueryKey = (
+  options: Options<DownloadV1ImagesTrackRiskFilePathGetData>,
+) => createQueryKey("downloadV1ImagesTrackRiskFilePathGet", options);
+
+export const downloadV1ImagesTrackRiskFilePathGetOptions = (
+  options: Options<DownloadV1ImagesTrackRiskFilePathGetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await downloadV1ImagesTrackRiskFilePathGet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: downloadV1ImagesTrackRiskFilePathGetQueryKey(options),
+  });
 };
 
 export const postV1LoginPostQueryKey = (options: Options<PostV1LoginPostData>) =>

@@ -714,7 +714,7 @@ class S3MultipartUploadTarget(BaseTarget):  # type: ignore
             join(
                 settings.s3_path if settings.s3_path else "",
                 filename,
-            ),
+            )
         )
         self.max_upload_size_bytes = max_upload_size_gb * 1000000000
         multipart_upload = self.s3.meta.client.create_multipart_upload(
