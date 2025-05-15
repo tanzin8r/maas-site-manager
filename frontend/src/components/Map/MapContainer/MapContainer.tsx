@@ -7,6 +7,7 @@ import { computeMinZoom } from "@/utils";
 
 interface MapContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   initialOptions: maplibregl.MapOptions;
+  customAttribution?: string;
 }
 
 /**
@@ -14,7 +15,7 @@ interface MapContainerProps extends React.HTMLAttributes<HTMLDivElement> {
  *
  * @note Changes to initialOptions are not reflected in the map after initialization.
  */
-const MapContainer: React.FC<MapContainerProps> = ({ children, initialOptions, ...props }) => {
+const MapContainer: React.FC<MapContainerProps> = ({ children, initialOptions, customAttribution, ...props }) => {
   const { screenHeight, screenWidth } = useWindowSize();
   const minZoom = useMemo(() => computeMinZoom({ screenHeight, screenWidth }), [screenHeight, screenWidth]);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
@@ -59,6 +60,11 @@ const MapContainer: React.FC<MapContainerProps> = ({ children, initialOptions, .
       map?.remove?.();
     };
   }, [map]);
+
+  useEffect(() => {
+    if (!map) return;
+    map.addControl(new maplibregl.AttributionControl({ customAttribution }), "bottom-right");
+  });
 
   return (
     <div ref={mapRef} {...props}>

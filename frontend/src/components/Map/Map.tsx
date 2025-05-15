@@ -1,8 +1,6 @@
 import { Spinner } from "@canonical/react-components";
 import useLocalStorageState from "use-local-storage-state";
 
-import type { MapSettingsStorageState } from "../MapSettings/MapSettings";
-
 import MarkersLayer from "./MarkersLayer";
 import { naturalEarth, osm } from "./styleSpecs";
 import type { MapProps } from "./types";
@@ -10,6 +8,7 @@ import { getGeoJson } from "./utils";
 
 import { useCurrentUser } from "@/api/query/users";
 import MapContainer from "@/components/Map/MapContainer";
+import type { MapSettingsStorageState } from "@/components/MapSettings/MapSettings";
 
 const Map: React.FC<MapProps> = ({ markers }) => {
   const [hasAcceptedOsmTos] = useLocalStorageState<MapSettingsStorageState>("hasAcceptedOsmTos", {
@@ -33,7 +32,6 @@ const Map: React.FC<MapProps> = ({ markers }) => {
   const customAttribution =
     style === osm ? `<a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>` : undefined;
   const initialOptions: maplibregl.MapOptions = {
-    customAttribution,
     container: "map",
     style,
     dragRotate: false,
@@ -44,7 +42,7 @@ const Map: React.FC<MapProps> = ({ markers }) => {
   };
 
   return (
-    <MapContainer className="map" initialOptions={initialOptions}>
+    <MapContainer className="map" customAttribution={customAttribution} initialOptions={initialOptions}>
       {geojson ? <MarkersLayer geojson={geojson} /> : null}
     </MapContainer>
   );

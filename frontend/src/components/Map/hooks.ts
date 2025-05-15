@@ -51,17 +51,18 @@ export const useMarkers = ({ eventHandlers }: UseMarkers) => {
   }, []);
 
   const handleClusterClick = useCallback(
-    ({ coords, properties }: Pick<MarkerProps, "coords" | "properties">) => {
-      (map.getSource("markers") as maplibregl.GeoJSONSource).getClusterExpansionZoom(
-        properties.cluster_id,
-        (err, zoom) => {
-          if (err || zoom == null) return;
-          map.easeTo({
-            center: coords,
-            zoom,
-          });
-        },
-      );
+    async ({ coords, properties }: Pick<MarkerProps, "coords" | "properties">) => {
+      try {
+        const zoom = await (map.getSource("markers") as maplibregl.GeoJSONSource).getClusterExpansionZoom(
+          properties.cluster_id,
+        );
+        map.easeTo({
+          center: coords,
+          zoom,
+        });
+      } catch (err) {
+        throw new Error("Failed to get cluster expansion zoom: " + err);
+      }
     },
     [map],
   );
