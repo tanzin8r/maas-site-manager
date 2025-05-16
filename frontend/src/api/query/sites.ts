@@ -67,7 +67,7 @@ export const useEditSite = (mutationOptions?: Options<PatchV1SitesIdPatchData>) 
   >({
     ...patchV1SitesIdPatchMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getV1SitesGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getV1SitesGetQueryKey() });
     },
   });
 };
@@ -82,7 +82,7 @@ export const useDeleteSites = (mutationOptions?: Options<DeleteManyV1SitesDelete
   >({
     ...deleteManyV1SitesDeleteMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getV1SitesGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getV1SitesGetQueryKey() });
     },
   });
 };

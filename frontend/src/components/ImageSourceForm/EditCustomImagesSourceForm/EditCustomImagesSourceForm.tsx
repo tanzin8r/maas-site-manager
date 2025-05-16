@@ -4,7 +4,7 @@ import { Field, Formik } from "formik";
 import * as Yup from "yup";
 
 import type { MutationErrorResponse } from "@/api";
-import { useImageSource, useUpdateImageSource } from "@/api/query/sources";
+import { useImageSource, useUpdateImageSource } from "@/api/query/imageSources";
 import type { PatchBootSourceV1BootassetSourcesIdPatchData } from "@/apiclient";
 import ErrorMessage from "@/components/ErrorMessage";
 import FormikFormContent from "@/components/base/FormikFormContent";

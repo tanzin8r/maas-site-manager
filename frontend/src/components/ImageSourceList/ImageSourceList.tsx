@@ -3,7 +3,7 @@ import { Button } from "@canonical/react-components";
 
 import ImageSourceListTable from "./ImageSourceListTable";
 
-import { useImageSources } from "@/api/query/sources";
+import { useImageSources } from "@/api/query/imageSources";
 import type { BootSource } from "@/apiclient";
 import { useAppLayoutContext } from "@/context";
 

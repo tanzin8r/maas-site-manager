@@ -4,15 +4,15 @@ import pluralize from "pluralize";
 
 import TokensTable from "./components/TokensTable/TokensTable";
 
-import { useDeleteTokens, useTokens } from "@/api/query/tokens";
+import { useDeleteTokens, useExportTokens, useTokens } from "@/api/query/tokens";
 import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 import PaginationBar from "@/components/base/PaginationBar";
 import RemoveButton from "@/components/base/RemoveButton";
 import docsUrls from "@/config/docsUrls";
 import { useAppLayoutContext } from "@/context";
 import { useRowSelection } from "@/context/RowSelectionContext/RowSelectionContext";
-import { useExportTokensToFileQuery } from "@/hooks/react-query";
 import usePagination from "@/hooks/usePagination";
+import { saveToFile } from "@/utils";
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -26,10 +26,16 @@ const TokensList = () => {
   });
 
   const {
+    data: exportTokensData,
     error: exportTokensError,
-    isPending: isExportTokensLoading,
-    exportTokens,
-  } = useExportTokensToFileQuery({ id: Object.keys(rowSelection).map((id) => Number(id)) });
+    isLoading: isLoadingExportTokens,
+  } = useExportTokens({ query: { id: Object.keys(rowSelection).map((id) => Number(id)) } });
+
+  const exportTokens = async () => {
+    if (exportTokensData) {
+      saveToFile(exportTokensData as BlobPart, "site-manager-tokens.csv", "text/csv");
+    }
+  };
 
   const tokensDeleteMutation = useDeleteTokens();
 
@@ -84,7 +90,7 @@ const TokensList = () => {
         </code>
         <MainToolbar>
           <MainToolbar.Controls>
-            <Button disabled={isExportTokensLoading} onClick={exportTokens}>
+            <Button disabled={isLoadingExportTokens} onClick={exportTokens}>
               Export
             </Button>
             <RemoveButton disabled={!Object.keys(rowSelection).length} label="Delete" onClick={handleTokenDelete} />

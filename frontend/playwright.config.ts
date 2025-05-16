@@ -5,6 +5,7 @@ import { defineConfig, devices } from "@playwright/test";
  * https://github.com/motdotla/dotenv
  */
 import { config } from "dotenv";
+import { adminAuthFile } from "./tests/constants";
 
 config({ path: ".env" });
 
@@ -40,24 +41,29 @@ export default defineConfig({
     baseURL: `http://localhost:${process.env.VITE_UI_PORT}`,
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+    headless: true,
+    launchOptions: {
+      args: ["--no-sandbox"],
+    },
   },
 
   /* Configure projects for major browsers */
   projects: [
     { name: "setup", testMatch: /.*\.setup\.ts/ },
+    { name: "authentication", testMatch: "authentication.spec.ts" },
     { name: "a11y", testMatch: "a11y.spec.ts", use: { ...devices["Desktop Chrome"] } },
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-      testIgnore: "a11y.spec.ts",
+      use: { ...devices["Desktop Chrome"], storageState: adminAuthFile },
+      testIgnore: ["a11y.spec.ts", "authentication.spec.ts"],
       dependencies: ["setup"],
     },
     {
       name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      use: { ...devices["Desktop Firefox"], storageState: adminAuthFile },
       // ignore sites and map tests because of
       // test flakiness on CI on Firefox
-      testIgnore: ["a11y.spec.ts", "map.spec.ts", "sites.spec.ts"],
+      testIgnore: ["a11y.spec.ts", "authentication.spec.ts", "map.spec.ts", "sites.spec.ts"],
       dependencies: ["setup"],
     },
   ],

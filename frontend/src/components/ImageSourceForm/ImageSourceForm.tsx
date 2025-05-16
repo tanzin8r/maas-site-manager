@@ -8,7 +8,7 @@ import * as Yup from "yup";
 import FormikFormContent from "../base/FormikFormContent";
 
 import type { MutationErrorResponse } from "@/api";
-import { useCreateImageSource, useImageSource, useUpdateImageSource } from "@/api/query/sources";
+import { useCreateImageSource, useImageSource, useUpdateImageSource } from "@/api/query/imageSources";
 import type {
   PatchBootSourceV1BootassetSourcesIdPatchData,
   PostBootSourcesV1BootassetSourcesPostData,

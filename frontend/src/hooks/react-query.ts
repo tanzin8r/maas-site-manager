@@ -4,7 +4,6 @@ import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClie
 import apiClient from "@/api";
 import type { BootAsset } from "@/api";
 import {
-  getTokensExport,
   getUpstreamImages,
   updateUpstreamImageSource,
   selectUpstreamImages,
@@ -12,31 +11,8 @@ import {
   deleteImages,
   uploadImage,
 } from "@/api/handlers";
-import { saveToFile } from "@/utils";
 
 const refetchInterval = Number(import.meta.env.VITE_POLLING_INTERVAL_MS);
-
-export const useExportTokensToFileQuery = ({ id }: Parameters<typeof apiClient.default.getV1TokensGet>[0]) => {
-  const [isPending, setisPending] = useState(false);
-  const [error, setError] = useState<unknown | null>(null);
-
-  const exportTokens = async (parameters: Parameters<typeof getTokensExport>[0]) => {
-    setError(null);
-    setisPending(true);
-    getTokensExport({ ...parameters, id: id })
-      .then((data) => {
-        if (data) {
-          saveToFile(data, "site-manager-tokens.csv", "text/csv");
-        }
-        setisPending(false);
-      })
-      .catch((error) => {
-        setError(error);
-      });
-  };
-
-  return { error, isPending, exportTokens };
-};
 
 const DEFAULT_PAGE_SIZE = 10;
 export const useImagesInfiniteQuery = ({

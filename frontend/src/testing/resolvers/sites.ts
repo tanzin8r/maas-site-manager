@@ -16,10 +16,8 @@ const sitesResolvers = {
         const size = Number(searchParams.get("size"));
         const queryText = searchParams.get("q")?.replace("+", " ");
 
-        // sort items
         const items = [...data];
 
-        // this filters for name only, backend filters for multiple parameters
         const filteredItems = queryText
           ? items.filter((site) => site.name.toLowerCase().includes(queryText?.toLowerCase()))
           : items;
@@ -61,8 +59,8 @@ const sitesResolvers = {
     handler: (data: Site[] = mockSites) => {
       return http.get(`${apiUrls.sites}/:id`, ({ params }) => {
         const id = Number(params.id);
-        const site = data.find((site) => site.id === id) as Site;
-        return HttpResponse.json({ ...site });
+        const site = data.find((site) => site.id === id);
+        return site ? HttpResponse.json({ ...site }) : HttpResponse.error();
       });
     },
   },
@@ -77,7 +75,7 @@ const sitesResolvers = {
   updateSites: {
     resolved: false,
     handler: () => {
-      return http.put(apiUrls.sites, async ({ request }) => {
+      return http.patch(`${apiUrls.sites}/:id`, async ({ request }) => {
         const site = await { ...request.json() };
         return new HttpResponse(JSON.stringify(site), {
           status: 200,

@@ -77,7 +77,7 @@ export const useAddUser = (mutationOptions?: Options<PostV1UsersPostData>) => {
   return useMutation<PostV1UsersPostResponse, AxiosError<PostV1UsersPostError>, Options<PostV1UsersPostData>>({
     ...postV1UsersPostMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
     },
   });
 };
@@ -92,7 +92,7 @@ export const useEditUser = (mutationOptions?: Options<PatchV1UsersIdPatchData>) 
   >({
     ...patchV1UsersIdPatchMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
     },
   });
 };
@@ -107,8 +107,8 @@ export const useEditCurrentUser = (mutationOptions?: Options<PatchMeV1UsersMePat
   >({
     ...patchMeV1UsersMePatchMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
-      queryClient.invalidateQueries({ queryKey: getMeV1UsersMeGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getMeV1UsersMeGetQueryKey() });
     },
   });
 };
@@ -134,7 +134,7 @@ export const useDeleteUser = (mutationOptions?: Options<DeleteV1UsersIdDeleteDat
   >({
     ...deleteV1UsersIdDeleteMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getV1UsersGetQueryKey() });
     },
   });
 };

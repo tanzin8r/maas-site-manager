@@ -1,7 +1,7 @@
 import { ContentSection } from "@canonical/maas-react-components";
 import { ActionButton, Button, Spinner } from "@canonical/react-components";
 
-import { useDeleteImageSource, useImageSource } from "@/api/query/sources";
+import { useDeleteImageSource, useImageSource } from "@/api/query/imageSources";
 import { useAppLayoutContext } from "@/context";
 import { useBootSourceContext } from "@/context/BootSourceContext";
 

@@ -64,8 +64,10 @@ test("closes and clears the form after creating the token", async ({ page }) => 
 });
 
 test("saves tokens to a file on export", async ({ page }) => {
-  await page.getByRole("button", { name: /Export/i }).click();
-  const download = await page.waitForEvent("download");
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: /Export/i }).click(),
+  ]);
   const path = await download.path();
   const filename = await download.suggestedFilename();
   expect(filename).toMatch(/tokens.csv/);

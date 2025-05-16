@@ -55,7 +55,7 @@ const imageSourceResolvers = {
         const id = parseInt(params.id as string, 10);
         const imageSource = data.find((imageSource) => imageSource.id === id);
         imageSourceResolvers.getImageSource.resolved = true;
-        return HttpResponse.json(imageSource);
+        return imageSource ? HttpResponse.json(imageSource) : HttpResponse.error();
       });
     },
   },

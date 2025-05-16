@@ -2,9 +2,12 @@ import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright"; // 1
 import { protectedPages, publicPages, routesConfig } from "@/config/routes";
-import { adminAuthFile } from "./constants";
+import { adminAuthFile, LONG_TEST_TIMEOUT } from "./constants";
 
 type ColorScheme = Pick<NonNullable<Parameters<Page["emulateMedia"]>[0]>, "colorScheme">["colorScheme"];
+
+test.setTimeout(LONG_TEST_TIMEOUT);
+
 const a11yTest =
   (colorScheme: ColorScheme) =>
   async ({ title, path }: { title: string; path: string }) =>

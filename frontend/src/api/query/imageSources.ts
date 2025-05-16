@@ -56,7 +56,7 @@ export const useImageSources = (options?: Options<GetBootSourcesV1BootassetSourc
 
   useEffect(() => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -75,11 +75,11 @@ export const useCreateImageSource = (mutationOptions?: Options<PostBootSourcesV1
   return useMutation({
     ...postBootSourcesV1BootassetSourcesPostMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: getBootSourcesV1BootassetSourcesGetQueryKey(),
       });
 
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: getBootSourcesV1BootassetSourcesGetInfiniteQueryKey(),
       });
     },
@@ -91,16 +91,16 @@ export const useUpdateImageSource = (mutationOptions?: Options<PatchBootSourceV1
   return useMutation({
     ...patchBootSourceV1BootassetSourcesIdPatchMutation(mutationOptions),
     onSuccess: (variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: getBootSourcesV1BootassetSourcesGetQueryKey(),
       });
 
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: getBootSourcesV1BootassetSourcesGetInfiniteQueryKey(),
       });
 
       if (variables?.id) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: getBootSourceByIdV1BootassetSourcesIdGetQueryKey({ path: { id: variables.id } }),
         });
       }
@@ -115,11 +115,11 @@ export const useDeleteImageSource = (
   return useMutation({
     ...deleteBootSourceV1BootassetSourcesIdDeleteMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: getBootSourcesV1BootassetSourcesGetQueryKey(),
       });
 
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: getBootSourcesV1BootassetSourcesGetInfiniteQueryKey(),
       });
     },

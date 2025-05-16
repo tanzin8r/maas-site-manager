@@ -9,7 +9,11 @@ import { apiUrls } from "@/utils/test-urls";
 import { waitFor, screen, renderWithMemoryRouter, within, userEvent, waitForLoadingToFinish } from "@/utils/test-utils";
 
 const tokens = tokenFactory.buildList(2);
-const mockServer = setupServer(tokensResolvers.listTokens.handler(tokens), tokensResolvers.deleteTokens.handler());
+const mockServer = setupServer(
+  tokensResolvers.listTokens.handler(tokens),
+  tokensResolvers.exportTokens.handler(),
+  tokensResolvers.deleteTokens.handler(),
+);
 
 beforeAll(() => {
   mockServer.listen();

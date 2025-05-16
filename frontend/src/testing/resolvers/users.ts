@@ -53,7 +53,7 @@ const usersResolvers = {
           return HttpResponse.json(user);
         }
         const user = data.find((user) => user.id === Number(id));
-        return HttpResponse.json(user);
+        return user ? HttpResponse.json(user) : HttpResponse.error();
       });
     },
   },

@@ -50,12 +50,21 @@ const tokensResolvers = {
   },
   exportTokens: {
     resolved: false,
-    handler: () => {
-      return http.get(apiUrls.tokensExport, () => {
-        const csv = `id,value,expired,created
-        9,0e846493-fde9-4d15-844c-2ca0341d1e84,2024-01-01 00:00:00,2023-02-28 00:00:00
-        10,e15a7d3c-9df8-40c7-b81b-ed4796e777bc,2024-01-01 00:00:00,2023-02-28 00:00:00
-        11,87a62d9a-7645-43b5-9dd4-eaf53e768c4a,2024-01-01 00:00:00,2023-02-28 00:00:00`;
+    handler: (data: Token[] = mockTokens) => {
+      return http.get(apiUrls.tokensExport, ({ request }) => {
+        const url = new URL(request.url);
+        const idsParam = url.searchParams.getAll("id");
+
+        let filteredTokens = data;
+        if (idsParam.length > 0) {
+          const requestedIds = idsParam.map((id) => parseInt(id.trim(), 10));
+          filteredTokens = data.filter((token) => requestedIds.includes(token.id));
+        }
+
+        const csv = [
+          "id,value,expired,created",
+          ...filteredTokens.map((t) => `${t.id},${t.value},${t.expired},${t.created}`),
+        ].join("\n");
 
         return new HttpResponse(csv, {
           status: 200,

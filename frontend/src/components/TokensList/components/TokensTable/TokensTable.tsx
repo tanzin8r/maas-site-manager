@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { ColumnDef, Column, Row, Getter } from "@tanstack/react-table";
 import { flexRender, useReactTable, getCoreRowModel } from "@tanstack/react-table";
 
-import type { UseTokensResult } from "@/api/query/tokens";
+import type { useTokens } from "@/api/query/tokens";
 import type { Token } from "@/apiclient";
 import DynamicTable from "@/components/DynamicTable";
 import SelectAllCheckbox from "@/components/SelectAllCheckbox";
@@ -16,7 +16,11 @@ import { copyToClipboard, createAccessor, formatDistanceToNow, formatUTCDateStri
 export type TokenColumnDef = ColumnDef<Token, Partial<Token>>;
 export type TokenColumn = Column<Token, unknown>;
 
-const TokensTable = ({ data, error, isPending }: Pick<UseTokensResult, "data" | "error" | "isPending">) => {
+const TokensTable = ({
+  data,
+  error,
+  isPending,
+}: Pick<ReturnType<typeof useTokens>, "data" | "error" | "isPending">) => {
   const [copiedText, setCopiedText] = useState("");
 
   const { rowSelection, setRowSelection } = useRowSelection("tokens", { clearOnUnmount: true });

@@ -11,24 +11,34 @@ jobs:
     packages:
       - make
       - sudo
+      - git
+      - curl
+      - npm
+      - yarnpkg
     root: true
     run: |
-      make ci-dep
+      make install-dependencies
+
   lint:
     architectures: amd64
     series: noble
     root: false
     run: |
+      make ci-dep
       make ci-lint
+
   build:
     architectures: amd64
     series: noble
     root: false
     run: |
+      make ci-dep
       make ci-build
+
   test:
     architectures: amd64
     series: noble
     root: false
     run: |
+      make ci-dep
       make ci-test

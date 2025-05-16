@@ -39,7 +39,7 @@ export const useEnrollmentRequestsAction = (mutationOptions?: Options<PostPendin
   >({
     ...postPendingV1SitesPendingPostMutation(mutationOptions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getPendingV1SitesPendingGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getPendingV1SitesPendingGetQueryKey() });
     },
   });
 };

@@ -1,21 +1,19 @@
 import { setupServer } from "msw/node";
 
-import { useSites } from "./sites";
+import { useDeleteSites, useEditSite, useSite, useSites, useSitesCoordinates } from "./sites";
 
-import { siteFactory, tokenFactory, userFactory } from "@/mocks/factories";
+import type { SiteCoordinates, SiteUpdateRequest } from "@/apiclient";
+import { siteFactory } from "@/mocks/factories";
 import { sitesResolvers } from "@/testing/resolvers/sites";
-import { tokensResolvers } from "@/testing/resolvers/tokens";
-import { usersResolvers } from "@/testing/resolvers/users";
 import { renderHook, waitFor, Providers } from "@/utils/test-utils";
 
 const sitesData = siteFactory.buildList(2);
-const tokensData = tokenFactory.buildList(10);
-const usersData = userFactory.buildList(2);
 const mockServer = setupServer(
   sitesResolvers.listSites.handler(sitesData),
-  tokensResolvers.listTokens.handler(tokensData),
-  usersResolvers.listUsers.handler(usersData),
-  tokensResolvers.exportTokens.handler(),
+  sitesResolvers.sitesCoordinates.handler(sitesData),
+  sitesResolvers.getSite.handler(sitesData),
+  sitesResolvers.updateSites.handler(),
+  sitesResolvers.deleteSites.handler(),
 );
 
 beforeAll(() => {
@@ -28,12 +26,78 @@ afterAll(() => {
   mockServer.close();
 });
 
-it("should return sites", async () => {
-  const { result } = renderHook(() => useSites({ query: { page: 1, size: 2, sort_by: null } }), {
-    wrapper: Providers,
+describe("useSites", () => {
+  it("should return sites", async () => {
+    const { result } = renderHook(() => useSites({ query: { page: 1, size: 2 } }), { wrapper: Providers });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data!.items).toEqual(sitesData);
+  });
+});
+
+describe("useSitesCoordinates", () => {
+  it("should return sites coordinates", async () => {
+    const { result } = renderHook(() => useSitesCoordinates(), { wrapper: Providers });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data!).toEqual(
+      sitesData.map((site): SiteCoordinates => ({ id: site.id, coordinates: site.coordinates })),
+    );
+  });
+});
+
+describe("useSite", () => {
+  it("should return a specific site", async () => {
+    const expectedSite = sitesData[0];
+    const { result } = renderHook(() => useSite({ path: { id: expectedSite.id } }), {
+      wrapper: Providers,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data).toEqual(expectedSite);
   });
 
-  await waitFor(() => expect(result.current.isFetchedAfterMount).toBe(true));
+  it("should return error if site does not exist", async () => {
+    const { result } = renderHook(() => useSite({ path: { id: 999 } }), {
+      wrapper: Providers,
+    });
 
-  expect(result.current.data!.items).toEqual(sitesData);
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+  });
+});
+
+describe("useUpdateSite", () => {
+  it("should update an existing site", async () => {
+    const siteToUpdate = sitesData[0];
+    const updateData: SiteUpdateRequest = {
+      note: "Edited",
+    };
+
+    const { result } = renderHook(() => useEditSite(), { wrapper: Providers });
+    result.current.mutate({ body: updateData, path: { id: siteToUpdate.id } });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+  });
+});
+
+describe("useDeleteSites", () => {
+  it("should delete a site", async () => {
+    const siteToDelete = sitesData[0];
+
+    const { result } = renderHook(() => useDeleteSites(), { wrapper: Providers });
+    result.current.mutate({ query: { ids: [siteToDelete.id] } });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+  });
 });
