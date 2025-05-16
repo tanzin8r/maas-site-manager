@@ -29,7 +29,7 @@ RUN cp /app/dev.nginx.conf /etc/nginx/conf.d/msm.conf
 # Make a self-signed certificate
 RUN mkdir -p /root/certs
 WORKDIR /root/certs
-RUN openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out msm.crt -keyout msm.key -subj "/C=US/ST=CO/L=Denver/O=MAAS Dev Team/OU=MSM/CN=msm/emailAddress=msm@msm.com"
+RUN openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out msm.crt -keyout msm.key -addext "subjectAltName=DNS:site.manager" -subj "/C=US/ST=CO/L=Denver/O=MAAS Dev Team/OU=MSM/CN=site.manager/emailAddress=msm@msm.com"
 RUN chmod 400 msm.key
 RUN systemctl enable nginx
 
