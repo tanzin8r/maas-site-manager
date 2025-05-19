@@ -1268,9 +1268,7 @@ class TestCustomImageUploadHandler:
                     data=data,
                     files=file_data,
                 )
-            mock_s3_target.assert_called_with(
-                mocker.ANY, "1", mocker.ANY
-            )
+            mock_s3_target.assert_called_with(mocker.ANY, "1", mocker.ANY)
 
     async def test_post_wrong_file_size(
         self,

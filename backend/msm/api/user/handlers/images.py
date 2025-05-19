@@ -710,11 +710,10 @@ class S3MultipartUploadTarget(BaseTarget):  # type: ignore
             aws_secret_access_key=settings.s3_secret_key,
         )
         self.s3_bucket = settings.s3_bucket
-        self.filename = (
-            join(
-                settings.s3_path if settings.s3_path else "",
-                filename,
-            )
+
+        self.filename = join(
+            settings.s3_path if settings.s3_path else "",
+            filename,
         )
         self.max_upload_size_bytes = max_upload_size_gb * 1000000000
         multipart_upload = self.s3.meta.client.create_multipart_upload(
@@ -1108,11 +1107,9 @@ class S3StreamResponse(StreamingResponse):
     ) -> None:
         super().__init__(content, status_code, headers, media_type, background)
         settings = Settings()
-        self.file_path = (
-            join(
-                settings.s3_path if settings.s3_path else "",
-                file_id,
-            ),
+        self.file_path = join(
+            settings.s3_path if settings.s3_path else "",
+            file_id,
         )
         self.s3_bucket = settings.s3_bucket
         self.s3 = boto3.resource(
