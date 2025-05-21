@@ -8,7 +8,7 @@ import type {
   PathPattern,
   NavigateOptions as BaseNavigateOptions,
   RedirectFunction as BaseRedirectFunction,
-} from "react-router-dom";
+} from "react-router";
 import {
   createSearchParams as baseCreateSearchParams,
   Link as BaseLink,
@@ -18,7 +18,7 @@ import {
   useLocation as baseUseLocation,
   MemoryRouter as BaseMemoryRouter,
   redirect as baseRedirect,
-} from "react-router-dom";
+} from "react-router";
 
 import type { RoutePath } from "@/app/base/routes";
 
@@ -61,4 +61,4 @@ export {
   BrowserRouter,
   createMemoryRouter,
   RouterProvider,
-} from "react-router-dom";
+} from "react-router";

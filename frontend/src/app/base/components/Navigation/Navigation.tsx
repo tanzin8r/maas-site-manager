@@ -1,3 +1,5 @@
+import type { ReactElement } from "react";
+
 import { Navigation, NavigationBar } from "@canonical/maas-react-components";
 import useLocalStorageState from "use-local-storage-state";
 
@@ -70,7 +72,7 @@ const AccountNavigationList = ({ handleNavlinkClick, path }: { handleNavlinkClic
   );
 };
 
-const AppNavigation = ({ isLoggedIn }: NavProps): JSX.Element => {
+const AppNavigation = ({ isLoggedIn }: NavProps): ReactElement => {
   const [isCollapsed, setIsCollapsed] = useLocalStorageState<boolean>("appSideNavIsCollapsed", { defaultValue: true });
   const location = useLocation();
   const path = location.pathname;

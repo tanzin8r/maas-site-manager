@@ -1,4 +1,4 @@
-import type { AriaAttributes, PropsWithChildren, RefObject } from "react";
+import type { AriaAttributes, PropsWithChildren } from "react";
 import { useState, useEffect, useLayoutEffect } from "react";
 
 import type { RowData, Table } from "@tanstack/react-table";
@@ -39,7 +39,7 @@ const DynamicTableLoading = <TData extends RowData>({
 }: {
   className?: string;
   table?: Table<TData>;
-  placeholderLengths?: { [key: string]: string };
+  placeholderLengths?: { [_: string]: string };
 }) => {
   const columns = table
     ? table.getAllColumns()
@@ -63,7 +63,7 @@ const DynamicTableBody = ({
   children,
   ...props
 }: PropsWithChildren<{ className?: string } & AriaAttributes>) => {
-  const tableBodyRef: RefObject<HTMLTableSectionElement> = useRef(null);
+  const tableBodyRef = useRef<HTMLTableSectionElement>(null);
   const [offset, setOffset] = useState<number | null>(null);
 
   const handleResize = useCallback(() => {

@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { useId, useMemo } from "react";
 
 import { Navigation } from "@canonical/maas-react-components";
@@ -32,13 +33,7 @@ const NavigationItemGroup = ({ group, path, onClick }: { group: NavGroup } & Pic
     <>
       <Navigation.Item hasActiveChild={hasActiveChild}>
         <Navigation.Text key={`${group.groupTitle}-${id}`}>
-          {group.groupIcon ? (
-            typeof group.groupIcon === "string" ? (
-              <Navigation.Icon name={group.groupIcon} />
-            ) : (
-              <>{group.groupIcon}</>
-            )
-          ) : null}
+          {group.groupIcon ? <Navigation.Icon name={group.groupIcon} /> : null}
           <Navigation.Label id={`${group.groupTitle}-${id}`} variant="group">
             {group.groupTitle}
           </Navigation.Label>
@@ -53,7 +48,7 @@ const NavigationItemGroup = ({ group, path, onClick }: { group: NavGroup } & Pic
   );
 };
 
-const NavigationList = ({ hideDivider = false, items, path, onClick }: Props): JSX.Element => {
+const NavigationList = ({ hideDivider = false, items, path, onClick }: Props): ReactElement => {
   return (
     <Navigation.List className={classNames({ "no-divider": hideDivider })}>
       {items.map((item, i) => {

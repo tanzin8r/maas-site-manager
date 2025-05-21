@@ -1,4 +1,4 @@
-import { configDefaults, coverageConfigDefaults, defineConfig } from "vitest/config";
+import { configDefaults, coverageConfigDefaults, defineConfig, Plugin } from "vitest/config";
 import AutoImport from "unplugin-auto-import/vite";
 import * as path from "path";
 
@@ -10,7 +10,7 @@ export default defineConfig({
       eslintrc: {
         enabled: true,
       },
-    }),
+    }) as Plugin,
   ],
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },

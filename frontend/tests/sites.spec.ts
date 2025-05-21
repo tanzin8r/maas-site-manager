@@ -93,11 +93,20 @@ test("search text persists when switching pages", async ({ page }) => {
   await searchAndFilter.fill(searchText);
 
   await page.waitForURL(`${routesConfig.sitesList.path}?q=${searchText}`);
-  await page.getByRole("tab", { name: /map/i }).click();
-  await page.waitForURL(`${routesConfig.sitesMap.path}?q=${searchText}`);
+
+  await Promise.all([
+    page.waitForURL(`${routesConfig.sitesMap.path}?q=${searchText}`),
+    page.getByRole("tab", { name: /map/i }).click(),
+  ]);
+
   await expect(page).toHaveURL(`${routesConfig.sitesMap.path}?q=${searchText}`);
   await expect(page.getByRole("tab", { name: /table/i })).toHaveAttribute("href", `/sites/list?q=${searchText}`);
-  await page.getByRole("tab", { name: /table/i }).click();
+
+  await Promise.all([
+    page.waitForURL(`${routesConfig.sitesList.path}?q=${searchText}`),
+    page.getByRole("tab", { name: /table/i }).click(),
+  ]);
+
   await expect(page.getByRole("searchbox", { name: /Search and filter/i })).toHaveValue(searchText, {
     timeout: LONG_EXPECTATION_TIMEOUT,
   });

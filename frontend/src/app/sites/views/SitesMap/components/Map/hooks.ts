@@ -28,11 +28,7 @@ type MarkerEventHandlers = Record<
   string,
   ({ marker, properties, coords }: MarkerProps) => (e: globalThis.MouseEvent) => void
 > & {
-  click?: ({
-    marker,
-    properties,
-    coords,
-  }: MarkerProps) => (e: globalThis.KeyboardEvent | globalThis.KeyboardEvent) => void;
+  click?: ({ marker, properties, coords }: MarkerProps) => (e: globalThis.KeyboardEvent) => void;
 };
 
 type UseMarkers = {
@@ -271,7 +267,7 @@ export const usePopup = () => {
 
 const MARKER_HOVER_DELAY = 750;
 export const useWithDelay = (delay = MARKER_HOVER_DELAY) => {
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const resetDelay = () => clearTimeout(timeoutRef.current);
 
   const withDelay = (fn: () => any) => {

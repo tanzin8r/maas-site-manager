@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement } from "react";
 
 import classNames from "classnames";
 import usePortal from "react-useportal";
@@ -38,7 +38,7 @@ const getPositionStyle = (el: React.MutableRefObject<Element | null>, position: 
   return styles;
 };
 
-const Popover = ({ children, className, content, position = "right" }: Props): JSX.Element => {
+const Popover = ({ children, className, content, position = "right" }: Props): ReactElement => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const positionStyle = getPositionStyle(buttonRef, position);

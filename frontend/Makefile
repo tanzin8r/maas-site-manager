@@ -1,6 +1,6 @@
 #!/usr/bin/env make -f
 
-.PHONY: install-dependencies ci-dep ci-build ci-lint ci-test unit-test e2e-test
+.PHONY: install-node install-dependencies ci-dep ci-build ci-lint ci-test unit-test e2e-test
 
 define PACKAGES
 git \
@@ -48,14 +48,22 @@ endif
 FE_TEST_TIMEOUT = 15000
 FE_TEST_RETRY = 3
 
+install-node:
+ifdef JENKINS_URL
+	sudo apt update && sudo apt install -y curl xz-utils
+endif
+	curl -fsSL https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz -o node.tar.xz
+	mkdir -p node-22 && tar -xf node.tar.xz -C node-22 --strip-components=1
+	rm node.tar.xz
+
 install-dependencies:
 	sudo -E DEBIAN_FRONTEND=noninteractive \
 		apt -y install --no-install-recommends $(PACKAGES)
 
-ci-dep:
-	YARN_CACHE_FOLDER=$(YARN_CACHE_FOLDER) yarnpkg install
-	PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_PATH) \
-		npx --yes playwright install
+ci-dep: install-node
+	export PATH=$$(pwd)/node-22/bin:$$PATH && \
+	YARN_CACHE_FOLDER=$(YARN_CACHE_FOLDER) yarnpkg install && \
+	PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_PATH) npx --yes playwright install
 
 ci-build:
 	yarnpkg run build
