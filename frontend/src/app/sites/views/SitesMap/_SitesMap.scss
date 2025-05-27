@@ -1,5 +1,18 @@
-.sites-map {
+.sites-map>.row {
     position: relative;
+    width: 100%;
+    max-width: none !important;
+    margin: 0 !important;
+}
+
+.l-main__content:has(> .row > .col-12 > .sites-map) {
+    overflow: hidden;
+
+    &>.row {
+        width: 100%;
+        max-width: none !important;
+        margin: 0 !important;
+    }
 }
 
 .sites-map__controls-wrapper {

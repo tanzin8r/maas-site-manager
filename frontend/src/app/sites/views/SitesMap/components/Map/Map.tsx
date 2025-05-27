@@ -39,6 +39,7 @@ const Map: React.FC<MapProps> = ({ markers }) => {
     center: [0, 0],
     zoom: 3,
     maxZoom: 17,
+    renderWorldCopies: true,
   };
 
   return (

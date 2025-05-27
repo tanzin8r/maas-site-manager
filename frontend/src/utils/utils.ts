@@ -122,16 +122,6 @@ export const saveToFile = (data: BlobPart, filename: string, type: string): void
   link.click();
 };
 
-export const computeMinZoom = ({
-  screenWidth,
-  screenHeight,
-}: {
-  screenWidth: number;
-  screenHeight: number;
-}): number => {
-  return Math.ceil(Math.log2(Math.max(screenWidth, screenHeight) / 256));
-};
-
 export const createAccessor =
   <T, K extends keyof T>(keys: K[] | K) =>
   (obj: T) =>

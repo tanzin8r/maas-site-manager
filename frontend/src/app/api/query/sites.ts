@@ -23,6 +23,7 @@ import type {
 import {
   deleteManyV1SitesDeleteMutation,
   getCoordinatesV1SitesCoordinatesGetOptions,
+  getCoordinatesV1SitesCoordinatesGetQueryKey,
   getIdV1SitesIdGetOptions,
   getV1SitesGetOptions,
   getV1SitesGetQueryKey,
@@ -68,6 +69,7 @@ export const useEditSite = (mutationOptions?: Options<PatchV1SitesIdPatchData>) 
     ...patchV1SitesIdPatchMutation(mutationOptions),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: getV1SitesGetQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: getCoordinatesV1SitesCoordinatesGetQueryKey() });
     },
   });
 };

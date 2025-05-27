@@ -181,6 +181,9 @@ export const useMarkers = ({ eventHandlers }: UseMarkers) => {
           marker = updateClusterMarker({ marker, properties, maxCount });
         }
         if (marker) {
+          // Markers are being copied over to a new set for updates,
+          // make sure to override the markers before copying over
+          marker.setLngLat(coords);
           newMarkers.set(id, marker);
         }
       }

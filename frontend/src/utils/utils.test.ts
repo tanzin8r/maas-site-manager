@@ -6,7 +6,6 @@ import {
   getTimeInTimezone,
   formatDistanceToNow,
   getSortBy,
-  computeMinZoom,
   unsecureCopyToClipboard,
 } from "./utils";
 
@@ -74,15 +73,6 @@ const sortingState: SortingState = [{ id: "name", desc: false }];
 it("returns a sort key as a string", () => {
   const sortKey = getSortBy(sortingState);
   expect(sortKey).toStrictEqual("name-asc");
-});
-
-it("calculates the minimum zoom correctly for various screen sizes (computeMinZoom)", () => {
-  // Desktop
-  expect(computeMinZoom({ screenWidth: 1440, screenHeight: 1055 })).toEqual(3);
-  // Tablet
-  expect(computeMinZoom({ screenWidth: 829, screenHeight: 1180 })).toEqual(3);
-  // Mobile
-  expect(computeMinZoom({ screenWidth: 390, screenHeight: 844 })).toEqual(2);
 });
 
 it("copies a text string unsecurely", () => {
