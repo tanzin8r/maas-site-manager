@@ -19,7 +19,17 @@ const createSourceOptions = (geojson: GeoJSON.FeatureCollection) =>
     clusterRadius: 100,
   }) as const;
 
-const createLayerOptions = () =>
+const createMarkerLayerOptions = () =>
+  ({
+    id: "markers",
+    type: "circle",
+    source: "markers",
+    paint: {
+      "circle-color": "transparent",
+    },
+  }) as const;
+
+const createClusterLayerOptions = () =>
   ({
     id: "clusters",
     type: "circle",
@@ -51,16 +61,16 @@ const MarkersLayer = ({ geojson }: { geojson: GeoJSON.FeatureCollection }) => {
       mouseenter:
         ({ properties, coords }) =>
         () => {
-          showPopup({ id: properties.id, coords });
+          showPopup({ id: properties.id!, coords });
         },
       click:
         ({ properties }) =>
         () => {
-          handleMarkerClick(properties.id);
+          handleMarkerClick(properties.id!);
         },
       mouseout:
         ({ marker }) =>
-        (e) => {
+        (e: MouseEvent) => {
           // ignore mouseout events within marker itself or popup
           const relatedTarget = (e.relatedTarget as Node) || undefined;
           if (marker.getElement().contains(relatedTarget)) {
@@ -76,7 +86,8 @@ const MarkersLayer = ({ geojson }: { geojson: GeoJSON.FeatureCollection }) => {
     if (!map.getSource("markers")) {
       map.addSource("markers", createSourceOptions(geojson));
       // add a transparent layer to make features available for queries and custom rendering
-      map.addLayer(createLayerOptions());
+      map.addLayer(createMarkerLayerOptions());
+      map.addLayer(createClusterLayerOptions());
     }
   }, [geojson, map]);
 
