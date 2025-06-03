@@ -114,7 +114,7 @@
   },
   "resolutions": {
     "strip-ansi": "7.1.0",
-    "string-width": "4.2.3"
+    "string-width": "7.2.0"
   },
   "msw": {
     "workerDirectory": "public"
