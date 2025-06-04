@@ -35,6 +35,17 @@ const MapContainer: React.FC<MapContainerProps> = ({ children, initialOptions, c
   );
 
   useEffect(() => {
+    if (map && initialOptions.bounds) {
+      map.fitBounds(initialOptions.bounds as maplibregl.LngLatBoundsLike, {
+        padding: 40,
+        duration: 0,
+      });
+
+      map.setCenter(initialOptions.center as maplibregl.LngLatLike);
+    }
+  }, [map, initialOptions.bounds, initialOptions.center]);
+
+  useEffect(() => {
     if (map) {
       map.on("load", () => {
         map.getCanvas().className += " is-visible";
@@ -54,7 +65,6 @@ const MapContainer: React.FC<MapContainerProps> = ({ children, initialOptions, c
     if (!map) return;
     map.addControl(new maplibregl.AttributionControl({ customAttribution }), "bottom-right");
   });
-
   return (
     <div ref={mapRef} {...props}>
       {map && <MapContextProvider map={map}>{children}</MapContextProvider>}

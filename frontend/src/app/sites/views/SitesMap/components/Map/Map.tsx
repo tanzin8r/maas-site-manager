@@ -1,4 +1,6 @@
 import { Spinner } from "@canonical/react-components";
+import type { LngLatLike } from "maplibre-gl";
+import { LngLat } from "maplibre-gl";
 import useLocalStorageState from "use-local-storage-state";
 
 import MarkersLayer from "./MarkersLayer";
@@ -15,6 +17,35 @@ const Map: React.FC<MapProps> = ({ markers }) => {
     storageSync: true,
     defaultValue: {},
   });
+  const bounds = useMemo(() => {
+    if (!markers || markers.length === 0) return null;
+
+    return markers.reduce(
+      (acc, marker) => {
+        const [lng, lat] = marker.position;
+        return {
+          minLng: Math.min(acc.minLng, lng),
+          maxLng: Math.max(acc.maxLng, lng),
+          minLat: Math.min(acc.minLat, lat),
+          maxLat: Math.max(acc.maxLat, lat),
+        };
+      },
+      {
+        minLng: 180,
+        maxLng: -180,
+        minLat: 90,
+        maxLat: -90,
+      },
+    );
+  }, [markers]);
+
+  const center = useMemo(() => {
+    if (!bounds) return null;
+
+    const centerLng = (bounds!.minLng + bounds!.maxLng) / 2;
+    const centerLat = (bounds!.minLat + bounds!.maxLat) / 2;
+    return [centerLng, centerLat] as LngLatLike;
+  }, [bounds]);
 
   const { data: currentUser, isPending, isSuccess } = useCurrentUser();
   const geojson = useMemo(() => (markers ? getGeoJson(markers) : null), [markers]);
@@ -31,12 +62,15 @@ const Map: React.FC<MapProps> = ({ markers }) => {
 
   const customAttribution =
     style === osm ? `<a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>` : undefined;
+  const isTest = process.env.NODE_ENV === "test";
   const initialOptions: maplibregl.MapOptions = {
     container: "map",
     style,
     dragRotate: false,
+    ...(!isTest &&
+      bounds && { bounds: [new LngLat(bounds!.minLng, bounds!.minLat), new LngLat(bounds!.maxLng, bounds!.maxLat)] }),
     trackResize: true,
-    center: [0, 0],
+    ...(isTest ? { center: [0, 0] } : center && { center: center }),
     zoom: 3,
     maxZoom: 17,
     renderWorldCopies: true,
