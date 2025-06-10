@@ -1,25 +1,23 @@
 from dataclasses import dataclass
 from datetime import timedelta
 
+from activities.download_upstream_activities import (  # type: ignore
+    DOWNLOAD_ASSET_ACTIVITY,
+    GET_OR_CREATE_ASSET_ACTIVITY,
+    GET_OR_CREATE_ITEM_ACTIVITY,
+    GET_OR_CREATE_VERSION_ACTIVITY,
+    UPDATE_BYTES_SYNCED_ACTIVITY,
+    BootAsset,
+    BootAssetItem,
+    BootAssetVersion,
+    DownloadAssetParams,
+    GetOrCreateAssetParams,
+    GetOrCreateItemParams,
+    GetOrCreateVersionParams,
+    S3Params,
+    UpdateBytesSyncedParams,
+)
 from temporalio import workflow
-
-with workflow.unsafe.imports_passed_through():
-    from activities.download_upstream_activities import (  # type: ignore
-        DOWNLOAD_ASSET_ACTIVITY,
-        GET_OR_CREATE_ASSET_ACTIVITY,
-        GET_OR_CREATE_ITEM_ACTIVITY,
-        GET_OR_CREATE_VERSION_ACTIVITY,
-        UPDATE_BYTES_SYNCED_ACTIVITY,
-        BootAsset,
-        BootAssetItem,
-        BootAssetVersion,
-        DownloadAssetParams,
-        GetOrCreateAssetParams,
-        GetOrCreateItemParams,
-        GetOrCreateVersionParams,
-        S3Params,
-        UpdateBytesSyncedParams,
-    )
 
 DOWNLOAD_UPSTREAM_IMAGE_WF_NAME = "DownloadUpstreamImage"
 GET_OR_CREATE_PRODUCT_WF_NAME = "GetOrCreateProduct"
@@ -43,7 +41,7 @@ class GetOrCreateProductParams:
     item: BootAssetItem
 
 
-@workflow.defn(name=DOWNLOAD_UPSTREAM_IMAGE_WF_NAME)
+@workflow.defn(name=DOWNLOAD_UPSTREAM_IMAGE_WF_NAME, sandboxed=False)
 class DownloadUpstreamImage:
     @workflow.run
     async def run(self, params: DownloadUpstreamImageParams) -> bool:
@@ -71,7 +69,7 @@ class DownloadUpstreamImage:
         return False
 
 
-@workflow.defn(name=GET_OR_CREATE_PRODUCT_WF_NAME)
+@workflow.defn(name=GET_OR_CREATE_PRODUCT_WF_NAME, sandboxed=False)
 class GetOrCreateProduct:
     @workflow.run
     async def run(self, params: GetOrCreateProductParams) -> tuple[bool, int]:

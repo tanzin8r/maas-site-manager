@@ -15,6 +15,9 @@ from workflows.download_upstream import (  # type: ignore
     DownloadUpstreamImage,
     GetOrCreateProduct,
 )
+from workflows.sync import (  # type: ignore
+    SyncUpstreamSourceWorkflow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +33,7 @@ async def run_worker() -> None:
         workflows=[
             DownloadUpstreamImage,
             GetOrCreateProduct,
+            SyncUpstreamSourceWorkflow,
         ],
         activities=[
             activities.download_asset,
@@ -37,6 +41,10 @@ async def run_worker() -> None:
             activities.get_or_create_asset,
             activities.get_or_create_item,
             activities.get_or_create_version,
+            activities.get_boot_source,
+            activities.download_json,
+            activities.parse_ss_index,
+            activities.load_product_map,
         ],
         worker_opt=WorkerOptions(sentry=SentryOptions()),
     )
