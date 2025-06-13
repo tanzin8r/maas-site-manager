@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from activities.images import (  # type: ignore
+    CREATE_INDEX_JSON_ACTIVITY,
     DOWNLOAD_ASSET_ACTIVITY,
     GET_OR_CREATE_ASSET_ACTIVITY,
     GET_OR_CREATE_ITEM_ACTIVITY,
@@ -10,6 +11,7 @@ from activities.images import (  # type: ignore
     BootAsset,
     BootAssetItem,
     BootAssetVersion,
+    CreateIndexJsonParams,
     DownloadAssetParams,
     GetOrCreateAssetParams,
     GetOrCreateItemParams,
@@ -21,6 +23,7 @@ from temporalio import workflow
 
 DOWNLOAD_UPSTREAM_IMAGE_WF_NAME = "DownloadUpstreamImage"
 GET_OR_CREATE_PRODUCT_WF_NAME = "GetOrCreateProduct"
+CREATE_INDEX_JSON_WF_NAME = "CreateIndexJson"
 
 
 @dataclass
@@ -97,3 +100,14 @@ class GetOrCreateProduct:
             start_to_close_timeout=timedelta(seconds=30),
         )
         return created, item_id
+
+
+@workflow.defn(name=CREATE_INDEX_JSON_WF_NAME)
+class CreateIndexJson:
+    @workflow.run
+    async def run(self, params: CreateIndexJsonParams) -> None:
+        await workflow.execute_activity(
+            CREATE_INDEX_JSON_ACTIVITY,
+            params,
+            start_to_close_timeout=timedelta(minutes=1),
+        )

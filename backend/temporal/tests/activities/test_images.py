@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from datetime import UTC, datetime
+import json
 import typing
 from unittest.mock import PropertyMock
 
@@ -9,6 +10,7 @@ from activities.images import (  # type: ignore
     BootAssetKind,
     BootAssetLabel,
     BootAssetVersion,
+    CreateIndexJsonParams,
     DownloadAssetParams,
     GetOrCreateAssetParams,
     GetOrCreateItemParams,
@@ -372,3 +374,225 @@ class TestDownloadUpstreamActivities:
             json=expected_body,
             headers={"Authorization": f"bearer {params.msm_jwt}"},
         )
+
+    async def test_create_index_json(
+        self, mocker: MockerFixture, im_act: typing.Any
+    ) -> None:
+        mock_response = mocker.create_autospec(Response)
+        type(mock_response).status_code = PropertyMock(return_value=200)
+        mock_response.json.side_effect = [
+            {
+                "items": [
+                    {
+                        "id": 1,
+                        "boot_source_id": 1,
+                        "kind": 0,
+                        "label": "stable",
+                        "os": "ubuntu",
+                        "arch": "amd64",
+                        "release": "noble",
+                        "codename": "Noble Numbat",
+                        "title": "24.04 LTS",
+                        "subarch": "hwe-p",
+                        "compatibility": ["generic"],
+                        "flavor": "generic",
+                        "base_image": None,
+                        "eol": "2029-04-01T00:00:00Z",
+                        "esm_eol": "2036-04-01T00:00:00Z",
+                    },
+                    {
+                        "id": 2,
+                        "boot_source_id": 1,
+                        "kind": 1,
+                        "label": "stable",
+                        "os": "grub-efi-signed",
+                        "arch": "amd64",
+                        "bootloader_type": "uefi",
+                    },
+                    {
+                        "id": 3,
+                        "boot_source_id": 1,
+                        "kind": 0,
+                        "label": "stable",
+                        "os": "centos",
+                        "arch": "amd64",
+                        "release": "centos70",
+                        "title": "CentOS 7",
+                        "subarch": "generic",
+                        "compatibility": ["generic"],
+                        "eol": "2029-04-01T00:00:00Z",
+                        "esm_eol": "2036-04-01T00:00:00Z",
+                    },
+                ]
+            },
+            # noble asset
+            {"items": [{"id": 1, "version": "20250819.0"}]},
+            {
+                "items": [
+                    {
+                        "ftype": "boot-initrd",
+                        "path": "noble/amd64/boot-initrd",
+                        "sha256": "alskdjflakjsdf",
+                        "file_size": 1000,
+                    }
+                ]
+            },
+            # bootloader asset
+            {"items": [{"id": 1, "version": "20240819.0"}]},
+            {
+                "items": [
+                    {
+                        "ftype": "archive.tar.xz",
+                        "path": "bootloaders/uefi/grub2-signed.tar.xz",
+                        "sha256": "alskdjflakjsdf",
+                        "file_size": 1000,
+                        "source_package": "grub2-signed",
+                        "source_release": "focal",
+                        "source_version": "1.167.2+2.04-1ubuntu44.2",
+                    }
+                ]
+            },
+            # centos asset
+            {"items": [{"id": 1, "version": "20230819.0"}]},
+            {
+                "items": [
+                    {
+                        "ftype": "manifest",
+                        "path": "centos/centos79/root-tgz.manifest",
+                        "sha256": "alskdjflakjsdf",
+                        "file_size": 1000,
+                    }
+                ]
+            },
+        ]
+        im_act.client.get.return_value = mock_response
+        mocker.patch.object(S3ResourceManager, "upload_file")
+        s3_params = S3Params(
+            endpoint="http://s3",
+            access_key="test-key",
+            secret_key="test-secret-key",
+            bucket="test-bucket",
+            path="test/path",
+        )
+        item_id = 1
+        s3_manager = S3ResourceManager(s3_params, item_id, multipart=False)
+        mocker.patch.object(
+            im_act, "_create_s3_manager", return_value=s3_manager
+        )
+        act_env = ActivityEnvironment()
+        params = CreateIndexJsonParams(
+            msm_fqdn="maas.site.manager",
+            msm_base_url="http://test.msm.url",
+            msm_jwt="test.msm.jwt",
+            s3_params=s3_params,
+        )
+        await act_env.run(im_act.create_index_json, params)
+        expected_index_json = {
+            "format": "index:1.0",
+            "index": {
+                "manager.site.maas:stream:v1:download": {
+                    "datatype": "image-ids",
+                    "format": "products:1.0",
+                    "path": "streams/v1/manager.site.maas:stream:v1:download.json",
+                    "products": [
+                        "manager.site.maas.stream:ubuntu:noble:amd64:hwe-p-generic",
+                        "manager.site.maas.stream:grub-efi-signed:uefi:amd64",
+                        "manager.site.maas.stream:centos:centos70:amd64:generic",
+                    ],
+                },
+            },
+        }
+        expected_download_json = {
+            "content_id": "manager.site.maas:stream:v1:download",
+            "datatype": "image-ids",
+            "format": "products:1.0",
+            "products": {
+                "manager.site.maas.stream:ubuntu:noble:amd64:hwe-p-generic": {
+                    "arch": "amd64",
+                    "kflavor": "generic",
+                    "label": "stable",
+                    "os": "ubuntu",
+                    "release": "noble",
+                    "release_codename": "Noble Numbat",
+                    "release_title": "24.04 LTS",
+                    "subarch": "hwe-p",
+                    "subarches": "generic",
+                    "support_eol": "2029-04-01T00:00:00Z",
+                    "support_esm_eol": "2036-04-01T00:00:00Z",
+                    "versions": {
+                        "20250819.0": {
+                            "items": {
+                                "boot-initrd": {
+                                    "ftype": "boot-initrd",
+                                    "path": "noble/amd64/boot-initrd",
+                                    "sha256": "alskdjflakjsdf",
+                                    "size": 1000,
+                                }
+                            }
+                        }
+                    },
+                },
+                "manager.site.maas.stream:grub-efi-signed:uefi:amd64": {
+                    "arch": "amd64",
+                    "label": "stable",
+                    "os": "grub-efi-signed",
+                    "bootloader-type": "uefi",
+                    "versions": {
+                        "20240819.0": {
+                            "items": {
+                                "grub2-signed": {
+                                    "ftype": "archive.tar.xz",
+                                    "path": "bootloaders/uefi/grub2-signed.tar.xz",
+                                    "sha256": "alskdjflakjsdf",
+                                    "size": 1000,
+                                    "src_package": "grub2-signed",
+                                    "src_release": "focal",
+                                    "src_version": "1.167.2+2.04-1ubuntu44.2",
+                                }
+                            }
+                        }
+                    },
+                },
+                "manager.site.maas.stream:centos:centos70:amd64:generic": {
+                    "arch": "amd64",
+                    "label": "stable",
+                    "os": "centos",
+                    "release": "centos70",
+                    "release_title": "CentOS 7",
+                    "subarch": "generic",
+                    "subarches": "generic",
+                    "support_eol": "2029-04-01T00:00:00Z",
+                    "support_esm_eol": "2036-04-01T00:00:00Z",
+                    "versions": {
+                        "20230819.0": {
+                            "items": {
+                                "manifest": {
+                                    "ftype": "manifest",
+                                    "path": "centos/centos79/root-tgz.manifest",
+                                    "sha256": "alskdjflakjsdf",
+                                    "size": 1000,
+                                }
+                            }
+                        }
+                    },
+                },
+            },
+        }
+        index_args, index_kwargs = s3_manager.upload_file.call_args_list[0]
+        download_args, download_kwargs = s3_manager.upload_file.call_args_list[
+            1
+        ]
+        index_json = json.loads(index_args[0])
+        download_json = json.loads(download_args[0])
+        index_filename = index_kwargs["key_override"]
+        download_filename = download_kwargs["key_override"]
+        assert index_filename == "index.json"
+        assert download_filename == "manager.site.maas:stream:v1:download.json"
+        # copy the timestamps, as we can't replicate it exactly
+        updated = index_json["updated"]
+        expected_index_json["updated"] = updated
+        for key in index_json["index"]:
+            expected_index_json["index"][key]["updated"] = updated  # type: ignore
+        expected_download_json["updated"] = updated
+        assert expected_index_json == index_json
+        assert expected_download_json == download_json

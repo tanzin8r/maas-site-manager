@@ -1192,6 +1192,9 @@ async def download(
             details=errors,
         )
 
+    if file_path == "streams/v1/index.json":
+        return S3StreamResponse(content=None, file_id="index.json")
+
     boot_item = await services.boot_asset_items.get_by_path(file_path)
     if not boot_item:
         raise NotFoundException(
