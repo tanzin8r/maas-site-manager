@@ -2,10 +2,9 @@ import typing
 from unittest.mock import AsyncMock, MagicMock
 
 from activities.simplestream import (  # type: ignore
-    DownloadJsonParams,
+    FetchSsIndexesParams,
     GetBootSourceParams,
     LoadProductMapParams,
-    ParseSsIndexParams,
     SimpleStreamActivities,
 )
 from httpx import AsyncClient, Response
@@ -123,7 +122,7 @@ class TestGetBootSourceActivity:
             await act_env.run(ss_act.get_boot_source, params)
 
 
-class TestDownloadSSJsonActivity:
+class TestDownloadJson:
     @pytest.mark.asyncio
     async def test_download_json_plain(
         self, ss_act: SimpleStreamActivities, mocker: MockerFixture
@@ -133,17 +132,15 @@ class TestDownloadSSJsonActivity:
         mock_response.status_code = 200
         mock_response.text = b'{"foo": "bar"}'
         mocker.patch.object(ss_act.client, "get", return_value=mock_response)
-        params = DownloadJsonParams(
-            source_url="http://test.url/streams/v1/index.json"
-        )
 
         # Act
-        act_env = ActivityEnvironment()
-        result = await act_env.run(ss_act.download_json, params)
+        result, signed = await ss_act._download_json(
+            "http://test.url/streams/v1/index.json"
+        )
 
         # Assert
-        assert result["json"] == {"foo": "bar"}
-        assert result["signed_by_cpc"] is False
+        assert result == {"foo": "bar"}
+        assert signed is False
 
     @pytest.mark.asyncio
     async def test_download_json_signed(
@@ -159,18 +156,15 @@ class TestDownloadSSJsonActivity:
             "activities.simplestream.read_signed",
             AsyncMock(return_value=('{"foo": "bar"}', True)),
         )
-        params = DownloadJsonParams(
-            source_url="http://test.url/streams/v1/index.sjson",
-            keyring="keyring",
-        )
 
         # Act
-        act_env = ActivityEnvironment()
-        result = await act_env.run(ss_act.download_json, params)
+        result, signed = await ss_act._download_json(
+            "http://test.url/streams/v1/index.sjson", keyring="keyring"
+        )
 
         # Assert
-        assert result["json"] == {"foo": "bar"}
-        assert result["signed_by_cpc"] is True
+        assert result == {"foo": "bar"}
+        assert signed is True
 
     @pytest.mark.asyncio
     async def test_download_json_http_error(
@@ -181,79 +175,94 @@ class TestDownloadSSJsonActivity:
         mock_response.status_code = 404
         mock_response.text = "Not found"
         mocker.patch.object(ss_act.client, "get", return_value=mock_response)
-        params = DownloadJsonParams(
-            source_url="http://test.url/streams/v1/index.json"
-        )
 
         # Act & Assert
-        act_env = ActivityEnvironment()
         with pytest.raises(Exception) as excinfo:
-            await act_env.run(ss_act.download_json, params)
+            await ss_act._download_json(
+                "http://test.url/streams/v1/index.json"
+            )
         assert "Failed to download JSON" in str(excinfo.value)
 
 
 class TestParseSsIndexActivity:
     @pytest.mark.asyncio
     async def test_parse_ss_index_valid(
-        self, ss_act: SimpleStreamActivities
+        self, ss_act: SimpleStreamActivities, mocker: MockerFixture
     ) -> None:
         # Arrange
         act_env = ActivityEnvironment()
         index_url = "http://example.com/streams/v1/index.sjson"
-        params = ParseSsIndexParams(
+        mocker.patch.object(
+            ss_act,
+            "_download_json",
+            return_value=(
+                {
+                    "index": {
+                        "prod1": {
+                            "format": "products:1.0",
+                            "path": "streams/v1/prod1.json",
+                        },
+                        "prod2": {
+                            "format": "products:1.0",
+                            "path": "streams/v1/prod2.json",
+                        },
+                        "other": {
+                            "format": "other:1.0",
+                            "path": "streams/v1/other.json",
+                        },
+                    }
+                },
+                True,
+            ),
+        )
+        params = FetchSsIndexesParams(
             index_url=index_url,
-            content={
-                "index": {
-                    "prod1": {
-                        "format": "products:1.0",
-                        "path": "streams/v1/prod1.json",
-                    },
-                    "prod2": {
-                        "format": "products:1.0",
-                        "path": "streams/v1/prod2.json",
-                    },
-                    "other": {
-                        "format": "other:1.0",
-                        "path": "streams/v1/other.json",
-                    },
-                }
-            },
         )
 
         # Act
-        base_url, products = await act_env.run(ss_act.parse_ss_index, params)
+        base_url, signed, products = await act_env.run(
+            ss_act.parse_ss_index, params
+        )
 
         # Assert
         assert base_url == "http://example.com/"
+        assert signed is True
         assert "http://example.com/streams/v1/prod1.json" in products
         assert "http://example.com/streams/v1/prod2.json" in products
         assert all("other.json" not in p for p in products)
 
     @pytest.mark.asyncio
     async def test_parse_ss_index_empty_index(
-        self, ss_act: SimpleStreamActivities
+        self, ss_act: SimpleStreamActivities, mocker: MockerFixture
     ) -> None:
         act_env = ActivityEnvironment()
-        params = ParseSsIndexParams(
+        mocker.patch.object(
+            ss_act, "_download_json", return_value=({"index": {}}, False)
+        )
+        params = FetchSsIndexesParams(
             index_url="http://example.com/streams/v1/index.sjson",
-            content={"index": {}},
         )
 
-        base_url, products = await act_env.run(ss_act.parse_ss_index, params)
+        base_url, signed, products = await act_env.run(
+            ss_act.parse_ss_index, params
+        )
         assert base_url == "http://example.com/"
+        assert signed is False
         assert products == []
 
     @pytest.mark.asyncio
     async def test_parse_ss_index_missing_index(
-        self, ss_act: SimpleStreamActivities
+        self, ss_act: SimpleStreamActivities, mocker: MockerFixture
     ) -> None:
         act_env = ActivityEnvironment()
-        params = ParseSsIndexParams(
+        mocker.patch.object(ss_act, "_download_json", return_value=({}, False))
+        params = FetchSsIndexesParams(
             index_url="http://example.com/streams/v1/index.sjson",
-            content={},
         )
 
-        base_url, products = await act_env.run(ss_act.parse_ss_index, params)
+        base_url, _, products = await act_env.run(
+            ss_act.parse_ss_index, params
+        )
         assert base_url == "http://example.com/"
         assert products == []
 
@@ -261,7 +270,7 @@ class TestParseSsIndexActivity:
 class TestLoadProductMapActivity:
     @pytest.mark.asyncio
     async def test_load_product_map_valid(
-        self, ss_act: SimpleStreamActivities
+        self, ss_act: SimpleStreamActivities, mocker: MockerFixture
     ) -> None:
         # Arrange
         act_env = ActivityEnvironment()
@@ -289,11 +298,14 @@ class TestLoadProductMapActivity:
                 }
             }
         }
+        mocker.patch.object(
+            ss_act, "_download_json", return_value=(products, False)
+        )
         selections = {"ubuntu---oracular": ["amd64"]}
+
         params = LoadProductMapParams(
-            products=products,
+            index_url="http://example.com/streams/v1/index.sjson",
             selections=selections,
-            canonical_source=True,
         )
 
         # Act
@@ -316,7 +328,7 @@ class TestLoadProductMapActivity:
 
     @pytest.mark.asyncio
     async def test_load_product_map_no_matching_selection(
-        self, ss_act: SimpleStreamActivities
+        self, ss_act: SimpleStreamActivities, mocker: MockerFixture
     ) -> None:
         # Arrange
         act_env = ActivityEnvironment()
@@ -341,11 +353,15 @@ class TestLoadProductMapActivity:
                 }
             }
         }
+        mocker.patch.object(
+            ss_act, "_download_json", return_value=(products, False)
+        )
+
         selections = {"ubuntu---noble": ["amd64"]}
+
         params = LoadProductMapParams(
-            products=products,
+            index_url="http://example.com/streams/v1/index.sjson",
             selections=selections,
-            canonical_source=True,
         )
 
         # Act
