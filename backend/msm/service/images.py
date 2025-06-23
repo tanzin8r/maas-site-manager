@@ -34,6 +34,7 @@ class BootSourceService(Service):
                 BootSource.c.keyring,
                 BootSource.c.sync_interval,
                 BootSource.c.priority,
+                BootSource.c.name,
             )
             .order_by(*order_by)
             .offset(offset)
@@ -52,6 +53,7 @@ class BootSourceService(Service):
             BootSource.c.keyring,
             BootSource.c.sync_interval,
             BootSource.c.priority,
+            BootSource.c.name,
         ).where(BootSource.c.id == id)
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
@@ -72,6 +74,7 @@ class BootSourceService(Service):
                 BootSource.c.keyring,
                 BootSource.c.sync_interval,
                 BootSource.c.priority,
+                BootSource.c.name,
             )
         )
         result = await self.conn.execute(stmt)
@@ -87,6 +90,7 @@ class BootSourceService(Service):
             BootSource.c.keyring,
             BootSource.c.sync_interval,
             BootSource.c.priority,
+            BootSource.c.name,
         )
         result = await self.conn.execute(
             stmt,
@@ -119,6 +123,7 @@ class BootSourceService(Service):
             "id": 1,
             "url": service_url,
             "keyring": "",
+            "name": "MSM Custom Images",
             "sync_interval": 0,
             "priority": 1,
         }

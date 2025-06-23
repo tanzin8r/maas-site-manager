@@ -427,12 +427,14 @@ class TestBootSourceService:
             url="http://some.image.server",
             keyring="test keyring",
             sync_interval=3600,
+            name="Test Boot Source",
         )
         boot_source = await factory.make_BootSource(
             priority=expected_boot_source.priority,
             url=expected_boot_source.url,
             keyring=expected_boot_source.keyring,
             sync_interval=expected_boot_source.sync_interval,
+            name=expected_boot_source.name,
         )
         expected_boot_source.id = boot_source.id
 
@@ -468,6 +470,7 @@ class TestBootSourceService:
             url="http://some.image.server",
             keyring="test keyring",
             sync_interval=3600,
+            name="Test Boot Source",
         )
         service = BootSourceService(db_connection)
         boot_source = await service.create(new_boot_source)
@@ -487,19 +490,24 @@ class TestBootSourceService:
             url="http://some.image.server",
             keyring="test keyring",
             sync_interval=3600,
+            name="Test Boot Source",
         )
         boot_source = await factory.make_BootSource(
             priority=expected_boot_source.priority,
             url=expected_boot_source.url,
             keyring=expected_boot_source.keyring,
             sync_interval=expected_boot_source.sync_interval,
+            name=expected_boot_source.name,
         )
         new_boot_source = BootSourceUpdate(
-            priority=2, url="http://another.image.server"
+            priority=2,
+            url="http://another.image.server",
+            name="Another Boot Source",
         )
         expected_boot_source.id = boot_source.id
         expected_boot_source.priority = new_boot_source.priority  # type: ignore
         expected_boot_source.url = new_boot_source.url  # type: ignore
+        expected_boot_source.name = new_boot_source.name  # type: ignore
 
         service = BootSourceService(db_connection)
         await service.update(boot_source.id, new_boot_source)
@@ -516,6 +524,7 @@ class TestBootSourceService:
             url="http://some.image.server",
             keyring="test keyring",
             sync_interval=3600,
+            name="Test Boot Source",
         )
         boot_source = await factory.make_BootSource(
             priority=expected_boot_source.priority,

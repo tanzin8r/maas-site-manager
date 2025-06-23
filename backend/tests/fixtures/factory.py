@@ -325,6 +325,7 @@ class Factory:
         url: str = "",
         keyring: str | None = None,
         sync_interval: int = 0,
+        name: str = "",
     ) -> BootSource:
         [row] = await self.create(
             "boot_source",
@@ -334,6 +335,7 @@ class Factory:
                     "url": url,
                     "keyring": keyring,
                     "sync_interval": sync_interval,
+                    "name": name,
                 }
             ],
         )

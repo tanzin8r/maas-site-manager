@@ -15,12 +15,14 @@ async def make_fixture_images(conn: AsyncConnection) -> list[SampleDataModel]:
     collection.add(
         priority=1,
         url="http://msm",
+        name="MAAS Site Manager",
         keyring="",
         sync_interval=0,
     )
     collection.add(
         priority=2,
         url="http://another.image.server",
+        name="Public Image Server",
         keyring="""-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBFxEQeMBCACtgu58j4RuE34OW3Xoy4PIXlLv/8P+FUUFs8Dk4WO5zUJN2NfN

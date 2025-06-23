@@ -273,6 +273,7 @@ class TestBootSourcesGetHandler:
             url="http://test.url",
             keyring="test_keyring",
             sync_interval=4200,
+            name="Test Source",
         )
         sources = await user_client.get("/bootasset-sources")
         assert sources.status_code == 200
@@ -290,6 +291,7 @@ class TestBootSourcesGetHandler:
             url="http://test.url",
             keyring="test_keyring",
             sync_interval=4200,
+            name="Test Source",
         )
         resp = await user_client.get(f"/bootasset-sources/{boot_source.id}")
         assert resp.status_code == 200
@@ -369,6 +371,7 @@ class TestBootSourcesPostHandler:
             "url": "http://some.image.server",
             "keyring": "testkeyring",
             "sync_interval": 1000,
+            "name": "Test Source",
         }
         resp = await user_client.post("/bootasset-sources", json=data)
         new_id = resp.json()["id"]
@@ -377,14 +380,23 @@ class TestBootSourcesPostHandler:
         assert len(stored) == 1
         assert stored[0] == data | {"id": new_id}
 
+    @pytest.mark.parametrize(
+        "field", ["priority", "url", "keyring", "sync_interval", "name"]
+    )
     async def test_post_missing_details(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        field: str,
     ) -> None:
         data = {
             "priority": 1,
             "url": "http://some.image.server",
             "keyring": "testkeyring",
+            "sync_interval": 1000,
+            "name": "Test Source",
         }
+        data.pop(field)
         resp = await user_client.post("/bootasset-sources", json=data)
         assert resp.status_code == 422
 
@@ -399,12 +411,14 @@ class TestBootSourcesUpdateHandler:
             url="http://test.url",
             keyring="test-keyring",
             sync_interval=100,
+            name="Test Source",
         )
         data = {
             "priority": 2,
             "url": "http://another.url",
             "keyring": "another-keyring",
             "sync_interval": 200,
+            "name": "Another Name",
         }
         resp = await user_client.patch(
             f"/bootasset-sources/{bs.id}", json=data
@@ -433,6 +447,7 @@ class TestBootSourcesUpdateHandler:
             url="http://test.url",
             keyring="test-keyring",
             sync_interval=100,
+            name="Test Source",
         )
         resp = await user_client.patch(f"/bootasset-sources/{bs.id}", json={})
         assert resp.status_code == 422
@@ -446,12 +461,14 @@ class TestBootSourcesUpdateHandler:
             url="http://test.url",
             keyring="test-keyring",
             sync_interval=100,
+            name="Test Source",
         )
         data = {
             "priority": 2,
             "url": "http://another.url",
             "keyring": "another-keyring",
             "sync_interval": 200,
+            "name": "Another Source",
             "something": "extra",
         }
         resp = await user_client.patch(

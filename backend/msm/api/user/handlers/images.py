@@ -287,6 +287,7 @@ class BootSourcesPostRequest(BaseModel):
     url: str
     keyring: str
     sync_interval: int
+    name: str
 
 
 class BootSourcesPostResponse(BaseModel):
@@ -316,6 +317,7 @@ class BootSourcesPatchRequest(BaseModel):
     url: str | None = None
     keyring: str | None = None
     sync_interval: int | None = Field(default=None, ge=0)
+    name: str | None = None
 
     model_config = {"extra": "forbid"}
 

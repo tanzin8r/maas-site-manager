@@ -198,6 +198,7 @@ class BootSource(BaseModel):
     id: int
     priority: int
     url: str
+    name: str
     keyring: str | None = None
     sync_interval: int = Field(ge=0)
 
@@ -205,6 +206,7 @@ class BootSource(BaseModel):
 class BootSourceCreate(BaseModel):
     priority: int
     url: str
+    name: str
     keyring: str | None = None
     sync_interval: int = Field(ge=0)
 
@@ -214,5 +216,6 @@ class BootSourceUpdate(BaseModel):
 
     priority: int | None = None
     url: str | None = None
+    name: str | None = None
     keyring: str | None = None
     sync_interval: int | None = Field(default=None, ge=0)

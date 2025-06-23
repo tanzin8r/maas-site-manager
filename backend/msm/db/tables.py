@@ -150,6 +150,7 @@ BootSource = Table(
     Column("url", Text, nullable=False),
     Column("keyring", Text, nullable=True),
     Column("sync_interval", Integer),
+    Column("name", Text, nullable=False),
 )
 
 BootSourceSelection = Table(
