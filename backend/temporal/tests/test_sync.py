@@ -1,3 +1,4 @@
+from datetime import timedelta
 import typing
 import uuid
 
@@ -7,8 +8,11 @@ from activities.simplestream import (  # type: ignore
     GET_BOOT_SOURCE_ACTIVITY,
     LOAD_PRODUCT_MAP_ACTIVITY,
     FetchSsIndexesParams,
+    FetchSsIndexesResult,
     GetBootSourceParams,
+    GetBootSourceResult,
     LoadProductMapParams,
+    LoadProductMapResult,
 )
 import pytest
 from pytest_mock import MockerFixture
@@ -21,6 +25,8 @@ from temporal.resources.workflows.sync import (
     SyncUpstreamSourceParams,
     SyncUpstreamSourceWorkflow,
 )
+
+TEST_WF_TIMEOUT = timedelta(seconds=30)
 
 
 @pytest.fixture
@@ -47,7 +53,7 @@ def sync_params(s3_params: S3Params) -> SyncUpstreamSourceParams:
 @pytest.fixture
 def boot_source_data() -> dict[str, typing.Any]:
     return {
-        "boot_source": {
+        "boot-source": {
             "url": "http://upstream.example.com/streams/v1/index.sjson",
             "keyring": None,
         },
@@ -178,35 +184,38 @@ class TestSyncUpstreamSourceWorkflow:
     ) -> None:
         # Mock activities
         @activity.defn(name=GET_BOOT_SOURCE_ACTIVITY)
-        async def get_boot_source_data(
+        async def get_boot_source_data_mock(
             params: GetBootSourceParams,
-        ) -> dict[str, typing.Any]:
-            return boot_source_data
+        ) -> GetBootSourceResult:
+            return GetBootSourceResult(
+                index_url=boot_source_data["boot-source"]["url"],
+                keyring=boot_source_data["boot-source"]["keyring"],
+                selections=boot_source_data["selections"],
+            )
 
         @activity.defn(name=FETCH_SS_INDEXES)
-        async def parse_ss_index(
+        async def parse_ss_index_mock(
             params: FetchSsIndexesParams,
-        ) -> tuple[str, bool, list[str]]:
-            if (
+        ) -> FetchSsIndexesResult:
+            assert (
                 params.index_url
                 == "http://upstream.example.com/streams/v1/index.sjson"
-            ):
-                return (
-                    "http://upstream.example.com/",
-                    True,
-                    ["http://upstream.example.com/streams/v1/prod1.json"],
-                )
-            raise ApplicationError("Unexpected URL", non_retryable=True)
+            )
+            return FetchSsIndexesResult(
+                "http://upstream.example.com/",
+                True,
+                ["http://upstream.example.com/streams/v1/prod1.json"],
+            )
 
         @activity.defn(name=LOAD_PRODUCT_MAP_ACTIVITY)
-        async def load_product_map(
+        async def load_product_map_mock(
             params: LoadProductMapParams,
-        ) -> list[dict[str, typing.Any]]:
+        ) -> LoadProductMapResult:
             if (
                 params.index_url
                 == "http://upstream.example.com/streams/v1/prod1.json"
             ):
-                return product_list
+                return LoadProductMapResult(product_list)
             raise ApplicationError("Unexpected URL", non_retryable=True)
 
         mock_store = mocker.patch(
@@ -220,9 +229,9 @@ class TestSyncUpstreamSourceWorkflow:
                 task_queue="abcd:region",
                 workflows=[SyncUpstreamSourceWorkflow],
                 activities=[
-                    get_boot_source_data,
-                    parse_ss_index,
-                    load_product_map,
+                    get_boot_source_data_mock,
+                    parse_ss_index_mock,
+                    load_product_map_mock,
                 ],
             ) as worker:
                 result = await env.client.execute_workflow(
@@ -230,7 +239,7 @@ class TestSyncUpstreamSourceWorkflow:
                     sync_params,
                     id=f"workflow-{uuid.uuid4()}",
                     task_queue=worker.task_queue,
-                    retry_policy=None,  # Disable retries for testing
+                    run_timeout=TEST_WF_TIMEOUT,
                 )
 
         # Assert

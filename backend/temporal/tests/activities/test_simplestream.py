@@ -5,6 +5,7 @@ from activities.simplestream import (  # type: ignore
     FetchSsIndexesParams,
     GetBootSourceParams,
     LoadProductMapParams,
+    LoadProductMapResult,
     SimpleStreamActivities,
 )
 from httpx import AsyncClient, Response
@@ -90,15 +91,12 @@ class TestGetBootSourceActivity:
         result = await act_env.run(ss_act.get_boot_source, params)
 
         # Assert
-        assert result["boot_source"] == {
-            "id": 42,
-            "name": "test-source",
-            "url": "http://test.source.url/streams/v1/index.sjson",
-            "keyring": "test-keyring",
-        }
-        assert "selections" in result
-        assert result["selections"]["ubuntu---oracular"] == ["amd64", "arm64"]
-        assert result["selections"]["ubuntu---questing"] == ["amd64"]
+        assert (
+            result.index_url == "http://test.source.url/streams/v1/index.sjson"
+        )
+        assert result.keyring == "test-keyring"
+        assert result.selections["ubuntu---oracular"] == ["amd64", "arm64"]
+        assert result.selections["ubuntu---questing"] == ["amd64"]
 
     @pytest.mark.asyncio
     async def test_get_boot_source_failure(
@@ -220,16 +218,14 @@ class TestParseSsIndexActivity:
         )
 
         # Act
-        base_url, signed, products = await act_env.run(
-            ss_act.parse_ss_index, params
-        )
+        result = await act_env.run(ss_act.parse_ss_index, params)
 
         # Assert
-        assert base_url == "http://example.com/"
-        assert signed is True
-        assert "http://example.com/streams/v1/prod1.json" in products
-        assert "http://example.com/streams/v1/prod2.json" in products
-        assert all("other.json" not in p for p in products)
+        assert result.base_url == "http://example.com/"
+        assert result.signed is True
+        assert "http://example.com/streams/v1/prod1.json" in result.products
+        assert "http://example.com/streams/v1/prod2.json" in result.products
+        assert all("other.json" not in p for p in result.products)
 
     @pytest.mark.asyncio
     async def test_parse_ss_index_empty_index(
@@ -243,12 +239,10 @@ class TestParseSsIndexActivity:
             index_url="http://example.com/streams/v1/index.sjson",
         )
 
-        base_url, signed, products = await act_env.run(
-            ss_act.parse_ss_index, params
-        )
-        assert base_url == "http://example.com/"
-        assert signed is False
-        assert products == []
+        result = await act_env.run(ss_act.parse_ss_index, params)
+        assert result.base_url == "http://example.com/"
+        assert result.signed is False
+        assert result.products == []
 
     @pytest.mark.asyncio
     async def test_parse_ss_index_missing_index(
@@ -260,11 +254,9 @@ class TestParseSsIndexActivity:
             index_url="http://example.com/streams/v1/index.sjson",
         )
 
-        base_url, _, products = await act_env.run(
-            ss_act.parse_ss_index, params
-        )
-        assert base_url == "http://example.com/"
-        assert products == []
+        result = await act_env.run(ss_act.parse_ss_index, params)
+        assert result.base_url == "http://example.com/"
+        assert result.products == []
 
 
 class TestLoadProductMapActivity:
@@ -312,9 +304,9 @@ class TestLoadProductMapActivity:
         result = await act_env.run(ss_act.load_product_map, params)
 
         # Assert
-        assert isinstance(result, list)
-        assert len(result) == 1
-        item = result[0]
+        assert isinstance(result, LoadProductMapResult)
+        assert len(result.items) == 1
+        item = result.items[0]
         assert item["arch"] == "amd64"
         assert item["os"] == "ubuntu"
         assert item["release"] == "oracular"
@@ -368,4 +360,4 @@ class TestLoadProductMapActivity:
         result = await act_env.run(ss_act.load_product_map, params)
 
         # Assert
-        assert result == []
+        assert result.items == []

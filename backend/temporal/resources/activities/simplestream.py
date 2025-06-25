@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import typing
 
@@ -39,16 +39,47 @@ class GetBootSourceParams:
 
 
 @dataclass
+class GetBootSourceResult:
+    index_url: str
+    keyring: str | None = None
+    selections: dict[str, list[str]] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> typing.Self:
+        return cls(**data)
+
+
+@dataclass
 class FetchSsIndexesParams:
     index_url: str
     keyring: str | None = None
 
 
 @dataclass
+class FetchSsIndexesResult:
+    base_url: str
+    signed: bool
+    products: list[str]
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> typing.Self:
+        return cls(**data)
+
+
+@dataclass
 class LoadProductMapParams:
     index_url: str
-    selections: dict[str, list[str]]
     keyring: str | None = None
+    selections: dict[str, list[str]] = field(default_factory=dict)
+
+
+@dataclass
+class LoadProductMapResult:
+    items: list[dict[str, typing.Any]]
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> typing.Self:
+        return cls(**data)
 
 
 def get_selection_key(os: str, release: str) -> str:
@@ -86,7 +117,7 @@ class SimpleStreamActivities(BaseActivity):
     @activity.defn(name=GET_BOOT_SOURCE_ACTIVITY)
     async def get_boot_source(
         self, params: GetBootSourceParams
-    ) -> dict[str, typing.Any]:
+    ) -> GetBootSourceResult:
         headers = self._get_header(params.msm_jwt)
 
         # get source
@@ -123,15 +154,16 @@ class SimpleStreamActivities(BaseActivity):
             len(selections),
         )
 
-        return {
-            "boot_source": boot_source,
-            "selections": selections,
-        }
+        return GetBootSourceResult(
+            index_url=boot_source["url"],
+            keyring=boot_source["keyring"],
+            selections=selections,
+        )
 
     @activity.defn(name=FETCH_SS_INDEXES)
     async def parse_ss_index(
         self, params: FetchSsIndexesParams
-    ) -> tuple[str, bool, list[str]]:
+    ) -> FetchSsIndexesResult:
         content, signed = await self._download_json(
             params.index_url, params.keyring
         )
@@ -153,12 +185,12 @@ class SimpleStreamActivities(BaseActivity):
                 continue
             products.append(compose_url(base_url, entry["path"]))
 
-        return base_url, signed, products
+        return FetchSsIndexesResult(base_url, signed, products)
 
     @activity.defn(name=LOAD_PRODUCT_MAP_ACTIVITY)
     async def load_product_map(
         self, params: LoadProductMapParams
-    ) -> list[dict[str, typing.Any]]:
+    ) -> LoadProductMapResult:
         content, signed = await self._download_json(
             params.index_url, params.keyring
         )
@@ -202,4 +234,4 @@ class SimpleStreamActivities(BaseActivity):
                 }
                 download_items.append(new_item)
 
-        return download_items
+        return LoadProductMapResult(download_items)
