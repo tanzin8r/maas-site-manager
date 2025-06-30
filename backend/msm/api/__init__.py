@@ -93,15 +93,17 @@ def create_app(
                 # stop all tasks
                 tg.cancel_scope.cancel()
 
+    extra: dict[str, Any] = {}
     base_path = os.environ.get("MSM_BASE_PATH", "")
-    root_path = urllib.parse.urlparse(base_path).path
+    if (root_path := urllib.parse.urlparse(base_path).path) != "/":
+        extra["root_path"] = root_path
 
     app = FastAPI(
         title="MAAS Site Manager",
         name="msm",
         version=__version__,
         lifespan=lifespan,
-        root_path=root_path,
+        **extra,
     )
 
     @app.get("/")
