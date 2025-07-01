@@ -48,9 +48,8 @@ export default defineConfig(({ mode }) => {
         output: {
           sanitizeFileName: false,
           manualChunks: {
-            react: ["react", "react-dom"],
+            react: ["react", "react-dom", "formik"],
             canonicalComponents: ["@canonical/react-components", "@canonical/maas-react-components"],
-            formik: ["formik"],
             yup: ["yup"],
           },
         },
