@@ -1,9 +1,8 @@
 from base64 import b64encode
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from hashlib import sha256
-import json
 from os.path import join
 import typing
 
@@ -20,7 +19,6 @@ GET_OR_CREATE_ASSET_ACTIVITY = "get-or-create-asset"
 GET_OR_CREATE_ITEM_ACTIVITY = "get-or-create-item"
 GET_OR_CREATE_VERSION_ACTIVITY = "get-or-create-version"
 UPDATE_BYTES_SYNCED_ACTIVITY = "update-bytes-synced"
-CREATE_INDEX_JSON_ACTIVITY = "create-index-json"
 
 
 @dataclass
@@ -126,14 +124,6 @@ class GetOrCreateItemParams:
     msm_base_url: str
     msm_jwt: str
     item: BootAssetItem
-
-
-@dataclass
-class CreateIndexJsonParams:
-    msm_fqdn: str
-    msm_base_url: str
-    msm_jwt: str
-    s3_params: S3Params
 
 
 class S3ResourceManager:
@@ -418,159 +408,3 @@ class ImageManagementActivity(BaseActivity):
             get_url, get_params, post_url, item_dict, headers
         )
         return id
-
-    @activity.defn(name=CREATE_INDEX_JSON_ACTIVITY)
-    async def create_index_json(self, params: CreateIndexJsonParams) -> None:
-        headers = self._get_header(params.msm_jwt)
-        assets_url = compose_url(params.msm_base_url, "api/v1/bootassets")
-        assets_resp = await self.client.get(assets_url, headers=headers)
-        if assets_resp.status_code != 200:
-            raise ApplicationError(
-                f"Got unexpected response from API ({assets_resp.status_code}): {assets_resp.text}"
-            )
-        assets = assets_resp.json()["items"]
-        activity.heartbeat(f"Found {len(assets)} items")
-        reversed_fqdn = reverse_fqdn(params.msm_fqdn)
-        download_json: dict[str, typing.Any] = {
-            "content_id": f"{reversed_fqdn}:stream:v1:download",
-            "datatype": "image-ids",
-            "format": "products:1.0",
-            "products": {},
-        }
-        index: dict[str, typing.Any] = {
-            "format": "index:1.0",
-            "index": {
-                f"{reversed_fqdn}:stream:v1:download": {
-                    "datatype": "image-ids",
-                    "format": "products:1.0",
-                    "path": f"streams/v1/{reversed_fqdn}:stream:v1:download.json",
-                }
-            },
-        }
-        products = []
-        for asset in assets:
-            os = asset.get("os")
-            release = asset.get("release")
-            arch = asset.get("arch")
-            subarch = asset.get("subarch")
-            flavor = asset.get("flavor")
-            label = asset.get("label")
-            compatibility = asset.get("compatibility")
-            bootloader_type = asset.get("bootloader_type")
-            if asset["kind"] == BootAssetKind.BOOTLOADER:
-                product = (
-                    f"{reversed_fqdn}.stream:{os}:{bootloader_type}:{arch}"
-                )
-            else:
-                product = (
-                    f"{reversed_fqdn}.stream:{os}:{release}:{arch}:{subarch}"
-                )
-                if flavor:
-                    product += f"-{flavor}"
-            products.append(product)
-            product_json: dict[str, typing.Any] = {
-                "arch": arch,
-                "kflavor": flavor,
-                "label": label,
-                "os": os,
-                "release": release,
-                "release_codename": asset.get("codename"),
-                "release_title": asset.get("title"),
-                "subarch": subarch,
-                "subarches": ",".join(compatibility)
-                if compatibility
-                else None,
-                "bootloader-type": bootloader_type,
-                "support_eol": asset.get("eol"),
-                "support_esm_eol": asset.get("esm_eol"),
-                "versions": {},
-            }
-            # get latest version, fill in items
-            versions_url = compose_url(
-                params.msm_base_url, "api/v1/bootasset-versions"
-            )
-            versions_resp = await self.client.get(
-                versions_url,
-                headers=headers,
-                params={
-                    "boot_asset_id": asset["id"],
-                    "sort_by": "version-desc",
-                },
-            )
-            if versions_resp.status_code != 200:
-                raise ApplicationError(
-                    f"Got unexpected response from API ({assets_resp.status_code}): {assets_resp.text}"
-                )
-            latest_version = versions_resp.json()["items"][0]
-            activity.heartbeat(f"Found version {latest_version['version']}")
-            # get items:
-            items_url = compose_url(
-                params.msm_base_url, "api/v1/bootasset-items"
-            )
-            items_resp = await self.client.get(
-                items_url,
-                headers=headers,
-                params={"boot_asset_version_id": latest_version["id"]},
-            )
-            if items_resp.status_code != 200:
-                raise ApplicationError(
-                    f"Got unexpected response from API ({assets_resp.status_code}): {assets_resp.text}"
-                )
-            activity.heartbeat("Processing items")
-            items = items_resp.json()["items"]
-            items_json: dict[str, typing.Any] = {}
-            for item in items:
-                if asset["kind"] == BootAssetKind.BOOTLOADER:
-                    i = {
-                        "ftype": item.get("ftype"),
-                        "path": item.get("path"),
-                        "sha256": item.get("sha256"),
-                        "size": item.get("file_size"),
-                        "src_package": item.get("source_package"),
-                        "src_release": item.get("source_release"),
-                        "src_version": item.get("source_version"),
-                    }
-                    items_json[item["source_package"]] = {
-                        k: v for k, v in i.items() if v is not None
-                    }
-                else:
-                    i = {
-                        "ftype": item.get("ftype"),
-                        "path": item.get("path"),
-                        "sha256": item.get("sha256"),
-                        "size": item.get("file_size"),
-                    }
-                    items_json[item["ftype"]] = {
-                        k: v for k, v in i.items() if v is not None
-                    }
-            product_json["versions"][latest_version["version"]] = {
-                "items": items_json
-            }
-            download_json["products"][product] = {
-                k: v for k, v in product_json.items() if v is not None
-            }
-
-        now = datetime.now(UTC).strftime("%a, %d %b %Y %H:%M:%S %z")
-        index["updated"] = now
-        index["index"][f"{reversed_fqdn}:stream:v1:download"]["updated"] = now
-        index["index"][f"{reversed_fqdn}:stream:v1:download"]["products"] = (
-            products
-        )
-        download_json["updated"] = now
-        index_str = json.dumps(index)
-        download_str = json.dumps(download_json)
-        s3_manager = self._create_s3_manager(
-            params.s3_params,
-            0,
-            multipart=False,
-        )
-        try:
-            s3_manager.upload_file(index_str, key_override="index.json")
-            s3_manager.upload_file(
-                download_str,
-                key_override=f"{reversed_fqdn}:stream:v1:download.json",
-            )
-        except Exception as e:
-            raise ApplicationError(
-                f"Failed to upload index.json or download.json to storage: {e}"
-            )

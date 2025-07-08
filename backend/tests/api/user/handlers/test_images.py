@@ -6,10 +6,12 @@ from pathlib import Path
 from pydantic_core import ValidationError
 import pytest
 from pytest_mock import MockerFixture
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import (
     ItemFileType,
 )
+from msm.service import IndexService
 from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
 
@@ -491,6 +493,64 @@ class TestBootAssetItemsDownloadHandler:
             "/images/latest/edge/ubuntu/noble/boot-kernel"
         )
         assert resp.status_code == 400
+
+    async def test_download_index(
+        self,
+        user_client: Client,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        await factory.make_Setting(
+            "service_url",
+            value="https://maas.site.manager",
+        )
+        index_service = IndexService(db_connection)
+        await index_service.create()
+        resp = await user_client.get(
+            "/images/latest/stable/streams/v1/index.json"
+        )
+        assert resp.status_code == 200
+        index = resp.json()
+        expected_index = {
+            "format": "index:1.0",
+            "index": {
+                "manager.site.maas:stream:v1:download": {
+                    "datatype": "image-ids",
+                    "format": "products:1.0",
+                    "path": "streams/v1/manager.site.maas:stream:v1:download.json",
+                    "updated": index["updated"],
+                    "products": [],
+                }
+            },
+            "updated": index["updated"],
+        }
+        assert index == expected_index
+
+    async def test_download_download_index(
+        self,
+        user_client: Client,
+        factory: Factory,
+        db_connection: AsyncConnection,
+    ) -> None:
+        await factory.make_Setting(
+            "service_url",
+            value="https://maas.site.manager",
+        )
+        index_service = IndexService(db_connection)
+        await index_service.create()
+        resp = await user_client.get(
+            "/images/latest/stable/streams/v1/manager.site.maas:stream:v1:download.json"
+        )
+        assert resp.status_code == 200
+        dl_index = resp.json()
+        expected_index = {
+            "content_id": "manager.site.maas:stream:v1:download",
+            "datatype": "image-ids",
+            "format": "products:1.0",
+            "products": {},
+            "updated": dl_index["updated"],
+        }
+        assert dl_index == expected_index
 
 
 @pytest.mark.asyncio

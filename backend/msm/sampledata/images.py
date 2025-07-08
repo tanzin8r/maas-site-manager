@@ -74,6 +74,14 @@ DmFoRWTU6CpKtwIg/lb1ncbslH2xAFeUX6ASHXR8vBOnIXWss21FuAaNmWe4lmw=
         available=["amd64", "arm64"],
         selected=["amd64", "arm64"],
     )
+    collection.add(
+        boot_source_id=boot_sources[0].id,
+        label="candidate",
+        os="Ubuntu",
+        release="jammy",
+        available=["amd64"],
+        selected=["amd64"],
+    )
 
     await collection.create(conn)
 
@@ -147,6 +155,23 @@ DmFoRWTU6CpKtwIg/lb1ncbslH2xAFeUX6ASHXR8vBOnIXWss21FuAaNmWe4lmw=
         bootloader_type="uefi",
         signed=True,
     )
+    collection.add(
+        boot_source_id=boot_sources[1].id,
+        kind=0,
+        label="candidate",
+        os="ubuntu",
+        release="jammy",
+        codename="jammy jellyfish",
+        title="22.04 LTS",
+        arch="amd64",
+        subarch="generic",
+        compatibility=["generic"],
+        flavor="generic",
+        eol=datetime(2027, 4, 1, tzinfo=UTC),
+        esm_eol=datetime(2034, 4, 1, tzinfo=UTC),
+        bootloader_type=None,
+        signed=True,
+    )
 
     boot_assets = await collection.create(conn)
 
@@ -163,6 +188,10 @@ DmFoRWTU6CpKtwIg/lb1ncbslH2xAFeUX6ASHXR8vBOnIXWss21FuAaNmWe4lmw=
     # bootloader (6-7)
     collection.add(boot_asset_id=boot_assets[3].id, version="20200401.1")
     collection.add(boot_asset_id=boot_assets[3].id, version="20210401.1")
+
+    # duplicate jammy (8-9)
+    collection.add(boot_asset_id=boot_assets[4].id, version="20220401.1")
+    collection.add(boot_asset_id=boot_assets[4].id, version="20230401.1")
 
     boot_asset_versions = await collection.create(conn)
 
@@ -214,7 +243,7 @@ DmFoRWTU6CpKtwIg/lb1ncbslH2xAFeUX6ASHXR8vBOnIXWss21FuAaNmWe4lmw=
             source_version=None,
         )
     # jammy amd64
-    for version_id in [2, 3]:
+    for version_id in [2, 3, 8, 9]:
         collection.add(
             boot_asset_version_id=boot_asset_versions[version_id].id,
             ftype=ItemFileType.BOOT_INITRD,

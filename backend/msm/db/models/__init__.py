@@ -17,6 +17,8 @@ from msm.db.models.images import (
     BootSourceSelectionCreate,
     BootSourceSelectionUpdate,
     BootSourceUpdate,
+    IndexProduct,
+    IndexType,
     ItemFileType,
 )
 from msm.db.models.settings import Settings
@@ -62,6 +64,8 @@ __all__ = [
     "ConnectionStatus",
     "Coordinates",
     "EnrollingSite",
+    "IndexProduct",
+    "IndexType",
     "ItemFileType",
     "PendingSite",
     "PendingSiteCreate",

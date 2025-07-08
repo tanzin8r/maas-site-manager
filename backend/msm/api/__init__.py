@@ -40,6 +40,7 @@ from msm.middleware import DatabaseMetricsMiddleware, TransactionMiddleware
 from msm.service import (
     BootSourceService,
     ConfigService,
+    IndexService,
     ServiceCollection,
     SettingsService,
 )
@@ -168,6 +169,7 @@ async def ensure_db_entries(conn: AsyncConnection) -> None:
     await settings_service.ensure()
     service_url = await settings_service.get_service_url()
     await BootSourceService(conn).ensure_custom_boot_source(service_url)
+    await IndexService(conn).create()
 
 
 def _log_settings(logger: Logger, settings: Settings) -> None:

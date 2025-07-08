@@ -2,7 +2,8 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Select, and_, delete, insert, select, update
+from sqlalchemy import Select, and_, delete, insert, select, text, update
+from sqlalchemy.exc import ProgrammingError
 
 from msm.db import (
     models,
@@ -17,6 +18,7 @@ from msm.db.tables import (
 )
 from msm.schema import SortParam
 from msm.service.base import Service
+from msm.time import now_utc
 
 
 class BootSourceService(Service):
@@ -628,3 +630,270 @@ class BootAssetItemService(Service):
 
     def _select_statement(self, *columns: Any) -> Select[Any]:
         return select(*columns).select_from(BootAssetItem)
+
+
+class IndexNotFound(Exception):
+    """Raised when a refresh or select was made on the index, but it doesn't exist."""
+
+
+def reverse_fqdn(fqdn: str) -> str:
+    sp = fqdn.split(".")
+    sp.reverse()
+    return ".".join(sp)
+
+
+class IndexService(Service):
+    _MATERIALIZED_VIEW = """CREATE MATERIALIZED VIEW IF NOT EXISTS images_index AS
+SELECT DISTINCT ON (asset.boot_source_id, ver_item.ftype, ver_item.path)
+    asset.id,
+    asset.boot_source_id,
+    asset.kind,
+    asset.label,
+    asset.os,
+    asset.arch,
+    asset.release,
+    asset.codename,
+    asset.title,
+    asset.subarch,
+    asset.compatibility,
+    asset.flavor,
+    asset.base_image,
+    asset.bootloader_type,
+    asset.eol,
+    asset.esm_eol,
+    asset.signed,
+    ver_item.version,
+    ver_item.ftype,
+    ver_item.sha256,
+    ver_item.path,
+    ver_item.file_size,
+    ver_item.bytes_synced,
+    ver_item.source_package,
+    ver_item.source_version,
+    ver_item.source_release
+FROM
+    (
+        SELECT DISTINCT ON (boot_asset.os, boot_asset.release, boot_asset.arch)
+            source.priority,
+            boot_asset.id,
+            boot_asset.boot_source_id,
+            boot_asset.kind,
+            boot_asset.label,
+            boot_asset.os,
+            boot_asset.arch,
+            boot_asset.release,
+            boot_asset.codename,
+            boot_asset.title,
+            boot_asset.subarch,
+            boot_asset.compatibility,
+            boot_asset.flavor,
+            boot_asset.base_image,
+            boot_asset.bootloader_type,
+            boot_asset.eol,
+            boot_asset.esm_eol,
+            boot_asset.signed
+        FROM
+            (
+                boot_asset
+                JOIN
+                (
+                    SELECT bs.id, bs.priority
+                    FROM boot_source bs
+                ) AS source
+                ON boot_asset.boot_source_id = source.id
+            )
+        ORDER BY boot_asset.os, boot_asset.release, boot_asset.arch, source.priority DESC
+    ) as asset
+JOIN
+    (
+        (
+            SELECT DISTINCT ON (v.boot_asset_id) v.id, v.version, v.boot_asset_id
+            FROM boot_asset_version v
+            ORDER BY v.boot_asset_id, v.version DESC
+        ) AS ver
+        JOIN boot_asset_item item
+        ON ver.id = item.boot_asset_version_id
+    ) as ver_item
+ON ver_item.boot_asset_id = asset.id;"""
+
+    _UNIQUE_INDEX = "CREATE UNIQUE INDEX IF NOT EXISTS image_item ON images_index (os, release, arch, path);"
+
+    async def create(self) -> None:
+        """
+        Create the images_index materialized view if it doesn't already exist.
+        """
+        await self.conn.execute(text(self._MATERIALIZED_VIEW))
+        await self.conn.execute(text(self._UNIQUE_INDEX))
+
+    async def refresh(self) -> None:
+        """
+        Refresh the images_index materialized view.
+        """
+        stmt = text("REFRESH MATERIALIZED VIEW CONCURRENTLY images_index;")
+        try:
+            await self.conn.execute(stmt)
+        except ProgrammingError:
+            raise IndexNotFound()
+
+    async def drop(self) -> None:
+        """
+        Remove the images_index materialized view.
+        """
+        stmt = text("DROP MATERIALIZED VIEW images_index;")
+        try:
+            await self.conn.execute(stmt)
+        except ProgrammingError:
+            raise IndexNotFound()
+
+    async def get(
+        self, index_type: models.IndexType, fqdn: str
+    ) -> dict[str, Any]:
+        """
+        Get the specified index type.
+        """
+        stmt = text("SELECT * FROM images_index;")
+        try:
+            result = await self.conn.execute(stmt)
+        except ProgrammingError:
+            raise IndexNotFound()
+        products = [models.IndexProduct(**x._asdict()) for x in result.all()]
+        self._filter_for_fully_downloaded(products)
+        if index_type == models.IndexType.INDEX:
+            return self.generate_index_json(products, fqdn)
+        return self.generate_download_json(products, fqdn)
+
+    def _filter_for_fully_downloaded(
+        self, products: list[models.IndexProduct]
+    ) -> None:
+        """
+        Remove items from the list that are not part of a fully downloaded set.
+        """
+        download_status: dict[int, dict[str, Any]] = {}
+        for i, p in enumerate(products):
+            if download_status.get(p.id) is None:
+                download_status[p.id] = {
+                    "indeces": [i],
+                    "downloaded": p.bytes_synced == p.file_size,
+                }
+            else:
+                download_status[p.id]["downloaded"] &= (
+                    p.bytes_synced == p.file_size
+                )
+                download_status[p.id]["indeces"].append(i)
+
+        indeces_to_remove = []
+        for dl in download_status.values():
+            if not dl["downloaded"]:
+                indeces_to_remove += dl["indeces"]
+        indeces_to_remove.sort(reverse=True)
+        for i in indeces_to_remove:
+            products.pop(i)
+
+    def generate_index_json(
+        self, products: list[models.IndexProduct], fqdn: str
+    ) -> dict[str, Any]:
+        """
+        Create the index json from the list of products in the materialized view.
+        """
+        reversed_fqdn = reverse_fqdn(fqdn)
+        index_json: dict[str, Any] = {
+            "format": "index:1.0",
+            "index": {
+                f"{reversed_fqdn}:stream:v1:download": {
+                    "datatype": "image-ids",
+                    "format": "products:1.0",
+                    "path": f"streams/v1/{reversed_fqdn}:stream:v1:download.json",
+                }
+            },
+        }
+        product_keys = set()
+        for product in products:
+            if product.kind == models.BootAssetKind.BOOTLOADER:
+                product_key = f"{reversed_fqdn}.stream:{product.os}:{product.bootloader_type}:{product.arch}"
+            else:
+                product_key = f"{reversed_fqdn}.stream:{product.os}:{product.release}:{product.arch}:{product.subarch}"
+                if product.flavor:
+                    product_key += f"-{product.flavor}"
+            product_keys.add(product_key)
+        now = now_utc().strftime("%a, %d %b %Y %H:%M:%S %z")
+        index_json["updated"] = now
+        index_json["index"][f"{reversed_fqdn}:stream:v1:download"][
+            "updated"
+        ] = now
+        index_json["index"][f"{reversed_fqdn}:stream:v1:download"][
+            "products"
+        ] = sorted(product_keys)
+        return index_json
+
+    def generate_download_json(
+        self, products: list[models.IndexProduct], fqdn: str
+    ) -> dict[str, Any]:
+        """
+        Create the download json from the list of products in the materialized view.
+        """
+        reversed_fqdn = reverse_fqdn(fqdn)
+        download_json: dict[str, Any] = {
+            "content_id": f"{reversed_fqdn}:stream:v1:download",
+            "datatype": "image-ids",
+            "format": "products:1.0",
+            "products": {},
+        }
+        for product in products:
+            if product.kind == models.BootAssetKind.BOOTLOADER:
+                product_key = f"{reversed_fqdn}.stream:{product.os}:{product.bootloader_type}:{product.arch}"
+                item_json = {
+                    "ftype": product.ftype.value,
+                    "path": product.path,
+                    "sha256": product.sha256,
+                    "size": product.file_size,
+                    "src_package": product.source_package,
+                    "src_release": product.source_release,
+                    "src_version": product.source_version,
+                }
+                item_key = product.source_package
+            else:
+                product_key = f"{reversed_fqdn}.stream:{product.os}:{product.release}:{product.arch}:{product.subarch}"
+                if product.flavor:
+                    product_key += f"-{product.flavor}"
+                item_json = {
+                    "ftype": product.ftype.value,
+                    "path": product.path,
+                    "sha256": product.sha256,
+                    "size": product.file_size,
+                }
+                item_key = product.ftype.value
+            if download_json["products"].get(product_key) is None:
+                dl_prod = {
+                    "arch": product.arch,
+                    "kflavor": product.flavor,
+                    "label": product.label.value,
+                    "os": product.os,
+                    "release": product.release,
+                    "release_codename": product.codename,
+                    "release_title": product.title,
+                    "subarch": product.subarch,
+                    "subarches": ",".join(product.compatibility)
+                    if product.compatibility
+                    else None,
+                    "bootloader-type": product.bootloader_type,
+                    "support_eol": product.eol.strftime("%Y-%m-%d")
+                    if product.eol
+                    else None,
+                    "support_esm_eol": product.esm_eol.strftime("%Y-%m-%d")
+                    if product.esm_eol
+                    else None,
+                    "versions": {
+                        product.version: {"items": {item_key: item_json}}
+                    },
+                }
+                download_json["products"][product_key] = {
+                    k: v for k, v in dl_prod.items() if v is not None
+                }
+            else:
+                download_json["products"][product_key]["versions"][
+                    product.version
+                ]["items"][item_key] = item_json
+        download_json["updated"] = now_utc().strftime(
+            "%a, %d %b %Y %H:%M:%S %z"
+        )
+        return download_json

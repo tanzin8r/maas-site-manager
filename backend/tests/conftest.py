@@ -10,13 +10,14 @@ from tests.fixtures.env import (
     settings_environ,
     unset_settings_environ,
 )
-from tests.fixtures.factory import factory
+from tests.fixtures.factory import factory, index_view
 
 __all__ = [
     "db",
     "db_connection",
     "db_setup",
     "factory",
+    "index_view",
     "settings_environ",
     "transaction_middleware_class",
     "unset_settings_environ",

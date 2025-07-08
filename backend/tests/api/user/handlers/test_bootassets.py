@@ -364,7 +364,9 @@ class TestBootSourcesGetHandler:
 
 @pytest.mark.asyncio
 class TestBootSourcesPostHandler:
-    async def test_post(self, user_client: Client, factory: Factory) -> None:
+    async def test_post(
+        self, user_client: Client, factory: Factory, index_view: None
+    ) -> None:
         data = {
             "priority": 1,
             "url": "http://some.image.server",
@@ -402,7 +404,9 @@ class TestBootSourcesPostHandler:
 
 @pytest.mark.asyncio
 class TestBootSourcesUpdateHandler:
-    async def test_update(self, user_client: Client, factory: Factory) -> None:
+    async def test_update(
+        self, user_client: Client, factory: Factory, index_view: None
+    ) -> None:
         # need to create custom boot source and edit second one
         await factory.make_BootSource()
         bs = await factory.make_BootSource(
@@ -484,7 +488,9 @@ class TestBootSourcesUpdateHandler:
 
 @pytest.mark.asyncio
 class TestBootSourcesDeleteHandler:
-    async def test_delete(self, user_client: Client, factory: Factory) -> None:
+    async def test_delete(
+        self, user_client: Client, factory: Factory, index_view: None
+    ) -> None:
         # need to create custom boot source and delete second one
         await factory.make_BootSource()
         bs = await factory.make_BootSource()
@@ -628,6 +634,7 @@ class TestPatchBootSourceSelections:
         factory: Factory,
         boot_source: BootSource,
         selection: BootSourceSelection,
+        index_view: None,
     ) -> None:
         # Add a new selection and update the existing one
         up_sel = {
@@ -662,6 +669,7 @@ class TestPatchBootSourceSelections:
         user_client: Client,
         boot_source: BootSource,
         selection: BootSourceSelection,
+        index_view: None,
     ) -> None:
         # Remove all selections (should mark existing as stale)
         patch_data: dict[str, Any] = {"available": []}
@@ -1031,7 +1039,9 @@ class TestBootAssetItemsGetHandler:
 
 @pytest.mark.asyncio
 class TestBootAssetItemsPostHandler:
-    async def test_post(self, user_client: Client, factory: Factory) -> None:
+    async def test_post(
+        self, user_client: Client, factory: Factory, index_view: None
+    ) -> None:
         bs = await factory.make_BootSource()
         ba = await factory.make_BootAsset(bs.id)
         boot_asset_version = await factory.make_BootAssetVersion(ba.id)
@@ -1119,7 +1129,9 @@ class TestBootAssetItemsPostHandler:
 
 @pytest.mark.asyncio
 class TestBootAssetItemsPatchHandler:
-    async def test_patch(self, user_client: Client, factory: Factory) -> None:
+    async def test_patch(
+        self, user_client: Client, factory: Factory, index_view: None
+    ) -> None:
         bs = await factory.make_BootSource()
         ba = await factory.make_BootAsset(bs.id)
         bv = await factory.make_BootAssetVersion(ba.id)
@@ -1271,7 +1283,7 @@ class TestBootAssetItemsPatchHandler:
         assert stored[0]["bytes_synced"] == 1
 
     async def test_workers_can_change_bytes_synced(
-        self, app_client: Client, factory: Factory
+        self, app_client: Client, factory: Factory, index_view: None
     ) -> None:
         bs = await factory.make_BootSource()
         ba = await factory.make_BootAsset(bs.id)
@@ -1326,6 +1338,7 @@ class TestBootAssetItemsDeleteHandler:
         factory: Factory,
         mocker: MockerFixture,
         monkeypatch: pytest.MonkeyPatch,
+        index_view: None,
     ) -> None:
         mock_resource = mocker.patch(
             "msm.api.user.handlers.bootassets.boto3.resource"

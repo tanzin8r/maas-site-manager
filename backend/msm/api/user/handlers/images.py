@@ -1,7 +1,10 @@
 from datetime import MAXYEAR, UTC, datetime
 from hashlib import sha256
+import json
 from logging import getLogger
+from math import ceil
 from os.path import join
+from socket import gethostname
 from typing import Annotated, Any
 from urllib.parse import urlparse
 
@@ -31,6 +34,7 @@ from msm.api.exceptions.responses import (
 )
 from msm.api.user.auth import (
     authenticated_user,
+    verify_authenticated_user_or_worker,
 )
 import msm.api.user.models.bootassets as dm
 from msm.db import models
@@ -38,6 +42,7 @@ from msm.schema import (
     SortParam,
 )
 from msm.service import ServiceCollection
+from msm.service.images import reverse_fqdn
 from msm.settings import Settings
 
 logger = getLogger()
@@ -98,6 +103,48 @@ class S3StreamResponse(StreamingResponse):
         )
 
 
+class IndexStreamResponse(StreamingResponse):
+    def __init__(
+        self,
+        content: Any,
+        json_obj: dict[str, Any],
+        status_code: int = 200,
+        headers: dict[str, str] | None = None,
+        media_type: str = "application/json",
+        background: BackgroundTask | None = None,
+        chunk_size: int = 1024**2,
+    ) -> None:
+        super().__init__(content, status_code, headers, media_type, background)
+        self.json_obj = json_obj
+        self.chunk_size = chunk_size
+
+    async def stream_response(self, send: Send) -> None:
+        await send(
+            {
+                "type": "http.response.start",
+                "status": self.status_code,
+                "headers": self.raw_headers,
+            }
+        )
+        json_str = json.dumps(self.json_obj).encode()
+        chunks = ceil(len(json_str) / self.chunk_size)
+        for c in range(chunks):
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": json_str[
+                        c * self.chunk_size : c * self.chunk_size
+                        + self.chunk_size
+                    ],
+                    "more_body": True,
+                }
+            )
+
+        await send(
+            {"type": "http.response.body", "body": b"", "more_body": False}
+        )
+
+
 @v1_router.get(
     "/images/{track}/{risk}/{file_path:path}",
     responses={
@@ -141,8 +188,18 @@ async def download(
             details=errors,
         )
 
+    service_url = await services.settings.get_service_url()
+    parsed = urlparse(service_url)
+    fqdn = parsed.hostname if parsed.hostname else gethostname()
+    reversed_fqdn = reverse_fqdn(fqdn)
     if file_path == "streams/v1/index.json":
-        return S3StreamResponse(content=None, file_id="index.json")
+        index = await services.index_service.get(models.IndexType.INDEX, fqdn)
+        return IndexStreamResponse(None, index)
+    elif file_path == f"streams/v1/{reversed_fqdn}:stream:v1:download.json":
+        index = await services.index_service.get(
+            models.IndexType.DOWNLOAD, fqdn
+        )
+        return IndexStreamResponse(None, index)
 
     boot_item = await services.boot_asset_items.get_by_path(file_path)
     if not boot_item:
@@ -525,3 +582,15 @@ async def post_images(
     )
     await run_in_threadpool(s3_upload_target.complete_upload)
     return dm.ImagesPostResponse.from_model(boot_asset_item)
+
+
+@v1_router.get(
+    "/refresh-index",
+)
+async def refresh_index(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
+) -> None:
+    await services.index_service.refresh()

@@ -1,6 +1,7 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import (
@@ -20,14 +21,18 @@ from msm.db.models import (
     BootSourceSelectionCreate,
     BootSourceSelectionUpdate,
     BootSourceUpdate,
+    IndexType,
     ItemFileType,
 )
+from msm.sampledata.images import make_fixture_images
 from msm.service import (
     BootAssetItemService,
     BootAssetService,
     BootAssetVersionService,
     BootSourceSelectionService,
     BootSourceService,
+    IndexNotFound,
+    IndexService,
 )
 from msm.time import now_utc
 from tests.fixtures.factory import Factory
@@ -917,3 +922,344 @@ class TestBootAssetItemService:
         items = await factory.get("boot_asset_item")
         assert len(items) == 1
         assert items[0]["bytes_synced"] == 23425323
+
+
+class TestImagesIndexService:
+    async def test_create(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        await make_fixture_images(db_connection)
+        num_expected_jammy_entries = {"amd64": 4, "arm64": 4}
+        num_expected_noble_entries = {"amd64": 4, "arm64": 0}
+        num_expected_bootloader_entries = {"amd64": 2, "arm64": 0}
+        service = IndexService(db_connection)
+        await service.create()
+        index = await db_connection.execute(
+            text("SELECT * FROM images_index;")
+        )
+        found_entries = {
+            "ubuntu/noble": {"amd64": 0, "arm64": 0},
+            "ubuntu/jammy": {"amd64": 0, "arm64": 0},
+            "grub-efi-signed/None": {"amd64": 0, "arm64": 0},
+        }
+        for item in [x._asdict() for x in index.all()]:
+            found_entries[f'{item["os"]}/{item["release"]}'][item["arch"]] += 1
+
+        assert found_entries["ubuntu/noble"] == num_expected_noble_entries
+        assert found_entries["ubuntu/jammy"] == num_expected_jammy_entries
+        assert (
+            found_entries["grub-efi-signed/None"]
+            == num_expected_bootloader_entries
+        )
+
+    async def test_refresh(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        service = IndexService(db_connection)
+        # create the index without anything
+        await service.create()
+        # add images and refresh
+        await make_fixture_images(db_connection)
+        await service.refresh()
+        num_expected_jammy_entries = {"amd64": 4, "arm64": 4}
+        num_expected_noble_entries = {"amd64": 4, "arm64": 0}
+        num_expected_bootloader_entries = {"amd64": 2, "arm64": 0}
+        index = await db_connection.execute(
+            text("SELECT * FROM images_index;")
+        )
+        items = [x._asdict() for x in index.all()]
+        found_entries = {
+            "ubuntu/noble": {"amd64": 0, "arm64": 0},
+            "ubuntu/jammy": {"amd64": 0, "arm64": 0},
+            "grub-efi-signed/None": {"amd64": 0, "arm64": 0},
+        }
+        for item in items:
+            found_entries[f'{item["os"]}/{item["release"]}'][item["arch"]] += 1
+        assert found_entries["ubuntu/noble"] == num_expected_noble_entries
+        assert found_entries["ubuntu/jammy"] == num_expected_jammy_entries
+        assert (
+            found_entries["grub-efi-signed/None"]
+            == num_expected_bootloader_entries
+        )
+
+    async def test_get_index(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        await make_fixture_images(db_connection)
+        service = IndexService(db_connection)
+        await service.create()
+        index = await service.get(IndexType.INDEX, "maas.site.manager")
+        expected_index = {
+            "format": "index:1.0",
+            "index": {
+                "manager.site.maas:stream:v1:download": {
+                    "datatype": "image-ids",
+                    "format": "products:1.0",
+                    "path": "streams/v1/manager.site.maas:stream:v1:download.json",
+                    "products": [
+                        "manager.site.maas.stream:grub-efi-signed:uefi:amd64",
+                        "manager.site.maas.stream:ubuntu:jammy:amd64:generic-generic",
+                        "manager.site.maas.stream:ubuntu:jammy:arm64:generic-generic",
+                        "manager.site.maas.stream:ubuntu:noble:amd64:ga-24.04-generic",
+                    ],
+                },
+            },
+        }
+        expected_index["updated"] = index["updated"]
+        expected_index["index"]["manager.site.maas:stream:v1:download"][  # type: ignore
+            "updated"
+        ] = index["updated"]
+        assert index == expected_index
+
+    async def test_get_download_index(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        await make_fixture_images(db_connection)
+        service = IndexService(db_connection)
+        await service.create()
+        index = await service.get(IndexType.DOWNLOAD, "maas.site.manager")
+        expected_index = {
+            "content_id": "manager.site.maas:stream:v1:download",
+            "datatype": "image-ids",
+            "format": "products:1.0",
+            "products": {
+                "manager.site.maas.stream:ubuntu:noble:amd64:ga-24.04-generic": {
+                    "arch": "amd64",
+                    "kflavor": "generic",
+                    "label": "stable",
+                    "os": "ubuntu",
+                    "release": "noble",
+                    "release_codename": "noble numbat",
+                    "release_title": "24.04 LTS",
+                    "subarch": "ga-24.04",
+                    "subarches": "ga-24.04",
+                    "support_eol": datetime(2029, 4, 1, tzinfo=UTC).strftime(
+                        "%Y-%m-%d"
+                    ),
+                    "support_esm_eol": datetime(
+                        2036, 4, 1, tzinfo=UTC
+                    ).strftime("%Y-%m-%d"),
+                    "versions": {
+                        "20250401.1": {
+                            "items": {
+                                "boot-initrd": {
+                                    "ftype": "boot-initrd",
+                                    "path": "noble/amd64/20250401.1/ga-24.04/generic/boot-initrd",
+                                    "sha256": "1bca818efa07048a6368ddb093c79dc964daf18c17c95910bb9188cab1e3952d",
+                                    "size": 73067242,
+                                },
+                                "boot-kernel": {
+                                    "ftype": "boot-kernel",
+                                    "path": "noble/amd64/20250401.1/ga-24.04/generic/boot-kernel",
+                                    "sha256": "f5079df42eda3657ef802d263211744dd6774b6d975eabfd2f0f3fc62b97fb49",
+                                    "size": 14981512,
+                                },
+                                "manifest": {
+                                    "ftype": "manifest",
+                                    "path": "noble/amd64/20250401.1/squashfs.manifest",
+                                    "sha256": "c3c206393946c1bd2801106f84bad8b1e949a11a57425d9992b7838430352def",
+                                    "size": 18759,
+                                },
+                                "squashfs": {
+                                    "ftype": "squashfs",
+                                    "path": "noble/amd64/20250401.1/squashfs",
+                                    "sha256": "c1a77484a804b3dcfd7b433c622ba7f2801786d33e30d556c4b40ef3e58e3bc2",
+                                    "size": 268480512,
+                                },
+                            }
+                        }
+                    },
+                },
+                "manager.site.maas.stream:ubuntu:jammy:amd64:generic-generic": {
+                    "arch": "amd64",
+                    "kflavor": "generic",
+                    "label": "candidate",
+                    "os": "ubuntu",
+                    "release": "jammy",
+                    "release_codename": "jammy jellyfish",
+                    "release_title": "22.04 LTS",
+                    "subarch": "generic",
+                    "subarches": "generic",
+                    "support_eol": datetime(2027, 4, 1, tzinfo=UTC).strftime(
+                        "%Y-%m-%d"
+                    ),
+                    "support_esm_eol": datetime(
+                        2034, 4, 1, tzinfo=UTC
+                    ).strftime("%Y-%m-%d"),
+                    "versions": {
+                        "20230401.1": {
+                            "items": {
+                                "boot-initrd": {
+                                    "ftype": "boot-initrd",
+                                    "path": "jammy/amd64/20230401.1/generic/generic/boot-initrd",
+                                    "sha256": "d539ad8c9dd6ca339749c7c2cfb672684f6cb8476cf2500a5e7a78895ad894eb",
+                                    "size": 73067242,
+                                },
+                                "boot-kernel": {
+                                    "ftype": "boot-kernel",
+                                    "path": "jammy/amd64/20230401.1/generic/generic/boot-kernel",
+                                    "sha256": "41b1faab5ec2da6cf9a6c9d0b6a817dc3e656b00bee137ec2a71afa6711c1af9",
+                                    "size": 14981512,
+                                },
+                                "manifest": {
+                                    "ftype": "manifest",
+                                    "path": "jammy/amd64/20230401.1/squashfs.manifest",
+                                    "sha256": "0b8fe8dbf00231753f0de0306f8687f416ef33ada3a390c5c3266dc9b2301625",
+                                    "size": 18759,
+                                },
+                                "squashfs": {
+                                    "ftype": "squashfs",
+                                    "path": "jammy/amd64/20230401.1/squashfs",
+                                    "sha256": "74adfaece846b3f129b9b24b35ca554d16afbc3b1a0e24bb8568076809de232b",
+                                    "size": 268480512,
+                                },
+                            }
+                        }
+                    },
+                },
+                "manager.site.maas.stream:ubuntu:jammy:arm64:generic-generic": {
+                    "arch": "arm64",
+                    "kflavor": "generic",
+                    "label": "candidate",
+                    "os": "ubuntu",
+                    "release": "jammy",
+                    "release_codename": "jammy jellyfish",
+                    "release_title": "22.04 LTS",
+                    "subarch": "generic",
+                    "subarches": "generic",
+                    "support_eol": datetime(2027, 4, 1, tzinfo=UTC).strftime(
+                        "%Y-%m-%d"
+                    ),
+                    "support_esm_eol": datetime(
+                        2034, 4, 1, tzinfo=UTC
+                    ).strftime("%Y-%m-%d"),
+                    "versions": {
+                        "20230401.1": {
+                            "items": {
+                                "boot-initrd": {
+                                    "ftype": "boot-initrd",
+                                    "path": "jammy/arm64/20230401.1/generic/generic/boot-initrd",
+                                    "sha256": "d539ad8c9dd6ca339749c7c2cfb672684f6cb8476cf2500a5e7a78895ad894eb",
+                                    "size": 73067242,
+                                },
+                                "boot-kernel": {
+                                    "ftype": "boot-kernel",
+                                    "path": "jammy/arm64/20230401.1/generic/generic/boot-kernel",
+                                    "sha256": "41b1faab5ec2da6cf9a6c9d0b6a817dc3e656b00bee137ec2a71afa6711c1af9",
+                                    "size": 14981512,
+                                },
+                                "manifest": {
+                                    "ftype": "manifest",
+                                    "path": "jammy/arm64/20230401.1/squashfs.manifest",
+                                    "sha256": "0b8fe8dbf00231753f0de0306f8687f416ef33ada3a390c5c3266dc9b2301625",
+                                    "size": 18759,
+                                },
+                                "squashfs": {
+                                    "ftype": "squashfs",
+                                    "path": "jammy/arm64/20230401.1/squashfs",
+                                    "sha256": "74adfaece846b3f129b9b24b35ca554d16afbc3b1a0e24bb8568076809de232b",
+                                    "size": 268480512,
+                                },
+                            }
+                        }
+                    },
+                },
+                "manager.site.maas.stream:grub-efi-signed:uefi:amd64": {
+                    "arch": "amd64",
+                    "label": "stable",
+                    "os": "grub-efi-signed",
+                    "bootloader-type": "uefi",
+                    "versions": {
+                        "20210401.1": {
+                            "items": {
+                                "grub2-signed": {
+                                    "ftype": "archive.tar.xz",
+                                    "path": "bootloaders/uefi/amd64/20210401.1/grub2-signed.tar.xz",
+                                    "sha256": "9d4a3a826ed55c46412613d2f7caf3185da4d6b18f35225f4f6a5b86b2bccfe3",
+                                    "size": 375316,
+                                    "src_package": "grub2-signed",
+                                    "src_release": "focal",
+                                    "src_version": "1.167.2+2.04-1ubuntu44.2",
+                                },
+                                "shim-signed": {
+                                    "ftype": "archive.tar.xz",
+                                    "path": "bootloaders/uefi/amd64/20210401.1/shim-signed.tar.xz",
+                                    "sha256": "07b42d0aa2540b6999c726eacf383e2c8f172378c964bdefab6d71410e2b72db",
+                                    "size": 322336,
+                                    "src_package": "shim-signed",
+                                    "src_release": "focal",
+                                    "src_version": "1.40.7+15.4-0ubuntu9",
+                                },
+                            }
+                        }
+                    },
+                },
+            },
+            "updated": index["updated"],
+        }
+
+        assert index == expected_index
+
+    async def test_incomplete_set_not_included(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        bv = await factory.make_BootAssetVersion(ba.id)
+        await factory.make_BootAssetItem(
+            bv.id,
+            ftype=ItemFileType.ARCHIVE_TAR_XZ,
+            bytes_synced=100,
+            file_size=100,
+        )
+        await factory.make_BootAssetItem(
+            bv.id,
+            ftype=ItemFileType.BOOT_INITRD,
+            bytes_synced=10,
+            file_size=100,
+        )
+
+        ba2 = await factory.make_BootAsset(bs.id)
+        bv2 = await factory.make_BootAssetVersion(ba2.id)
+        await factory.make_BootAssetItem(
+            bv2.id, bytes_synced=100, file_size=100
+        )
+        service = IndexService(db_connection)
+        await service.create()
+        index = await service.get(IndexType.INDEX, fqdn="maas.site.manager")
+        dl_index = await service.get(
+            IndexType.DOWNLOAD, fqdn="maas.site.manager"
+        )
+        assert (
+            len(
+                index["index"]["manager.site.maas:stream:v1:download"][
+                    "products"
+                ]
+            )
+            == 1
+        )
+        assert len(dl_index["products"]) == 1
+
+    async def test_drop(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        await make_fixture_images(db_connection)
+        service = IndexService(db_connection)
+        await service.create()
+        await service.drop()
+        with pytest.raises(IndexNotFound):
+            await service.get(IndexType.DOWNLOAD, "maas.site.manager")
+
+    async def test_refresh_not_created(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        service = IndexService(db_connection)
+        with pytest.raises(IndexNotFound):
+            await service.refresh()
+
+    async def test_drop_not_created(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        service = IndexService(db_connection)
+        with pytest.raises(IndexNotFound):
+            await service.drop()

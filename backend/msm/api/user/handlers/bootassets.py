@@ -250,6 +250,7 @@ async def post_boot_sources(
     boot_source = await services.boot_sources.create(
         models.BootSourceCreate(**post_request.model_dump())
     )
+    await services.index_service.refresh()
     return dm.BootSourcesPostResponse(id=boot_source.id)
 
 
@@ -286,6 +287,7 @@ async def patch_boot_source(
     updated_source = await services.boot_sources.update(
         id, models.BootSourceUpdate(**patch_request.model_dump())
     )
+    await services.index_service.refresh()
     return dm.BootSourcePatchResponse.from_model(updated_source)
 
 
@@ -319,6 +321,7 @@ async def delete_boot_source(
             ],
         )
     await services.boot_sources.delete(id)
+    await services.index_service.refresh()
 
 
 @v1_router.get(
@@ -417,6 +420,7 @@ async def patch_boot_source_selections(
                     cur_v.boot_source_id, cur_v.id
                 )
 
+    await services.index_service.refresh()
     return dm.BootSourceSelectionsPatchResponse(stale=stale)
 
 
@@ -554,6 +558,7 @@ async def post_boot_asset_item(
                 boot_asset_version_id=id, **post_request.model_dump()
             )
         )
+        await services.index_service.refresh()
         return dm.BootAssetItemPostResponse(id=item.id)
     except IntegrityError:
         raise AlreadyExistsException(
@@ -660,6 +665,7 @@ async def delete_images(
         s3.meta.client.delete_object, Bucket=settings.s3_bucket, Key=str(id)
     )
     await services.boot_asset_items.delete(id)
+    await services.index_service.refresh()
 
 
 @v1_router.patch(
@@ -714,4 +720,5 @@ async def patch_boot_asset_items(
     updated_item = await services.boot_asset_items.update(
         id, models.BootAssetItemUpdate(**patch_request.model_dump())
     )
+    await services.index_service.refresh()
     return dm.BootAssetItemPatchResponse.from_model(updated_item)

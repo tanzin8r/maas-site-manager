@@ -11,6 +11,8 @@ from msm.service.images import (
     BootAssetVersionService,
     BootSourceSelectionService,
     BootSourceService,
+    IndexNotFound,
+    IndexService,
 )
 from msm.service.settings import SettingsService
 from msm.service.site import InvalidPendingSites, SiteService
@@ -31,6 +33,7 @@ class ServiceCollection:
         self.boot_asset_versions = BootAssetVersionService(connection)
         self.boot_sources = BootSourceService(connection)
         self.boot_source_selections = BootSourceSelectionService(connection)
+        self.index_service = IndexService(connection)
 
     @property
     def services(self) -> Iterable[Service]:
@@ -45,6 +48,7 @@ class ServiceCollection:
             self.boot_asset_versions,
             self.boot_sources,
             self.boot_source_selections,
+            self.index_service,
         ]
 
     @classmethod
@@ -65,6 +69,8 @@ __all__ = [
     "BootSourceService",
     "BootSourceSelectionService",
     "ConfigService",
+    "IndexNotFound",
+    "IndexService",
     "InvalidPendingSites",
     "ServiceCollection",
     "SettingsService",

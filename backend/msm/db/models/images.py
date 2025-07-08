@@ -233,3 +233,39 @@ class AvailableImage(BaseModel):
     arch: str
     source_name: str
     selected: bool
+
+
+class IndexProduct(BaseModel):
+    """Class representing the necessary items to specify a product in the index."""
+
+    id: int
+    boot_source_id: int
+    kind: BootAssetKind
+    label: BootAssetLabel
+    os: str
+    arch: str
+    ftype: ItemFileType
+    sha256: str
+    path: str
+    file_size: int
+    bytes_synced: int
+    version: str
+    release: str | None = None
+    codename: str | None = None
+    title: str | None = None
+    subarch: str | None = None
+    compatibility: list[str] | None = None
+    flavor: str | None = None
+    base_image: str | None = None
+    bootloader_type: str | None = None
+    eol: AwareDatetime | None = None
+    esm_eol: AwareDatetime | None = None
+    signed: bool = False
+    source_package: str | None = None
+    source_version: str | None = None
+    source_release: str | None = None
+
+
+class IndexType(str, Enum):
+    INDEX = "index"
+    DOWNLOAD = "download"
