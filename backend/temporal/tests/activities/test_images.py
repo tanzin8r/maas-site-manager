@@ -13,7 +13,7 @@ from activities.images import (  # type: ignore
     GetOrCreateAssetParams,
     GetOrCreateItemParams,
     GetOrCreateVersionParams,
-    ImageManagementActivity,
+    ImageManagementActivities,
     S3Params,
     S3ResourceManager,
 )
@@ -42,16 +42,16 @@ class AsyncIterator:
 
 
 @pytest.fixture
-async def im_act(mocker: MockerFixture) -> ImageManagementActivity:
+async def im_act(mocker: MockerFixture) -> ImageManagementActivities:
     mock_response = mocker.create_autospec(Response)
     mock_response.aiter_bytes.return_value = AsyncIterator([b"abc", b"def"])
 
     mock_client = mocker.create_autospec(AsyncClient)
     mock_client.stream.return_value.__aenter__.return_value = mock_response
     mocker.patch.object(
-        ImageManagementActivity, "_create_client", return_value=mock_client
+        ImageManagementActivities, "_create_client", return_value=mock_client
     )
-    return ImageManagementActivity()
+    return ImageManagementActivities()
 
 
 class TestDownloadUpstreamActivities:

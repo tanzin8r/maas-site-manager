@@ -1,6 +1,6 @@
 from httpx import AsyncClient
 
-from msm import __version__
+__version__ = "0.1"
 
 
 class BaseActivity:

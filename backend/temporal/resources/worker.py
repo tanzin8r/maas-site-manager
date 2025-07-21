@@ -2,10 +2,10 @@ import asyncio
 import logging
 
 from activities.images import (  # type: ignore
-    ImageManagementActivity,
+    ImageManagementActivities,
 )
 from activities.simplestream import (  # type: ignore
-    SimplestreamActivity,
+    SimpleStreamActivities,
 )
 from temporallib.client import Client, Options  # type: ignore
 from temporallib.encryption import EncryptionOptions  # type: ignore
@@ -30,8 +30,8 @@ async def run_worker() -> None:
     client = await Client.connect(
         client_opt=Options(encryption=EncryptionOptions()),
     )
-    img_act = ImageManagementActivity()
-    ss_act = SimplestreamActivity()
+    img_act = ImageManagementActivities()
+    ss_act = SimpleStreamActivities()
     worker = Worker(
         client=client,
         workflows=[
@@ -41,12 +41,10 @@ async def run_worker() -> None:
         ],
         activities=[
             img_act.download_asset,
-            img_act.update_bytes_synced,
             img_act.get_or_create_asset,
             img_act.get_or_create_item,
             img_act.get_or_create_version,
             ss_act.get_boot_source,
-            ss_act.download_json,
             ss_act.parse_ss_index,
             ss_act.load_product_map,
         ],

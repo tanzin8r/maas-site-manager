@@ -236,7 +236,7 @@ def reverse_fqdn(fqdn: str) -> str:
     return ".".join(sp)
 
 
-class ImageManagementActivity(BaseActivity):
+class ImageManagementActivities(BaseActivity):
     """
     Activities for image management
     """
