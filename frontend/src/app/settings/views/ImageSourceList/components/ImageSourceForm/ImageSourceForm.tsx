@@ -17,19 +17,21 @@ import { useAppLayoutContext } from "@/app/context";
 import { useBootSourceContext } from "@/app/context/BootSourceContext";
 
 const baseInitialValues = {
+  name: "",
   url: "",
   keyring: "",
-  autosync: true,
   priority: 1,
+  autosync: true,
 };
 
 type ImageSourceFormValues = typeof baseInitialValues;
 
 const ImageSourceSchema = Yup.object().shape({
+  name: Yup.string(),
   url: Yup.string().url("Not a valid URL").required("URL is required"),
   keyring: Yup.string(),
-  autosync: Yup.boolean(),
   priority: Yup.number().integer("Priority must be a whole number").required("Priority is required"),
+  autosync: Yup.boolean(),
 });
 
 const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
@@ -46,6 +48,7 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
   } = useImageSource({ path: { id: selectedBootSourceId! } }, type === "edit");
 
   const headingId = useId();
+  const nameFieldId = useId();
   const urlFieldId = useId();
   const keyringFieldId = useId();
   const priorityFieldId = useId();
@@ -57,10 +60,11 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
   useEffect(() => {
     if (type === "edit" && imageSource) {
       setInitialValues({
+        name: imageSource.name || "",
         url: imageSource.url || "",
         keyring: imageSource.keyring || "",
-        autosync: imageSource.sync_interval !== undefined ? imageSource.sync_interval > 0 : true,
         priority: imageSource.priority || 1,
+        autosync: imageSource.sync_interval !== undefined ? imageSource.sync_interval > 0 : true,
       });
     } else if (type === "add") {
       setInitialValues(baseInitialValues);
@@ -77,6 +81,7 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
     const body:
       | PatchBootSourceV1BootassetSourcesIdPatchData["body"]
       | PostBootSourcesV1BootassetSourcesPostData["body"] = {
+      name: values.name,
       url: values.url,
       keyring: values.keyring,
       priority: values.priority,
@@ -135,6 +140,8 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
                   ] as MutationErrorResponse[]
                 }
               >
+                <Label htmlFor={nameFieldId}>Name</Label>
+                <Field as={Input} error={touched.name && errors.name} id={nameFieldId} name="name" type="text" />
                 <Label className="is-required" htmlFor={urlFieldId}>
                   URL
                 </Label>

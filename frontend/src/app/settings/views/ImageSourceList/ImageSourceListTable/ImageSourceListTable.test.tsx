@@ -37,20 +37,21 @@ it("renders rows with details for each image source", () => {
   const rows = within(tableBody).getAllByRole("row").slice(1);
   rows.forEach((row, index) => {
     const cells = within(row).getAllByRole("cell");
-    expect(cells[0]).toHaveTextContent(fakeBootSources.items[index + 1].url);
+    expect(cells[0]).toHaveTextContent(fakeBootSources.items[index + 1].name);
+    expect(cells[1]).toHaveTextContent(fakeBootSources.items[index + 1].url);
     expect(
-      within(cells[1]).getByLabelText(
+      within(cells[2]).getByLabelText(
         fakeBootSources.items[index + 1].sync_interval > 0 ? "Source is syncing" : "Source is not syncing",
       ),
     ).toBeInTheDocument();
     expect(
-      within(cells[2]).getByLabelText(
+      within(cells[3]).getByLabelText(
         !fakeBootSources.items[index + 1].keyring ? "Not signed with GPG key" : "Signed with GPG key",
       ),
     ).toBeInTheDocument();
-    expect(cells[3]).toHaveTextContent(fakeBootSources.items[index + 1].priority.toString());
-    expect(within(cells[4]).getByRole("button", { name: "Edit image source" })).toBeInTheDocument();
-    expect(within(cells[4]).getByRole("button", { name: "Delete image source" })).toBeInTheDocument();
+    expect(cells[4]).toHaveTextContent(fakeBootSources.items[index + 1].priority.toString());
+    expect(within(cells[5]).getByRole("button", { name: "Edit image source" })).toBeInTheDocument();
+    expect(within(cells[5]).getByRole("button", { name: "Delete image source" })).toBeInTheDocument();
   });
 });
 
@@ -60,12 +61,13 @@ it("doesn't show status, syncing, signature or delete button for custom image so
   const tableBody = screen.getAllByRole("rowgroup")[1];
   const customRow = within(tableBody).getAllByRole("row")[0];
   const cells = within(customRow).getAllByRole("cell");
-  expect(cells[0]).toHaveTextContent("Custom images");
-  expect(cells[1]).toHaveTextContent("");
+  expect(cells[0]).toHaveTextContent("Ubuntu");
+  expect(cells[1]).toHaveTextContent("Custom images");
   expect(cells[2]).toHaveTextContent("");
-  expect(cells[3]).toHaveTextContent(fakeBootSources.items[0].priority.toString());
-  expect(within(cells[4]).getByRole("button", { name: "Edit image source" })).toBeInTheDocument();
-  expect(within(cells[4]).queryByRole("button", { name: "Delete image source" })).not.toBeInTheDocument();
+  expect(cells[3]).toHaveTextContent("");
+  expect(cells[4]).toHaveTextContent(fakeBootSources.items[0].priority.toString());
+  expect(within(cells[5]).getByRole("button", { name: "Edit image source" })).toBeInTheDocument();
+  expect(within(cells[5]).queryByRole("button", { name: "Delete image source" })).not.toBeInTheDocument();
 });
 
 // TODO: re-enable test once the status field is added to BootSource

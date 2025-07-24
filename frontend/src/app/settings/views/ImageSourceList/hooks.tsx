@@ -15,6 +15,16 @@ export const useImageSourceTableColumns = () => {
   return useMemo<BootSourceColumnDef[]>(
     () => [
       {
+        id: "name",
+        enableSorting: true,
+        accessorFn: createAccessor("name"),
+        accessorKey: "name",
+        cell: ({ getValue }) => {
+          const { name } = getValue();
+          return <div>{name}</div>;
+        },
+      },
+      {
         id: "url",
         enableSorting: false,
         header: () => <div>Source</div>,
