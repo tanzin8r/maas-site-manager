@@ -4,9 +4,24 @@ import AutoImport from "unplugin-auto-import/vite";
 import stylelint from "vite-plugin-stylelint";
 import * as path from "path";
 import childProcess from "child_process";
+import fs from "fs";
 
 const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString();
 // https://vitejs.dev/config/
+
+function excludeMsw() {
+  return {
+    name: "exclude-msw",
+    resolveId(source: string) {
+      return source === "virtual-module" ? source : null;
+    },
+    renderStart(outputOptions: { dir: string }) {
+      const outDir = outputOptions.dir;
+      const msWorker = path.resolve(outDir, "mockServiceWorker.js");
+      fs.rm(msWorker, () => console.log(`Deleted ${msWorker}`));
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "./");
@@ -29,6 +44,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      excludeMsw(),
       AutoImport({
         imports: ["react", "vitest"],
         dts: true,
