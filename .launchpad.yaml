@@ -38,5 +38,5 @@ jobs:
     series: noble
     root: false
     run: |
-      make -C frontend ci-dep
+      make ci-dep
       make ci-test

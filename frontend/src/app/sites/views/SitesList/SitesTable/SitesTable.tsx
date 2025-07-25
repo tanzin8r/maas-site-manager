@@ -142,8 +142,8 @@ const SitesTable = ({
         ),
         cell: ({ getValue }) => {
           const { stats, connection_status } = getValue();
-          return stats && connection_status ? (
-            <ConnectionInfo connection={connection_status} lastSeen={stats.last_seen} />
+          return connection_status ? (
+            <ConnectionInfo connection={connection_status} lastSeen={stats?.last_seen} />
           ) : null;
         },
       },
