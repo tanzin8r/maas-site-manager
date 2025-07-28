@@ -158,7 +158,10 @@ BootSourceSelection = Table(
     METADATA,
     Column("id", Integer, primary_key=True),
     Column(
-        "boot_source_id", Integer, ForeignKey("boot_source.id"), nullable=False
+        "boot_source_id",
+        Integer,
+        ForeignKey("boot_source.id", ondelete="RESTRICT"),
+        nullable=False,
     ),
     Column("label", Text, nullable=False),
     Column("os", Text, nullable=False),
@@ -172,7 +175,10 @@ BootAsset = Table(
     METADATA,
     Column("id", Integer, primary_key=True),
     Column(
-        "boot_source_id", Integer, ForeignKey("boot_source.id"), nullable=False
+        "boot_source_id",
+        Integer,
+        ForeignKey("boot_source.id", ondelete="RESTRICT"),
+        nullable=False,
     ),
     Column("kind", Integer, nullable=False, default=0),
     Column("label", Text, nullable=False),
@@ -197,7 +203,10 @@ BootAssetVersion = Table(
     METADATA,
     Column("id", Integer, primary_key=True),
     Column(
-        "boot_asset_id", Integer, ForeignKey("boot_asset.id"), nullable=False
+        "boot_asset_id",
+        Integer,
+        ForeignKey("boot_asset.id", ondelete="RESTRICT"),
+        nullable=False,
     ),
     Column("version", Text, nullable=False),
     UniqueConstraint("boot_asset_id", "version"),
@@ -210,7 +219,7 @@ BootAssetItem = Table(
     Column(
         "boot_asset_version_id",
         Integer,
-        ForeignKey("boot_asset_version.id"),
+        ForeignKey("boot_asset_version.id", ondelete="RESTRICT"),
         nullable=True,
     ),
     Column("ftype", Text, nullable=False),

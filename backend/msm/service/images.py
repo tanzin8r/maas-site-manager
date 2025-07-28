@@ -219,6 +219,12 @@ class BootSourceSelectionService(Service):
         )
         await self.conn.execute(stmt)
 
+    async def delete_by_source_id(self, boot_source_id: int) -> None:
+        stmt = delete(BootSourceSelection).where(
+            BootSourceSelection.c.boot_source_id == boot_source_id
+        )
+        await self.conn.execute(stmt)
+
     def _select_statement(self, *columns: Any) -> Select[Any]:
         return select(*columns).select_from(BootSourceSelection)
 
@@ -365,6 +371,12 @@ class BootAssetService(Service):
         stmt = delete(BootAsset).where(BootAsset.c.id == boot_asset_id)
         await self.conn.execute(stmt)
 
+    async def delete_by_source_id(self, boot_source_id: int) -> None:
+        stmt = delete(BootAsset).where(
+            BootAsset.c.boot_source_id == boot_source_id
+        )
+        await self.conn.execute(stmt)
+
     async def get_or_create(
         self, asset: models.BootAssetCreate
     ) -> models.BootAsset:
@@ -416,6 +428,18 @@ class BootAssetVersionService(Service):
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.BootAssetVersion, result)
 
+    async def row_count(
+        self,
+        boot_asset_id: list[int] | None = None,
+        version: list[str] | None = None,
+    ) -> int:
+        filters = queries.filters_from_arguments(
+            BootAssetVersion,
+            boot_asset_id=boot_asset_id,
+            version=version,
+        )
+        return await queries.row_count(self.conn, BootAssetVersion, *filters)
+
     async def get_by_id(self, id: int) -> models.BootAssetVersion | None:
         stmt = self._select_statement(
             BootAssetVersion.c.id,
@@ -463,9 +487,18 @@ class BootAssetVersionService(Service):
             )
         )
 
-    async def delete(self, boot_asset_version_id: int) -> None:
+    async def delete(self, boot_asset_version_id: int) -> int:
+        stmt = (
+            delete(BootAssetVersion)
+            .where(BootAssetVersion.c.id == boot_asset_version_id)
+            .returning(BootAssetVersion.c.boot_asset_id)
+        )
+        result = await self.conn.execute(stmt)
+        return result.one()._asdict()["boot_asset_id"]  # type: ignore
+
+    async def delete_by_asset_id(self, boot_asset_id: int) -> None:
         stmt = delete(BootAssetVersion).where(
-            BootAssetVersion.c.id == boot_asset_version_id
+            BootAssetVersion.c.boot_asset_id == boot_asset_id
         )
         await self.conn.execute(stmt)
 
@@ -516,6 +549,24 @@ class BootAssetItemService(Service):
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.BootAssetItem, result)
+
+    async def row_count(
+        self,
+        boot_asset_version_id: list[int] | None = None,
+        ftype: list[models.ItemFileType] | None = None,
+        sha256: list[str] | None = None,
+        path: list[str] | None = None,
+        file_size: list[int] | None = None,
+    ) -> int:
+        filters = queries.filters_from_arguments(
+            BootAssetItem,
+            boot_asset_version_id=boot_asset_version_id,
+            ftype=ftype,
+            sha256=sha256,
+            path=path,
+            file_size=file_size,
+        )
+        return await queries.row_count(self.conn, BootAssetItem, *filters)
 
     async def get_by_id(self, id: int) -> models.BootAssetItem | None:
         stmt = self._select_statement(
@@ -622,9 +673,18 @@ class BootAssetItemService(Service):
         result = await self.conn.execute(stmt)
         return models.BootAssetItem(**result.one()._asdict())
 
-    async def delete(self, boot_asset_item_id: int) -> None:
+    async def delete(self, boot_asset_item_id: int) -> int:
+        stmt = (
+            delete(BootAssetItem)
+            .where(BootAssetItem.c.id == boot_asset_item_id)
+            .returning(BootAssetItem.c.boot_asset_version_id)
+        )
+        result = await self.conn.execute(stmt)
+        return result.one()._asdict()["boot_asset_version_id"]  # type: ignore
+
+    async def delete_by_version_id(self, boot_asset_version_id: int) -> None:
         stmt = delete(BootAssetItem).where(
-            BootAssetItem.c.id == boot_asset_item_id
+            BootAssetItem.c.boot_asset_version_id == boot_asset_version_id
         )
         await self.conn.execute(stmt)
 

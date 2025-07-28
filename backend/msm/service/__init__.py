@@ -61,6 +61,34 @@ class ServiceCollection:
         for svc in self.services:
             await svc.collect_metrics()
 
+    async def purge_source(self, id: int) -> None:
+        _, assets = await self.boot_assets.get([], boot_source_id=[id])
+        for asset in assets:
+            _, versions = await self.boot_asset_versions.get(
+                [], boot_asset_id=[asset.id]
+            )
+            for version in versions:
+                await self.boot_asset_items.delete_by_version_id(version.id)
+            await self.boot_asset_versions.delete_by_asset_id(asset.id)
+        await self.boot_assets.delete_by_source_id(id)
+        await self.boot_source_selections.delete_by_source_id(id)
+        await self.boot_sources.delete(id)
+
+    async def delete_item_and_purge(self, id: int) -> None:
+        version_id = await self.boot_asset_items.delete(id)
+        item_count = await self.boot_asset_items.row_count(
+            boot_asset_version_id=[version_id]
+        )
+        if item_count:
+            return
+        asset_id = await self.boot_asset_versions.delete(version_id)
+        version_count = await self.boot_asset_versions.row_count(
+            boot_asset_id=[asset_id]
+        )
+        if version_count:
+            return
+        await self.boot_assets.delete(asset_id)
+
 
 __all__ = [
     "BootAssetService",

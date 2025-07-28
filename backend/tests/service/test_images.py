@@ -302,6 +302,17 @@ class TestBootAssetService:
             "boot_source_id": boot_source.id,
         }
 
+    async def test_delete_by_source_id(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        boot_source = await factory.make_BootSource()
+        await factory.make_BootAsset(boot_source.id, os="1")
+        await factory.make_BootAsset(boot_source.id, os="2")
+        service = BootAssetService(db_connection)
+        await service.delete_by_source_id(boot_source.id)
+        assets = await factory.get("boot_asset")
+        assert len(assets) == 0
+
 
 @pytest.mark.asyncio
 class TestBootSourceSelectionService:
@@ -425,6 +436,21 @@ class TestBootSourceSelectionService:
 
         service = BootSourceSelectionService(db_connection)
         await service.delete(boot_source.id, boot_source_selection.id)
+        selections = await factory.get("boot_source_selection")
+        assert len(selections) == 0
+
+    async def test_delete_by_source_id(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        boot_source = await factory.make_BootSource()
+        await factory.make_BootSourceSelection(
+            boot_source.id, label=BootAssetLabel.STABLE
+        )
+        await factory.make_BootSourceSelection(
+            boot_source.id, label=BootAssetLabel.CANDIDATE
+        )
+        service = BootSourceSelectionService(db_connection)
+        await service.delete_by_source_id(boot_source.id)
         selections = await factory.get("boot_source_selection")
         assert len(selections) == 0
 
@@ -628,6 +654,18 @@ class TestBootAssetVersionService:
 
         service = BootAssetVersionService(db_connection)
         await service.delete(boot_asset_version.id)
+        versions = await factory.get("boot_asset_version")
+        assert len(versions) == 0
+
+    async def test_delete_by_asset_id(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        boot_source = await factory.make_BootSource()
+        boot_asset = await factory.make_BootAsset(boot_source.id)
+        await factory.make_BootAssetVersion(boot_asset.id, version="1")
+        await factory.make_BootAssetVersion(boot_asset.id, version="2")
+        service = BootAssetVersionService(db_connection)
+        await service.delete_by_asset_id(boot_asset.id)
         versions = await factory.get("boot_asset_version")
         assert len(versions) == 0
 
@@ -922,6 +960,23 @@ class TestBootAssetItemService:
         items = await factory.get("boot_asset_item")
         assert len(items) == 1
         assert items[0]["bytes_synced"] == 23425323
+
+    async def test_delete_by_version_id(
+        self, factory: Factory, db_connection: AsyncConnection
+    ) -> None:
+        boot_source = await factory.make_BootSource()
+        boot_asset = await factory.make_BootAsset(boot_source.id)
+        version = await factory.make_BootAssetVersion(boot_asset.id)
+        await factory.make_BootAssetItem(
+            version.id, ftype=ItemFileType.ARCHIVE_TAR_XZ
+        )
+        await factory.make_BootAssetItem(
+            version.id, ftype=ItemFileType.BOOT_INITRD
+        )
+        service = BootAssetItemService(db_connection)
+        await service.delete_by_version_id(version.id)
+        items = await factory.get("boot_asset_item")
+        assert len(items) == 0
 
 
 class TestImagesIndexService:

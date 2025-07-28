@@ -1375,3 +1375,45 @@ class TestBootAssetItemsDeleteHandler:
     ) -> None:
         resp = await user_client.delete(f"/bootasset-items/999")
         assert resp.status_code == 404
+
+    async def test_delete_purges(
+        self,
+        user_client: Client,
+        factory: Factory,
+        index_view: None,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        mock_resource = mocker.patch(
+            "msm.api.user.handlers.bootassets.boto3.resource"
+        )
+        mock_delete = mocker.patch(
+            "msm.api.user.handlers.bootassets.run_in_threadpool"
+        )
+        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+        bs = await factory.make_BootSource()
+        ba = await factory.make_BootAsset(bs.id)
+        bv = await factory.make_BootAssetVersion(ba.id)
+        bi = await factory.make_BootAssetItem(bv.id)
+        resp = await user_client.delete(f"/bootasset-items/{bi.id}")
+        assert resp.status_code == 200
+        items = await factory.get("boot_asset_item")
+        assert len(items) == 0
+        versions = await factory.get("boot_asset_version")
+        assert len(versions) == 0
+        assets = await factory.get("boot_asset")
+        assert len(assets) == 0
+        mock_resource.assert_called_with(
+            "s3",
+            use_ssl=False,
+            verify=False,
+            endpoint_url="test-endpoint",
+            aws_access_key_id="test-access-key",
+            aws_secret_access_key="test-secret-key",
+        )
+        mock_delete.assert_called_with(
+            mocker.ANY, Bucket="test-bucket", Key=str(bi.id)
+        )

@@ -320,7 +320,7 @@ async def delete_boot_source(
                 )
             ],
         )
-    await services.boot_sources.delete(id)
+    await services.purge_source(id)
     await services.index_service.refresh()
 
 
@@ -664,7 +664,7 @@ async def delete_images(
     await run_in_threadpool(
         s3.meta.client.delete_object, Bucket=settings.s3_bucket, Key=str(id)
     )
-    await services.boot_asset_items.delete(id)
+    await services.delete_item_and_purge(id)
     await services.index_service.refresh()
 
 
