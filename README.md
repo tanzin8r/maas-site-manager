@@ -611,6 +611,12 @@ To run the tests sequentially, possibly selecting a subset of them, it is possib
 tox run -e py -- <extra args> ..
 ```
 
+#### API specification and documentation
+
+The OpenAPI specification, and the corresponding Swagger UI listing of the available endpoints can be accessed through
+`http://localhost:8000/api/openapi.json` and `http://localhost:8000/api/docs` respectively, assuming the backend is
+being hosted locally.
+
 ### Frontend
 
 - When installing the frontend for the first time, read the _note on installing the frontend_ below. Prerequisite steps for running anything with yarn (starting frontend, testing, etc.) are:
