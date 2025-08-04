@@ -247,6 +247,7 @@ async def get_available_images(
                             os=selection.os,
                             release=selection.release,
                             arch=arch,
+                            source_id=source.id,
                             source_name=source.name,
                             selected=arch in selection.selected,
                         )

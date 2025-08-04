@@ -231,6 +231,7 @@ class AvailableImage(BaseModel):
     os: str
     release: str
     arch: str
+    source_id: int
     source_name: str
     selected: bool
 
