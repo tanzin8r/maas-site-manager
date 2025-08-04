@@ -610,7 +610,7 @@ class TestBootSourceSelectionsGetHandler:
 
 
 @pytest.mark.asyncio
-class TestPatchBootSourceSelections:
+class TestBootSourceAvailSelectionsPutHandler:
     @pytest.fixture
     async def boot_source(self, factory: Factory) -> BootSource:
         return await factory.make_BootSource()
@@ -628,7 +628,7 @@ class TestPatchBootSourceSelections:
             selected=["amd64"],
         )
 
-    async def test_patch_add_and_update_selections(
+    async def test_put_add_and_update_selections(
         self,
         user_client: Client,
         factory: Factory,
@@ -649,9 +649,10 @@ class TestPatchBootSourceSelections:
             "label": "candidate",
             "arches": ["amd64"],
         }
-        patch_data = {"available": [up_sel, new_sel]}
-        resp = await user_client.patch(
-            f"/bootasset-sources/{boot_source.id}/selections", json=patch_data
+        put_data = {"available": [up_sel, new_sel]}
+        resp = await user_client.put(
+            f"/bootasset-sources/{boot_source.id}/available-selections",
+            json=put_data,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -664,7 +665,7 @@ class TestPatchBootSourceSelections:
         assert stored[1]["os"] == new_sel["os"]
         assert stored[1]["available"] == new_sel["arches"]
 
-    async def test_patch_removes_stale_selections(
+    async def test_put_removes_stale_selections(
         self,
         user_client: Client,
         boot_source: BootSource,
@@ -672,33 +673,35 @@ class TestPatchBootSourceSelections:
         index_view: None,
     ) -> None:
         # Remove all selections (should mark existing as stale)
-        patch_data: dict[str, Any] = {"available": []}
-        resp = await user_client.patch(
-            f"/bootasset-sources/{boot_source.id}/selections", json=patch_data
+        put_data: dict[str, Any] = {"available": []}
+        resp = await user_client.put(
+            f"/bootasset-sources/{boot_source.id}/available-selections",
+            json=put_data,
         )
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data["stale"], list)
         assert any(s["id"] == selection.id for s in data["stale"])
 
-    async def test_patch_boot_source_not_found(
+    async def test_put_boot_source_not_found(
         self,
         user_client: Client,
     ) -> None:
-        patch_data: dict[str, Any] = {"available": []}
-        resp = await user_client.patch(
-            "/bootasset-sources/9999/selections", json=patch_data
+        put_data: dict[str, Any] = {"available": []}
+        resp = await user_client.put(
+            "/bootasset-sources/9999/available-selections", json=put_data
         )
         assert resp.status_code == 404
 
-    async def test_patch_invalid_payload(
+    async def test_put_invalid_payload(
         self,
         user_client: Client,
         boot_source: BootSource,
     ) -> None:
         # Missing 'available' field
-        resp = await user_client.patch(
-            f"/bootasset-sources/{boot_source.id}/selections", json={}
+        resp = await user_client.put(
+            f"/bootasset-sources/{boot_source.id}/available-selections",
+            json={},
         )
         assert resp.status_code == 422
 

@@ -308,10 +308,10 @@ class SimpleStreamActivities(BaseActivity):
 
         url = compose_url(
             params.msm_base_url,
-            f"api/v1/bootasset-sources/{params.boot_source_id}/selections",
+            f"api/v1/bootasset-sources/{params.boot_source_id}/available-selections",
         )
 
-        patch_req = {
+        put_req = {
             "available": [
                 {
                     "os": sel.os,
@@ -323,9 +323,7 @@ class SimpleStreamActivities(BaseActivity):
             ]
         }
 
-        response = await self.client.patch(
-            url, headers=headers, json=patch_req
-        )
+        response = await self.client.put(url, headers=headers, json=put_req)
 
         if response.status_code != 200:
             raise ApplicationError(

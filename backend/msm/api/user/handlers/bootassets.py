@@ -355,20 +355,20 @@ async def get_boot_source_selections(
     )
 
 
-@v1_router.patch(
-    "/bootasset-sources/{id}/selections",
+@v1_router.put(
+    "/bootasset-sources/{id}/available-selections",
     responses={
         401: {"model": UnauthorizedErrorResponseModel},
         404: {"model": NotFoundErrorResponseModel},
         422: {"model": ValidationErrorResponseModel},
     },
 )
-async def patch_boot_source_selections(
+async def put_boot_source_avail_selections(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
     id: int,
-    patch_request: dm.BootSourceSelectionsPatchRequest,
-) -> dm.BootSourceSelectionsPatchResponse:
+    patch_request: dm.BootSourceAvailSelectionsPutRequest,
+) -> dm.BootSourceAvailSelectionsPutResponse:
     bs = await services.boot_sources.get_by_id(id)
     if bs is None:
         raise NotFoundException(
@@ -421,7 +421,7 @@ async def patch_boot_source_selections(
                 )
 
     await services.index_service.refresh()
-    return dm.BootSourceSelectionsPatchResponse(stale=stale)
+    return dm.BootSourceAvailSelectionsPutResponse(stale=stale)
 
 
 @v1_router.post(

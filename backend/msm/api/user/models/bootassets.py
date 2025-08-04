@@ -94,11 +94,11 @@ class AvailableBootSourceSelection(NamedTuple):
         return (self.os, self.release) == (other.os, other.release)
 
 
-class BootSourceSelectionsPatchRequest(BaseModel):
+class BootSourceAvailSelectionsPutRequest(BaseModel):
     available: list[AvailableBootSourceSelection]
 
 
-class BootSourceSelectionsPatchResponse(BaseModel):
+class BootSourceAvailSelectionsPutResponse(BaseModel):
     stale: list[models.BootSourceSelection]
 
 

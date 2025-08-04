@@ -452,15 +452,15 @@ class TestPatchAvailableAssetsActivity:
         )
         mock_response = mocker.Mock(spec=Response)
         mock_response.status_code = 200
-        ss_act.client.patch.return_value = mock_response
+        ss_act.client.put.return_value = mock_response
 
         # Act
         result = await act_env.run(ss_act.patch_asset_list, params)
 
         # Assert
         assert result is True
-        ss_act.client.patch.assert_called_once()
-        call_args = ss_act.client.patch.call_args
+        ss_act.client.put.assert_called_once()
+        call_args = ss_act.client.put.call_args
         assert call_args is not None
         _, kwargs = call_args
         assert kwargs["json"]["available"][0]["os"] == "ubuntu"
@@ -485,7 +485,7 @@ class TestPatchAvailableAssetsActivity:
         mock_response = mocker.Mock(spec=Response)
         mock_response.status_code = 400
         mock_response.text = "Bad request"
-        ss_act.client.patch.return_value = mock_response
+        ss_act.client.put.return_value = mock_response
 
         # Act & Assert
         with pytest.raises(Exception) as excinfo:
