@@ -33,7 +33,7 @@ from msm.api.user.forms import (
     boot_asset_item_filter_params,
     boot_asset_version_filter_params,
 )
-import msm.api.user.models.images as dm
+import msm.api.user.models.bootassets as dm
 from msm.db import models
 from msm.schema import (
     PaginationParams,

@@ -36,7 +36,7 @@ from msm.api.user.auth import (
     authenticated_user,
     verify_authenticated_user_or_worker,
 )
-import msm.api.user.models.bootassets as dm
+import msm.api.user.models.images as dm
 from msm.db import models
 from msm.schema import (
     SortParam,
