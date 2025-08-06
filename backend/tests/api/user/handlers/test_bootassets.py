@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 from pytest_mock import MockerFixture
 
+from msm.api.user.handlers.bootassets import purge_and_refresh
 from msm.db.models import (
     BootAssetKind,
     BootAssetLabel,
@@ -500,15 +501,23 @@ class TestBootSourcesUpdateHandler:
 @pytest.mark.asyncio
 class TestBootSourcesDeleteHandler:
     async def test_delete(
-        self, user_client: Client, factory: Factory, index_view: None
+        self,
+        user_client: Client,
+        factory: Factory,
+        index_view: None,
+        mocker: MockerFixture,
     ) -> None:
+        mock_background = mocker.patch(
+            "msm.api.user.handlers.bootassets.BackgroundTasks.add_task",
+        )
         # need to create custom boot source and delete second one
         await factory.make_BootSource()
         bs = await factory.make_BootSource()
         resp = await user_client.delete(f"/bootasset-sources/{bs.id}")
         assert resp.status_code == 200
-        sources = await factory.get("boot_source")
-        assert len(sources) == 1
+        mock_background.assert_called_once_with(
+            purge_and_refresh, mocker.ANY, bs.id
+        )
 
     async def test_delete_not_found(self, user_client: Client) -> None:
         resp = await user_client.delete("/bootasset-sources/333")

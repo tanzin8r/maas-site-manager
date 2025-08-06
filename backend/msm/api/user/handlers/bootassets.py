@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Annotated
 
 import boto3  # type: ignore
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, BackgroundTasks, Depends, Path
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.exc import IntegrityError
 
@@ -294,6 +294,11 @@ async def patch_boot_source(
     return dm.BootSourcePatchResponse.from_model(updated_source)
 
 
+async def purge_and_refresh(services: ServiceCollection, id: int) -> None:
+    await services.purge_source(id)
+    await services.index_service.refresh()
+
+
 @v1_router.delete(
     "/bootasset-sources/{id}",
     responses={
@@ -305,6 +310,7 @@ async def patch_boot_source(
 async def delete_boot_source(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    background_tasks: BackgroundTasks,
     id: Annotated[
         int, Path(title="The ID of the Boot Source to delete", ge=2)
     ],
@@ -323,8 +329,7 @@ async def delete_boot_source(
                 )
             ],
         )
-    await services.purge_source(id)
-    await services.index_service.refresh()
+    background_tasks.add_task(purge_and_refresh, services, id)
 
 
 @v1_router.get(
