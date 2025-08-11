@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
 import pytest
+from pytest_mock import MockerFixture
 
 from msm.db.models import (
     Config,
@@ -13,6 +14,12 @@ from tests.fixtures.factory import Factory
 
 API_USER_NAME = "user"
 API_ADMIN_NAME = "admin"
+
+
+@pytest.fixture(autouse=True)
+def patch_index_service(mocker: MockerFixture) -> None:
+    # disable refreshing the index view, not required in these tests
+    mocker.patch("msm.service.IndexService.refresh")
 
 
 @pytest.fixture

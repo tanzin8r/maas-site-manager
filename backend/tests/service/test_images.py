@@ -1,6 +1,8 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
+import json
 
 import pytest
+from pytest_mock import MockerFixture
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -24,7 +26,6 @@ from msm.db.models import (
     IndexType,
     ItemFileType,
 )
-from msm.sampledata.images import make_fixture_images
 from msm.service import (
     BootAssetItemService,
     BootAssetService,
@@ -41,54 +42,13 @@ from tests.fixtures.factory import Factory
 @pytest.mark.asyncio
 class TestBootAssetService:
     async def test_get(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        expected_boot_asset = BootAsset(
-            id=0,  # not actually used, but need to specify here for pydantic
-            boot_source_id=boot_source.id,
-            kind=BootAssetKind.BOOTLOADER,
-            label=BootAssetLabel.CANDIDATE,
-            os="test OS",
-            release="test release",
-            codename="test codename",
-            title="test title",
-            arch="test arch",
-            subarch="test subarch",
-            compatibility=["test", "compatibility"],
-            flavor="test flavor",
-            base_image="test base image",
-            bootloader_type="test bootloader type",
-            eol=now_utc() + timedelta(days=3650),
-            esm_eol=now_utc() + timedelta(days=5000),
-            signed=True,
-        )
-        boot_asset = await factory.make_BootAsset(
-            boot_source.id,
-            expected_boot_asset.kind,
-            expected_boot_asset.label,
-            expected_boot_asset.os,
-            expected_boot_asset.arch,
-            expected_boot_asset.release,
-            expected_boot_asset.codename,
-            expected_boot_asset.title,
-            expected_boot_asset.subarch,
-            expected_boot_asset.compatibility,
-            expected_boot_asset.flavor,
-            expected_boot_asset.base_image,
-            expected_boot_asset.bootloader_type,
-            expected_boot_asset.eol,
-            expected_boot_asset.esm_eol,
-            expected_boot_asset.signed,
-        )
-        expected_boot_asset.id = boot_asset.id
-
-        service = BootAssetService(db_connection)
-        count, retrieved_boot_assets = await service.get([])
+        count, [rba] = await boot_asset_service.get([])
         assert count == 1
-        # should only be one boot asset retrieved, but we need to loop anyway since it's an interable
-        for rba in retrieved_boot_assets:
-            assert rba == expected_boot_asset
+        assert ubuntu_noble == rba
 
     @pytest.mark.parametrize(
         "filter_param",
@@ -103,35 +63,16 @@ class TestBootAssetService:
     )
     async def test_get_with_filters(
         self,
-        factory: Factory,
-        db_connection: AsyncConnection,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
         filter_param: str,
     ) -> None:
-        boot_source1 = await factory.make_BootSource()
-        boot_source2 = await factory.make_BootSource()
-        boot_asset1 = await factory.make_BootAsset(
-            boot_source1.id,
-            kind=BootAssetKind.BOOTLOADER,
-            label=BootAssetLabel.STABLE,
-            os="ubuntu",
-            arch="amd64",
-            release="plucky",
+        filters = {filter_param: [ubuntu_noble.model_dump()[filter_param]]}
+        count, [rba] = await boot_asset_service.get(
+            sort_params=[], offset=0, limit=None, **filters
         )
-        await factory.make_BootAsset(
-            boot_source2.id,
-            kind=BootAssetKind.OS,
-            label=BootAssetLabel.CANDIDATE,
-            arch="arm",
-            os="centos",
-            release="idk",
-        )
-
-        filters = {filter_param: [boot_asset1.model_dump()[filter_param]]}
-        service = BootAssetService(db_connection)
-        count, retrieved_boot_assets = await service.get([], **filters)  # type: ignore
         assert count == 1
-        for rba in retrieved_boot_assets:
-            assert rba == boot_asset1
+        assert rba == ubuntu_noble
 
     @pytest.mark.parametrize(
         "id,exists",
@@ -142,23 +83,21 @@ class TestBootAssetService:
     )
     async def test_get_by_id(
         self,
-        factory: Factory,
-        db_connection: AsyncConnection,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
         id: int,
         exists: bool,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        details = boot_asset.model_dump()
-        service = BootAssetService(db_connection)
-        assert await service.get_by_id(id) == (
-            BootAsset(**details) if exists else None
+        assert await boot_asset_service.get_by_id(id) == (
+            ubuntu_noble if exists else None
         )
 
     async def test_create(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_source: BootSource,
+        boot_asset_service: BootAssetService,
     ) -> None:
-        boot_source = await factory.make_BootSource()
         new_boot_asset = BootAssetCreate(
             boot_source_id=boot_source.id,
             kind=BootAssetKind.BOOTLOADER,
@@ -177,8 +116,7 @@ class TestBootAssetService:
             esm_eol=now_utc() + timedelta(days=5000),
             signed=True,
         )
-        service = BootAssetService(db_connection)
-        boot_asset = await service.create(new_boot_asset)
+        boot_asset = await boot_asset_service.create(new_boot_asset)
         expected_boot_asset = BootAsset(
             id=boot_asset.id, **new_boot_asset.model_dump()
         )
@@ -188,93 +126,21 @@ class TestBootAssetService:
         assert assets[0] == expected_boot_asset.model_dump()
 
     async def test_delete(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        expected_boot_asset = BootAsset(
-            id=0,  # not actually used, but need to specify here for pydantic
-            boot_source_id=boot_source.id,
-            kind=BootAssetKind.BOOTLOADER,
-            label=BootAssetLabel.CANDIDATE,
-            os="test OS",
-            release="test release",
-            codename="test codename",
-            title="test title",
-            arch="test arch",
-            subarch="test subarch",
-            compatibility=["test", "compatibility"],
-            flavor="test flavor",
-            base_image="test base image",
-            bootloader_type="test bootloader type",
-            eol=now_utc() + timedelta(days=3650),
-            esm_eol=now_utc() + timedelta(days=5000),
-            signed=True,
-        )
-        boot_asset = await factory.make_BootAsset(
-            boot_source.id,
-            expected_boot_asset.kind,
-            expected_boot_asset.label,
-            expected_boot_asset.os,
-            expected_boot_asset.arch,
-            expected_boot_asset.release,
-            expected_boot_asset.codename,
-            expected_boot_asset.title,
-            expected_boot_asset.subarch,
-            expected_boot_asset.compatibility,
-            expected_boot_asset.flavor,
-            expected_boot_asset.base_image,
-            expected_boot_asset.bootloader_type,
-            expected_boot_asset.eol,
-            expected_boot_asset.esm_eol,
-            expected_boot_asset.signed,
-        )
-
-        service = BootAssetService(db_connection)
-        await service.delete(boot_asset.id)
+        await boot_asset_service.delete(ubuntu_noble.id)
         assets = await factory.get("boot_asset")
         assert len(assets) == 0
 
     async def test_update(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = BootAsset(
-            id=0,  # not actually used, but need to specify here for pydantic
-            boot_source_id=boot_source.id,
-            kind=BootAssetKind.BOOTLOADER,
-            label=BootAssetLabel.CANDIDATE,
-            os="test OS",
-            release="test release",
-            codename="test codename",
-            title="test title",
-            arch="test arch",
-            subarch="test subarch",
-            compatibility=["test", "compatibility"],
-            flavor="test flavor",
-            base_image="test base image",
-            bootloader_type="test bootloader type",
-            eol=now_utc() + timedelta(days=3650),
-            esm_eol=now_utc() + timedelta(days=5000),
-            signed=True,
-        )
-        boot_asset = await factory.make_BootAsset(
-            boot_source.id,
-            boot_asset.kind,
-            boot_asset.label,
-            boot_asset.os,
-            boot_asset.arch,
-            boot_asset.release,
-            boot_asset.codename,
-            boot_asset.title,
-            boot_asset.subarch,
-            boot_asset.compatibility,
-            boot_asset.flavor,
-            boot_asset.base_image,
-            boot_asset.bootloader_type,
-            boot_asset.eol,
-            boot_asset.esm_eol,
-            boot_asset.signed,
-        )
         asset_updates = BootAssetUpdate(
             kind=BootAssetKind.OS,
             label=BootAssetLabel.STABLE,
@@ -293,23 +159,22 @@ class TestBootAssetService:
             signed=False,
         )
 
-        service = BootAssetService(db_connection)
-        await service.update(boot_asset.id, asset_updates)
+        await boot_asset_service.update(ubuntu_noble.id, asset_updates)
         assets = await factory.get("boot_asset")
         assert len(assets) == 1
         assert assets[0] == asset_updates.model_dump() | {
-            "id": boot_asset.id,
-            "boot_source_id": boot_source.id,
+            "id": ubuntu_noble.id,
+            "boot_source_id": ubuntu_noble.boot_source_id,
         }
 
     async def test_delete_by_source_id(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_service: BootAssetService,
+        boot_source: BootSource,
+        ubuntu_noble: BootAsset,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        await factory.make_BootAsset(boot_source.id, os="1")
-        await factory.make_BootAsset(boot_source.id, os="2")
-        service = BootAssetService(db_connection)
-        await service.delete_by_source_id(boot_source.id)
+        await boot_asset_service.delete_by_source_id(boot_source.id)
         assets = await factory.get("boot_asset")
         assert len(assets) == 0
 
@@ -317,44 +182,25 @@ class TestBootAssetService:
 @pytest.mark.asyncio
 class TestBootSourceSelectionService:
     async def test_get(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        boot_source_selection_service: BootSourceSelectionService,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        expected_boot_src_selection = BootSourceSelection(
-            id=0,
-            boot_source_id=boot_source.id,
-            label=BootAssetLabel.CANDIDATE,
-            os="test os",
-            release="test release",
-            available=["test", "arches"],
-            selected=["test", "arches"],
-        )
-        boot_source_selection = await factory.make_BootSourceSelection(
-            boot_source.id,
-            label=expected_boot_src_selection.label,
-            os=expected_boot_src_selection.os,
-            release=expected_boot_src_selection.release,
-            available=expected_boot_src_selection.available,
-            selected=expected_boot_src_selection.selected,
-        )
-
-        expected_boot_src_selection.id = boot_source_selection.id
-
-        service = BootSourceSelectionService(db_connection)
-        count, retrieved_boot_src_selections = await service.get(
-            boot_source.id, []
+        (
+            count,
+            [sel],
+        ) = await boot_source_selection_service.get(
+            sel_ubuntu_noble.boot_source_id, []
         )
         assert count == 1
-        # should only be one boot asset retrieved, but we need to loop anyway since it's an interable
-        for rba in retrieved_boot_src_selections:
-            assert rba == expected_boot_src_selection
+        assert sel_ubuntu_noble == sel
 
     async def test_create(
         self,
         factory: Factory,
-        db_connection: AsyncConnection,
+        boot_source_selection_service: BootSourceSelectionService,
+        boot_source: BootSource,
     ) -> None:
-        boot_source = await factory.make_BootSource()
         new_boot_src_selection = BootSourceSelectionCreate(
             boot_source_id=boot_source.id,
             label=BootAssetLabel.CANDIDATE,
@@ -363,8 +209,9 @@ class TestBootSourceSelectionService:
             available=["test", "arches"],
             selected=["test", "arches"],
         )
-        service = BootSourceSelectionService(db_connection)
-        boot_src_selection = await service.create(new_boot_src_selection)
+        boot_src_selection = await boot_source_selection_service.create(
+            new_boot_src_selection
+        )
         expected_boot_src_selection = BootSourceSelection(
             id=boot_src_selection.id,
             **new_boot_src_selection.model_dump(),
@@ -374,83 +221,45 @@ class TestBootSourceSelectionService:
         assert selections[0] == expected_boot_src_selection.model_dump()
 
     async def test_update(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_source_selection_service: BootSourceSelectionService,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        expected_boot_src_selection = BootSourceSelection(
-            id=0,
-            boot_source_id=boot_source.id,
-            label=BootAssetLabel.CANDIDATE,
-            os="test os",
-            release="test release",
-            available=["test", "arches"],
-            selected=["test", "arches"],
-        )
-        boot_source_selection = await factory.make_BootSourceSelection(
-            boot_source.id,
-            label=expected_boot_src_selection.label,
-            os=expected_boot_src_selection.os,
-            release=expected_boot_src_selection.release,
-            available=expected_boot_src_selection.available,
-            selected=expected_boot_src_selection.selected,
-        )
-
-        expected_boot_src_selection.id = boot_source_selection.id
-
         new_boot_src_selection = BootSourceSelectionUpdate(
             label=BootAssetLabel.STABLE,
             os="new os",
         )
-        expected_boot_src_selection.label = new_boot_src_selection.label  # type: ignore
-        expected_boot_src_selection.os = new_boot_src_selection.os  # type: ignore
-
-        service = BootSourceSelectionService(db_connection)
-        await service.update(
-            boot_source.id, boot_source_selection.id, new_boot_src_selection
+        await boot_source_selection_service.update(
+            sel_ubuntu_noble.boot_source_id,
+            sel_ubuntu_noble.id,
+            new_boot_src_selection,
         )
         selections = await factory.get("boot_source_selection")
         assert len(selections) == 1
-        assert selections[0] == expected_boot_src_selection.model_dump()
+        assert selections[0]["os"] == "new os"
 
     async def test_delete(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_source_selection_service: BootSourceSelectionService,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        expected_boot_src_selection = BootSourceSelection(
-            id=0,
-            boot_source_id=boot_source.id,
-            label=BootAssetLabel.CANDIDATE,
-            os="test os",
-            release="test release",
-            available=["test", "arches"],
-            selected=["test", "arches"],
+        await boot_source_selection_service.delete(
+            sel_ubuntu_noble.boot_source_id, sel_ubuntu_noble.id
         )
-        boot_source_selection = await factory.make_BootSourceSelection(
-            boot_source.id,
-            label=expected_boot_src_selection.label,
-            os=expected_boot_src_selection.os,
-            release=expected_boot_src_selection.release,
-            available=expected_boot_src_selection.available,
-            selected=expected_boot_src_selection.selected,
-        )
-
-        service = BootSourceSelectionService(db_connection)
-        await service.delete(boot_source.id, boot_source_selection.id)
         selections = await factory.get("boot_source_selection")
         assert len(selections) == 0
 
     async def test_delete_by_source_id(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_source_selection_service: BootSourceSelectionService,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        await factory.make_BootSourceSelection(
-            boot_source.id, label=BootAssetLabel.STABLE
+        await boot_source_selection_service.delete_by_source_id(
+            sel_ubuntu_noble.boot_source_id
         )
-        await factory.make_BootSourceSelection(
-            boot_source.id, label=BootAssetLabel.CANDIDATE
-        )
-        service = BootSourceSelectionService(db_connection)
-        await service.delete_by_source_id(boot_source.id)
         selections = await factory.get("boot_source_selection")
         assert len(selections) == 0
 
@@ -458,31 +267,13 @@ class TestBootSourceSelectionService:
 @pytest.mark.asyncio
 class TestBootSourceService:
     async def test_get(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        boot_source_service: BootSourceService,
+        boot_source_custom: BootSource,
     ) -> None:
-        expected_boot_source = BootSource(
-            id=0,
-            priority=1,
-            url="http://some.image.server",
-            keyring="test keyring",
-            sync_interval=3600,
-            name="Test Boot Source",
-            last_sync=factory.now,
-        )
-        boot_source = await factory.make_BootSource(
-            priority=expected_boot_source.priority,
-            url=expected_boot_source.url,
-            keyring=expected_boot_source.keyring,
-            sync_interval=expected_boot_source.sync_interval,
-            name=expected_boot_source.name,
-        )
-        expected_boot_source.id = boot_source.id
-
-        service = BootSourceService(db_connection)
-        count, retrieved_boot_sources = await service.get([])
+        count, [rbs] = await boot_source_service.get([])
         assert count == 1
-        for rbs in retrieved_boot_sources:
-            assert rbs == expected_boot_source
+        assert rbs == boot_source_custom
 
     @pytest.mark.parametrize(
         "id,exists",
@@ -493,17 +284,20 @@ class TestBootSourceService:
     )
     async def test_get_by_id(
         self,
-        factory: Factory,
-        db_connection: AsyncConnection,
+        boot_source_service: BootSourceService,
+        boot_source_custom: BootSource,
         id: int,
         exists: bool,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        service = BootSourceService(db_connection)
-        assert await service.get_by_id(id) == (boot_source if exists else None)
+        assert await boot_source_service.get_by_id(id) == (
+            boot_source_custom if exists else None
+        )
 
     async def test_create(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_source_service: BootSourceService,
+        boot_source_custom: BootSource,
     ) -> None:
         new_boot_source = BootSourceCreate(
             priority=1,
@@ -513,98 +307,51 @@ class TestBootSourceService:
             name="Test Boot Source",
             last_sync=factory.now,
         )
-        service = BootSourceService(db_connection)
-        boot_source = await service.create(new_boot_source)
+        boot_source = await boot_source_service.create(new_boot_source)
         expected_boot_source = BootSource(
             id=boot_source.id, **new_boot_source.model_dump()
         )
         sources = await factory.get("boot_source")
-        assert len(sources) == 1
-        assert sources[0] == expected_boot_source.model_dump()
+        assert len(sources) == 2
+        assert sources[1] == expected_boot_source.model_dump()
 
     async def test_update(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_source_service: BootSourceService,
+        boot_source: BootSource,
     ) -> None:
-        expected_boot_source = BootSource(
-            id=0,
-            priority=1,
-            url="http://some.image.server",
-            keyring="test keyring",
-            sync_interval=3600,
-            name="Test Boot Source",
-            last_sync=factory.now,
-        )
-        boot_source = await factory.make_BootSource(
-            priority=expected_boot_source.priority,
-            url=expected_boot_source.url,
-            keyring=expected_boot_source.keyring,
-            sync_interval=expected_boot_source.sync_interval,
-            name=expected_boot_source.name,
-        )
         new_boot_source = BootSourceUpdate(
             priority=2,
             url="http://another.image.server",
             name="Another Boot Source",
         )
-        expected_boot_source.id = boot_source.id
-        expected_boot_source.priority = new_boot_source.priority  # type: ignore
-        expected_boot_source.url = new_boot_source.url  # type: ignore
-        expected_boot_source.name = new_boot_source.name  # type: ignore
-
-        service = BootSourceService(db_connection)
-        await service.update(boot_source.id, new_boot_source)
-        retrieved_boot_sources = await factory.get("boot_source")
-        assert len(retrieved_boot_sources) == 1
-        assert retrieved_boot_sources[0] == expected_boot_source.model_dump()
+        await boot_source_service.update(boot_source.id, new_boot_source)
+        sources = await factory.get("boot_source")
+        assert len(sources) == 2
+        assert sources[1]["url"] == new_boot_source.url
 
     async def test_delete(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_source_service: BootSourceService,
+        boot_source: BootSource,
     ) -> None:
-        expected_boot_source = BootSource(
-            id=0,
-            priority=1,
-            url="http://some.image.server",
-            keyring="test keyring",
-            sync_interval=3600,
-            name="Test Boot Source",
-            last_sync=factory.now,
-        )
-        boot_source = await factory.make_BootSource(
-            priority=expected_boot_source.priority,
-            url=expected_boot_source.url,
-            keyring=expected_boot_source.keyring,
-            sync_interval=expected_boot_source.sync_interval,
-        )
-
-        service = BootSourceService(db_connection)
-        await service.delete(boot_source.id)
+        await boot_source_service.delete(boot_source.id)
         sources = await factory.get("boot_source")
-        assert len(sources) == 0
+        assert len(sources) == 1
 
 
 class TestBootAssetVersionService:
     async def test_get(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_version_service: BootAssetVersionService,
+        ver_ubuntu_jammy_1: BootAssetVersion,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        expected_boot_asset_version = BootAssetVersion(
-            id=0,
-            boot_asset_id=boot_asset.id,
-            version="20250227.1",
-            last_seen=factory.now,
-        )
-        boot_asset_version = await factory.make_BootAssetVersion(
-            boot_asset.id,
-            version=expected_boot_asset_version.version,
-        )
-        expected_boot_asset_version.id = boot_asset_version.id
-
-        service = BootAssetVersionService(db_connection)
-        count, retrieved_boot_asset_versions = await service.get([])
+        count, [rbav] = await boot_asset_version_service.get([])
         assert count == 1
-        for rbav in retrieved_boot_asset_versions:
-            assert rbav == expected_boot_asset_version
+        assert rbav == ver_ubuntu_jammy_1
 
     @pytest.mark.parametrize(
         "filter_param",
@@ -613,37 +360,34 @@ class TestBootAssetVersionService:
     async def test_get_with_filters(
         self,
         factory: Factory,
-        db_connection: AsyncConnection,
+        boot_asset_version_service: BootAssetVersionService,
+        ver_ubuntu_jammy_1: BootAssetVersion,
+        ver_ubuntu_noble_1: BootAssetVersion,
         filter_param: str,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset1 = await factory.make_BootAsset(boot_source.id)
-        boot_asset2 = await factory.make_BootAsset(boot_source.id, os="os")
-        boot_asset_version1 = await factory.make_BootAssetVersion(
-            boot_asset1.id, version="1"
-        )
-        await factory.make_BootAssetVersion(boot_asset2.id, version="2")
-        service = BootAssetVersionService(db_connection)
-        count, retrieved_boot_asset_versions = await service.get(
+        count, [rbav] = await boot_asset_version_service.get(
             [],
-            **{filter_param: [boot_asset_version1.model_dump()[filter_param]]},  # type: ignore
+            0,
+            None,
+            **{filter_param: [ver_ubuntu_jammy_1.model_dump()[filter_param]]},
         )
         assert count == 1
-        for rbav in retrieved_boot_asset_versions:
-            assert rbav == boot_asset_version1
+        assert rbav == ver_ubuntu_jammy_1
 
     async def test_create(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_version_service: BootAssetVersionService,
+        ubuntu_jammy: BootAsset,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
         new_boot_asset_version = BootAssetVersionCreate(
-            boot_asset_id=boot_asset.id,
+            boot_asset_id=ubuntu_jammy.id,
             version="20250227.1",
             last_seen=factory.now,
         )
-        service = BootAssetVersionService(db_connection)
-        boot_asset_version = await service.create(new_boot_asset_version)
+        boot_asset_version = await boot_asset_version_service.create(
+            new_boot_asset_version
+        )
         expected_boot_asset_version = BootAssetVersion(
             id=boot_asset_version.id,
             **new_boot_asset_version.model_dump(),
@@ -653,69 +397,36 @@ class TestBootAssetVersionService:
         assert versions[0] == expected_boot_asset_version.model_dump()
 
     async def test_delete(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_version_service: BootAssetVersionService,
+        ver_ubuntu_jammy_1: BootAssetVersion,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(
-            boot_asset.id, version="20250227.1"
-        )
-
-        service = BootAssetVersionService(db_connection)
-        await service.delete(boot_asset_version.id)
+        await boot_asset_version_service.delete(ver_ubuntu_jammy_1.id)
         versions = await factory.get("boot_asset_version")
         assert len(versions) == 0
 
     async def test_delete_by_asset_id(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_version_service: BootAssetVersionService,
+        ubuntu_jammy: BootAsset,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        await factory.make_BootAssetVersion(boot_asset.id, version="1")
-        await factory.make_BootAssetVersion(boot_asset.id, version="2")
-        service = BootAssetVersionService(db_connection)
-        await service.delete_by_asset_id(boot_asset.id)
+        await boot_asset_version_service.delete_by_asset_id(ubuntu_jammy.id)
         versions = await factory.get("boot_asset_version")
         assert len(versions) == 0
 
 
 class TestBootAssetItemService:
     async def test_get(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        expected_boot_asset_item = BootAssetItem(
-            id=0,
-            boot_asset_version_id=boot_asset_version.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="2349asldkfj2309854jhs",
-            path="/test",
-            file_size=23425323,
-            source_package="ubukernel",
-            source_version="23.2",
-            source_release="Noble",
-            bytes_synced=23425323,
-        )
-        boot_asset_item = await factory.make_BootAssetItem(
-            boot_asset_version.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="2349asldkfj2309854jhs",
-            path="/test",
-            file_size=23425323,
-            source_package="ubukernel",
-            source_version="23.2",
-            source_release="Noble",
-            bytes_synced=23425323,
-        )
-        expected_boot_asset_item.id = boot_asset_item.id
-
-        service = BootAssetItemService(db_connection)
-        count, retrieved_boot_asset_items = await service.get([])
-        assert count == 1
-        for rbai in retrieved_boot_asset_items:
-            assert rbai == expected_boot_asset_item
+        count, items = await boot_asset_item_service.get([])
+        assert count == 3
+        got = list(items)
+        assert got == items_ubuntu_noble_1
 
     @pytest.mark.parametrize(
         "filter_param",
@@ -729,117 +440,66 @@ class TestBootAssetItemService:
     )
     async def test_get_with_filters(
         self,
-        factory: Factory,
-        db_connection: AsyncConnection,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
         filter_param: str,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        boot_asset_version2 = await factory.make_BootAssetVersion(
-            boot_asset.id, version="x"
+        item = items_ubuntu_noble_1[0]
+        filters = {filter_param: [item.model_dump()[filter_param]]}
+        count, items = await boot_asset_item_service.get(
+            [], 0, None, **filters
         )
-        expected_boot_asset_item = BootAssetItem(
-            id=0,
-            boot_asset_version_id=boot_asset_version.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="2349asldkfj2309854jhs",
-            path="/test",
-            file_size=23425323,
-            source_package="ubukernel",
-            source_version="23.2",
-            source_release="Noble",
-            bytes_synced=23425323,
-        )
-        boot_asset_item = await factory.make_BootAssetItem(
-            boot_asset_version.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="2349asldkfj2309854jhs",
-            path="/test",
-            file_size=23425323,
-            source_package="ubukernel",
-            source_version="23.2",
-            source_release="Noble",
-            bytes_synced=23425323,
-        )
-        await factory.make_BootAssetItem(
-            boot_asset_version2.id,
-            ftype=ItemFileType.BOOT_DTB,
-            sha256="22222",
-            path="/path",
-            file_size=234253232,
-            source_package="k2",
-            source_version="4",
-            source_release="Jammy",
-            bytes_synced=234253232,
-        )
-        expected_boot_asset_item.id = boot_asset_item.id
-        service = BootAssetItemService(db_connection)
-        filters = {filter_param: [boot_asset_item.model_dump()[filter_param]]}
-        count, retrieved_boot_asset_items = await service.get([], **filters)  # type: ignore
-        assert count == 1
-        for rbai in retrieved_boot_asset_items:
-            assert rbai == expected_boot_asset_item
+        assert count >= 1
+        assert next(iter(items)) == item
 
     @pytest.mark.parametrize(
-        "id,exists",
+        "exists",
         [
-            (1, True),
-            (-1, False),
+            (True),
+            (False),
         ],
     )
     async def test_get_by_id(
         self,
-        factory: Factory,
-        db_connection: AsyncConnection,
-        id: int,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
         exists: bool,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        item = await factory.make_BootAssetItem(boot_asset_version.id)
-        details = item.model_dump()
-        service = BootAssetItemService(db_connection)
-        assert await service.get_by_id(id) == (
+        details = items_ubuntu_noble_1[0].model_dump()
+        id = details["id"] if exists else -1
+
+        assert await boot_asset_item_service.get_by_id(id) == (
             BootAssetItem(**details) if exists else None
         )
 
     @pytest.mark.parametrize(
-        "path,exists",
+        "exists",
         [
-            ("ubuntu/22.04/boot-kernel", True),
-            ("ubuntu/0000/boot-kernel", False),
+            (True),
+            (False),
         ],
     )
     async def test_get_by_path(
         self,
-        factory: Factory,
-        db_connection: AsyncConnection,
-        path: str,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
         exists: bool,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        if exists:
-            item = await factory.make_BootAssetItem(
-                boot_asset_version.id, path=path
-            )
-            details = item.model_dump()
-        service = BootAssetItemService(db_connection)
-        assert await service.get_by_path(path) == (
+        details = items_ubuntu_noble_1[0].model_dump()
+        path = details["path"] if exists else "asdf/asdf"
+
+        assert await boot_asset_item_service.get_by_path(path) == (
             BootAssetItem(**details) if exists else None
         )
 
     async def test_create(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_item_service: BootAssetItemService,
+        ver_ubuntu_noble_1: BootAssetVersion,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
         new_boot_asset_item = BootAssetItemCreate(
-            boot_asset_version_id=boot_asset_version.id,
+            boot_asset_version_id=ver_ubuntu_noble_1.id,
             ftype=ItemFileType.ARCHIVE_TAR_XZ,
             sha256="2349asldkfj2309854jhs",
             path="/test",
@@ -848,8 +508,9 @@ class TestBootAssetItemService:
             source_version="23.2",
             source_release="Noble",
         )
-        service = BootAssetItemService(db_connection)
-        boot_asset_item = await service.create(new_boot_asset_item)
+        boot_asset_item = await boot_asset_item_service.create(
+            new_boot_asset_item
+        )
         expected_boot_asset_item = BootAssetItem(
             id=boot_asset_item.id,
             bytes_synced=0,
@@ -860,18 +521,19 @@ class TestBootAssetItemService:
         assert items[0] == expected_boot_asset_item.model_dump()
 
     async def test_create_temporary(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_item_service: BootAssetItemService,
+        ver_ubuntu_noble_1: BootAssetVersion,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        service = BootAssetItemService(db_connection)
-        boot_asset_item = await service.create_temporary(boot_asset_version.id)
+        boot_asset_item = await boot_asset_item_service.create_temporary(
+            ver_ubuntu_noble_1.id
+        )
         items = await factory.get("boot_asset_item")
         assert len(items) == 1
         assert items[0] == {
             "id": boot_asset_item.id,
-            "boot_asset_version_id": boot_asset_version.id,
+            "boot_asset_version_id": ver_ubuntu_noble_1.id,
             "ftype": ItemFileType.ROOT_TGZ,
             "sha256": "",
             "path": "",
@@ -883,24 +545,12 @@ class TestBootAssetItemService:
         }
 
     async def test_update(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        boot_asset_item = await factory.make_BootAssetItem(
-            boot_asset_version.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="2349asldkfj2309854jhs",
-            path="/test",
-            file_size=23425323,
-            source_package="ubukernel",
-            source_version="23.2",
-            source_release="Noble",
-            bytes_synced=23425323,
-        )
-
-        service = BootAssetItemService(db_connection)
+        item = items_ubuntu_noble_1[0]
         updates = BootAssetItemUpdate(
             ftype=ItemFileType.BOOT_INITRD,
             sha256="asdflkj234lkjsdlfkj23",
@@ -911,96 +561,73 @@ class TestBootAssetItemService:
             source_release="Jammy",
             bytes_synced=23425322,
         )
-        await service.update(boot_asset_item.id, updates)
+        await boot_asset_item_service.update(item.id, updates)
         items = await factory.get("boot_asset_item")
-        assert len(items) == 1
+        assert len(items) == len(items_ubuntu_noble_1)
         updates_dict = updates.model_dump()
         updates_dict.pop("boot_asset_version_id")
         expected_item = BootAssetItem(
-            id=boot_asset_item.id,
-            boot_asset_version_id=boot_asset_version.id,
+            id=item.id,
+            boot_asset_version_id=item.boot_asset_version_id,
             **updates_dict,
         )
         assert items[0] == expected_item.model_dump()
 
     async def test_delete(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        boot_asset_item = await factory.make_BootAssetItem(
-            boot_asset_version.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="2349asldkfj2309854jhs",
-            path="/test",
-            file_size=23425323,
-            source_package="ubukernel",
-            source_version="23.2",
-            source_release="Noble",
-            bytes_synced=23425323,
-        )
-
-        service = BootAssetItemService(db_connection)
-        await service.delete(boot_asset_item.id)
+        item = items_ubuntu_noble_1[0]
+        await boot_asset_item_service.delete(item.id)
         items = await factory.get("boot_asset_item")
-        assert len(items) == 0
+        assert len(items) == len(items_ubuntu_noble_1) - 1
 
     async def test_update_bytes_synced(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        boot_asset_version = await factory.make_BootAssetVersion(boot_asset.id)
-        boot_asset_item = await factory.make_BootAssetItem(
-            boot_asset_version.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="2349asldkfj2309854jhs",
-            path="/test",
-            file_size=23425323,
-            source_package="ubukernel",
-            source_version="23.2",
-            source_release="Noble",
-            bytes_synced=0,
-        )
+        item = items_ubuntu_noble_1[0]
 
-        service = BootAssetItemService(db_connection)
-        await service.update_bytes_synced(boot_asset_item.id, 23425323)
+        await boot_asset_item_service.update_bytes_synced(item.id, 23425323)
         items = await factory.get("boot_asset_item")
-        assert len(items) == 1
         assert items[0]["bytes_synced"] == 23425323
 
     async def test_delete_by_version_id(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        factory: Factory,
+        boot_asset_item_service: BootAssetItemService,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(boot_source.id)
-        version = await factory.make_BootAssetVersion(boot_asset.id)
-        await factory.make_BootAssetItem(
-            version.id, ftype=ItemFileType.ARCHIVE_TAR_XZ
-        )
-        await factory.make_BootAssetItem(
-            version.id, ftype=ItemFileType.BOOT_INITRD
-        )
-        service = BootAssetItemService(db_connection)
-        await service.delete_by_version_id(version.id)
+        id = items_ubuntu_noble_1[0].boot_asset_version_id
+        assert id is not None
+        await boot_asset_item_service.delete_by_version_id(id)
         items = await factory.get("boot_asset_item")
         assert len(items) == 0
 
 
 class TestImagesIndexService:
     async def test_create(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        index_service: IndexService,
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_ubuntu_noble_2: list[BootAssetItem],
+        items_grub: list[BootAssetItem],
+        db_connection: AsyncConnection,
     ) -> None:
-        await make_fixture_images(db_connection)
-        num_expected_jammy_entries = {"amd64": 4, "arm64": 4}
-        num_expected_noble_entries = {"amd64": 4, "arm64": 0}
-        num_expected_bootloader_entries = {"amd64": 2, "arm64": 0}
-        service = IndexService(db_connection)
-        await service.create()
+        await index_service.refresh()
         index = await db_connection.execute(
             text("SELECT * FROM images_index;")
         )
+        expected = {
+            "ubuntu/noble": {"amd64": 3, "arm64": 0},
+            "ubuntu/jammy": {"amd64": 3, "arm64": 0},
+            "grub-efi-signed/None": {"amd64": 0, "arm64": 2},
+        }
         found_entries = {
             "ubuntu/noble": {"amd64": 0, "arm64": 0},
             "ubuntu/jammy": {"amd64": 0, "arm64": 0},
@@ -1008,322 +635,195 @@ class TestImagesIndexService:
         }
         for item in [x._asdict() for x in index.all()]:
             found_entries[f'{item["os"]}/{item["release"]}'][item["arch"]] += 1
-
-        assert found_entries["ubuntu/noble"] == num_expected_noble_entries
-        assert found_entries["ubuntu/jammy"] == num_expected_jammy_entries
-        assert (
-            found_entries["grub-efi-signed/None"]
-            == num_expected_bootloader_entries
-        )
-
-    async def test_refresh(
-        self, factory: Factory, db_connection: AsyncConnection
-    ) -> None:
-        service = IndexService(db_connection)
-        # create the index without anything
-        await service.create()
-        # add images and refresh
-        await make_fixture_images(db_connection)
-        await service.refresh()
-        num_expected_jammy_entries = {"amd64": 4, "arm64": 4}
-        num_expected_noble_entries = {"amd64": 4, "arm64": 0}
-        num_expected_bootloader_entries = {"amd64": 2, "arm64": 0}
-        index = await db_connection.execute(
-            text("SELECT * FROM images_index;")
-        )
-        items = [x._asdict() for x in index.all()]
-        found_entries = {
-            "ubuntu/noble": {"amd64": 0, "arm64": 0},
-            "ubuntu/jammy": {"amd64": 0, "arm64": 0},
-            "grub-efi-signed/None": {"amd64": 0, "arm64": 0},
-        }
-        for item in items:
-            found_entries[f'{item["os"]}/{item["release"]}'][item["arch"]] += 1
-        assert found_entries["ubuntu/noble"] == num_expected_noble_entries
-        assert found_entries["ubuntu/jammy"] == num_expected_jammy_entries
-        assert (
-            found_entries["grub-efi-signed/None"]
-            == num_expected_bootloader_entries
-        )
+        assert expected == found_entries
 
     async def test_get_index(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        index_service: IndexService,
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_grub: list[BootAssetItem],
     ) -> None:
-        await make_fixture_images(db_connection)
-        service = IndexService(db_connection)
-        await service.create()
-        index = await service.get(IndexType.INDEX, "maas.site.manager")
+        await index_service.refresh()
+        index = await index_service.get(IndexType.INDEX, "maas.site.manager")
+
         expected_index = {
             "format": "index:1.0",
+            "updated": index["updated"],
             "index": {
                 "manager.site.maas:stream:v1:download": {
+                    "updated": index["updated"],
                     "datatype": "image-ids",
                     "format": "products:1.0",
                     "path": "streams/v1/manager.site.maas:stream:v1:download.json",
                     "products": [
-                        "manager.site.maas.stream:grub-efi-signed:uefi:amd64",
-                        "manager.site.maas.stream:ubuntu:jammy:amd64:generic-generic",
-                        "manager.site.maas.stream:ubuntu:jammy:arm64:generic-generic",
-                        "manager.site.maas.stream:ubuntu:noble:amd64:ga-24.04-generic",
+                        "manager.site.maas.stream:grub-efi-signed:uefi:arm64",
+                        "manager.site.maas.stream:ubuntu:jammy:amd64:ga-22.04-generic",
+                        "manager.site.maas.stream:ubuntu:noble:amd64:hwe-24.04-generic",
                     ],
                 },
             },
         }
-        expected_index["updated"] = index["updated"]
-        expected_index["index"]["manager.site.maas:stream:v1:download"][  # type: ignore
-            "updated"
-        ] = index["updated"]
         assert index == expected_index
 
     async def test_get_download_index(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        mocker: MockerFixture,
+        index_service: IndexService,
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_grub: list[BootAssetItem],
     ) -> None:
-        await make_fixture_images(db_connection)
-        service = IndexService(db_connection)
-        await service.create()
-        index = await service.get(IndexType.DOWNLOAD, "maas.site.manager")
-        expected_index = {
-            "content_id": "manager.site.maas:stream:v1:download",
-            "datatype": "image-ids",
-            "format": "products:1.0",
-            "products": {
-                "manager.site.maas.stream:ubuntu:noble:amd64:ga-24.04-generic": {
-                    "arch": "amd64",
-                    "kflavor": "generic",
-                    "label": "stable",
-                    "os": "ubuntu",
-                    "release": "noble",
-                    "release_codename": "noble numbat",
-                    "release_title": "24.04 LTS",
-                    "subarch": "ga-24.04",
-                    "subarches": "ga-24.04",
-                    "support_eol": datetime(2029, 4, 1, tzinfo=UTC).strftime(
-                        "%Y-%m-%d"
-                    ),
-                    "support_esm_eol": datetime(
-                        2036, 4, 1, tzinfo=UTC
-                    ).strftime("%Y-%m-%d"),
-                    "versions": {
-                        "20250401.1": {
-                            "items": {
-                                "boot-initrd": {
-                                    "ftype": "boot-initrd",
-                                    "path": "noble/amd64/20250401.1/ga-24.04/generic/boot-initrd",
-                                    "sha256": "1bca818efa07048a6368ddb093c79dc964daf18c17c95910bb9188cab1e3952d",
-                                    "size": 73067242,
-                                },
-                                "boot-kernel": {
-                                    "ftype": "boot-kernel",
-                                    "path": "noble/amd64/20250401.1/ga-24.04/generic/boot-kernel",
-                                    "sha256": "f5079df42eda3657ef802d263211744dd6774b6d975eabfd2f0f3fc62b97fb49",
-                                    "size": 14981512,
-                                },
-                                "manifest": {
-                                    "ftype": "manifest",
-                                    "path": "noble/amd64/20250401.1/squashfs.manifest",
-                                    "sha256": "c3c206393946c1bd2801106f84bad8b1e949a11a57425d9992b7838430352def",
-                                    "size": 18759,
-                                },
-                                "squashfs": {
-                                    "ftype": "squashfs",
-                                    "path": "noble/amd64/20250401.1/squashfs",
-                                    "sha256": "c1a77484a804b3dcfd7b433c622ba7f2801786d33e30d556c4b40ef3e58e3bc2",
-                                    "size": 268480512,
-                                },
-                            }
-                        }
-                    },
-                },
-                "manager.site.maas.stream:ubuntu:jammy:amd64:generic-generic": {
-                    "arch": "amd64",
-                    "kflavor": "generic",
-                    "label": "candidate",
-                    "os": "ubuntu",
-                    "release": "jammy",
-                    "release_codename": "jammy jellyfish",
-                    "release_title": "22.04 LTS",
-                    "subarch": "generic",
-                    "subarches": "generic",
-                    "support_eol": datetime(2027, 4, 1, tzinfo=UTC).strftime(
-                        "%Y-%m-%d"
-                    ),
-                    "support_esm_eol": datetime(
-                        2034, 4, 1, tzinfo=UTC
-                    ).strftime("%Y-%m-%d"),
-                    "versions": {
-                        "20230401.1": {
-                            "items": {
-                                "boot-initrd": {
-                                    "ftype": "boot-initrd",
-                                    "path": "jammy/amd64/20230401.1/generic/generic/boot-initrd",
-                                    "sha256": "d539ad8c9dd6ca339749c7c2cfb672684f6cb8476cf2500a5e7a78895ad894eb",
-                                    "size": 73067242,
-                                },
-                                "boot-kernel": {
-                                    "ftype": "boot-kernel",
-                                    "path": "jammy/amd64/20230401.1/generic/generic/boot-kernel",
-                                    "sha256": "41b1faab5ec2da6cf9a6c9d0b6a817dc3e656b00bee137ec2a71afa6711c1af9",
-                                    "size": 14981512,
-                                },
-                                "manifest": {
-                                    "ftype": "manifest",
-                                    "path": "jammy/amd64/20230401.1/squashfs.manifest",
-                                    "sha256": "0b8fe8dbf00231753f0de0306f8687f416ef33ada3a390c5c3266dc9b2301625",
-                                    "size": 18759,
-                                },
-                                "squashfs": {
-                                    "ftype": "squashfs",
-                                    "path": "jammy/amd64/20230401.1/squashfs",
-                                    "sha256": "74adfaece846b3f129b9b24b35ca554d16afbc3b1a0e24bb8568076809de232b",
-                                    "size": 268480512,
-                                },
-                            }
-                        }
-                    },
-                },
-                "manager.site.maas.stream:ubuntu:jammy:arm64:generic-generic": {
-                    "arch": "arm64",
-                    "kflavor": "generic",
-                    "label": "candidate",
-                    "os": "ubuntu",
-                    "release": "jammy",
-                    "release_codename": "jammy jellyfish",
-                    "release_title": "22.04 LTS",
-                    "subarch": "generic",
-                    "subarches": "generic",
-                    "support_eol": datetime(2027, 4, 1, tzinfo=UTC).strftime(
-                        "%Y-%m-%d"
-                    ),
-                    "support_esm_eol": datetime(
-                        2034, 4, 1, tzinfo=UTC
-                    ).strftime("%Y-%m-%d"),
-                    "versions": {
-                        "20230401.1": {
-                            "items": {
-                                "boot-initrd": {
-                                    "ftype": "boot-initrd",
-                                    "path": "jammy/arm64/20230401.1/generic/generic/boot-initrd",
-                                    "sha256": "d539ad8c9dd6ca339749c7c2cfb672684f6cb8476cf2500a5e7a78895ad894eb",
-                                    "size": 73067242,
-                                },
-                                "boot-kernel": {
-                                    "ftype": "boot-kernel",
-                                    "path": "jammy/arm64/20230401.1/generic/generic/boot-kernel",
-                                    "sha256": "41b1faab5ec2da6cf9a6c9d0b6a817dc3e656b00bee137ec2a71afa6711c1af9",
-                                    "size": 14981512,
-                                },
-                                "manifest": {
-                                    "ftype": "manifest",
-                                    "path": "jammy/arm64/20230401.1/squashfs.manifest",
-                                    "sha256": "0b8fe8dbf00231753f0de0306f8687f416ef33ada3a390c5c3266dc9b2301625",
-                                    "size": 18759,
-                                },
-                                "squashfs": {
-                                    "ftype": "squashfs",
-                                    "path": "jammy/arm64/20230401.1/squashfs",
-                                    "sha256": "74adfaece846b3f129b9b24b35ca554d16afbc3b1a0e24bb8568076809de232b",
-                                    "size": 268480512,
-                                },
-                            }
-                        }
-                    },
-                },
-                "manager.site.maas.stream:grub-efi-signed:uefi:amd64": {
-                    "arch": "amd64",
-                    "label": "stable",
-                    "os": "grub-efi-signed",
-                    "bootloader-type": "uefi",
-                    "versions": {
-                        "20210401.1": {
-                            "items": {
-                                "grub2-signed": {
-                                    "ftype": "archive.tar.xz",
-                                    "path": "bootloaders/uefi/amd64/20210401.1/grub2-signed.tar.xz",
-                                    "sha256": "9d4a3a826ed55c46412613d2f7caf3185da4d6b18f35225f4f6a5b86b2bccfe3",
-                                    "size": 375316,
-                                    "src_package": "grub2-signed",
-                                    "src_release": "focal",
-                                    "src_version": "1.167.2+2.04-1ubuntu44.2",
-                                },
-                                "shim-signed": {
-                                    "ftype": "archive.tar.xz",
-                                    "path": "bootloaders/uefi/amd64/20210401.1/shim-signed.tar.xz",
-                                    "sha256": "07b42d0aa2540b6999c726eacf383e2c8f172378c964bdefab6d71410e2b72db",
-                                    "size": 322336,
-                                    "src_package": "shim-signed",
-                                    "src_release": "focal",
-                                    "src_version": "1.40.7+15.4-0ubuntu9",
-                                },
-                            }
-                        }
-                    },
-                },
-            },
-            "updated": index["updated"],
-        }
+        mock_now = mocker.patch(
+            "msm.service.images.now_utc",
+            return_value=datetime.fromtimestamp(0.0),
+        )
 
-        assert index == expected_index
+        await index_service.refresh()
+
+        index = await index_service.get(
+            IndexType.DOWNLOAD, "maas.site.manager"
+        )
+        expected_index = """
+            {
+                "content_id": "manager.site.maas:stream:v1:download",
+                "datatype": "image-ids",
+                "format": "products:1.0",
+                "products": {
+                    "manager.site.maas.stream:ubuntu:jammy:amd64:ga-22.04-generic": {
+                        "arch": "amd64",
+                        "kflavor": "generic",
+                        "label": "stable",
+                        "os": "ubuntu",
+                        "release": "jammy",
+                        "release_title": "22.04 LTS",
+                        "subarch": "ga-22.04",
+                        "support_eol": "2035-08-09",
+                        "support_esm_eol": "2044-10-10",
+                        "versions": {
+                            "20250601": {
+                                "items": {
+                                    "boot-initrd": {
+                                        "ftype": "boot-initrd",
+                                        "path": "20250601/ga-22.04/boot-initrd",
+                                        "sha256": "abc456",
+                                        "size": 465
+                                    },
+                                    "squashfs": {
+                                        "ftype": "squashfs",
+                                        "path": "20250601/squashfs",
+                                        "sha256": "12345555",
+                                        "size": 12345555
+                                    },
+                                    "boot-kernel": {
+                                        "ftype": "boot-kernel",
+                                        "path": "20250601/ga-22.04/boot-kernel",
+                                        "sha256": "abc123",
+                                        "size": 123
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "manager.site.maas.stream:grub-efi-signed:uefi:arm64": {
+                        "arch": "arm64",
+                        "label": "candidate",
+                        "os": "grub-efi-signed",
+                        "bootloader-type": "uefi",
+                        "versions": {
+                            "20250401": {
+                                "items": {
+                                    "grub2-signed": {
+                                        "ftype": "archive.tar.xz",
+                                        "path": "20250401/grub2-signed.tar.xz",
+                                        "sha256": "deadbeef",
+                                        "size": 8888,
+                                        "src_package": "grub2-signed",
+                                        "src_release": "focal",
+                                        "src_version": "1.167.2+2.04-1ubuntu44.2"
+                                    },
+                                    "shim-signed": {
+                                        "ftype": "archive.tar.xz",
+                                        "path": "20250401/shim-signed.tar.xz",
+                                        "sha256": "deadbeef2",
+                                        "size": 7777,
+                                        "src_package": "shim-signed",
+                                        "src_release": "focal",
+                                        "src_version": "1.167.2+2.04-1ubuntu44.2"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "manager.site.maas.stream:ubuntu:noble:amd64:hwe-24.04-generic": {
+                        "arch": "amd64",
+                        "kflavor": "generic",
+                        "label": "stable",
+                        "os": "ubuntu",
+                        "release": "noble",
+                        "release_title": "24.04 LTS",
+                        "subarch": "hwe-24.04",
+                        "support_eol": "2035-08-09",
+                        "support_esm_eol": "2044-10-10",
+                        "versions": {
+                            "20250701": {
+                                "items": {
+                                    "squashfs": {
+                                        "ftype": "squashfs",
+                                        "path": "20250701/squashfs",
+                                        "sha256": "12345555",
+                                        "size": 12345555
+                                    },
+                                    "boot-kernel": {
+                                        "ftype": "boot-kernel",
+                                        "path": "20250701/hwe-24.04/boot-kernel",
+                                        "sha256": "abc123",
+                                        "size": 123
+                                    },
+                                    "boot-initrd": {
+                                        "ftype": "boot-initrd",
+                                        "path": "20250701/hwe-24.04/boot-initrd",
+                                        "sha256": "abc456",
+                                        "size": 465
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "updated": "Thu, 01 Jan 1970 00:00:00 "
+            }
+            """
+
+        assert index == json.loads(expected_index)
 
     async def test_incomplete_set_not_included(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        index_service: IndexService,
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        items_ubuntu_noble_2: list[BootAssetItem],
+        items_grub: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            bytes_synced=100,
-            file_size=100,
+        await index_service.refresh()
+        index = await index_service.get(
+            IndexType.INDEX, fqdn="maas.site.manager"
         )
-        await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.BOOT_INITRD,
-            bytes_synced=10,
-            file_size=100,
-        )
-
-        ba2 = await factory.make_BootAsset(bs.id)
-        bv2 = await factory.make_BootAssetVersion(ba2.id)
-        await factory.make_BootAssetItem(
-            bv2.id, bytes_synced=100, file_size=100
-        )
-        service = IndexService(db_connection)
-        await service.create()
-        index = await service.get(IndexType.INDEX, fqdn="maas.site.manager")
-        dl_index = await service.get(
+        dl_index = await index_service.get(
             IndexType.DOWNLOAD, fqdn="maas.site.manager"
         )
-        assert (
-            len(
-                index["index"]["manager.site.maas:stream:v1:download"][
-                    "products"
-                ]
-            )
-            == 1
+
+        # items_ubuntu_noble_2 has incomplete items
+        n_products = len(
+            index["index"]["manager.site.maas:stream:v1:download"]["products"]
         )
-        assert len(dl_index["products"]) == 1
+        assert n_products == 2
+        assert len(dl_index["products"]) == 2
 
     async def test_drop(
-        self, factory: Factory, db_connection: AsyncConnection
+        self,
+        index_service: IndexService,
     ) -> None:
-        await make_fixture_images(db_connection)
-        service = IndexService(db_connection)
-        await service.create()
-        await service.drop()
+        await index_service.create()
+        await index_service.drop()
         with pytest.raises(IndexNotFound):
-            await service.get(IndexType.DOWNLOAD, "maas.site.manager")
-
-    async def test_refresh_not_created(
-        self, factory: Factory, db_connection: AsyncConnection
-    ) -> None:
-        service = IndexService(db_connection)
-        with pytest.raises(IndexNotFound):
-            await service.refresh()
-
-    async def test_drop_not_created(
-        self, factory: Factory, db_connection: AsyncConnection
-    ) -> None:
-        service = IndexService(db_connection)
-        with pytest.raises(IndexNotFound):
-            await service.drop()
+            await index_service.get(IndexType.DOWNLOAD, "maas.site.manager")

@@ -46,7 +46,6 @@ from msm.jwt import (
 )
 from msm.password import hash_password
 from msm.schema import TimeZone
-from msm.service.images import IndexService
 from msm.time import now_utc
 
 
@@ -476,10 +475,3 @@ class Factory:
 @pytest.fixture
 def factory(db_connection: AsyncConnection) -> Iterator[Factory]:
     yield Factory(db_connection)
-
-
-@pytest.fixture
-async def index_view(db_connection: AsyncConnection) -> None:
-    """Fixture to create the index materialized view."""
-    srv = IndexService(db_connection)
-    await srv.create()

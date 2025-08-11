@@ -7,8 +7,11 @@ from pytest_mock import MockerFixture
 
 from msm.api.user.handlers.bootassets import purge_and_refresh
 from msm.db.models import (
+    BootAsset,
+    BootAssetItem,
     BootAssetKind,
     BootAssetLabel,
+    BootAssetVersion,
     BootSource,
     BootSourceSelection,
     ItemFileType,
@@ -21,35 +24,22 @@ from tests.fixtures.factory import Factory
 
 @pytest.mark.asyncio
 class TestBootAssetsGetHandler:
-    async def test_get(self, user_client: Client, factory: Factory) -> None:
-        boot_source = await factory.make_BootSource(name="Test Source")
-        boot_asset = await factory.make_BootAsset(
-            boot_source_id=boot_source.id,
-            kind=BootAssetKind.BOOTLOADER,
-            label=BootAssetLabel.CANDIDATE,
-            os="test_os",
-            release="test_release",
-            codename="test_codename",
-            title="test title",
-            arch="test_arch",
-            subarch="test_subarch",
-            compatibility=["test", "compatibility"],
-            flavor="test_flavor",
-            base_image="test_base_image",
-            bootloader_type="test_bootloader",
-            eol=now_utc() + timedelta(days=3650),
-            esm_eol=now_utc() + timedelta(days=7000),
-            signed=True,
-        )
+    async def test_get(
+        self,
+        user_client: Client,
+        boot_source: BootSource,
+        ubuntu_noble: BootAsset,
+    ) -> None:
         assets = await user_client.get("/bootassets")
         assert assets.status_code == 200
         resp_body = assets.json()
         assert resp_body["page"] == 1
         assert resp_body["size"] == 20
         assert resp_body["total"] == 1
-        resp_body["items"][0]["id"] = boot_asset.id
+        resp_body["items"][0]["id"] = ubuntu_noble.id
         assert resp_body["items"] == [
-            boot_asset.model_dump(mode="json") | {"source_name": "Test Source"}
+            ubuntu_noble.model_dump(mode="json")
+            | {"source_name": boot_source.name}
         ]
 
     @pytest.mark.parametrize(
@@ -64,97 +54,72 @@ class TestBootAssetsGetHandler:
         ],
     )
     async def test_get_with_filters(
-        self, user_client: Client, factory: Factory, filter_param: str
+        self,
+        user_client: Client,
+        ubuntu_jammy: BootAsset,
+        grub: BootAsset,
+        filter_param: str,
     ) -> None:
-        bs = await factory.make_BootSource(name="Test Source 1")
-        bs2 = await factory.make_BootSource(name="Test Source 2")
-        ba1 = await factory.make_BootAsset(
-            bs.id,
-            kind=BootAssetKind.OS,
-            label=BootAssetLabel.STABLE,
-            os="ubuntu",
-            arch="amd64",
-            release="plucky",
-        )
-        ba2 = await factory.make_BootAsset(
-            bs2.id,
-            kind=BootAssetKind.BOOTLOADER,
-            label=BootAssetLabel.CANDIDATE,
-            os="centos",
-            arch="arm",
-            release="uhh",
-        )
-        url = f"/bootassets?{filter_param}={ba1.model_dump(mode="json")[filter_param]}"
+        url = f"/bootassets?{filter_param}={ubuntu_jammy.model_dump(mode="json")[filter_param]}"
         resp = await user_client.get(url)
         assert resp.status_code == 200
         resp_body = resp.json()
         assert len(resp_body["items"]) == 1
-        assert resp_body["items"][0] == ba1.model_dump(mode="json") | {
-            "source_name": "Test Source 1"
-        }
+        assert resp_body["items"][0]["id"] == ubuntu_jammy.id
 
     async def test_get_with_sorting(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        ubuntu_jammy: BootAsset,
+        centos: BootAsset,
     ) -> None:
-        boot_source = await factory.make_BootSource(name="Test Source")
-        boot_asset1 = await factory.make_BootAsset(
-            boot_source_id=boot_source.id, os="a", release="b"
-        )
-        boot_asset2 = await factory.make_BootAsset(
-            boot_source_id=boot_source.id, os="b", release="a"
-        )
         assets = await user_client.get("/bootassets?sort_by=os")
         assert assets.status_code == 200
         resp_body = assets.json()
-        assert resp_body["items"] == [
-            boot_asset1.model_dump(mode="json")
-            | {"source_name": "Test Source"},
-            boot_asset2.model_dump(mode="json")
-            | {"source_name": "Test Source"},
+        assert [item["id"] for item in resp_body["items"]] == [
+            centos.id,
+            ubuntu_jammy.id,
         ]
-        assets = await user_client.get("/bootassets?sort_by=release")
+        assets = await user_client.get("/bootassets?sort_by=title")
         assert assets.status_code == 200
         resp_body = assets.json()
-        assert resp_body["items"] == [
-            boot_asset2.model_dump(mode="json")
-            | {"source_name": "Test Source"},
-            boot_asset1.model_dump(mode="json")
-            | {"source_name": "Test Source"},
+        assert [item["id"] for item in resp_body["items"]] == [
+            ubuntu_jammy.id,
+            centos.id,
         ]
 
     async def test_get_with_page_and_size(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        centos: BootAsset,
+        ubuntu_jammy: BootAsset,
+        ubuntu_noble: BootAsset,
     ) -> None:
-        bs = await factory.make_BootSource()
-        for i in range(4):
-            await factory.make_BootAsset(bs.id, os=f"{i+1}")
-
         resp = await user_client.get("/bootassets?page=2&size=2&sort_by=os")
         assert resp.status_code == 200
         resp_body = resp.json()
         assert resp_body["page"] == 2
         assert resp_body["size"] == 2
-        assert len(resp_body["items"]) == 2
-        assert resp_body["items"][0]["os"] == "3"
-        assert resp_body["items"][1]["os"] == "4"
+        assert len(resp_body["items"]) == 1
+        assert resp_body["items"][0]["release"] == "jammy"
 
     @pytest.mark.parametrize("sort_by", ["id", "kind,kind", "not_a_field"])
     async def test_invalid_sort_params(
-        self, user_client: Client, factory: Factory, sort_by: str
+        self, user_client: Client, sort_by: str
     ) -> None:
         resp = await user_client.get(f"/bootassets?sort_by={sort_by}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("page", [-1, 0])
     async def test_invalid_page_params(
-        self, user_client: Client, factory: Factory, page: int
+        self, user_client: Client, page: int
     ) -> None:
         resp = await user_client.get(f"/bootassets?page={page}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("size", [0, -1, 101])
     async def test_invalid_size_params(
-        self, user_client: Client, factory: Factory, size: int
+        self, user_client: Client, size: int
     ) -> None:
         resp = await user_client.get(f"/bootassets?size={size}")
         assert resp.status_code == 422
@@ -162,8 +127,12 @@ class TestBootAssetsGetHandler:
 
 @pytest.mark.asyncio
 class TestBootAssetsPostHandler:
-    async def test_post(self, user_client: Client, factory: Factory) -> None:
-        boot_source = await factory.make_BootSource()
+    async def test_post(
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
+    ) -> None:
         data = {
             "boot_source_id": boot_source.id,
             "kind": BootAssetKind.BOOTLOADER,
@@ -192,9 +161,10 @@ class TestBootAssetsPostHandler:
         assert stored[0] == data | {"id": new_id}
 
     async def test_post_missing_details(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        boot_source: BootSource,
     ) -> None:
-        boot_source = await factory.make_BootSource()
         data = {
             "boot_source_id": boot_source.id,
             "kind": BootAssetKind.BOOTLOADER,
@@ -203,9 +173,7 @@ class TestBootAssetsPostHandler:
         resp = await user_client.post("/bootassets", json=data)
         assert resp.status_code == 422
 
-    async def test_post_missing_boot_source(
-        self, user_client: Client, factory: Factory
-    ) -> None:
+    async def test_post_missing_boot_source(self, user_client: Client) -> None:
         data = {
             "boot_source_id": 999,
             "kind": BootAssetKind.BOOTLOADER,
@@ -229,10 +197,10 @@ class TestBootAssetsPostHandler:
         self,
         user_client: Client,
         factory: Factory,
+        boot_source: BootSource,
     ) -> None:
-        bs = await factory.make_BootSource()
         await factory.make_BootAsset(
-            bs.id,
+            boot_source.id,
             kind=BootAssetKind.OS,
             label=BootAssetLabel.CANDIDATE,
             os="ubuntu",
@@ -247,7 +215,7 @@ class TestBootAssetsPostHandler:
             esm_eol=now_utc() + timedelta(days=3650),
         )
         data = {
-            "boot_source_id": bs.id,
+            "boot_source_id": boot_source.id,
             "kind": BootAssetKind.BOOTLOADER,
             "label": BootAssetLabel.STABLE,
             "os": "ubuntu",
@@ -268,69 +236,63 @@ class TestBootAssetsPostHandler:
 
 @pytest.mark.asyncio
 class TestBootSourcesGetHandler:
-    async def test_get(self, user_client: Client, factory: Factory) -> None:
-        boot_source = await factory.make_BootSource(
-            priority=2,
-            url="http://test.url",
-            keyring="test_keyring",
-            sync_interval=4200,
-            name="Test Source",
-        )
+    async def test_get(
+        self,
+        user_client: Client,
+        boot_source_custom: BootSource,
+        boot_source: BootSource,
+    ) -> None:
         sources = await user_client.get("/bootasset-sources")
         assert sources.status_code == 200
         resp_body = sources.json()
         assert resp_body["page"] == 1
         assert resp_body["size"] == 20
-        assert resp_body["total"] == 1
-        assert resp_body["items"] == [boot_source.model_dump(mode="json")]
+        assert resp_body["total"] == 2
+        assert resp_body["items"] == [
+            boot_source_custom.model_dump(mode="json"),
+            boot_source.model_dump(mode="json"),
+        ]
 
     async def test_get_by_id(
-        self, user_client: Client, factory: Factory
+        self, user_client: Client, boot_source: BootSource
     ) -> None:
-        boot_source = await factory.make_BootSource(
-            priority=2,
-            url="http://test.url",
-            keyring="test_keyring",
-            sync_interval=4200,
-            name="Test Source",
-        )
         resp = await user_client.get(f"/bootasset-sources/{boot_source.id}")
         assert resp.status_code == 200
         source = BootSource(**resp.json())
         assert source == boot_source
 
-    async def test_get_by_id_not_found(
-        self, user_client: Client, factory: Factory
-    ) -> None:
+    async def test_get_by_id_not_found(self, user_client: Client) -> None:
         resp = await user_client.get("/bootasset-sources/999")
         assert resp.status_code == 404
 
     async def test_get_with_sorting(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        boot_source_custom: BootSource,
+        boot_source: BootSource,
     ) -> None:
-        boot_source1 = await factory.make_BootSource(url="a", keyring="b")
-        boot_source2 = await factory.make_BootSource(url="b", keyring="a")
         assets = await user_client.get("/bootasset-sources?sort_by=url")
         assert assets.status_code == 200
         resp_body = assets.json()
         assert resp_body["items"] == [
-            boot_source1.model_dump(mode="json"),
-            boot_source2.model_dump(mode="json"),
+            boot_source.model_dump(mode="json"),
+            boot_source_custom.model_dump(mode="json"),
         ]
-        assets = await user_client.get("/bootasset-sources?sort_by=keyring")
+        assets = await user_client.get("/bootasset-sources?sort_by=name")
         assert assets.status_code == 200
         resp_body = assets.json()
         assert resp_body["items"] == [
-            boot_source2.model_dump(mode="json"),
-            boot_source1.model_dump(mode="json"),
+            boot_source_custom.model_dump(mode="json"),
+            boot_source.model_dump(mode="json"),
         ]
 
     async def test_get_with_page_and_size(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        boot_source: BootSource,
+        boot_source_grub: BootSource,
+        boot_source_low: BootSource,
     ) -> None:
-        for i in range(4):
-            await factory.make_BootSource(priority=i + 1)
-
         resp = await user_client.get(
             "/bootasset-sources?page=2&size=2&sort_by=priority"
         )
@@ -339,26 +301,25 @@ class TestBootSourcesGetHandler:
         assert resp_body["page"] == 2
         assert resp_body["size"] == 2
         assert len(resp_body["items"]) == 2
-        assert resp_body["items"][0]["priority"] == 3
-        assert resp_body["items"][1]["priority"] == 4
+        assert resp_body["items"][1]["priority"] == boot_source.priority
 
     @pytest.mark.parametrize("sort_by", ["id", "kind,kind", "not_a_field"])
     async def test_invalid_sort_params(
-        self, user_client: Client, factory: Factory, sort_by: str
+        self, user_client: Client, sort_by: str
     ) -> None:
         resp = await user_client.get(f"/bootasset-sources?sort_by={sort_by}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("page", [-1, 0])
     async def test_invalid_page_params(
-        self, user_client: Client, factory: Factory, page: int
+        self, user_client: Client, page: int
     ) -> None:
         resp = await user_client.get(f"/bootasset-sources?page={page}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("size", [0, -1, 101])
     async def test_invalid_size_params(
-        self, user_client: Client, factory: Factory, size: int
+        self, user_client: Client, size: int
     ) -> None:
         resp = await user_client.get(f"/bootasset-sources?size={size}")
         assert resp.status_code == 422
@@ -370,8 +331,8 @@ class TestBootSourcesPostHandler:
         self,
         user_client: Client,
         factory: Factory,
-        index_view: None,
         mocker: MockerFixture,
+        boot_source_custom: BootSource,
     ) -> None:
         mock_now = mocker.patch(
             "msm.api.user.handlers.bootassets.now_utc",
@@ -388,8 +349,8 @@ class TestBootSourcesPostHandler:
         new_id = resp.json()["id"]
         assert resp.status_code == 200
         stored = await factory.get("boot_source")
-        assert len(stored) == 1
-        assert stored[0] == data | {"id": new_id, "last_sync": factory.now}
+        assert len(stored) == 2
+        assert stored[1] == data | {"id": new_id, "last_sync": factory.now}
 
     @pytest.mark.parametrize(
         "field", ["priority", "url", "keyring", "sync_interval", "name"]
@@ -397,7 +358,6 @@ class TestBootSourcesPostHandler:
     async def test_post_missing_details(
         self,
         user_client: Client,
-        factory: Factory,
         field: str,
     ) -> None:
         data = {
@@ -415,17 +375,12 @@ class TestBootSourcesPostHandler:
 @pytest.mark.asyncio
 class TestBootSourcesUpdateHandler:
     async def test_update(
-        self, user_client: Client, factory: Factory, index_view: None
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
     ) -> None:
-        # need to create custom boot source and edit second one
-        await factory.make_BootSource()
-        bs = await factory.make_BootSource(
-            priority=1,
-            url="http://test.url",
-            keyring="test-keyring",
-            sync_interval=100,
-            name="Test Source",
-        )
+        orig_last_sync = boot_source.last_sync
         data = {
             "priority": 2,
             "url": "http://another.url",
@@ -434,50 +389,43 @@ class TestBootSourcesUpdateHandler:
             "name": "Another Name",
         }
         resp = await user_client.patch(
-            f"/bootasset-sources/{bs.id}", json=data
+            f"/bootasset-sources/{boot_source.id}", json=data
         )
         assert resp.status_code == 200
-        assert (
-            resp.json() == {"id": bs.id, "last_sync": factory.now_json} | data
-        )
+        ret_obj = resp.json()
+        assert all([ret_obj[k] == data[k] for k in data.keys()])
+
         sources = await factory.get("boot_source")
         assert len(sources) == 2
-        assert sources[1] == {"id": bs.id, "last_sync": factory.now} | data
+        assert all([sources[1][k] == data[k] for k in data.keys()])
+        assert sources[1]["last_sync"] == orig_last_sync
 
     async def test_update_custom_source_fails(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
     ) -> None:
-        await factory.make_BootSource()
         resp = await user_client.patch(
             f"/bootasset-sources/1", json={"priority": 2}
         )
         assert resp.status_code == 422
 
     async def test_update_no_fields(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
     ) -> None:
-        await factory.make_BootSource()
-        bs = await factory.make_BootSource(
-            priority=1,
-            url="http://test.url",
-            keyring="test-keyring",
-            sync_interval=100,
-            name="Test Source",
+        resp = await user_client.patch(
+            f"/bootasset-sources/{boot_source.id}", json={}
         )
-        resp = await user_client.patch(f"/bootasset-sources/{bs.id}", json={})
         assert resp.status_code == 422
 
     async def test_update_extra_fields(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
     ) -> None:
-        await factory.make_BootSource()
-        bs = await factory.make_BootSource(
-            priority=1,
-            url="http://test.url",
-            keyring="test-keyring",
-            sync_interval=100,
-            name="Test Source",
-        )
         data = {
             "priority": 2,
             "url": "http://another.url",
@@ -487,7 +435,7 @@ class TestBootSourcesUpdateHandler:
             "something": "extra",
         }
         resp = await user_client.patch(
-            f"/bootasset-sources/{bs.id}", json=data
+            f"/bootasset-sources/{boot_source.id}", json=data
         )
         assert resp.status_code == 422
 
@@ -504,19 +452,16 @@ class TestBootSourcesDeleteHandler:
         self,
         user_client: Client,
         factory: Factory,
-        index_view: None,
         mocker: MockerFixture,
+        boot_source: BootSource,
     ) -> None:
         mock_background = mocker.patch(
             "msm.api.user.handlers.bootassets.BackgroundTasks.add_task",
         )
-        # need to create custom boot source and delete second one
-        await factory.make_BootSource()
-        bs = await factory.make_BootSource()
-        resp = await user_client.delete(f"/bootasset-sources/{bs.id}")
+        resp = await user_client.delete(f"/bootasset-sources/{boot_source.id}")
         assert resp.status_code == 200
         mock_background.assert_called_once_with(
-            purge_and_refresh, mocker.ANY, bs.id
+            purge_and_refresh, mocker.ANY, boot_source.id
         )
 
     async def test_delete_not_found(self, user_client: Client) -> None:
@@ -532,78 +477,70 @@ class TestBootSourcesDeleteHandler:
 
 @pytest.mark.asyncio
 class TestBootSourceSelectionsGetHandler:
-    async def test_get(self, user_client: Client, factory: Factory) -> None:
-        boot_source = await factory.make_BootSource()
-        boot_source2 = await factory.make_BootSource()
-        selection = await factory.make_BootSourceSelection(
-            boot_source.id,
-            label=BootAssetLabel.CANDIDATE,
-            os="test_os",
-            release="test_release",
-            available=["test", "arches"],
-            selected=["test", "arches"],
-        )
-        await factory.make_BootSourceSelection(boot_source2.id)
+    async def test_get(
+        self,
+        user_client: Client,
+        sel_ubuntu_jammy: BootSourceSelection,
+        sel_centos: BootSourceSelection,
+    ) -> None:
+        bs_id = sel_ubuntu_jammy.boot_source_id
         selections = await user_client.get(
-            f"/bootasset-sources/{boot_source.id}/selections"
+            f"/bootasset-sources/{bs_id}/selections"
         )
         assert selections.status_code == 200
         resp_body = selections.json()
         assert resp_body["page"] == 1
         assert resp_body["size"] == 20
         assert resp_body["total"] == 1
-        assert resp_body["items"] == [selection.model_dump(mode="json")]
+        assert resp_body["items"] == [sel_ubuntu_jammy.model_dump(mode="json")]
 
     async def test_get_with_sorting(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        sel_ubuntu_jammy: BootSourceSelection,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        selection1 = await factory.make_BootSourceSelection(
-            boot_source.id, os="a", release="b"
-        )
-        selection2 = await factory.make_BootSourceSelection(
-            boot_source.id, os="b", release="a"
-        )
+        bs_id = sel_ubuntu_jammy.boot_source_id
         assets = await user_client.get(
-            f"/bootasset-sources/{boot_source.id}/selections?sort_by=os"
+            f"/bootasset-sources/{bs_id}/selections?sort_by=release"
         )
         assert assets.status_code == 200
         resp_body = assets.json()
         assert resp_body["items"] == [
-            selection1.model_dump(mode="json"),
-            selection2.model_dump(mode="json"),
+            sel_ubuntu_jammy.model_dump(mode="json"),
+            sel_ubuntu_noble.model_dump(mode="json"),
         ]
         assets = await user_client.get(
-            f"/bootasset-sources/{boot_source.id}/selections?sort_by=release"
+            f"/bootasset-sources/{bs_id}/selections?sort_by=available"
         )
         assert assets.status_code == 200
         resp_body = assets.json()
         assert resp_body["items"] == [
-            selection2.model_dump(mode="json"),
-            selection1.model_dump(mode="json"),
+            sel_ubuntu_noble.model_dump(mode="json"),
+            sel_ubuntu_jammy.model_dump(mode="json"),
         ]
 
     async def test_get_with_page_and_size(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        sel_ubuntu_jammy: BootSourceSelection,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
-        bs = await factory.make_BootSource()
-        for i in range(4):
-            await factory.make_BootSourceSelection(bs.id, release=f"{i+1}")
+        bs_id = sel_ubuntu_jammy.boot_source_id
 
         resp = await user_client.get(
-            f"/bootasset-sources/{bs.id}/selections?page=2&size=2&sort_by=release"
+            f"/bootasset-sources/{bs_id}/selections?page=2&size=1&sort_by=release"
         )
         assert resp.status_code == 200
         resp_body = resp.json()
         assert resp_body["page"] == 2
-        assert resp_body["size"] == 2
-        assert len(resp_body["items"]) == 2
-        assert resp_body["items"][0]["release"] == "3"
-        assert resp_body["items"][1]["release"] == "4"
+        assert resp_body["size"] == 1
+        assert len(resp_body["items"]) == 1
+        assert resp_body["items"][0]["release"] == sel_ubuntu_noble.release
 
     @pytest.mark.parametrize("sort_by", ["id", "kind,kind", "not_a_field"])
     async def test_invalid_sort_params(
-        self, user_client: Client, factory: Factory, sort_by: str
+        self, user_client: Client, sort_by: str
     ) -> None:
         resp = await user_client.get(
             f"/bootasset-sources/1/selections?sort_by={sort_by}"
@@ -612,7 +549,7 @@ class TestBootSourceSelectionsGetHandler:
 
     @pytest.mark.parametrize("page", [-1, 0])
     async def test_invalid_page_params(
-        self, user_client: Client, factory: Factory, page: int
+        self, user_client: Client, page: int
     ) -> None:
         resp = await user_client.get(
             f"/bootasset-sources/1/selections?page={page}"
@@ -621,7 +558,7 @@ class TestBootSourceSelectionsGetHandler:
 
     @pytest.mark.parametrize("size", [0, -1, 101])
     async def test_invalid_size_params(
-        self, user_client: Client, factory: Factory, size: int
+        self, user_client: Client, size: int
     ) -> None:
         resp = await user_client.get(
             f"/bootasset-sources/1/selections?size={size}"
@@ -631,36 +568,18 @@ class TestBootSourceSelectionsGetHandler:
 
 @pytest.mark.asyncio
 class TestBootSourceAvailSelectionsPutHandler:
-    @pytest.fixture
-    async def boot_source(self, factory: Factory) -> BootSource:
-        return await factory.make_BootSource()
-
-    @pytest.fixture
-    async def selection(
-        self, factory: Factory, boot_source: BootSource
-    ) -> BootSourceSelection:
-        return await factory.make_BootSourceSelection(
-            boot_source.id,
-            label=BootAssetLabel.STABLE,
-            os="ubuntu",
-            release="noble",
-            available=["amd64"],
-            selected=["amd64"],
-        )
-
     async def test_put_add_and_update_selections(
         self,
         user_client: Client,
         factory: Factory,
         boot_source: BootSource,
-        selection: BootSourceSelection,
-        index_view: None,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
-        # Add a new selection and update the existing one
+        # update the existing one
         up_sel = {
-            "os": selection.os,
-            "release": selection.release,
-            "label": selection.label,
+            "os": sel_ubuntu_noble.os,
+            "release": sel_ubuntu_noble.release,
+            "label": sel_ubuntu_noble.label,
             "arches": ["amd64", "arm64"],
         }
         new_sel = {
@@ -689,8 +608,7 @@ class TestBootSourceAvailSelectionsPutHandler:
         self,
         user_client: Client,
         boot_source: BootSource,
-        selection: BootSourceSelection,
-        index_view: None,
+        sel_ubuntu_noble: BootSourceSelection,
     ) -> None:
         # Remove all selections (should mark existing as stale)
         put_data: dict[str, Any] = {"available": []}
@@ -701,7 +619,7 @@ class TestBootSourceAvailSelectionsPutHandler:
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data["stale"], list)
-        assert any(s["id"] == selection.id for s in data["stale"])
+        assert any(s["id"] == sel_ubuntu_noble.id for s in data["stale"])
 
     async def test_put_boot_source_not_found(
         self,
@@ -728,12 +646,12 @@ class TestBootSourceAvailSelectionsPutHandler:
 
 @pytest.mark.asyncio
 class TestBootAssetVersionsGetHandler:
-    async def test_get(self, user_client: Client, factory: Factory) -> None:
-        bs = await factory.make_BootSource()
-        boot_asset1 = await factory.make_BootAsset(bs.id)
-        boot_asset2 = await factory.make_BootAsset(bs.id, os="os")
-        v1 = await factory.make_BootAssetVersion(boot_asset1.id, version="1")
-        v2 = await factory.make_BootAssetVersion(boot_asset2.id, version="2")
+    async def test_get(
+        self,
+        user_client: Client,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        ver_ubuntu_noble_2: BootAssetVersion,
+    ) -> None:
         resp = await user_client.get(f"/bootasset-versions")
         assert resp.status_code == 200
         resp_body = resp.json()
@@ -741,8 +659,8 @@ class TestBootAssetVersionsGetHandler:
         assert resp_body["size"] == 20
         assert resp_body["total"] == 2
         assert resp_body["items"] == [
-            v1.model_dump(mode="json"),
-            v2.model_dump(mode="json"),
+            ver_ubuntu_noble_1.model_dump(mode="json"),
+            ver_ubuntu_noble_2.model_dump(mode="json"),
         ]
 
     @pytest.mark.parametrize(
@@ -753,35 +671,34 @@ class TestBootAssetVersionsGetHandler:
         ],
     )
     async def test_get_with_filters(
-        self, user_client: Client, factory: Factory, filter_param: str
+        self,
+        user_client: Client,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        ver_ubuntu_jammy_1: BootAssetVersion,
+        filter_param: str,
     ) -> None:
-        bs = await factory.make_BootSource()
-        boot_asset1 = await factory.make_BootAsset(bs.id)
-        boot_asset2 = await factory.make_BootAsset(bs.id, os="os")
-        v1 = await factory.make_BootAssetVersion(boot_asset1.id, version="1")
-        await factory.make_BootAssetVersion(boot_asset2.id, version="2")
         resp = await user_client.get(
-            f"/bootasset-versions?{filter_param}={v1.model_dump()[filter_param]}"
+            f"/bootasset-versions?{filter_param}={ver_ubuntu_noble_1.model_dump()[filter_param]}"
         )
         assert resp.status_code == 200
         resp_body = resp.json()
         assert len(resp_body["items"]) == 1
-        assert resp_body["items"][0] == v1.model_dump(mode="json")
+        assert resp_body["items"][0] == ver_ubuntu_noble_1.model_dump(
+            mode="json"
+        )
 
     async def test_get_with_sorting(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        ver_ubuntu_noble_2: BootAssetVersion,
+        ver_ubuntu_noble_2_reloaded: BootAssetVersion,
     ) -> None:
-        boot_source = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(boot_source.id)
-        v1 = await factory.make_BootAssetVersion(ba.id, version=("20221212"))
-        v2 = await factory.make_BootAssetVersion(ba.id, version=("20211212"))
-
         resp = await user_client.get(f"/bootasset-versions?sort_by=version")
         assert resp.status_code == 200
         resp_body = resp.json()
         assert resp_body["items"] == [
-            v2.model_dump(mode="json"),
-            v1.model_dump(mode="json"),
+            ver_ubuntu_noble_2.model_dump(mode="json"),
+            ver_ubuntu_noble_2_reloaded.model_dump(mode="json"),
         ]
 
         resp = await user_client.get(
@@ -790,18 +707,17 @@ class TestBootAssetVersionsGetHandler:
         assert resp.status_code == 200
         resp_body = resp.json()
         assert resp_body["items"] == [
-            v1.model_dump(mode="json"),
-            v2.model_dump(mode="json"),
+            ver_ubuntu_noble_2_reloaded.model_dump(mode="json"),
+            ver_ubuntu_noble_2.model_dump(mode="json"),
         ]
 
     async def test_get_with_page_and_size(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        ver_ubuntu_noble_2: BootAssetVersion,
+        ver_ubuntu_noble_2_reloaded: BootAssetVersion,
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        for i in range(4):
-            await factory.make_BootAssetVersion(ba.id, version=f"{i+1}")
-
         resp = await user_client.get(
             f"/bootasset-versions?page=2&size=2&sort_by=version"
         )
@@ -809,29 +725,31 @@ class TestBootAssetVersionsGetHandler:
         resp_body = resp.json()
         assert resp_body["page"] == 2
         assert resp_body["size"] == 2
-        assert len(resp_body["items"]) == 2
-        assert resp_body["items"][0]["version"] == "3"
-        assert resp_body["items"][1]["version"] == "4"
+        assert len(resp_body["items"]) == 1
+        assert (
+            resp_body["items"][0]["version"]
+            == ver_ubuntu_noble_2_reloaded.version
+        )
 
     @pytest.mark.parametrize(
         "sort_by", ["id", "version,version", "not_a_field"]
     )
     async def test_invalid_sort_params(
-        self, user_client: Client, factory: Factory, sort_by: str
+        self, user_client: Client, sort_by: str
     ) -> None:
         resp = await user_client.get(f"/bootasset-versions?sort_by={sort_by}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("page", [-1, 0])
     async def test_invalid_page_params(
-        self, user_client: Client, factory: Factory, page: int
+        self, user_client: Client, page: int
     ) -> None:
         resp = await user_client.get(f"/bootasset-versions?page={page}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("size", [0, -1, 101])
     async def test_invalid_size_params(
-        self, user_client: Client, factory: Factory, size: int
+        self, user_client: Client, size: int
     ) -> None:
         resp = await user_client.get(f"/bootasset-versions?size={size}")
         assert resp.status_code == 422
@@ -840,19 +758,21 @@ class TestBootAssetVersionsGetHandler:
 @pytest.mark.asyncio
 class TestBootAssetVersionsPostHandler:
     async def test_post(
-        self, user_client: Client, factory: Factory, mocker: MockerFixture
+        self,
+        user_client: Client,
+        factory: Factory,
+        mocker: MockerFixture,
+        ubuntu_noble: BootAsset,
     ) -> None:
         mock_now = mocker.patch(
             "msm.api.user.handlers.bootassets.now_utc",
             return_value=factory.now,
         )
-        bs = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(bs.id)
         data = {
             "version": "20250302.1",
         }
         resp = await user_client.post(
-            f"/bootassets/{boot_asset.id}/versions", json=data
+            f"/bootassets/{ubuntu_noble.id}/versions", json=data
         )
         new_id = resp.json()["id"]
         assert resp.status_code == 200
@@ -860,23 +780,21 @@ class TestBootAssetVersionsPostHandler:
         assert len(stored) == 1
         assert stored[0] == data | {
             "id": new_id,
-            "boot_asset_id": boot_asset.id,
+            "boot_asset_id": ubuntu_noble.id,
             "last_seen": factory.now,
         }
 
     async def test_post_missing_details(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        ubuntu_noble: BootAsset,
     ) -> None:
-        bs = await factory.make_BootSource()
-        boot_asset = await factory.make_BootAsset(bs.id)
         resp = await user_client.post(
-            f"/bootassets/{boot_asset.id}/versions",
+            f"/bootassets/{ubuntu_noble.id}/versions",
         )
         assert resp.status_code == 422
 
-    async def test_post_missing_boot_source(
-        self, user_client: Client, factory: Factory
-    ) -> None:
+    async def test_post_missing_boot_source(self, user_client: Client) -> None:
         data = {
             "version": "20250302.1",
         }
@@ -884,39 +802,30 @@ class TestBootAssetVersionsPostHandler:
         assert resp.status_code == 404
 
     async def test_post_conflict(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        ubuntu_noble: BootAsset,
+        ver_ubuntu_noble_1: BootAssetVersion,
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        await factory.make_BootAssetVersion(ba.id, version="x")
         resp = await user_client.post(
-            f"bootassets/{ba.id}/versions", json={"version": "x"}
+            f"bootassets/{ubuntu_noble.id}/versions",
+            json={"version": ver_ubuntu_noble_1.version},
         )
         assert resp.status_code == 409
 
 
 @pytest.mark.asyncio
 class TestBootAssetItemsGetHandler:
-    async def test_get(self, user_client: Client, factory: Factory) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        bi = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="sha256",
-            path="test/path",
-            file_size=1,
-            bytes_synced=1,
-            source_package="source_package",
-            source_version="source_version",
-            source_release="source_release",
-        )
+    async def test_get(
+        self, user_client: Client, items_ubuntu_noble_1: list[BootAssetItem]
+    ) -> None:
         resp = await user_client.get("/bootasset-items")
         assert resp.status_code == 200
         resp_data = resp.json()
-        assert len(resp_data["items"]) == 1
-        assert resp_data["items"] == [bi.model_dump()]
+        assert len(resp_data["items"]) == 3
+        assert resp_data["items"] == [
+            i.model_dump() for i in items_ubuntu_noble_1
+        ]
 
     @pytest.mark.parametrize(
         "filter_param",
@@ -929,34 +838,12 @@ class TestBootAssetItemsGetHandler:
         ],
     )
     async def test_get_with_filters(
-        self, user_client: Client, factory: Factory, filter_param: str
+        self,
+        user_client: Client,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        filter_param: str,
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        bv2 = await factory.make_BootAssetVersion(ba.id, version="x")
-        bi = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="sha256",
-            path="test/path",
-            file_size=1,
-            bytes_synced=1,
-            source_package="source_package",
-            source_version="source_version",
-            source_release="source_release",
-        )
-        await factory.make_BootAssetItem(
-            bv2.id,
-            ftype=ItemFileType.BOOT_INITRD,
-            sha256="3",
-            path="somethingelse",
-            file_size=2,
-            bytes_synced=2,
-            source_package="ee",
-            source_version="aa",
-            source_release="oo",
-        )
+        bi = items_ubuntu_noble_1[0]
         resp = await user_client.get(
             "/bootasset-items",
             params=f"{filter_param}={bi.model_dump(mode="json")[filter_param]}",
@@ -964,79 +851,44 @@ class TestBootAssetItemsGetHandler:
 
         assert resp.status_code == 200
         resp_data = resp.json()
-        assert len(resp_data["items"]) == 1
-        assert resp_data["items"] == [bi.model_dump(mode="json")]
+        assert len(resp_data["items"]) >= 1
+        assert resp_data["items"][0] == bi.model_dump(mode="json")
 
     @pytest.mark.parametrize(
-        "sort_param",
+        "sort_param,first",
         [
-            ("ftype"),
-            ("sha256"),
-            ("path"),
-            ("file_size"),
-            ("source_package"),
-            ("source_version"),
-            ("source_release"),
-            ("bytes_synced"),
+            ("ftype", 2),
+            ("sha256", 1),
+            ("path", 2),
+            ("file_size", 2),
+            ("source_package", 0),
+            ("source_version", 0),
+            ("source_release", 0),
+            ("bytes_synced", 2),
         ],
     )
     async def test_get_with_sorting(
-        self, user_client: Client, factory: Factory, sort_param: str
+        self,
+        user_client: Client,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        sort_param: str,
+        first: int,
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        bi1 = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="a",
-            path="a",
-            file_size=1,
-            bytes_synced=1,
-            source_package="a",
-            source_version="a",
-            source_release="a",
+        resp = await user_client.get(
+            f"/bootasset-items?sort_by={sort_param}-desc"
         )
-        bi2 = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.BOOT_INITRD,
-            sha256="b",
-            path="b",
-            file_size=2,
-            bytes_synced=2,
-            source_package="b",
-            source_version="b",
-            source_release="b",
-        )
-
-        resp = await user_client.get(f"/bootasset-items?sort_by={sort_param}")
 
         assert resp.status_code == 200
         resp_body = resp.json()
-        assert resp_body["items"] == [
-            bi1.model_dump(mode="json"),
-            bi2.model_dump(mode="json"),
-        ]
+        assert resp_body["items"][0] == items_ubuntu_noble_1[first].model_dump(
+            mode="json"
+        )
 
     async def test_get_with_page_and_size(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        await factory.make_BootAssetItem(
-            bv.id, ftype=ItemFileType.ARCHIVE_TAR_XZ, path="1"
-        )
-        await factory.make_BootAssetItem(
-            bv.id, ftype=ItemFileType.BOOT_DTB, path="2"
-        )
-        await factory.make_BootAssetItem(
-            bv.id, ftype=ItemFileType.BOOT_INITRD, path="3"
-        )
-        await factory.make_BootAssetItem(
-            bv.id, ftype=ItemFileType.BOOT_KERNEL, path="4"
-        )
-
         resp = await user_client.get(
             "/bootasset-items?page=2&size=2&sort_by=path"
         )
@@ -1044,27 +896,26 @@ class TestBootAssetItemsGetHandler:
         resp_body = resp.json()
         assert resp_body["page"] == 2
         assert resp_body["size"] == 2
-        assert len(resp_body["items"]) == 2
-        assert resp_body["items"][0]["path"] == "3"
-        assert resp_body["items"][1]["path"] == "4"
+        assert len(resp_body["items"]) == 1
+        assert resp_body["items"][0]["path"] == items_ubuntu_noble_1[2].path
 
     @pytest.mark.parametrize("sort_by", ["id", "kind,kind", "not_a_field"])
     async def test_invalid_sort_params(
-        self, user_client: Client, factory: Factory, sort_by: str
+        self, user_client: Client, sort_by: str
     ) -> None:
         resp = await user_client.get(f"/bootasset-items?sort_by={sort_by}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("page", [-1, 0])
     async def test_invalid_page_params(
-        self, user_client: Client, factory: Factory, page: int
+        self, user_client: Client, page: int
     ) -> None:
         resp = await user_client.get(f"/bootasset-items?page={page}")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize("size", [0, -1, 101])
     async def test_invalid_size_params(
-        self, user_client: Client, factory: Factory, size: int
+        self, user_client: Client, size: int
     ) -> None:
         resp = await user_client.get(f"/bootasset-items?size={size}")
         assert resp.status_code == 422
@@ -1073,11 +924,11 @@ class TestBootAssetItemsGetHandler:
 @pytest.mark.asyncio
 class TestBootAssetItemsPostHandler:
     async def test_post(
-        self, user_client: Client, factory: Factory, index_view: None
+        self,
+        user_client: Client,
+        factory: Factory,
+        ver_ubuntu_noble_1: BootAssetVersion,
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        boot_asset_version = await factory.make_BootAssetVersion(ba.id)
         data = {
             "ftype": ItemFileType.ARCHIVE_TAR_XZ,
             "sha256": "testblaksjdflkj",
@@ -1088,7 +939,7 @@ class TestBootAssetItemsPostHandler:
             "source_release": "noble",
         }
         resp = await user_client.post(
-            f"/bootasset-versions/{boot_asset_version.id}/items", json=data
+            f"/bootasset-versions/{ver_ubuntu_noble_1.id}/items", json=data
         )
         assert resp.status_code == 200
         new_id = resp.json()["id"]
@@ -1096,16 +947,15 @@ class TestBootAssetItemsPostHandler:
         assert len(stored) == 1
         assert stored[0] == data | {
             "id": new_id,
-            "boot_asset_version_id": boot_asset_version.id,
+            "boot_asset_version_id": ver_ubuntu_noble_1.id,
             "bytes_synced": 0,
         }
 
     async def test_post_missing_details(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        ver_ubuntu_noble_1: BootAssetVersion,
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        boot_asset_version = await factory.make_BootAssetVersion(ba.id)
         data = {
             "sha256": "testblaksjdflkj",
             "path": "/item",
@@ -1115,12 +965,12 @@ class TestBootAssetItemsPostHandler:
             "source_release": "noble",
         }
         resp = await user_client.post(
-            f"/bootasset-versions/{boot_asset_version.id}/items", json=data
+            f"/bootasset-versions/{ver_ubuntu_noble_1.id}/items", json=data
         )
         assert resp.status_code == 422
 
     async def test_post_missing_boot_asset_version(
-        self, user_client: Client, factory: Factory
+        self, user_client: Client
     ) -> None:
         data = {
             "ftype": ItemFileType.ARCHIVE_TAR_XZ,
@@ -1137,25 +987,23 @@ class TestBootAssetItemsPostHandler:
         assert resp.status_code == 404
 
     async def test_post_conflict(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        await factory.make_BootAssetItem(
-            bv.id, ftype=ItemFileType.ARCHIVE_TAR_XZ, path="/item"
-        )
+        item = items_ubuntu_noble_1[0]
         data = {
-            "ftype": ItemFileType.ARCHIVE_TAR_XZ,
+            "ftype": item.ftype,
             "sha256": "testblaksjdflkj",
-            "path": "/item",
+            "path": item.path,
             "file_size": 2321345623,
             "source_package": "ubukernel",
             "source_version": "23.4.1",
             "source_release": "noble",
         }
         resp = await user_client.post(
-            f"/bootasset-versions/{bv.id}/items", json=data
+            f"/bootasset-versions/{ver_ubuntu_noble_1.id}/items", json=data
         )
         assert resp.status_code == 409
 
@@ -1163,22 +1011,12 @@ class TestBootAssetItemsPostHandler:
 @pytest.mark.asyncio
 class TestBootAssetItemsPatchHandler:
     async def test_patch(
-        self, user_client: Client, factory: Factory, index_view: None
+        self,
+        user_client: Client,
+        factory: Factory,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        item = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="testsha1",
-            path="testpath1",
-            file_size=1,
-            bytes_synced=1,
-            source_package="testpackage1",
-            source_version="testversion1",
-            source_release="testrelease1",
-        )
+        item = items_ubuntu_noble_2[0]
         data = {
             "ftype": ItemFileType.ROOT_TGZ,
             "source_package": "testpackage2",
@@ -1190,58 +1028,38 @@ class TestBootAssetItemsPatchHandler:
         )
         assert resp.status_code == 200
         stored = await factory.get("boot_asset_item")
-        assert len(stored) == 1
+        assert len(stored) == len(items_ubuntu_noble_2)
         assert stored[0] == data | {
             "id": item.id,
-            "boot_asset_version_id": bv.id,
-            "file_size": 1,
-            "bytes_synced": 1,
-            "sha256": "testsha1",
-            "path": "testpath1",
+            "boot_asset_version_id": item.boot_asset_version_id,
+            "file_size": item.file_size,
+            "bytes_synced": item.bytes_synced,
+            "sha256": item.sha256,
+            "path": item.path,
         }
 
     async def test_patch_no_values(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        item = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="testsha1",
-            path="testpath1",
-            file_size=1,
-            bytes_synced=1,
-            source_package="testpackage1",
-            source_version="testversion1",
-            source_release="testrelease1",
-        )
+        item = items_ubuntu_noble_2[0]
         resp = await user_client.patch(
             f"/bootasset-items/{item.id}",
         )
         assert resp.status_code == 422
         stored = await factory.get("boot_asset_item")
-        assert len(stored) == 1
+        assert len(stored) == 3
         assert stored[0] == item.model_dump()
 
     async def test_patch_extra_params(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        item = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="testsha1",
-            path="testpath1",
-            file_size=1,
-            bytes_synced=1,
-            source_package="testpackage1",
-            source_version="testversion1",
-            source_release="testrelease1",
-        )
+        item = items_ubuntu_noble_2[0]
         data = {
             "ftype": ItemFileType.BOOT_DTB,
             "sha256": "testsha2",
@@ -1256,82 +1074,50 @@ class TestBootAssetItemsPatchHandler:
         )
         assert resp.status_code == 422
         stored = await factory.get("boot_asset_item")
-        assert len(stored) == 1
+        assert len(stored) == 3
         assert stored[0] == item.model_dump()
 
     async def test_patch_bad_item_id(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        item = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="testsha1",
-            path="testpath1",
-            file_size=1,
-            bytes_synced=1,
-            source_package="testpackage1",
-            source_version="testversion1",
-            source_release="testrelease1",
-        )
+        item = items_ubuntu_noble_2[0]
         data = {
             "ftype": ItemFileType.BOOT_DTB,
             "source_package": "testpackage2",
             "source_version": "testversion2",
             "source_release": "testrelease2",
         }
-        resp = await user_client.patch(
-            f"/bootasset-items/{item.id + 1}", json=data
-        )
+        resp = await user_client.patch(f"/bootasset-items/{9999}", json=data)
         assert resp.status_code == 404
         stored = await factory.get("boot_asset_item")
-        assert len(stored) == 1
+        assert len(stored) == 3
         assert stored[0] == item.model_dump()
 
     async def test_users_cannot_change_bytes_synced(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        item = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="testsha1",
-            path="testpath1",
-            file_size=1,
-            bytes_synced=1,
-            source_package="testpackage1",
-            source_version="testversion1",
-            source_release="testrelease1",
-        )
+        item = items_ubuntu_noble_2[0]
         data = {"bytes_synced": 2}
         resp = await user_client.patch(
             f"/bootasset-items/{item.id}", json=data
         )
         assert resp.status_code == 403
         stored = await factory.get("boot_asset_item")
-        assert stored[0]["bytes_synced"] == 1
+        assert stored[0]["bytes_synced"] == item.bytes_synced
 
     async def test_workers_can_change_bytes_synced(
-        self, app_client: Client, factory: Factory, index_view: None
+        self,
+        app_client: Client,
+        factory: Factory,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        item = await factory.make_BootAssetItem(
-            bv.id,
-            ftype=ItemFileType.ARCHIVE_TAR_XZ,
-            sha256="testsha1",
-            path="testpath1",
-            file_size=1,
-            bytes_synced=0,
-            source_package="testpackage1",
-            source_version="testversion1",
-            source_release="testrelease1",
-        )
+        item = items_ubuntu_noble_2[0]
         auth_id = uuid4()
         await factory.make_Token(
             auth_id=auth_id,
@@ -1349,29 +1135,27 @@ class TestBootAssetItemsPatchHandler:
         )
         assert resp.status_code == 200
         stored = await factory.get("boot_asset_item")
-        assert len(stored) == 1
-        assert stored[0] == data | {
-            "id": item.id,
-            "boot_asset_version_id": bv.id,
-            "ftype": ItemFileType.ARCHIVE_TAR_XZ,
-            "sha256": "testsha1",
-            "path": "testpath1",
-            "file_size": 1,
-            "source_package": "testpackage1",
-            "source_version": "testversion1",
-            "source_release": "testrelease1",
-        }
+        assert len(stored) == 3
+        assert stored[0]["bytes_synced"] == data["bytes_synced"]
 
 
 @pytest.mark.asyncio
 class TestBootAssetItemsDeleteHandler:
+    @pytest.fixture(autouse=True)
+    def s3_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+        monkeypatch.setenv("MSM_S3_PATH", "test/path")
+
     async def test_delete(
         self,
         user_client: Client,
         factory: Factory,
         mocker: MockerFixture,
         monkeypatch: pytest.MonkeyPatch,
-        index_view: None,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
         mock_resource = mocker.patch(
             "msm.api.user.handlers.bootassets.boto3.resource"
@@ -1379,18 +1163,11 @@ class TestBootAssetItemsDeleteHandler:
         mock_delete = mocker.patch(
             "msm.api.user.handlers.bootassets.run_in_threadpool"
         )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        bi = await factory.make_BootAssetItem(bv.id)
+        bi = items_ubuntu_noble_2[0]
         resp = await user_client.delete(f"/bootasset-items/{bi.id}")
         assert resp.status_code == 200
         stored = await factory.get("boot_asset_item")
-        assert len(stored) == 0
+        assert len(stored) == len(items_ubuntu_noble_2) - 1
         mock_resource.assert_called_with(
             "s3",
             use_ssl=False,
@@ -1404,7 +1181,8 @@ class TestBootAssetItemsDeleteHandler:
         )
 
     async def test_delete_doesnt_exist(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
     ) -> None:
         resp = await user_client.delete(f"/bootasset-items/999")
         assert resp.status_code == 404
@@ -1413,9 +1191,11 @@ class TestBootAssetItemsDeleteHandler:
         self,
         user_client: Client,
         factory: Factory,
-        index_view: None,
         mocker: MockerFixture,
         monkeypatch: pytest.MonkeyPatch,
+        ubuntu_noble: BootAsset,
+        ver_ubuntu_noble_2: BootAssetVersion,
+        items_ubuntu_noble_2: list[BootAssetItem],
     ) -> None:
         mock_resource = mocker.patch(
             "msm.api.user.handlers.bootassets.boto3.resource"
@@ -1423,30 +1203,30 @@ class TestBootAssetItemsDeleteHandler:
         mock_delete = mocker.patch(
             "msm.api.user.handlers.bootassets.run_in_threadpool"
         )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        bi = await factory.make_BootAssetItem(bv.id)
-        resp = await user_client.delete(f"/bootasset-items/{bi.id}")
-        assert resp.status_code == 200
-        items = await factory.get("boot_asset_item")
-        assert len(items) == 0
-        versions = await factory.get("boot_asset_version")
-        assert len(versions) == 0
-        assets = await factory.get("boot_asset")
-        assert len(assets) == 0
-        mock_resource.assert_called_with(
-            "s3",
-            use_ssl=False,
-            verify=False,
-            endpoint_url="test-endpoint",
-            aws_access_key_id="test-access-key",
-            aws_secret_access_key="test-secret-key",
-        )
-        mock_delete.assert_called_with(
-            mocker.ANY, Bucket="test-bucket", Key=str(bi.id)
-        )
+
+        while items_ubuntu_noble_2:
+            bi = items_ubuntu_noble_2.pop()
+            resp = await user_client.delete(f"/bootasset-items/{bi.id}")
+            assert resp.status_code == 200
+            items = await factory.get("boot_asset_item")
+            assert len(items) == len(items_ubuntu_noble_2)
+
+            # cascade only after all items were removed
+            versions = await factory.get("boot_asset_version")
+            assert len(versions) == (1 if items_ubuntu_noble_2 else 0)
+            assets = await factory.get("boot_asset")
+            assert len(assets) == (1 if items_ubuntu_noble_2 else 0)
+
+            mock_resource.assert_called_with(
+                "s3",
+                use_ssl=False,
+                verify=False,
+                endpoint_url="test-endpoint",
+                aws_access_key_id="test-access-key",
+                aws_secret_access_key="test-secret-key",
+            )
+            mock_resource.reset_mock()
+            mock_delete.assert_called_with(
+                mocker.ANY, Bucket="test-bucket", Key=str(bi.id)
+            )
+            mock_delete.reset_mock()

@@ -1,13 +1,16 @@
+from collections.abc import AsyncIterator
 from hashlib import sha256
 import json
 from pathlib import Path
 
 from pydantic_core import ValidationError
 import pytest
-from pytest_mock import MockerFixture
+from pytest_mock import MockerFixture, MockType
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import (
+    BootAssetItem,
+    BootSource,
     ItemFileType,
 )
 from msm.service import IndexService
@@ -16,36 +19,59 @@ from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
 
 
+@pytest.fixture(autouse=True)
+def s3_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
+    monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
+    monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
+    monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
+    monkeypatch.setenv("MSM_S3_PATH", "test/path")
+
+
+@pytest.fixture(autouse=True)
+def mock_now(mocker: MockerFixture, factory: Factory) -> MockType:
+    return mocker.patch(
+        "msm.api.user.handlers.images.now_utc",
+        return_value=factory.now,
+    )
+
+
+@pytest.fixture
+def s3_resource(mocker: MockerFixture) -> MockType:
+    return mocker.patch("msm.api.user.handlers.images.boto3.resource")
+
+
+@pytest.fixture
+def s3_upload(mocker: MockerFixture) -> MockType:
+    return mocker.patch(
+        "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
+    )
+
+
+@pytest.fixture
+def s3_upload_target(mocker: MockerFixture) -> MockType:
+    return mocker.patch("msm.api.user.handlers.images.S3MultipartUploadTarget")
+
+
+@pytest.fixture
+def s3_complete_upload(mocker: MockerFixture) -> MockType:
+    return mocker.patch(
+        "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
+    )
+
+
 @pytest.mark.asyncio
 class TestCustomImageUploadHandler:
     async def test_post(
         self,
         user_client: Client,
         factory: Factory,
-        mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+        boot_source_custom: BootSource,
+        s3_resource: MockType,
+        s3_upload: MockType,
+        s3_complete_upload: MockType,
         tmp_path: Path,
     ) -> None:
-        mock_now = mocker.patch(
-            "msm.api.user.handlers.images.now_utc",
-            return_value=factory.now,
-        )
-        mock_resource = mocker.patch(
-            "msm.api.user.handlers.images.boto3.resource"
-        )
-        mock_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
-        )
-        mock_complete_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
-        )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        monkeypatch.setenv("MSM_S3_PATH", "test/path")
-
-        bs = await factory.make_BootSource()
         test_file_content = "This is a test file."
         data = {
             "os": "ubuntu",
@@ -65,7 +91,7 @@ class TestCustomImageUploadHandler:
                 files=file_data,
             )
             assert resp.status_code == 200
-            mock_resource.assert_called_with(
+            s3_resource.assert_called_with(
                 "s3",
                 use_ssl=False,
                 verify=False,
@@ -73,8 +99,8 @@ class TestCustomImageUploadHandler:
                 aws_access_key_id="test-access-key",
                 aws_secret_access_key="test-secret-key",
             )
-            mock_upload.assert_called_once()
-            mock_complete_upload.assert_called_once()
+            s3_upload.assert_called_once()
+            s3_complete_upload.assert_called_once()
             stored_assets = await factory.get("boot_asset")
             stored_versions = await factory.get("boot_asset_version")
             stored_items = await factory.get("boot_asset_item")
@@ -83,7 +109,7 @@ class TestCustomImageUploadHandler:
             assert len(stored_items) == 1
             expected_asset = {
                 "id": 1,
-                "boot_source_id": bs.id,
+                "boot_source_id": boot_source_custom.id,
                 "kind": 0,
                 "label": "stable",
                 "os": "ubuntu",
@@ -126,30 +152,12 @@ class TestCustomImageUploadHandler:
         self,
         user_client: Client,
         factory: Factory,
-        mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+        boot_source_custom: BootSource,
+        s3_resource: MockType,
+        s3_upload: MockType,
+        s3_complete_upload: MockType,
         tmp_path: Path,
     ) -> None:
-        mock_now = mocker.patch(
-            "msm.api.user.handlers.images.now_utc",
-            return_value=factory.now,
-        )
-        mock_resource = mocker.patch(
-            "msm.api.user.handlers.images.boto3.resource"
-        )
-        mock_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
-        )
-        mock_complete_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
-        )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        monkeypatch.setenv("MSM_S3_PATH", "test/path")
-
-        bs = await factory.make_BootSource()
         test_file_content = "This is a test file."
         data = {
             "os": "ubuntu",
@@ -177,7 +185,7 @@ class TestCustomImageUploadHandler:
             )
             assert resp.status_code == 200
             second_item_id = resp.json()["id"]
-            mock_resource.assert_called_with(
+            s3_resource.assert_called_with(
                 "s3",
                 use_ssl=False,
                 verify=False,
@@ -185,8 +193,8 @@ class TestCustomImageUploadHandler:
                 aws_access_key_id="test-access-key",
                 aws_secret_access_key="test-secret-key",
             )
-            mock_upload.assert_called()
-            mock_complete_upload.assert_called()
+            s3_upload.assert_called()
+            s3_complete_upload.assert_called()
             stored_assets = await factory.get("boot_asset")
             stored_versions = await factory.get("boot_asset_version")
             stored_items = await factory.get("boot_asset_item")
@@ -195,7 +203,7 @@ class TestCustomImageUploadHandler:
             assert len(stored_items) == 2
             expected_asset = {
                 "id": 1,
-                "boot_source_id": bs.id,
+                "boot_source_id": boot_source_custom.id,
                 "kind": 0,
                 "label": "stable",
                 "os": "ubuntu",
@@ -259,19 +267,13 @@ class TestCustomImageUploadHandler:
         user_client: Client,
         factory: Factory,
         mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+        boot_source_custom: BootSource,
+        s3_resource: MockType,
+        s3_upload: MockType,
+        s3_complete_upload: MockType,
+        s3_upload_target: MockType,
         tmp_path: Path,
     ) -> None:
-        mock_s3_target = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget"
-        )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        monkeypatch.setenv("MSM_S3_PATH", "test/path")
-
-        await factory.make_BootSource()
         test_file_content = "This is a test file."
         data = {
             "os": "ubuntu",
@@ -295,30 +297,18 @@ class TestCustomImageUploadHandler:
                     data=data,
                     files=file_data,
                 )
-            mock_s3_target.assert_called_with(mocker.ANY, "1", mocker.ANY)
+            s3_upload_target.assert_called_with(mocker.ANY, "1", mocker.ANY)
 
     async def test_post_wrong_file_size(
         self,
         user_client: Client,
         factory: Factory,
-        mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+        boot_source_custom: BootSource,
+        s3_resource: MockType,
+        s3_upload: MockType,
+        s3_complete_upload: MockType,
         tmp_path: Path,
     ) -> None:
-        mocker.patch("msm.api.user.handlers.images.boto3.resource")
-        mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
-        )
-        mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
-        )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        monkeypatch.setenv("MSM_S3_PATH", "test/path")
-
-        await factory.make_BootSource()
         test_file_content = "This is a test file."
         data = {
             "os": "ubuntu",
@@ -353,26 +343,12 @@ class TestCustomImageUploadHandler:
         self,
         user_client: Client,
         factory: Factory,
-        mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+        boot_source_custom: BootSource,
+        s3_resource: MockType,
+        s3_upload: MockType,
+        s3_complete_upload: MockType,
         tmp_path: Path,
     ) -> None:
-        mock_resource = mocker.patch(
-            "msm.api.user.handlers.images.boto3.resource"
-        )
-        mock_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
-        )
-        mock_complete_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
-        )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        monkeypatch.setenv("MSM_S3_PATH", "test/path")
-
-        bs = await factory.make_BootSource()
         test_file_content = "This is a test file."
         data = {
             "os": "ubuntu",
@@ -407,26 +383,12 @@ class TestCustomImageUploadHandler:
         self,
         user_client: Client,
         factory: Factory,
-        mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+        boot_source_custom: BootSource,
+        s3_resource: MockType,
+        s3_upload: MockType,
+        s3_complete_upload: MockType,
         tmp_path: Path,
     ) -> None:
-        mock_resource = mocker.patch(
-            "msm.api.user.handlers.images.boto3.resource"
-        )
-        mock_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
-        )
-        mock_complete_upload = mocker.patch(
-            "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
-        )
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        monkeypatch.setenv("MSM_S3_PATH", "test/path")
-
-        bs = await factory.make_BootSource()
         test_file_content = "This is a test file."
         data = {
             "os": "ubuntu",
@@ -460,24 +422,21 @@ class TestCustomImageUploadHandler:
 
 @pytest.mark.asyncio
 class TestBootAssetItemsDownloadHandler:
+    @pytest.fixture
+    async def index_service(
+        self, db_connection: AsyncConnection
+    ) -> AsyncIterator[IndexService]:
+        index_service = IndexService(db_connection)
+        await index_service.create()
+        yield index_service
+
     async def test_download(
         self,
         user_client: Client,
-        factory: Factory,
-        mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        s3_resource: MockType,
     ) -> None:
-        mocker.patch("msm.api.user.handlers.images.boto3.resource")
-        monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-        monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-        monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-        monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-        file_path = "ubuntu/noble/boot-kernel"
-        bs = await factory.make_BootSource()
-        ba = await factory.make_BootAsset(bs.id)
-        bv = await factory.make_BootAssetVersion(ba.id)
-        bi = await factory.make_BootAssetItem(bv.id, path=file_path)
-
+        file_path = items_ubuntu_jammy_1[0].path
         resp = await user_client.get(f"/images/latest/stable/{file_path}")
         assert resp.status_code == 200
 
@@ -509,14 +468,12 @@ class TestBootAssetItemsDownloadHandler:
         self,
         user_client: Client,
         factory: Factory,
-        db_connection: AsyncConnection,
+        index_service: IndexService,
     ) -> None:
         await factory.make_Setting(
             "service_url",
             value="https://maas.site.manager",
         )
-        index_service = IndexService(db_connection)
-        await index_service.create()
         resp = await user_client.get(
             "/images/latest/stable/streams/v1/index.json"
         )
@@ -541,14 +498,12 @@ class TestBootAssetItemsDownloadHandler:
         self,
         user_client: Client,
         factory: Factory,
-        db_connection: AsyncConnection,
+        index_service: IndexService,
     ) -> None:
         await factory.make_Setting(
             "service_url",
             value="https://maas.site.manager",
         )
-        index_service = IndexService(db_connection)
-        await index_service.create()
         resp = await user_client.get(
             "/images/latest/stable/streams/v1/manager.site.maas:stream:v1:download.json"
         )
@@ -567,39 +522,35 @@ class TestBootAssetItemsDownloadHandler:
 @pytest.mark.asyncio
 class TestGetAvailableImagesHandler:
     async def test_get_available_images(
-        self, user_client: Client, factory: Factory
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
+        boot_source_low: BootSource,
     ) -> None:
-        low_prio_source = await factory.make_BootSource(
-            priority=1,
-            name="Low Prio Source",
-        )
-        high_prio_source = await factory.make_BootSource(
-            priority=2,
-            name="High Prio Source",
-        )
         await factory.make_BootSourceSelection(
-            low_prio_source.id,
+            boot_source_low.id,
             os="ubuntu",
             release="noble",
             available=["amd64", "arm64", "ppc64el"],
             selected=["amd64", "arm64"],
         )
         await factory.make_BootSourceSelection(
-            high_prio_source.id,
+            boot_source.id,
             os="ubuntu",
             release="noble",
             available=["amd64", "arm64"],
             selected=["amd64"],
         )
         await factory.make_BootSourceSelection(
-            high_prio_source.id,
+            boot_source.id,
             os="ubuntu",
             release="jammy",
             available=["amd64", "arm64"],
             selected=[],
         )
         await factory.make_BootSourceSelection(
-            low_prio_source.id,
+            boot_source_low.id,
             os="windows",
             release="11",
             available=["amd64", "ppc64el"],
@@ -614,48 +565,48 @@ class TestGetAvailableImagesHandler:
                     "os": "ubuntu",
                     "release": "jammy",
                     "arch": "amd64",
-                    "source_id": high_prio_source.id,
-                    "source_name": "High Prio Source",
+                    "source_id": boot_source.id,
+                    "source_name": boot_source.name,
                     "selected": False,
                 },
                 {
                     "os": "ubuntu",
                     "release": "jammy",
                     "arch": "arm64",
-                    "source_id": high_prio_source.id,
-                    "source_name": "High Prio Source",
+                    "source_id": boot_source.id,
+                    "source_name": boot_source.name,
                     "selected": False,
                 },
                 {
                     "os": "ubuntu",
                     "release": "noble",
                     "arch": "amd64",
-                    "source_id": high_prio_source.id,
-                    "source_name": "High Prio Source",
+                    "source_id": boot_source.id,
+                    "source_name": boot_source.name,
                     "selected": True,
                 },
                 {
                     "os": "ubuntu",
                     "release": "noble",
                     "arch": "arm64",
-                    "source_id": high_prio_source.id,
-                    "source_name": "High Prio Source",
+                    "source_id": boot_source.id,
+                    "source_name": boot_source.name,
                     "selected": False,
                 },
                 {
                     "os": "windows",
                     "release": "11",
                     "arch": "amd64",
-                    "source_id": low_prio_source.id,
-                    "source_name": "Low Prio Source",
+                    "source_id": boot_source_low.id,
+                    "source_name": boot_source_low.name,
                     "selected": True,
                 },
                 {
                     "os": "windows",
                     "release": "11",
                     "arch": "ppc64el",
-                    "source_id": low_prio_source.id,
-                    "source_name": "Low Prio Source",
+                    "source_id": boot_source_low.id,
+                    "source_name": boot_source_low.name,
                     "selected": True,
                 },
             ]

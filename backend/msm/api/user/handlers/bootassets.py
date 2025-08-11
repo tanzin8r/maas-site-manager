@@ -75,6 +75,7 @@ boot_sources_sort_parameters = SortParamParser(
         "keyring",
         "sync_interval",
         "priority",
+        "name",
     ]
 )
 
