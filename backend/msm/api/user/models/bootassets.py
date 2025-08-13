@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, NamedTuple, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import AwareDatetime, BaseModel, Field, model_validator
 
 from msm.db import models
 from msm.schema import (
@@ -152,3 +152,40 @@ class BootAssetItemPatchResponse(models.BootAssetItem):
     @classmethod
     def from_model(cls, model: models.BootAssetItem) -> Self:
         return cls(**model.model_dump())
+
+
+class ProductItem(BaseModel):
+    ftype: models.ItemFileType
+    sha256: str
+    path: str
+    file_size: int
+    source_package: str | None = None
+    source_version: str | None = None
+    source_release: str | None = None
+
+
+class Product(BaseModel):
+    kind: models.BootAssetKind
+    label: models.BootAssetLabel
+    os: str
+    arch: str
+    release: str | None = None
+    codename: str | None = None
+    title: str | None = None
+    subarch: str | None = None
+    compatibility: list[str] | None = None
+    flavor: str | None = None
+    base_image: str | None = None
+    bootloader_type: str | None = None
+    eol: AwareDatetime | None = None
+    esm_eol: AwareDatetime | None = None
+    signed: bool = False
+    versions: dict[str, list[ProductItem]]
+
+
+class BootSourcesAssetsPutRequest(BaseModel):
+    products: list[Product]
+
+
+class BootSourcesAssetsPutResponse(BaseModel):
+    to_download: list[int]

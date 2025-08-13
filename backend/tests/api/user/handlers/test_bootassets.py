@@ -6,6 +6,12 @@ import pytest
 from pytest_mock import MockerFixture
 
 from msm.api.user.handlers.bootassets import purge_and_refresh
+from msm.api.user.models.bootassets import (
+    BootSourcesAssetsPutRequest,
+    BootSourcesAssetsPutResponse,
+    Product,
+    ProductItem,
+)
 from msm.db.models import (
     BootAsset,
     BootAssetItem,
@@ -17,6 +23,7 @@ from msm.db.models import (
     ItemFileType,
 )
 from msm.jwt import TokenAudience, TokenPurpose
+from msm.service.images import END_OF_TIME
 from msm.time import now_utc
 from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
@@ -1230,3 +1237,199 @@ class TestBootAssetItemsDeleteHandler:
                 mocker.ANY, Bucket="test-bucket", Key=str(bi.id)
             )
             mock_delete.reset_mock()
+
+
+@pytest.mark.asyncio
+class TestPutBootSourceAssetsEndpoint:
+    @pytest.fixture
+    def version_oracular_new(self) -> tuple[str, list[ProductItem]]:
+        return "20250401", [
+            ProductItem(
+                ftype=ItemFileType.BOOT_KERNEL,
+                sha256="abc123",
+                path="oracular/amd64/20250401/ga-24.10/generic/boot-kernel",
+                file_size=12345,
+            ),
+            ProductItem(
+                ftype=ItemFileType.BOOT_INITRD,
+                sha256="abc123",
+                path="oracular/amd64/20250401/ga-24.10/generic/boot-initrd",
+                file_size=12345,
+            ),
+            ProductItem(
+                ftype=ItemFileType.SQUASHFS_IMAGE,
+                sha256="abc123",
+                path="oracular/amd64/20250401/squashfs",
+                file_size=12345,
+            ),
+        ]
+
+    @pytest.fixture
+    def version_noble_existing(
+        self,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        items_ubuntu_noble_1: list[BootAssetItem],
+    ) -> tuple[str, list[ProductItem]]:
+        items = [
+            ProductItem(
+                ftype=i.ftype,
+                sha256=i.sha256,
+                path=i.path,
+                file_size=i.file_size,
+            )
+            for i in items_ubuntu_noble_1
+        ]
+        return ver_ubuntu_noble_1.version, items
+
+    @pytest.fixture
+    def version_noble_new(self) -> tuple[str, list[ProductItem]]:
+        return "20250802", [
+            ProductItem(
+                ftype=ItemFileType.BOOT_KERNEL,
+                sha256="cadecafe",
+                path="noble/amd64/20250802/ga-24.04/generic/boot-kernel",
+                file_size=456789,
+            ),
+            ProductItem(
+                ftype=ItemFileType.BOOT_INITRD,
+                sha256="cadecafe",
+                path="noble/amd64/20250802/ga-24.04/generic/boot-initrd",
+                file_size=456789,
+            ),
+            ProductItem(
+                ftype=ItemFileType.SQUASHFS_IMAGE,
+                sha256="cadecafe",
+                path="noble/amd64/20250802/squashfs",
+                file_size=456789,
+            ),
+        ]
+
+    @pytest.fixture
+    def product_noble(self, ubuntu_noble: BootAsset) -> Product:
+        return Product(
+            kind=ubuntu_noble.kind,
+            label=ubuntu_noble.label,
+            os=ubuntu_noble.os,
+            release=ubuntu_noble.release,
+            title=ubuntu_noble.title,
+            arch=ubuntu_noble.arch,
+            subarch=ubuntu_noble.subarch,
+            flavor=ubuntu_noble.flavor,
+            codename=ubuntu_noble.codename,
+            compatibility=[
+                "ga-23.10",
+                "ga-24.04",
+            ],
+            eol=END_OF_TIME,
+            esm_eol=END_OF_TIME,
+            signed=True,
+            versions={},
+        )
+
+    @pytest.fixture
+    def product_oracular(
+        self, version_oracular_new: tuple[str, list[ProductItem]]
+    ) -> Product:
+        return Product(
+            kind=BootAssetKind.OS,
+            label=BootAssetLabel.CANDIDATE,
+            os="ubuntu",
+            release="oracular",
+            title="Ubuntu Oracular",
+            arch="amd64",
+            subarch="ga-24.10",
+            flavor="generic",
+            codename="Oracular Oriole",
+            compatibility=[
+                "ga-24.04",
+                "ga-24.10",
+            ],
+            eol=END_OF_TIME,
+            esm_eol=END_OF_TIME,
+            signed=True,
+            versions={version_oracular_new[0]: version_oracular_new[1]},
+        )
+
+    async def test_new_asset_success(
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
+        product_oracular: Product,
+    ) -> None:
+        put_request = BootSourcesAssetsPutRequest(products=[product_oracular])
+        resp = await user_client.put(
+            f"/bootasset-sources/{boot_source.id}/assets",
+            json=put_request.model_dump(mode="json"),
+        )
+        assert resp.status_code == 200
+        data = BootSourcesAssetsPutResponse.model_validate(resp.json())
+        assert len(data.to_download) == 3
+
+        items = await factory.get("boot_asset_item")
+        assert len(items) == 3
+        versions = await factory.get("boot_asset_version")
+        assert len(versions) == 1
+        [oracular] = await factory.get("boot_asset")
+        assert oracular["release"] == product_oracular.release
+
+    async def test_idempotent(
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
+        product_noble: Product,
+        version_noble_existing: tuple[str, list[ProductItem]],
+    ) -> None:
+        product_noble.versions = {
+            version_noble_existing[0]: version_noble_existing[1]
+        }
+        put_request = BootSourcesAssetsPutRequest(products=[product_noble])
+        resp = await user_client.put(
+            f"/bootasset-sources/{boot_source.id}/assets",
+            json=put_request.model_dump(mode="json"),
+        )
+        assert resp.status_code == 200
+        data = BootSourcesAssetsPutResponse.model_validate(resp.json())
+        assert len(data.to_download) == 0
+
+    async def test_new_version(
+        self,
+        user_client: Client,
+        boot_source: BootSource,
+        product_noble: Product,
+        version_noble_new: tuple[str, list[ProductItem]],
+    ) -> None:
+        product_noble.versions = {version_noble_new[0]: version_noble_new[1]}
+        put_request = BootSourcesAssetsPutRequest(products=[product_noble])
+        resp = await user_client.put(
+            f"/bootasset-sources/{boot_source.id}/assets",
+            json=put_request.model_dump(mode="json"),
+        )
+        assert resp.status_code == 200
+        data = BootSourcesAssetsPutResponse.model_validate(resp.json())
+        assert len(data.to_download) == 3
+
+    async def test_put_boot_source_assets_not_found(
+        self,
+        user_client: Client,
+        product_noble: Product,
+    ) -> None:
+        put_request = BootSourcesAssetsPutRequest(products=[product_noble])
+        resp = await user_client.put(
+            "/v1/bootasset-sources/999999/assets",
+            json=put_request.model_dump(mode="json"),
+        )
+        assert resp.status_code == 404
+
+    async def test_put_boot_source_assets_validation_error(
+        self,
+        user_client: Client,
+        boot_source: BootSource,
+    ) -> None:
+        # Send invalid payload (missing products)
+        resp = await user_client.put(
+            f"/bootasset-sources/{boot_source.id}/assets",
+            json={},
+        )
+        assert resp.status_code == 422

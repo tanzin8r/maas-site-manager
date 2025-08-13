@@ -29,6 +29,7 @@ AUTHENTICATED_ROUTES = (
     ("POST", "/api/v1/bootasset-sources"),
     ("PATCH", "/api/v1/bootasset-sources/{id}"),
     ("DELETE", "/api/v1/bootasset-sources/{id}"),
+    ("PUT", "/api/v1/bootasset-sources/{id}/assets"),
     ("PUT", "/api/v1/bootasset-sources/{id}/available-selections"),
     ("GET", "/api/v1/bootasset-sources/{id}/selections"),
     ("GET", "/api/v1/bootasset-versions"),

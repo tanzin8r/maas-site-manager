@@ -416,6 +416,49 @@ class TestBootAssetVersionService:
         versions = await factory.get("boot_asset_version")
         assert len(versions) == 0
 
+    async def test_upsert(
+        self,
+        factory: Factory,
+        boot_asset_version_service: BootAssetVersionService,
+        ubuntu_jammy: BootAsset,
+    ) -> None:
+        now = factory.now
+
+        # First upsert should insert
+        new_version = BootAssetVersionCreate(
+            boot_asset_id=ubuntu_jammy.id,
+            version="20250227.1",
+            last_seen=now,
+        )
+        upserted = await boot_asset_version_service.upsert(new_version)
+        expected = BootAssetVersion(
+            id=upserted.id,
+            boot_asset_id=ubuntu_jammy.id,
+            version="20250227.1",
+            last_seen=now,
+        )
+        assert upserted == expected
+
+        # Second upsert should update
+        updated_time = now.replace(year=now.year + 1)
+        updated_version = BootAssetVersionCreate(
+            boot_asset_id=ubuntu_jammy.id,
+            version="20250227.1",
+            last_seen=updated_time,
+        )
+        upserted2 = await boot_asset_version_service.upsert(updated_version)
+        expected2 = BootAssetVersion(
+            id=upserted.id,
+            boot_asset_id=ubuntu_jammy.id,
+            version="20250227.1",
+            last_seen=updated_time,
+        )
+        assert upserted2 == expected2
+
+        # There should only be one version in the DB
+        versions = await factory.get("boot_asset_version")
+        assert len(versions) == 1
+
 
 class TestBootAssetItemService:
     async def test_get(

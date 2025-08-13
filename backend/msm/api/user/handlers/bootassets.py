@@ -433,6 +433,77 @@ async def put_boot_source_avail_selections(
     return dm.BootSourceAvailSelectionsPutResponse(stale=stale)
 
 
+@v1_router.put(
+    "/bootasset-sources/{id}/assets",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
+    },
+)
+async def put_boot_source_assets(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    id: int,
+    put_request: dm.BootSourcesAssetsPutRequest,
+) -> dm.BootSourcesAssetsPutResponse:
+    bs = await services.boot_sources.get_by_id(id)
+    if bs is None:
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Boot Source does not exist.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[f"BootSource ID {id} does not exist"],
+                    field="id",
+                    location="path",
+                )
+            ],
+        )
+
+    # update last_sync in boot source
+    update_ts = now_utc()
+    await services.boot_sources.update(
+        bs.id, models.BootSourceUpdate(last_sync=update_ts)
+    )
+
+    # refresh product list
+    to_download: list[int] = []
+    for product in put_request.products:
+        _, boot_asset = await services.boot_assets.get_or_create(
+            models.BootAssetCreate(
+                boot_source_id=id,
+                **product.model_dump(exclude={"versions"}),
+            )
+        )
+
+        for version_name, items in product.versions.items():
+            version = await services.boot_asset_versions.upsert(
+                models.BootAssetVersionCreate(
+                    boot_asset_id=boot_asset.id,
+                    version=version_name,
+                    last_seen=update_ts,
+                )
+            )
+
+            for item in items:
+                asset = await services.boot_asset_items.get_by_path(
+                    boot_source_id=bs.id, path=item.path
+                )
+                if asset is None:
+                    asset = await services.boot_asset_items.create(
+                        models.BootAssetItemCreate(
+                            boot_asset_version_id=version.id,
+                            **item.model_dump(),
+                        )
+                    )
+                if asset.file_size > asset.bytes_synced:
+                    to_download.append(asset.id)
+
+    return dm.BootSourcesAssetsPutResponse(to_download=to_download)
+
+
 @v1_router.post(
     "/bootassets/{id}/versions",
     responses={

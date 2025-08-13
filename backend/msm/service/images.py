@@ -576,6 +576,36 @@ class BootAssetVersionService(Service):
             )
         )
 
+    async def upsert(
+        self,
+        details: models.BootAssetVersionCreate,
+    ) -> models.BootAssetVersion:
+        """
+        Update the BootAssetVersion if it exists, otherwise insert a new one.
+        """
+        # Update the existing version, if any
+        data = details.model_dump(exclude_none=True)
+        stmt = (
+            update(BootAssetVersion)
+            .where(
+                BootAssetVersion.c.boot_asset_id == details.boot_asset_id,
+                BootAssetVersion.c.version == details.version,
+            )
+            .values({"last_seen": details.last_seen})
+            .returning(
+                BootAssetVersion.c.id,
+                BootAssetVersion.c.boot_asset_id,
+                BootAssetVersion.c.version,
+                BootAssetVersion.c.last_seen,
+            )
+        )
+        result = await self.conn.execute(stmt)
+        if row := result.one_or_none():
+            return models.BootAssetVersion(**row._asdict())
+
+        # Insert new version
+        return await self.create(details)
+
     async def delete(self, boot_asset_version_id: int) -> int:
         stmt = (
             delete(BootAssetVersion)
