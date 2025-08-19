@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from msm.db import models
 
 
-class GetAvailableImagesResponse(BaseModel):
-    items: list[models.AvailableImage]
+class GetSelectableImagesResponse(BaseModel):
+    items: list[models.SelectableImage]
 
 
 class ImagesPostResponse(models.BootAssetItem):

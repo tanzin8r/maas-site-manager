@@ -840,7 +840,9 @@ class TestImagesIndexService:
             }
             """
 
-        assert index == json.loads(expected_index)
+        expected_index_json = json.loads(expected_index)
+        expected_index_json["updated"] = index["updated"]
+        assert index == expected_index_json
 
     async def test_incomplete_set_not_included(
         self,

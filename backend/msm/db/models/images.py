@@ -242,13 +242,13 @@ class BootSourceUpdate(BaseModel):
     last_sync: AwareDatetime | None = None
 
 
-class AvailableImage(BaseModel):
+class SelectableImage(BaseModel):
     os: str
     release: str
     arch: str
-    source_id: int
-    source_name: str
-    selected: bool
+    boot_source_id: int
+    boot_source_name: str
+    boot_source_url: str
 
 
 class IndexProduct(BaseModel):

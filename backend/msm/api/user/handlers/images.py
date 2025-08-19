@@ -284,17 +284,18 @@ async def download(
 
 
 @v1_router.get(
-    "/available-images",
+    "/selectable-images",
     responses={
         401: {"model": UnauthorizedErrorResponseModel},
     },
 )
-async def get_available_images(
+async def get_selectable_images(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
-) -> dm.GetAvailableImagesResponse:
-    available = []
-    images_found: set[tuple[str, str]] = set()
+) -> dm.GetSelectableImagesResponse:
+    selectable = {}
+    selected = set()
+    images_found: set[tuple[str, str, str]] = set()
     _, sources = await services.boot_sources.get(
         [SortParam("priority", asc=False)]
     )
@@ -303,22 +304,31 @@ async def get_available_images(
             source.id, []
         )
         for selection in selections:
-            # ignore if os/release already exists in a previous source
-            if (selection.os, selection.release) not in images_found:
-                images_found.add((selection.os, selection.release))
-                for arch in selection.available:
-                    available.append(
-                        models.AvailableImage(
+            for arch in set(selection.available) - set(selection.selected):
+                # ignore if os/release/arch already exists in a higher prio source
+                if (selection.os, selection.release, arch) not in images_found:
+                    selectable[(selection.os, selection.release, arch)] = (
+                        models.SelectableImage(
                             os=selection.os,
                             release=selection.release,
                             arch=arch,
-                            source_id=source.id,
-                            source_name=source.name,
-                            selected=arch in selection.selected,
+                            boot_source_id=source.id,
+                            boot_source_name=source.name,
+                            boot_source_url=source.url,
                         )
                     )
-    available.sort(key=lambda x: (x.os, x.release, x.arch))
-    return dm.GetAvailableImagesResponse(items=available)
+                images_found.add((selection.os, selection.release, arch))
+            # if something is not selected in a high prio source,
+            # but is selected in a low prio source, we need to remove it later
+            for arch in selection.selected:
+                key = (selection.os, selection.release, arch)
+                if key in selectable:
+                    selected.add(key)
+    for key in selected:
+        selectable.pop(key)
+    items = list(selectable.values())
+    items.sort(key=lambda x: (x.os, x.release, x.arch))
+    return dm.GetSelectableImagesResponse(items=items)
 
 
 class S3MultipartUploadTarget(BaseTarget):  # type: ignore

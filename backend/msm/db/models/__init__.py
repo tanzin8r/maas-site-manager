@@ -1,6 +1,5 @@
 from msm.db.models.config import Config
 from msm.db.models.images import (
-    AvailableImage,
     BootAsset,
     BootAssetCreate,
     BootAssetItem,
@@ -21,6 +20,7 @@ from msm.db.models.images import (
     IndexProduct,
     IndexType,
     ItemFileType,
+    SelectableImage,
 )
 from msm.db.models.settings import Settings
 from msm.db.models.site import (
@@ -44,7 +44,7 @@ from msm.db.models.user import (
 )
 
 __all__ = [
-    "AvailableImage",
+    "SelectableImage",
     "BootAsset",
     "BootAssetCreate",
     "BootAssetItem",

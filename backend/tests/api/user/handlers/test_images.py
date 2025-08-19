@@ -523,8 +523,8 @@ class TestBootAssetItemsDownloadHandler:
 
 
 @pytest.mark.asyncio
-class TestGetAvailableImagesHandler:
-    async def test_get_available_images(
+class TestGetSelectableImagesHandler:
+    async def test_get_selectable_images(
         self,
         user_client: Client,
         factory: Factory,
@@ -552,14 +552,7 @@ class TestGetAvailableImagesHandler:
             available=["amd64", "arm64"],
             selected=[],
         )
-        await factory.make_BootSourceSelection(
-            boot_source_low.id,
-            os="windows",
-            release="11",
-            available=["amd64", "ppc64el"],
-            selected=["amd64", "ppc64el"],
-        )
-        resp = await user_client.get("/available-images")
+        resp = await user_client.get("/selectable-images")
         assert resp.status_code == 200
         data = resp.json()
         expected = {
@@ -568,49 +561,25 @@ class TestGetAvailableImagesHandler:
                     "os": "ubuntu",
                     "release": "jammy",
                     "arch": "amd64",
-                    "source_id": boot_source.id,
-                    "source_name": boot_source.name,
-                    "selected": False,
+                    "boot_source_id": boot_source.id,
+                    "boot_source_name": boot_source.name,
+                    "boot_source_url": boot_source.url,
                 },
                 {
                     "os": "ubuntu",
                     "release": "jammy",
                     "arch": "arm64",
-                    "source_id": boot_source.id,
-                    "source_name": boot_source.name,
-                    "selected": False,
+                    "boot_source_id": boot_source.id,
+                    "boot_source_name": boot_source.name,
+                    "boot_source_url": boot_source.url,
                 },
                 {
                     "os": "ubuntu",
                     "release": "noble",
-                    "arch": "amd64",
-                    "source_id": boot_source.id,
-                    "source_name": boot_source.name,
-                    "selected": True,
-                },
-                {
-                    "os": "ubuntu",
-                    "release": "noble",
-                    "arch": "arm64",
-                    "source_id": boot_source.id,
-                    "source_name": boot_source.name,
-                    "selected": False,
-                },
-                {
-                    "os": "windows",
-                    "release": "11",
-                    "arch": "amd64",
-                    "source_id": boot_source_low.id,
-                    "source_name": boot_source_low.name,
-                    "selected": True,
-                },
-                {
-                    "os": "windows",
-                    "release": "11",
                     "arch": "ppc64el",
-                    "source_id": boot_source_low.id,
-                    "source_name": boot_source_low.name,
-                    "selected": True,
+                    "boot_source_id": boot_source_low.id,
+                    "boot_source_name": boot_source_low.name,
+                    "boot_source_url": boot_source_low.url,
                 },
             ]
         }
