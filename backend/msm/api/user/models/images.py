@@ -9,6 +9,10 @@ class GetSelectableImagesResponse(BaseModel):
     items: list[models.SelectableImage]
 
 
+class GetSelectedImagesResponse(BaseModel):
+    items: list[models.SelectedImage]
+
+
 class ImagesPostResponse(models.BootAssetItem):
     @classmethod
     def from_model(cls, model: models.BootAssetItem) -> Self:

@@ -6,6 +6,7 @@ from sqlalchemy import (
     Select,
     and_,
     delete,
+    desc,
     insert,
     join,
     select,
@@ -510,6 +511,24 @@ class BootAssetVersionService(Service):
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.BootAssetVersion, result)
+
+    async def get_latest_version(
+        self, boot_asset_id: int
+    ) -> models.BootAssetVersion | None:
+        stmt = (
+            self._select_statement(
+                BootAssetVersion.c.id,
+                BootAssetVersion.c.boot_asset_id,
+                BootAssetVersion.c.version,
+                BootAssetVersion.c.last_seen,
+            )
+            .where(BootAssetVersion.c.boot_asset_id == boot_asset_id)
+            .order_by(desc(BootAssetVersion.c.version))
+        )
+        result = await self.conn.execute(stmt)
+        if row := result.first():
+            return models.BootAssetVersion(**row._asdict())
+        return None
 
     async def row_count(
         self,

@@ -21,6 +21,7 @@ from msm.db.models.images import (
     IndexType,
     ItemFileType,
     SelectableImage,
+    SelectedImage,
 )
 from msm.db.models.settings import Settings
 from msm.db.models.site import (
@@ -44,7 +45,6 @@ from msm.db.models.user import (
 )
 
 __all__ = [
-    "SelectableImage",
     "BootAsset",
     "BootAssetCreate",
     "BootAssetItem",
@@ -71,6 +71,8 @@ __all__ = [
     "ItemFileType",
     "PendingSite",
     "PendingSiteCreate",
+    "SelectableImage",
+    "SelectedImage",
     "Settings",
     "Site",
     "SiteCoordinates",

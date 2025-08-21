@@ -9,8 +9,10 @@ from pytest_mock import MockerFixture, MockType
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db.models import (
+    BootAsset,
     BootAssetItem,
     BootSource,
+    BootSourceSelection,
     ItemFileType,
 )
 from msm.service import IndexService
@@ -584,3 +586,40 @@ class TestGetSelectableImagesHandler:
             ]
         }
         assert expected == data
+
+
+@pytest.mark.asyncio
+class TestGetSelectedImagesHandler:
+    async def test_get_selected_images(
+        self,
+        user_client: Client,
+        factory: Factory,
+        boot_source: BootSource,
+        boot_source_low: BootSource,
+        ubuntu_noble: BootAsset,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_ubuntu_noble_2: list[BootAssetItem],
+        sel_ubuntu_noble: BootSourceSelection,
+    ) -> None:
+        resp = await user_client.get("/selected-images")
+        assert resp.status_code == 200
+        data = resp.json()
+        size = sum([item.file_size for item in items_ubuntu_noble_2])
+        downloaded = sum([item.bytes_synced for item in items_ubuntu_noble_2])
+        expected = {
+            "items": [
+                {
+                    "id": ubuntu_noble.id,
+                    "os": ubuntu_noble.os,
+                    "release": ubuntu_noble.release,
+                    "arch": ubuntu_noble.arch,
+                    "boot_source_id": boot_source.id,
+                    "boot_source_name": boot_source.name,
+                    "boot_source_url": boot_source.url,
+                    "size": size,
+                    "downloaded": downloaded,
+                    "is_custom_image": False,
+                }
+            ]
+        }
+        assert data == expected

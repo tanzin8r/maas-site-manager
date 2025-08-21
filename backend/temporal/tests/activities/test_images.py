@@ -62,7 +62,11 @@ class TestDownloadUpstreamActivities:
         mocker.patch.object(S3ResourceManager, "upload_part")
         mocker.patch.object(S3ResourceManager, "complete_upload")
         mocker.patch.object(S3ResourceManager, "abort_upload")
-        mocker.patch.object(S3ResourceManager, "bytes_sent", new_callable=PropertyMock(return_value=6))
+        mocker.patch.object(
+            S3ResourceManager,
+            "bytes_sent",
+            new_callable=PropertyMock(return_value=6),
+        )
         s3_params = S3Params(
             endpoint="http://s3",
             access_key="test-key",
@@ -109,7 +113,11 @@ class TestDownloadUpstreamActivities:
         mocker.patch.object(S3ResourceManager, "upload_part")
         mocker.patch.object(S3ResourceManager, "abort_upload")
         mocker.patch.object(S3ResourceManager, "complete_upload")
-        mocker.patch.object(S3ResourceManager, "bytes_sent", new_callable=PropertyMock(return_value=6))
+        mocker.patch.object(
+            S3ResourceManager,
+            "bytes_sent",
+            new_callable=PropertyMock(return_value=6),
+        )
         s3_params = S3Params(
             endpoint="http://s3",
             access_key="test-key",

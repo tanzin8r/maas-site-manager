@@ -331,6 +331,69 @@ async def get_selectable_images(
     return dm.GetSelectableImagesResponse(items=items)
 
 
+@v1_router.get(
+    "/selected-images",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+    },
+)
+async def get_selected_images(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+) -> dm.GetSelectedImagesResponse:
+    images_found: set[tuple[str, str, str]] = set()
+    selected = []
+    _, sources = await services.boot_sources.get(
+        [SortParam("priority", asc=False)]
+    )
+    for source in sources:
+        _, selections = await services.boot_source_selections.get(
+            source.id, []
+        )
+        for selection in selections:
+            for arch in selection.selected:
+                if (selection.os, selection.release, arch) not in images_found:
+                    images_found.add((selection.os, selection.release, arch))
+                    _, assets = await services.boot_assets.get(
+                        [],
+                        boot_source_id=[source.id],
+                        os=[selection.os],
+                        arch=[arch],
+                        release=[selection.release],
+                    )
+                    asset = next(iter(assets))
+                    if (
+                        latest_ver
+                        := await services.boot_asset_versions.get_latest_version(
+                            asset.id
+                        )
+                    ):
+                        _, items = await services.boot_asset_items.get(
+                            [], boot_asset_version_id=[latest_ver.id]
+                        )
+                        total_size = 0
+                        total_downloaded = 0
+                        for item in items:
+                            total_size += item.file_size
+                            total_downloaded += item.bytes_synced
+                        selected.append(
+                            models.SelectedImage(
+                                id=asset.id,
+                                os=selection.os,
+                                release=selection.release,
+                                arch=arch,
+                                boot_source_id=source.id,
+                                boot_source_name=source.name,
+                                boot_source_url=source.url,
+                                size=total_size,
+                                downloaded=total_downloaded,
+                                is_custom_image=asset.base_image is not None,
+                            )
+                        )
+    selected.sort(key=lambda x: (x.os, x.release, x.arch))
+    return dm.GetSelectedImagesResponse(items=selected)
+
+
 class S3MultipartUploadTarget(BaseTarget):  # type: ignore
     MIN_PART_SIZE = 5 * 1024**2  # 5MiB
 

@@ -353,6 +353,19 @@ class TestBootAssetVersionService:
         assert count == 1
         assert rbav == ver_ubuntu_jammy_1
 
+    async def test_get_latest_version(
+        self,
+        factory: Factory,
+        boot_asset_version_service: BootAssetVersionService,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        ver_ubuntu_noble_2: BootAssetVersion,
+    ) -> None:
+        version = await boot_asset_version_service.get_latest_version(
+            ver_ubuntu_noble_1.boot_asset_id
+        )
+        assert version is not None
+        assert version == ver_ubuntu_noble_2
+
     @pytest.mark.parametrize(
         "filter_param",
         [("boot_asset_id"), ("version")],

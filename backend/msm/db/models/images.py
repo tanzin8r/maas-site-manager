@@ -251,6 +251,19 @@ class SelectableImage(BaseModel):
     boot_source_url: str
 
 
+class SelectedImage(BaseModel):
+    id: int
+    boot_source_id: int
+    boot_source_name: str
+    boot_source_url: str
+    os: str
+    arch: str
+    release: str
+    size: int
+    downloaded: int
+    is_custom_image: bool
+
+
 class IndexProduct(BaseModel):
     """Class representing the necessary items to specify a product in the index."""
 
