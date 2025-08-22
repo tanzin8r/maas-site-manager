@@ -695,3 +695,74 @@ class TestGetImageSourcesHandler:
     ) -> None:
         resp = await user_client.get("/image-sources")
         assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+class TestPostSelectableImagesSelectHandler:
+    async def test_post(
+        self,
+        user_client: Client,
+        factory: Factory,
+        ubuntu_noble: BootAsset,
+        ubuntu_jammy: BootAsset,
+        centos: BootAsset,
+        sel_centos: BootSourceSelection,
+        sel_ubuntu_noble: list[BootSourceSelection],
+    ) -> None:
+        # don't use jammy selection fixutre since it is selected already
+        await factory.make_BootSourceSelection(
+            ubuntu_jammy.boot_source_id,
+            label=ubuntu_jammy.label,
+            os=ubuntu_jammy.os,
+            release=ubuntu_jammy.release,  # type: ignore
+            arch=ubuntu_jammy.arch,
+            selected=False,
+        )
+        data = {
+            "asset_ids": [
+                ubuntu_jammy.id,
+                centos.id,
+            ]
+        }
+        resp = await user_client.post("/selectable-images:select", json=data)
+        assert resp.status_code == 201
+        selections = await factory.get("boot_source_selection")
+        assert len(selections) == 4
+        selections_no_id = [
+            {
+                "os": sel["os"],
+                "release": sel["release"],
+                "arch": sel["arch"],
+                "label": sel["label"],
+                "arch": sel["arch"],
+                "selected": sel["selected"],
+            }
+            for sel in selections
+        ]
+        jammy_sel = {
+            "os": ubuntu_jammy.os,
+            "release": ubuntu_jammy.release,
+            "arch": ubuntu_jammy.arch,
+            "label": ubuntu_jammy.label,
+            "selected": True,
+        }
+        centos_sel = {
+            "os": centos.os,
+            "release": centos.release,
+            "arch": centos.arch,
+            "label": centos.label,
+            "selected": True,
+        }
+        assert sel_ubuntu_noble[0].model_dump() in selections
+        assert sel_ubuntu_noble[1].model_dump() in selections
+        assert jammy_sel in selections_no_id
+        assert centos_sel in selections_no_id
+
+    async def test_post_missing_ids(
+        self,
+        user_client: Client,
+    ) -> None:
+        resp = await user_client.post(
+            "/selectable-images:select", json={"asset_ids": [999]}
+        )
+        assert resp.status_code == 404

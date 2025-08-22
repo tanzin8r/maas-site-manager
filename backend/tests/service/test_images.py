@@ -178,6 +178,37 @@ class TestBootAssetService:
         assets = await factory.get("boot_asset")
         assert len(assets) == 0
 
+    async def test_get_many_by_id(
+        self,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
+        ubuntu_jammy: BootAsset,
+        centos: BootAsset,
+    ) -> None:
+        _, assets = await boot_asset_service.get_many_by_id(
+            [ubuntu_noble.id, ubuntu_jammy.id]
+        )
+        assert ubuntu_noble in assets
+        assert ubuntu_jammy in assets
+        assert centos not in assets
+
+    async def test_get_many_by_id_with_filters(
+        self,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
+        grub: BootAsset,
+    ) -> None:
+        count, assets = await boot_asset_service.get_many_by_id(
+            [ubuntu_noble.id, grub.id], kind=[BootAssetKind.OS]
+        )
+        assert count == 1
+        assert next(iter(assets)) == ubuntu_noble
+        count, assets = await boot_asset_service.get_many_by_id(
+            [ubuntu_noble.id, grub.id], kind=[BootAssetKind.BOOTLOADER]
+        )
+        assert count == 1
+        assert next(iter(assets)) == grub
+
 
 @pytest.mark.asyncio
 class TestBootSourceSelectionService:

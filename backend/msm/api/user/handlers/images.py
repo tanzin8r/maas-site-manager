@@ -283,6 +283,55 @@ async def download(
     return S3StreamResponse(content=None, file_id=str(boot_item.id))
 
 
+@v1_router.post(
+    "/selectable-images:select",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
+    },
+    status_code=201,
+)
+async def select_images(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    post_request: dm.SelectImagesPostRequest,
+) -> None:
+    count, assets = await services.boot_assets.get_many_by_id(
+        post_request.asset_ids, kind=[models.BootAssetKind.OS]
+    )
+    if count != len(post_request.asset_ids):
+        missing_ids = set(post_request.asset_ids) - set([a.id for a in assets])
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Some Boot Assets were not found.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[
+                        f"Boot Assets with IDs {list(missing_ids)} could not be found"
+                    ],
+                    field="asset_ids",
+                    location="body",
+                )
+            ],
+        )
+    for asset in assets:
+        assert asset.release is not None
+        _, selections = await services.boot_source_selections.get(
+            [],
+            boot_source_id=[asset.boot_source_id],
+            os=[asset.os],
+            release=[asset.release],
+            arch=[asset.arch],
+        )
+        sel = next(iter(selections))
+        update = models.BootSourceSelectionUpdate(selected=True)
+        await services.boot_source_selections.update(
+            asset.boot_source_id, sel.id, update
+        )
+
+
 @v1_router.get(
     "/selectable-images",
     responses={

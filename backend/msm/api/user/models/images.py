@@ -27,3 +27,7 @@ class SimpleSource(BaseModel):
 
 class GetImageSourcesResponse(BaseModel):
     items: list[SimpleSource]
+
+
+class SelectImagesPostRequest(BaseModel):
+    asset_ids: list[int]

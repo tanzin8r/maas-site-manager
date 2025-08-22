@@ -311,6 +311,39 @@ class BootAssetService(Service):
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.BootAsset, result)
 
+    async def get_many_by_id(
+        self,
+        ids: list[int],
+        kind: list[models.BootAssetKind] | None = None,
+    ) -> tuple[int, Iterable[models.BootAsset]]:
+        filters = queries.filters_from_arguments(
+            BootAsset,
+            kind=kind,
+        )
+        filters.append(BootAsset.c.id.in_(ids))
+        count = await queries.row_count(self.conn, BootAsset, *filters)
+        stmt = self._select_statement(
+            BootAsset.c.id,
+            BootAsset.c.boot_source_id,
+            BootAsset.c.kind,
+            BootAsset.c.label,
+            BootAsset.c.os,
+            BootAsset.c.release,
+            BootAsset.c.codename,
+            BootAsset.c.title,
+            BootAsset.c.arch,
+            BootAsset.c.subarch,
+            BootAsset.c.compatibility,
+            BootAsset.c.flavor,
+            BootAsset.c.base_image,
+            BootAsset.c.bootloader_type,
+            BootAsset.c.eol,
+            BootAsset.c.esm_eol,
+            BootAsset.c.signed,
+        ).where(*filters)
+        result = await self.conn.execute(stmt)
+        return count, self.objects_from_result(models.BootAsset, result)
+
     async def get_by_id(self, id: int) -> models.BootAsset | None:
         stmt = self._select_statement(
             BootAsset.c.id,
