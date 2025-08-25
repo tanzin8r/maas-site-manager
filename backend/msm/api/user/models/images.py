@@ -31,3 +31,7 @@ class GetImageSourcesResponse(BaseModel):
 
 class SelectImagesPostRequest(BaseModel):
     asset_ids: list[int]
+
+
+class RemoveSelectedImagesPostRequest(BaseModel):
+    asset_ids: list[int]

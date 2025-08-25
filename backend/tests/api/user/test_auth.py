@@ -19,9 +19,7 @@ from tests.fixtures.app import get_api_routes
 from tests.fixtures.client import Client
 
 AUTHENTICATED_ROUTES = (
-    ("POST", "/api/v1/selectable-images:select"),
     ("GET", "/api/v1/refresh-index"),
-    ("GET", "/api/v1/selectable-images"),
     ("GET", "/api/v1/bootassets"),
     ("POST", "/api/v1/bootassets"),
     ("POST", "/api/v1/bootassets/{id}/versions"),
@@ -40,7 +38,10 @@ AUTHENTICATED_ROUTES = (
     ("GET", "/api/v1/image-sources"),
     ("PATCH", "/api/v1/bootasset-items/{id}"),
     ("DELETE", "/api/v1/bootasset-items/{id}"),
+    ("GET", "/api/v1/selectable-images"),
+    ("POST", "/api/v1/selectable-images:select"),
     ("GET", "/api/v1/selected-images"),
+    ("POST", "/api/v1/selected-images:remove"),
     ("GET", "/api/v1/settings"),
     ("PATCH", "/api/v1/settings"),
     ("GET", "/api/v1/sites"),

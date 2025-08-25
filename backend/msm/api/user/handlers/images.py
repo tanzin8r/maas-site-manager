@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Annotated, Any
 from urllib.parse import urlparse
 
 import boto3
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
@@ -475,6 +475,71 @@ async def get_image_sources(
                 dm.SimpleSource(id=source.id, name=source.name, url=source.url)
             )
     return dm.GetImageSourcesResponse(items=available_sources)
+
+
+@v1_router.post(
+    "/selected-images:remove",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
+    },
+    status_code=204,
+)
+async def remove_selections(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    background_tasks: BackgroundTasks,
+    post_request: dm.RemoveSelectedImagesPostRequest,
+) -> None:
+    count, assets = await services.boot_assets.get_many_by_id(
+        post_request.asset_ids, kind=[models.BootAssetKind.OS]
+    )
+    if count != len(post_request.asset_ids):
+        missing_ids = set(post_request.asset_ids) - set([a.id for a in assets])
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Some Boot Assets were not found.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[
+                        f"Boot Assets with IDs {list(missing_ids)} could not be found"
+                    ],
+                    field="asset_ids",
+                    location="body",
+                )
+            ],
+        )
+    for asset in assets:
+        assert asset.release is not None
+        _, selections = await services.boot_source_selections.get(
+            [],
+            boot_source_id=[asset.boot_source_id],
+            os=[asset.os],
+            release=[asset.release],
+            arch=[asset.arch],
+        )
+        sel = next(iter(selections))
+        update = models.BootSourceSelectionUpdate(selected=False)
+        await services.boot_source_selections.update(
+            asset.boot_source_id, sel.id, update
+        )
+    settings = Settings()
+    assert settings.s3_endpoint is not None
+    assert settings.s3_bucket is not None
+    assert settings.s3_path is not None
+    assert settings.s3_access_key is not None
+    assert settings.s3_secret_key is not None
+    background_tasks.add_task(
+        services.purge_assets,
+        post_request.asset_ids,
+        settings.s3_endpoint,
+        settings.s3_bucket,
+        settings.s3_path,
+        settings.s3_access_key,
+        settings.s3_secret_key,
+    )
 
 
 class S3MultipartUploadTarget(BaseTarget):  # type: ignore

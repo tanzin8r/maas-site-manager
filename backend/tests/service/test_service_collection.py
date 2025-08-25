@@ -1,10 +1,13 @@
 from collections.abc import Iterator
+from unittest.mock import MagicMock, call
 
 import pytest
+from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import models
 from msm.db.models import (
+    BootAsset,
     BootAssetItem,
     BootAssetVersion,
     BootSource,
@@ -124,3 +127,57 @@ class TestServiceCollection:
         assert versions == []
         assert items == []
         assert selections == []
+
+    async def test_purge_assets(
+        self,
+        ubuntu_noble: BootAsset,
+        ubuntu_jammy: BootAsset,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_ubuntu_noble_2: list[BootAssetItem],
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        collection: ServiceCollection,
+        factory: Factory,
+        mocker: MockerFixture,
+    ) -> None:
+        mock_delete = MagicMock()
+        mock_client = mocker.patch("msm.service.boto3.client")
+        mock_client.return_value = mock_delete
+        mock_refresh = mocker.patch.object(collection.index_service, "refresh")
+        await collection.purge_assets(
+            [ubuntu_noble.id, ubuntu_jammy.id],
+            "test-s3-ep",
+            "test-bucket",
+            "test/path",
+            "test-key",
+            "test-secret-key",
+        )
+        mock_client.assert_called_once_with(
+            "s3",
+            use_ssl=False,
+            verify=False,
+            endpoint_url="test-s3-ep",
+            aws_access_key_id="test-key",
+            aws_secret_access_key="test-secret-key",
+        )
+        for item in items_ubuntu_noble_1:
+            assert (
+                call(Bucket="test-bucket", Key="test/path/" + str(item.id))
+                in mock_delete.delete_object.call_args_list
+            )
+        for item in items_ubuntu_noble_2:
+            assert (
+                call(Bucket="test-bucket", Key="test/path/" + str(item.id))
+                in mock_delete.delete_object.call_args_list
+            )
+        for item in items_ubuntu_jammy_1:
+            assert (
+                call(Bucket="test-bucket", Key="test/path/" + str(item.id))
+                in mock_delete.delete_object.call_args_list
+            )
+        mock_refresh.assert_called_once()
+        items = await factory.get("boot_asset_item")
+        versions = await factory.get("boot_asset_version")
+        assets = await factory.get("boot_asset")
+        assert len(items) == 0
+        assert len(versions) == 0
+        assert len(assets) == 0

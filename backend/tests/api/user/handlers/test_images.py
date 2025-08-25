@@ -766,3 +766,68 @@ class TestPostSelectableImagesSelectHandler:
             "/selectable-images:select", json={"asset_ids": [999]}
         )
         assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestPostSelectedImagesRemoveHandler:
+    async def test_post(
+        self,
+        ubuntu_noble: BootAsset,
+        ubuntu_jammy: BootAsset,
+        factory: Factory,
+        user_client: Client,
+        mocker: MockerFixture,
+    ) -> None:
+        assert ubuntu_noble.release is not None
+        assert ubuntu_jammy.release is not None
+        noble_sel = await factory.make_BootSourceSelection(
+            ubuntu_noble.boot_source_id,
+            label=ubuntu_noble.label,
+            os=ubuntu_noble.os,
+            release=ubuntu_noble.release,
+            arch=ubuntu_noble.arch,
+            selected=True,
+        )
+        jammy_sel = await factory.make_BootSourceSelection(
+            ubuntu_jammy.boot_source_id,
+            label=ubuntu_jammy.label,
+            os=ubuntu_jammy.os,
+            release=ubuntu_jammy.release,
+            arch=ubuntu_jammy.arch,
+            selected=True,
+        )
+        mock_background = mocker.patch(
+            "msm.api.user.handlers.bootassets.BackgroundTasks.add_task",
+        )
+        resp = await user_client.post(
+            "/selected-images:remove",
+            json={"asset_ids": [ubuntu_noble.id, ubuntu_jammy.id]},
+        )
+        assert resp.status_code == 204
+        # We can't get the exact method call from the ServiceCollection
+        # object in memory, so just use mocker.ANY
+        mock_background.assert_called_once_with(
+            mocker.ANY,
+            [ubuntu_noble.id, ubuntu_jammy.id],
+            "test-endpoint",
+            "test-bucket",
+            "test/path",
+            "test-access-key",
+            "test-secret-key",
+        )
+        selections = await factory.get("boot_source_selection")
+        new_noble_selection = noble_sel.model_dump()
+        new_noble_selection["selected"] = False
+        new_jammy_selection = jammy_sel.model_dump()
+        new_jammy_selection["selected"] = False
+        assert new_noble_selection in selections
+        assert new_jammy_selection in selections
+
+    async def test_post_missing_ids(
+        self,
+        user_client: Client,
+    ) -> None:
+        resp = await user_client.post(
+            "/selected-images:remove", json={"asset_ids": [999]}
+        )
+        assert resp.status_code == 404
