@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import IntEnum, StrEnum
 
 from pydantic import (
     AwareDatetime,
@@ -7,17 +7,17 @@ from pydantic import (
 )
 
 
-class BootAssetKind(int, Enum):
+class BootAssetKind(IntEnum):
     OS = 0
     BOOTLOADER = 1
 
 
-class BootAssetLabel(str, Enum):
+class BootAssetLabel(StrEnum):
     STABLE = "stable"
     CANDIDATE = "candidate"
 
 
-class ItemFileType(str, Enum):
+class ItemFileType(StrEnum):
     # Tarball of root image.
     ROOT_TGZ = "root-tgz"
     ROOT_TBZ = "root-tbz"
@@ -295,6 +295,6 @@ class IndexProduct(BaseModel):
     source_release: str | None = None
 
 
-class IndexType(str, Enum):
+class IndexType(StrEnum):
     INDEX = "index"
     DOWNLOAD = "download"

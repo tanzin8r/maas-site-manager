@@ -950,6 +950,26 @@ class TestBootAssetItemsGetHandler:
         resp = await user_client.get(f"/bootasset-items?size={size}")
         assert resp.status_code == 422
 
+    async def test_get_with_id(
+        self,
+        user_client: Client,
+        items_ubuntu_noble_1: list[BootAssetItem],
+    ) -> None:
+        resp = await user_client.get(
+            f"/bootasset-items/{items_ubuntu_noble_1[1].id}"
+        )
+        assert resp.status_code == 200
+        resp_body = resp.json()
+        assert resp_body["path"] == items_ubuntu_noble_1[1].path
+
+    async def test_get_with_id_not_found(
+        self,
+        user_client: Client,
+        items_ubuntu_noble_1: list[BootAssetItem],
+    ) -> None:
+        resp = await user_client.get(f"/bootasset-items/999")
+        assert resp.status_code == 404
+
 
 @pytest.mark.asyncio
 class TestBootAssetItemsPostHandler:

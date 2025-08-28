@@ -801,3 +801,35 @@ async def patch_boot_asset_items(
     )
     await services.index_service.refresh()
     return dm.BootAssetItemPatchResponse.from_model(updated_item)
+
+
+@v1_router.get(
+    "/bootasset-items/{id}",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        403: {"model": ForbiddenErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+    },
+)
+async def get_boot_asset_item(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[
+        models.User | None, Depends(verify_authenticated_user_or_worker)
+    ],
+    id: int,
+) -> dm.BootAssetItemGetResponse:
+    item = await services.boot_asset_items.get_by_id(id)
+    if not item:
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Boot Asset Item does not exist.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[f"BootAssetItem ID {id} does not exist"],
+                    field="id",
+                    location="path",
+                )
+            ],
+        )
+    return dm.BootAssetItemGetResponse.from_model(item)

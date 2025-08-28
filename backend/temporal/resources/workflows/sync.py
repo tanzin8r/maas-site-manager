@@ -1,30 +1,46 @@
 from dataclasses import dataclass
 from datetime import timedelta
+import typing
 
-from activities.images import S3Params, compose_url  # type: ignore
+from activities.bootasset import (  # type: ignore
+    GET_BOOT_SOURCE_ACTIVITY,
+    PUT_AVAILABLE_ASSETS_ACTIVITY,
+    PUT_NEW_ASSETS_ACTIVITY,
+    GetBootSourceParams,
+    GetBootSourceResult,
+    PutAssetListParams,
+    PutAssetListResult,
+    PutAvailableAssetListParams,
+)
+from activities.images import (  # type: ignore
+    S3Params,
+)
 from activities.simplestream import (  # type: ignore
     FETCH_SS_ASSETS_ACTIVITY,
     FETCH_SS_INDEXES,
-    GET_BOOT_SOURCE_ACTIVITY,
     LOAD_PRODUCT_MAP_ACTIVITY,
-    PATCH_AVAILABLE_ASSETS_ACTIVITY,
     FetchAssetListParams,
     FetchAssetListResult,
     FetchSsIndexesParams,
     FetchSsIndexesResult,
-    GetBootSourceParams,
-    GetBootSourceResult,
     LoadProductMapParams,
     LoadProductMapResult,
-    PatchAssetListParams,
+    extract_base_url,
 )
-from management.objectstore import MSMImageStore  # type: ignore
 from temporalio import workflow
+from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
+from temporalio.exceptions import WorkflowAlreadyStartedError
+
+from .download_upstream import (
+    DOWNLOAD_UPSTREAM_IMAGE_WF_NAME,
+    DownloadUpstreamImageParams,
+)
 
 SYNC_UPSTREAM_SOURCE_WF_NAME = "SyncUpstreamSource"
 REFRESH_UPSTREAM_SOURCE_WF_NAME = "RefreshUpstreamSource"
 
 SS_DOWNLOAD_TIMEOUT = timedelta(minutes=5)
+MSM_API_TIMEOUT = timedelta(minutes=2)
 
 
 @dataclass
@@ -44,41 +60,72 @@ class RefreshUpstreamSourceParams:
 
 @workflow.defn(name=SYNC_UPSTREAM_SOURCE_WF_NAME, sandboxed=False)
 class SyncUpstreamSourceWorkflow:
+    """Synchronizes sources with the upstream.
+
+    Downloads new assets and new versions of existing assets as needed,
+    as directed by the user selections.
+
+    The removal of stale/obsolete assets/versions is handled in another
+    moment, as we need to complete the download of newer assets before
+    dropping old ones.
+    """
+
+    async def start_download(
+        self,
+        ss_root_url: str,
+        s3_params: S3Params,
+        msm_url: str,
+        msm_jwt: str,
+        boot_asset_item_id: int,
+    ) -> workflow.ChildWorkflowHandle[typing.Any, bool]:
+        return await workflow.start_child_workflow(
+            DOWNLOAD_UPSTREAM_IMAGE_WF_NAME,
+            DownloadUpstreamImageParams(
+                ss_root_url=ss_root_url,
+                msm_url=msm_url,
+                msm_jwt=msm_jwt,
+                boot_asset_item_id=boot_asset_item_id,
+                s3_params=s3_params,
+            ),
+            id=f"download-item-{boot_asset_item_id}",
+            id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE_FAILED_ONLY,
+            parent_close_policy=workflow.ParentClosePolicy.ABANDON,
+            retry_policy=RetryPolicy(  # don't spin too fast
+                initial_interval=timedelta(seconds=15),
+                maximum_interval=timedelta(seconds=15),
+            ),
+        )
+
     @workflow.run
     async def run(self, params: SyncUpstreamSourceParams) -> bool:
+        workflow.logger.info("Source %d sync started", params.boot_source_id)
+
         # download the source data from API
-        source = GetBootSourceResult.from_dict(
-            await workflow.execute_activity(
-                GET_BOOT_SOURCE_ACTIVITY,
-                GetBootSourceParams(
-                    msm_base_url=params.msm_url,
-                    msm_jwt=params.msm_jwt,
-                    boot_source_id=params.boot_source_id,
-                ),
-                start_to_close_timeout=timedelta(seconds=30),
-            )
+        source: GetBootSourceResult = await workflow.execute_activity(
+            GET_BOOT_SOURCE_ACTIVITY,
+            GetBootSourceParams(
+                msm_base_url=params.msm_url,
+                msm_jwt=params.msm_jwt,
+                boot_source_id=params.boot_source_id,
+            ),
+            result_type=GetBootSourceResult,
+            start_to_close_timeout=MSM_API_TIMEOUT,
         )
         # download upstream Index file and extract the products indexes
-        indexes = FetchSsIndexesResult.from_dict(
-            await workflow.execute_activity(
-                FETCH_SS_INDEXES,
-                FetchSsIndexesParams(
-                    index_url=source.index_url,
-                    keyring=source.keyring,
-                ),
-                start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
-            )
-        )
-        store = MSMImageStore(
-            msm_base_url=params.msm_url,
-            msm_jwt=params.msm_jwt,
-            s3_params=params.s3_params,
+        indexes: FetchSsIndexesResult = await workflow.execute_activity(
+            FETCH_SS_INDEXES,
+            FetchSsIndexesParams(
+                index_url=source.index_url,
+                keyring=source.keyring,
+            ),
+            result_type=FetchSsIndexesResult,
+            start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
         )
 
         for product_url in indexes.products:
-            workflow.logger.info("Processing product URL: %s", product_url)
+            workflow.logger.info("Processing product index: %s", product_url)
 
-            product_items = LoadProductMapResult.from_dict(
+            product_items: LoadProductMapResult = (
                 await workflow.execute_activity(
                     LOAD_PRODUCT_MAP_ACTIVITY,
                     LoadProductMapParams(
@@ -86,65 +133,87 @@ class SyncUpstreamSourceWorkflow:
                         selections=source.selections,
                         keyring=source.keyring,
                     ),
+                    result_type=LoadProductMapResult,
                     start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
                 )
             )
-            for item in product_items.items:
-                workflow.logger.debug(
-                    "Processing item: %s with SHA256: %s",
-                    item["path"],
-                    item["sha256"][:12],
-                )
-                await store.insert(
-                    item,
-                    compose_url(indexes.base_url, item["path"]),
-                    params.boot_source_id,
-                    indexes.signed,
-                )
-            workflow.logger.info(
-                "Processed %d items", len(product_items.items)
+
+            assets: PutAssetListResult = await workflow.execute_activity(
+                PUT_NEW_ASSETS_ACTIVITY,
+                PutAssetListParams(
+                    msm_base_url=params.msm_url,
+                    msm_jwt=params.msm_jwt,
+                    boot_source_id=params.boot_source_id,
+                    items=product_items.items,
+                ),
+                result_type=PutAssetListResult,
+                start_to_close_timeout=MSM_API_TIMEOUT,
             )
 
-        await store.finalize()
+            ss_root_url = extract_base_url(source.index_url)
+
+            for item in assets.to_download:
+                workflow.logger.debug("Downloading item %d", item)
+                try:
+                    await self.start_download(
+                        ss_root_url=ss_root_url,
+                        s3_params=params.s3_params,
+                        msm_url=params.msm_url,
+                        msm_jwt=params.msm_jwt,
+                        boot_asset_item_id=item,
+                    )
+                except WorkflowAlreadyStartedError as ex:
+                    workflow.logger.debug(
+                        "Download already in progress (item %d)", item
+                    )
+
+            workflow.logger.info(
+                "Processed %d items, %d scheduled for download",
+                len(product_items.items),
+                len(assets.to_download),
+            )
+
+        workflow.logger.info("Source %d sync completed", params.boot_source_id)
+
         return True
 
 
 @workflow.defn(name=REFRESH_UPSTREAM_SOURCE_WF_NAME, sandboxed=False)
 class RefreshUpstreamSourceWorkflow:
+    """Refreshes the list of available assets for a given upstream source."""
+
     @workflow.run
     async def run(self, params: RefreshUpstreamSourceParams) -> bool:
         # download the source data from API
-        source = GetBootSourceResult.from_dict(
-            await workflow.execute_activity(
-                GET_BOOT_SOURCE_ACTIVITY,
-                GetBootSourceParams(
-                    msm_base_url=params.msm_url,
-                    msm_jwt=params.msm_jwt,
-                    boot_source_id=params.boot_source_id,
-                ),
-                start_to_close_timeout=timedelta(seconds=30),
-            )
-        )
-        # download upstream Index file and extract the available products
-        assets = FetchAssetListResult.from_dict(
-            await workflow.execute_activity(
-                FETCH_SS_ASSETS_ACTIVITY,
-                FetchAssetListParams(
-                    index_url=source.index_url,
-                    keyring=source.keyring,
-                ),
-                start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
-            )
-        )
-
-        # patch the available asset list
-        await workflow.execute_activity(
-            PATCH_AVAILABLE_ASSETS_ACTIVITY,
-            PatchAssetListParams(
+        source: GetBootSourceResult = await workflow.execute_activity(
+            GET_BOOT_SOURCE_ACTIVITY,
+            GetBootSourceParams(
                 msm_base_url=params.msm_url,
                 msm_jwt=params.msm_jwt,
                 boot_source_id=params.boot_source_id,
-                available=assets,
+            ),
+            result_type=GetBootSourceResult,
+            start_to_close_timeout=timedelta(seconds=30),
+        )
+        # download upstream Index file and extract the available products
+        assets: FetchAssetListResult = await workflow.execute_activity(
+            FETCH_SS_ASSETS_ACTIVITY,
+            FetchAssetListParams(
+                index_url=source.index_url,
+                keyring=source.keyring,
+            ),
+            result_type=FetchAssetListResult,
+            start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
+        )
+
+        # patch the available assets list
+        await workflow.execute_activity(
+            PUT_AVAILABLE_ASSETS_ACTIVITY,
+            PutAvailableAssetListParams(
+                msm_base_url=params.msm_url,
+                msm_jwt=params.msm_jwt,
+                boot_source_id=params.boot_source_id,
+                available=assets.assets,
             ),
             start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
         )

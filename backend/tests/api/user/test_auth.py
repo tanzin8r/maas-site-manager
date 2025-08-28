@@ -40,6 +40,7 @@ AUTHENTICATED_ROUTES = (
     ("DELETE", "/api/v1/bootasset-items/{id}"),
     ("GET", "/api/v1/selectable-images"),
     ("POST", "/api/v1/selectable-images:select"),
+    ("GET", "/api/v1/bootasset-items/{id}"),
     ("GET", "/api/v1/selected-images"),
     ("POST", "/api/v1/selected-images:remove"),
     ("GET", "/api/v1/settings"),

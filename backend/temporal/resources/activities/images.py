@@ -1,6 +1,4 @@
-from dataclasses import asdict, dataclass
-from datetime import datetime
-from enum import Enum
+from dataclasses import dataclass
 from os.path import join
 import typing
 
@@ -11,14 +9,12 @@ from temporalio.exceptions import ApplicationError
 from .base import BaseActivity
 
 if typing.TYPE_CHECKING:
+    from mypy_boto3_s3 import S3Client
     from mypy_boto3_s3.type_defs import CompletedPartTypeDef
 
 MIN_S3_PART_SIZE = 5 * 1024**2  # 5MiB
 
 DOWNLOAD_ASSET_ACTIVITY = "download-asset"
-GET_OR_CREATE_ASSET_ACTIVITY = "get-or-create-asset"
-GET_OR_CREATE_ITEM_ACTIVITY = "get-or-create-item"
-GET_OR_CREATE_VERSION_ACTIVITY = "get-or-create-version"
 UPDATE_BYTES_SYNCED_ACTIVITY = "update-bytes-synced"
 
 
@@ -45,86 +41,6 @@ class DownloadAssetParams:
     msm_jwt: str
     boot_asset_item_id: int
     s3_params: S3Params
-
-
-@dataclass
-class BootAssetVersion:
-    """
-    A boot asset version to either find or create.
-    """
-
-    boot_asset_id: int
-    version: str
-
-
-@dataclass
-class BootAssetItem:
-    """
-    A boot asset item to either find or create.
-    """
-
-    boot_asset_version_id: int
-    ftype: str
-    sha256: str
-    path: str
-    file_size: int
-    source_package: str | None = None
-    source_version: str | None = None
-    source_release: str | None = None
-
-
-class BootAssetKind(int, Enum):
-    OS = 0
-    BOOTLOADER = 1
-
-
-class BootAssetLabel(str, Enum):
-    STABLE = "stable"
-    CANDIDATE = "candidate"
-
-
-@dataclass
-class BootAsset:
-    """
-    A boot asset to either find or create.
-    """
-
-    boot_source_id: int
-    kind: BootAssetKind
-    label: BootAssetLabel
-    os: str
-    arch: str
-    release: str | None = None
-    codename: str | None = None
-    title: str | None = None
-    subarch: str | None = None
-    compatibility: list[str] | None = None
-    flavor: str | None = None
-    bootloader_type: str | None = None
-    eol: datetime | None = None
-    esm_eol: datetime | None = None
-    signed: bool = False
-
-
-@dataclass
-class GetOrCreateAssetParams:
-    msm_base_url: str
-    msm_jwt: str
-    asset: BootAsset
-
-
-@dataclass
-class GetOrCreateVersionParams:
-    msm_base_url: str
-    msm_jwt: str
-    version: BootAssetVersion
-
-
-@dataclass
-class GetOrCreateItemParams:
-    msm_base_url: str
-    msm_jwt: str
-    item: BootAssetItem
 
 
 class S3ResourceManager:
@@ -155,8 +71,12 @@ class S3ResourceManager:
     def bytes_sent(self) -> int:
         return self._bytes_sent
 
+    @property
+    def s3_client(self) -> "S3Client":
+        return self._s3_client
+
     def _create_multipart_upload(self) -> str:
-        multipart_upload = self._s3_client.create_multipart_upload(
+        multipart_upload = self.s3_client.create_multipart_upload(
             ACL="public-read",
             Bucket=self.bucket,
             Key=self.s3_key,
@@ -167,7 +87,7 @@ class S3ResourceManager:
     def upload_part(self, chunk: bytes) -> None:
         if self._upload_id is None:
             raise RuntimeError("Multipart operation is not in progress")
-        part = self._s3_client.upload_part(
+        part = self.s3_client.upload_part(
             Bucket=self.bucket,
             Key=self.s3_key,
             UploadId=self._upload_id,
@@ -183,7 +103,7 @@ class S3ResourceManager:
     def complete_upload(self) -> None:
         if self._upload_id is None:
             raise RuntimeError("Multipart operation is not in progress")
-        self._s3_client.complete_multipart_upload(
+        self.s3_client.complete_multipart_upload(
             Bucket=self.bucket,
             Key=self.s3_key,
             UploadId=self._upload_id,
@@ -194,27 +114,12 @@ class S3ResourceManager:
     def abort_upload(self) -> None:
         if self._upload_id is None:
             raise RuntimeError("Multipart operation is not in progress")
-        self._s3_client.abort_multipart_upload(
+        self.s3_client.abort_multipart_upload(
             Bucket=self.bucket,
             Key=self.s3_key,
             UploadId=self._upload_id,
         )
         self._upload_id = None
-
-
-def compose_url(prefix: str, path: str) -> str:
-    return "/".join(
-        [
-            prefix.rstrip("/"),
-            path,
-        ]
-    )
-
-
-def reverse_fqdn(fqdn: str) -> str:
-    sp = fqdn.split(".")
-    sp.reverse()
-    return ".".join(sp)
 
 
 class ImageManagementActivities(BaseActivity):
@@ -228,48 +133,6 @@ class ImageManagementActivities(BaseActivity):
         item_id: int,
     ) -> S3ResourceManager:
         return S3ResourceManager(params, item_id)
-
-    async def _get_or_create(
-        self,
-        get_url: str,
-        get_params: dict[str, typing.Any],
-        post_url: str,
-        post_data: dict[str, typing.Any],
-        headers: dict[str, str],
-    ) -> tuple[bool, int]:
-        """
-        Get or create the given asset/version/item.
-
-        Returns: tuple of (created, ID)
-        """
-        resp = await self.client.get(
-            get_url,
-            headers=headers,
-            params=get_params,
-        )
-        if resp.status_code != 200:
-            raise ApplicationError(
-                f"Got an unexpected response ({resp.status_code}) from MSM API: {resp.text}"
-            )
-        items = resp.json()["items"]
-        if len(items) == 0:
-            resp = await self.client.post(
-                post_url, json=post_data, headers=headers
-            )
-            if resp.status_code == 409:
-                resp = await self.client.get(
-                    get_url,
-                    headers=headers,
-                    params=get_params,
-                )
-                return False, resp.json()["items"][0]["id"]
-            elif resp.status_code == 200:
-                return True, resp.json()["id"]
-            else:
-                raise ApplicationError(
-                    f"Got an unexpected response ({resp.status_code}) from MSM API: {resp.text}"
-                )
-        return False, items[0]["id"]
 
     async def _update_bytes_synced(
         self,
@@ -297,36 +160,28 @@ class ImageManagementActivities(BaseActivity):
         s3_manager = self._create_s3_manager(
             params.s3_params, params.boot_asset_item_id
         )
+
+        msm_url = "/".join(
+            [
+                params.msm_url.rstrip("/"),
+                f"api/v1/bootasset-items/{params.boot_asset_item_id}",
+            ],
+        )
         msm_headers = self._get_header(params.msm_jwt)
-        chunk = b""
         try:
             async with self.client.stream(
                 "GET", params.ss_url, timeout=7200
             ) as r:
-                async for data in r.aiter_bytes():
-                    chunk += data
-                    if len(chunk) >= MIN_S3_PART_SIZE:
-                        s3_manager.upload_part(chunk)
-                        activity.heartbeat(
-                            f"Uploaded {s3_manager.bytes_sent} bytes to storage."
-                        )
-                        if not await self._update_bytes_synced(
-                            params.msm_url, msm_headers, s3_manager.bytes_sent
-                        ):
-                            activity.logger.info(
-                                f"Item at {params.msm_url} no longer exists, aborting download"
-                            )
-                            s3_manager.abort_upload()
-                            return -1
-                        chunk = b""
-                # finalize upload
-                if chunk:
-                    s3_manager.upload_part(chunk)
+                async for data in r.aiter_raw(chunk_size=MIN_S3_PART_SIZE):
+                    s3_manager.upload_part(data)
+                    activity.heartbeat(
+                        f"Uploaded {s3_manager.bytes_sent} bytes to storage."
+                    )
                     if not await self._update_bytes_synced(
-                        params.msm_url, msm_headers, s3_manager.bytes_sent
+                        msm_url, msm_headers, s3_manager.bytes_sent
                     ):
                         activity.logger.info(
-                            f"Item at {params.msm_url} no longer exists, aborting download"
+                            f"Item at {msm_url} no longer exists, aborting download"
                         )
                         s3_manager.abort_upload()
                         return -1
@@ -335,56 +190,3 @@ class ImageManagementActivities(BaseActivity):
             s3_manager.abort_upload()
             raise
         return s3_manager.bytes_sent
-
-    @activity.defn(name=GET_OR_CREATE_ASSET_ACTIVITY)
-    async def get_or_create_asset(self, params: GetOrCreateAssetParams) -> int:
-        headers = self._get_header(params.msm_jwt)
-        url = compose_url(params.msm_base_url, "api/v1/bootassets")
-        get_params = {
-            "kind": params.asset.kind,
-            "label": params.asset.label,
-            "os": params.asset.os,
-            "arch": params.asset.arch,
-        }
-        asset_dict = asdict(params.asset)
-
-        _, id = await self._get_or_create(
-            url, get_params, url, asset_dict, headers
-        )
-        return id
-
-    @activity.defn(name=GET_OR_CREATE_VERSION_ACTIVITY)
-    async def get_or_create_version(
-        self, params: GetOrCreateVersionParams
-    ) -> tuple[bool, int]:
-        headers = self._get_header(params.msm_jwt)
-        get_url = compose_url(params.msm_base_url, "api/v1/bootasset-versions")
-        post_url = compose_url(
-            params.msm_base_url,
-            f"api/v1/bootassets/{params.version.boot_asset_id}/versions",
-        )
-        version_dict = {"version": params.version.version}
-        get_params = {
-            "version": params.version.version,
-            "boot_asset_id": params.version.boot_asset_id,
-        }
-        return await self._get_or_create(
-            get_url, get_params, post_url, version_dict, headers
-        )
-
-    @activity.defn(name=GET_OR_CREATE_ITEM_ACTIVITY)
-    async def get_or_create_item(self, params: GetOrCreateItemParams) -> int:
-        headers = self._get_header(params.msm_jwt)
-        get_url = compose_url(params.msm_base_url, "api/v1/bootasset-items")
-        get_params = {"sha256": params.item.sha256}
-        post_url = compose_url(
-            params.msm_base_url,
-            f"api/v1/bootasset-versions/{params.item.boot_asset_version_id}/items",
-        )
-        item_dict = asdict(params.item)
-        item_dict.pop("boot_asset_version_id")
-        item_dict.pop("path")
-        _, id = await self._get_or_create(
-            get_url, get_params, post_url, item_dict, headers
-        )
-        return id

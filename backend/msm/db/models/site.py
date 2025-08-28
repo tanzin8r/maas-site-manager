@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 from uuid import UUID
 
@@ -11,7 +11,7 @@ from pydantic import (
 from msm.schema import TimeZone
 
 
-class ConnectionStatus(str, Enum):
+class ConnectionStatus(StrEnum):
     STABLE = "stable"
     LOST = "lost"
     UNKNOWN = "unknown"

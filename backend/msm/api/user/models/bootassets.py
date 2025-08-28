@@ -193,3 +193,9 @@ class BootSourcesAssetsPutRequest(BaseModel):
 
 class BootSourcesAssetsPutResponse(BaseModel):
     to_download: list[int]
+
+
+class BootAssetItemGetResponse(models.BootAssetItem):
+    @classmethod
+    def from_model(cls, model: models.BootAssetItem) -> Self:
+        return cls(**model.model_dump())

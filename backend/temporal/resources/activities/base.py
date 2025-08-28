@@ -13,3 +13,16 @@ class BaseActivity:
 
     def _get_header(self, jwt: str) -> dict[str, str]:
         return {"Authorization": f"bearer {jwt}"}
+
+
+def compose_url(prefix: str, path: str) -> str:
+    return "/".join(
+        [
+            prefix.rstrip("/"),
+            path,
+        ]
+    )
+
+
+def get_selection_key(os: str, release: str, arch: str) -> str:
+    return f"{os}---{release}---{arch}"
