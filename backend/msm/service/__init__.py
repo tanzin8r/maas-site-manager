@@ -130,11 +130,11 @@ class ServiceCollection:
 
 
 __all__ = [
-    "BootAssetService",
     "BootAssetItemService",
+    "BootAssetService",
     "BootAssetVersionService",
-    "BootSourceService",
     "BootSourceSelectionService",
+    "BootSourceService",
     "ConfigService",
     "IndexNotFound",
     "IndexService",

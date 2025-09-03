@@ -39,10 +39,8 @@ from msm.service import ServiceCollection
 v1_router = APIRouter(prefix="/v1")
 
 
-class TokensGetResponse(PaginatedResults):
+class TokensGetResponse(PaginatedResults[Token]):
     """List of existing tokens."""
-
-    items: list[Token]
 
 
 @v1_router.get(

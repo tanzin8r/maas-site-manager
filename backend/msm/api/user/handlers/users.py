@@ -77,10 +77,8 @@ class User(BaseModel):
         return cls(**user.model_dump())
 
 
-class UsersGetResponse(PaginatedResults):
+class UsersGetResponse(PaginatedResults[User]):
     """List of existing users."""
-
-    items: list[User]
 
 
 def passwords_match(

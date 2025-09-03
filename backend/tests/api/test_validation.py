@@ -40,10 +40,8 @@ class DummyModel(BaseModel):
         return self
 
 
-class DummyGetResponse(PaginatedResults):
+class DummyGetResponse(PaginatedResults[DummyModel]):
     """List of existing users."""
-
-    items: list[DummyModel]
 
 
 @pytest.fixture

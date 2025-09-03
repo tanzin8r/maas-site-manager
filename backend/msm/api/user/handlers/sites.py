@@ -64,8 +64,8 @@ site_sort_parameters = SortParamParser(
 )
 
 
-class PendingSitesGetResponse(PaginatedResults):
-    items: list[models.PendingSite]
+class PendingSitesGetResponse(PaginatedResults[models.PendingSite]):
+    pass
 
 
 @v1_router.get(
@@ -139,10 +139,8 @@ async def post_pending(
     return None
 
 
-class SitesGetResponse(PaginatedResults):
+class SitesGetResponse(PaginatedResults[models.Site]):
     """Response with paginated accepted sites."""
-
-    items: list[models.Site]
 
 
 @v1_router.get(

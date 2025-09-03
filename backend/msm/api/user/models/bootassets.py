@@ -32,8 +32,8 @@ class BootAssetsPostResponse(BaseModel):
     id: int
 
 
-class BootAssetsGetResponse(PaginatedResults):
-    items: list[models.BootAssetWithSourceName]
+class BootAssetsGetResponse(PaginatedResults[models.BootAssetWithSourceName]):
+    pass
 
 
 class BootSourceGetResponse(models.BootSource):
@@ -48,12 +48,14 @@ class BootSourcePatchResponse(models.BootSource):
         return cls(**model.model_dump())
 
 
-class BootSourcesGetResponse(PaginatedResults):
-    items: list[models.BootSource]
+class BootSourcesGetResponse(PaginatedResults[models.BootSource]):
+    pass
 
 
-class BootSourceSelectionsGetResponse(PaginatedResults):
-    items: list[models.BootSourceSelection]
+class BootSourceSelectionsGetResponse(
+    PaginatedResults[models.BootSourceSelection]
+):
+    pass
 
 
 class BootSourcesPostRequest(BaseModel):
@@ -114,8 +116,8 @@ class BootAssetVersionPostResponse(BaseModel):
     id: int
 
 
-class BootAssetVersionsGetResponse(PaginatedResults):
-    items: list[models.BootAssetVersion]
+class BootAssetVersionsGetResponse(PaginatedResults[models.BootAssetVersion]):
+    pass
 
 
 class BootAssetItemPostRequest(BaseModel):
@@ -132,8 +134,8 @@ class BootAssetItemPostResponse(BaseModel):
     id: int
 
 
-class BootAssetItemsGetResponse(PaginatedResults):
-    items: list[models.BootAssetItem]
+class BootAssetItemsGetResponse(PaginatedResults[models.BootAssetItem]):
+    pass
 
 
 class BootAssetItemPatchRequest(BaseModel):

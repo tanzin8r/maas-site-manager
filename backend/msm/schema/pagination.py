@@ -1,7 +1,5 @@
 from collections.abc import Sequence
-from typing import (
-    Annotated,
-)
+from typing import Annotated, Generic, TypeVar
 
 from fastapi import Query
 from pydantic import BaseModel, Field, conint
@@ -9,8 +7,10 @@ from pydantic import BaseModel, Field, conint
 DEFAULT_PAGE_SIZE = 20
 MAX_PAGE_SIZE = 100
 
+M = TypeVar("M", bound=BaseModel)
 
-class PaginatedResults(BaseModel):
+
+class PaginatedResults(BaseModel, Generic[M]):
     """
     Base class to wrap objects in a pagination.
     Derived classes should overwrite the items property
@@ -19,7 +19,7 @@ class PaginatedResults(BaseModel):
     total: Annotated[int, conint(ge=0)]
     page: Annotated[int, conint(ge=0)]
     size: Annotated[int, conint(ge=0, le=MAX_PAGE_SIZE)]
-    items: Sequence[BaseModel]
+    items: Sequence[M]
 
 
 class PaginationParams(BaseModel):
