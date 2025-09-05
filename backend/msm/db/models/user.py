@@ -18,6 +18,13 @@ class User(BaseModel):
     auth_id: UUID
 
 
+class Worker(BaseModel):
+    """A temporal worker."""
+
+    auth_id: UUID
+    is_admin: bool = True
+
+
 class UserCreate(BaseModel):
     """Creating a new user"""
 

@@ -42,6 +42,7 @@ from msm.db.models.user import (
     User,
     UserCreate,
     UserUpdate,
+    Worker,
 )
 
 __all__ = [
@@ -84,4 +85,5 @@ __all__ = [
     "User",
     "UserCreate",
     "UserUpdate",
+    "Worker",
 ]

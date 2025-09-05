@@ -1,4 +1,7 @@
 from collections.abc import AsyncIterator
+from uuid import (
+    uuid4,
+)
 
 from fastapi import FastAPI
 import pytest
@@ -7,7 +10,9 @@ from pytest_mock import MockerFixture
 from msm.db.models import (
     Config,
     User,
+    Worker,
 )
+from msm.jwt import TokenAudience, TokenPurpose
 from tests.api.conftest import make_api_client
 from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
@@ -32,6 +37,18 @@ async def api_user(factory: Factory) -> AsyncIterator[User]:
 async def api_admin(factory: Factory) -> AsyncIterator[User]:
     """An API administrator."""
     yield await factory.make_User(username=API_ADMIN_NAME, is_admin=True)
+
+
+@pytest.fixture
+async def api_worker(factory: Factory) -> AsyncIterator[Worker]:
+    """An API administrator."""
+    auth_id = uuid4()
+    await factory.make_Token(
+        auth_id=auth_id,
+        audience=TokenAudience.WORKER,
+        purpose=TokenPurpose.ACCESS,
+    )
+    yield Worker(auth_id=auth_id)
 
 
 @pytest.fixture

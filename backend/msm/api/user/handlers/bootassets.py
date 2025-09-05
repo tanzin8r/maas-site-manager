@@ -100,7 +100,8 @@ boot_source_selection_sort_parameters = SortParamParser(
 async def get_boot_assets(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     sort_params: Annotated[
         list[SortParam], Depends(boot_asset_sort_parameters)
@@ -111,16 +112,17 @@ async def get_boot_assets(
     ],
 ) -> dm.BootAssetsGetResponse:
     """Return boot assets."""
+    is_user = isinstance(authenticated_user, models.User)
     total, results = await services.boot_assets.get_with_source_name(
         sort_params,
-        offset=pagination_params.offset,
-        limit=pagination_params.size,
+        offset=pagination_params.offset if is_user else 0,
+        limit=pagination_params.size if is_user else None,
         **filter_params._asdict(),
     )
     return dm.BootAssetsGetResponse(
         total=total,
-        page=pagination_params.page,
-        size=pagination_params.size,
+        page=pagination_params.page if is_user else 1,
+        size=pagination_params.size if is_user else total,
         items=list(results),
     )
 
@@ -137,7 +139,8 @@ async def get_boot_assets(
 async def post_boot_assets(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     post_request: dm.BootAssetsPostRequest,
 ) -> dm.BootAssetsPostResponse:
@@ -187,22 +190,26 @@ async def post_boot_assets(
 )
 async def get_boot_sources(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
+    ],
     sort_params: Annotated[
         list[SortParam], Depends(boot_sources_sort_parameters)
     ],
     pagination_params: Annotated[PaginationParams, Depends()],
 ) -> dm.BootSourcesGetResponse:
     """Return boot sources."""
+    is_user = isinstance(authenticated_user, models.User)
     total, results = await services.boot_sources.get(
         sort_params,
-        offset=pagination_params.offset,
-        limit=pagination_params.size,
+        offset=pagination_params.offset if is_user else 0,
+        limit=pagination_params.size if is_user else None,
     )
     return dm.BootSourcesGetResponse(
         total=total,
-        page=pagination_params.page,
-        size=pagination_params.size,
+        page=pagination_params.page if is_user else 1,
+        size=pagination_params.size if is_user else total,
         items=list(results),
     )
 
@@ -217,7 +224,10 @@ async def get_boot_sources(
 )
 async def get_boot_source_by_id(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
+    ],
     id: int,
 ) -> dm.BootSourceGetResponse:
     bs = await services.boot_sources.get_by_id(id)
@@ -342,7 +352,10 @@ async def delete_boot_source(
 )
 async def get_boot_source_selections(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
+    ],
     id: int,
     sort_params: Annotated[
         list[SortParam], Depends(boot_source_selection_sort_parameters)
@@ -374,7 +387,10 @@ async def get_boot_source_selections(
 )
 async def put_boot_source_avail_selections(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
+    ],
     id: int,
     patch_request: dm.BootSourceAvailSelectionsPutRequest,
 ) -> dm.BootSourceAvailSelectionsPutResponse:
@@ -439,7 +455,10 @@ async def put_boot_source_avail_selections(
 )
 async def put_boot_source_assets(
     services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    authenticated_user: Annotated[
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
+    ],
     id: int,
     put_request: dm.BootSourcesAssetsPutRequest,
 ) -> dm.BootSourcesAssetsPutResponse:
@@ -512,7 +531,8 @@ async def put_boot_source_assets(
 async def post_boot_asset_version(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     id: int,
     post_request: dm.BootAssetVersionPostRequest,
@@ -574,7 +594,8 @@ boot_asset_version_sort_parameters = SortParamParser(
 async def get_boot_asset_versions(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     sort_params: Annotated[
         list[SortParam], Depends(boot_asset_version_sort_parameters)
@@ -585,16 +606,17 @@ async def get_boot_asset_versions(
     ],
 ) -> dm.BootAssetVersionsGetResponse:
     """Return Boot Asset Versions"""
+    is_user = isinstance(authenticated_user, models.User)
     total, results = await services.boot_asset_versions.get(
         sort_params,
-        offset=pagination_params.offset,
-        limit=pagination_params.size,
+        offset=pagination_params.offset if is_user else 0,
+        limit=pagination_params.size if is_user else None,
         **filter_params._asdict(),
     )
     return dm.BootAssetVersionsGetResponse(
         total=total,
-        page=pagination_params.page,
-        size=pagination_params.size,
+        page=pagination_params.page if is_user else 1,
+        size=pagination_params.size if is_user else total,
         items=list(results),
     )
 
@@ -611,7 +633,8 @@ async def get_boot_asset_versions(
 async def post_boot_asset_item(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     id: int,
     post_request: dm.BootAssetItemPostRequest,
@@ -679,7 +702,8 @@ boot_asset_items_sort_parameters = SortParamParser(
 async def get_boot_asset_items(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     sort_params: Annotated[
         list[SortParam], Depends(boot_asset_items_sort_parameters)
@@ -689,16 +713,17 @@ async def get_boot_asset_items(
         BootAssetItemFilterParams, Depends(boot_asset_item_filter_params)
     ],
 ) -> dm.BootAssetItemsGetResponse:
+    is_user = isinstance(authenticated_user, models.User)
     total, results = await services.boot_asset_items.get(
         sort_params,
-        offset=pagination_params.offset,
-        limit=pagination_params.size,
+        offset=pagination_params.offset if is_user else 0,
+        limit=pagination_params.size if is_user else None,
         **filter_params._asdict(),
     )
     return dm.BootAssetItemsGetResponse(
         total=total,
-        page=pagination_params.page,
-        size=pagination_params.size,
+        page=pagination_params.page if is_user else 1,
+        size=pagination_params.size if is_user else total,
         items=list(results),
     )
 
@@ -759,14 +784,14 @@ async def delete_images(
 async def patch_boot_asset_items(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     id: int,
     patch_request: dm.BootAssetItemPatchRequest,
 ) -> dm.BootAssetItemPatchResponse:
-    if (
-        patch_request.bytes_synced is not None
-        and authenticated_user is not None
+    if patch_request.bytes_synced is not None and not isinstance(
+        authenticated_user, models.Worker
     ):
         raise ForbiddenException(
             code=ExceptionCode.MISSING_PERMISSIONS,
@@ -814,7 +839,8 @@ async def patch_boot_asset_items(
 async def get_boot_asset_item(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
     id: int,
 ) -> dm.BootAssetItemGetResponse:

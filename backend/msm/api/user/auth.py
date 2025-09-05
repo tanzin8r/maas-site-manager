@@ -12,7 +12,7 @@ from msm.api.exceptions.catalog import (
     UnauthorizedException,
 )
 from msm.api.exceptions.constants import ExceptionCode
-from msm.db.models import User
+from msm.db.models import User, Worker
 from msm.jwt import TokenAudience, TokenPurpose
 from msm.service import (
     ServiceCollection,
@@ -76,6 +76,31 @@ def authenticated_admin(
     return user
 
 
+async def authenticated_worker(
+    services: Annotated[ServiceCollection, Depends(services)],
+    auth_id: Annotated[UUID, Depends()],
+) -> Worker:
+    db_token = await services.tokens.get_by_auth_id(
+        auth_id,
+        audience=TokenAudience.WORKER,
+        purpose=TokenPurpose.ACCESS,
+    )
+    if db_token is None or db_token.is_expired():
+        raise UnauthorizedException(
+            code=ExceptionCode.INVALID_TOKEN,
+            message=f"The token is not valid.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.INVALID_TOKEN,
+                    messages=["The token is not valid."],
+                    field="Authorization",
+                    location="header",
+                )
+            ],
+        )
+    return Worker(auth_id=auth_id)
+
+
 async def verify_authenticated_user_or_worker(
     services: Annotated[ServiceCollection, Depends(services)],
     auth_id_and_aud: Annotated[
@@ -86,38 +111,26 @@ async def verify_authenticated_user_or_worker(
             )
         ),
     ],
-) -> User | None:
+) -> User | Worker:
     if auth_id_and_aud[1] == TokenAudience.WORKER:
-        db_token = await services.tokens.get_by_auth_id(
-            auth_id_and_aud[0],
-            audience=TokenAudience.WORKER,
-            purpose=TokenPurpose.ACCESS,
-        )
-        if db_token is None or db_token.is_expired():
-            raise UnauthorizedException(
-                code=ExceptionCode.INVALID_TOKEN,
-                message=f"The token is not valid. {auth_id_and_aud[0]}",
-                details=[
-                    BaseExceptionDetail(
-                        reason=ExceptionCode.INVALID_TOKEN,
-                        messages=["The token is not valid."],
-                        field="Authorization",
-                        location="header",
-                    )
-                ],
+        return await authenticated_worker(services, auth_id_and_aud[0])
+    else:
+        return await authenticated_user(services, auth_id_and_aud[0])
+
+
+async def verify_authenticated_admin_or_worker(
+    services: Annotated[ServiceCollection, Depends(services)],
+    auth_id_and_aud: Annotated[
+        tuple[UUID, TokenAudience],
+        Depends(
+            auth_id_from_token_multi_aud(
+                OAUTH2_SCHEME, [TokenAudience.API, TokenAudience.WORKER]
             )
-        return None
-    if user := await services.users.get_by_auth_id(auth_id_and_aud[0]):
-        return user
-    raise UnauthorizedException(
-        code=ExceptionCode.INVALID_TOKEN,
-        message="The token is not valid.",
-        details=[
-            BaseExceptionDetail(
-                reason=ExceptionCode.INVALID_TOKEN,
-                messages=["The token is not valid."],
-                field="Authorization",
-                location="header",
-            )
-        ],
-    )
+        ),
+    ],
+) -> User | Worker:
+    if auth_id_and_aud[1] == TokenAudience.WORKER:
+        return await authenticated_worker(services, auth_id_and_aud[0])
+    else:
+        user = await authenticated_user(services, auth_id_and_aud[0])
+        return authenticated_admin(user)

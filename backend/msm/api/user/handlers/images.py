@@ -878,7 +878,8 @@ async def post_images(
 async def refresh_index(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[
-        models.User | None, Depends(verify_authenticated_user_or_worker)
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
     ],
 ) -> None:
     await services.index_service.refresh()

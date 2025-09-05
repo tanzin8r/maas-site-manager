@@ -12,8 +12,10 @@ from msm.api.exceptions.constants import ExceptionCode
 from msm.api.user.auth import (
     authenticated_admin,
     authenticated_user,
+    authenticated_worker,
 )
 from msm.db.models import User
+from msm.db.models.user import Worker
 from msm.service import ServiceCollection
 from tests.fixtures.app import get_api_routes
 from tests.fixtures.client import Client
@@ -145,6 +147,26 @@ class TestAuthenticatedUser:
     ) -> None:
         with pytest.raises(UnauthorizedException) as error:
             await authenticated_user(api_services, uuid.uuid4())
+        assert error.value.status_code == 401
+        assert error.value.message == "The token is not valid."
+        assert error.value.code == ExceptionCode.INVALID_TOKEN
+
+
+@pytest.mark.asyncio
+class TestAuthenticatedWorker:
+    async def test_valid_token(
+        self,
+        api_services: ServiceCollection,
+        api_worker: Worker,
+    ) -> None:
+        worker = await authenticated_worker(api_services, api_worker.auth_id)
+        assert worker == api_worker
+
+    async def test_invalid_auth_id(
+        self, api_services: ServiceCollection
+    ) -> None:
+        with pytest.raises(UnauthorizedException) as error:
+            await authenticated_worker(api_services, uuid.uuid4())
         assert error.value.status_code == 401
         assert error.value.message == "The token is not valid."
         assert error.value.code == ExceptionCode.INVALID_TOKEN
