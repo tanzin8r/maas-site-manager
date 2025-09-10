@@ -1,39 +1,9 @@
-from datetime import datetime
 from typing import Any, NamedTuple, Self
 
 from pydantic import AwareDatetime, BaseModel, Field, model_validator
 
 from msm.db import models
-from msm.schema import (
-    PaginatedResults,
-)
-
-
-class BootAssetsPostRequest(BaseModel):
-    boot_source_id: int
-    kind: models.BootAssetKind
-    label: models.BootAssetLabel
-    os: str
-    arch: str
-    release: str | None = None
-    codename: str | None = None
-    title: str | None = None
-    subarch: str | None = None
-    compatibility: list[str] | None = None
-    flavor: str | None = None
-    base_image: str | None = None
-    bootloader_type: str | None = None
-    eol: datetime | None = None
-    esm_eol: datetime | None = None
-    signed: bool = False
-
-
-class BootAssetsPostResponse(BaseModel):
-    id: int
-
-
-class BootAssetsGetResponse(PaginatedResults[models.BootAssetWithSourceName]):
-    pass
+from msm.schema import PaginatedResults
 
 
 class BootSourceGetResponse(models.BootSource):
@@ -106,36 +76,6 @@ class BootSourceAvailSelectionsPutRequest(BaseModel):
 
 class BootSourceAvailSelectionsPutResponse(BaseModel):
     stale: list[models.BootSourceSelection]
-
-
-class BootAssetVersionPostRequest(BaseModel):
-    version: str
-
-
-class BootAssetVersionPostResponse(BaseModel):
-    id: int
-
-
-class BootAssetVersionsGetResponse(PaginatedResults[models.BootAssetVersion]):
-    pass
-
-
-class BootAssetItemPostRequest(BaseModel):
-    ftype: str
-    sha256: str
-    path: str
-    file_size: int
-    source_package: str | None = None
-    source_version: str | None = None
-    source_release: str | None = None
-
-
-class BootAssetItemPostResponse(BaseModel):
-    id: int
-
-
-class BootAssetItemsGetResponse(PaginatedResults[models.BootAssetItem]):
-    pass
 
 
 class BootAssetItemPatchRequest(BaseModel):

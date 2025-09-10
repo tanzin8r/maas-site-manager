@@ -22,9 +22,6 @@ from tests.fixtures.client import Client
 
 AUTHENTICATED_ROUTES = (
     ("GET", "/api/v1/refresh-index"),
-    ("GET", "/api/v1/bootassets"),
-    ("POST", "/api/v1/bootassets"),
-    ("POST", "/api/v1/bootassets/{id}/versions"),
     ("GET", "/api/v1/bootasset-sources"),
     ("GET", "/api/v1/bootasset-sources/{id}"),
     ("POST", "/api/v1/bootasset-sources"),
@@ -33,13 +30,9 @@ AUTHENTICATED_ROUTES = (
     ("PUT", "/api/v1/bootasset-sources/{id}/assets"),
     ("PUT", "/api/v1/bootasset-sources/{id}/available-selections"),
     ("GET", "/api/v1/bootasset-sources/{id}/selections"),
-    ("GET", "/api/v1/bootasset-versions"),
-    ("POST", "/api/v1/bootasset-versions/{id}/items"),
-    ("GET", "/api/v1/bootasset-items"),
     ("POST", "/api/v1/images"),
     ("GET", "/api/v1/image-sources"),
     ("PATCH", "/api/v1/bootasset-items/{id}"),
-    ("DELETE", "/api/v1/bootasset-items/{id}"),
     ("GET", "/api/v1/selectable-images"),
     ("POST", "/api/v1/selectable-images:select"),
     ("GET", "/api/v1/bootasset-items/{id}"),

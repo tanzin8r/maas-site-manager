@@ -503,63 +503,6 @@ class BootAssetService(Service):
             )
         )
 
-    async def get_with_source_name(
-        self,
-        sort_params: list[SortParam],
-        offset: int = 0,
-        limit: int | None = None,
-        boot_source_id: list[int] | None = None,
-        kind: list[models.BootAssetKind] | None = None,
-        label: list[models.BootAssetLabel] | None = None,
-        os: list[str] | None = None,
-        arch: list[str] | None = None,
-        release: list[str | None] | None = None,
-        bootloader_type: list[str | None] | None = None,
-    ) -> tuple[int, Iterable[models.BootAssetWithSourceName]]:
-        filters = queries.filters_from_arguments(
-            BootAsset,
-            boot_source_id=boot_source_id,
-            kind=kind,
-            label=label,
-            os=os,
-            arch=arch,
-            release=release,
-            bootloader_type=bootloader_type,
-        )
-        order_by = queries.order_by_from_arguments(sort_params=sort_params)
-        count = await queries.row_count(self.conn, BootAsset, *filters)
-        stmt = (
-            self._select_statement_join_source(
-                BootAsset.c.id,
-                BootAsset.c.boot_source_id,
-                BootAsset.c.kind,
-                BootAsset.c.label,
-                BootAsset.c.os,
-                BootAsset.c.release,
-                BootAsset.c.codename,
-                BootAsset.c.title,
-                BootAsset.c.arch,
-                BootAsset.c.subarch,
-                BootAsset.c.compatibility,
-                BootAsset.c.flavor,
-                BootAsset.c.base_image,
-                BootAsset.c.bootloader_type,
-                BootAsset.c.eol,
-                BootAsset.c.esm_eol,
-                BootAsset.c.signed,
-                BootSource.c.name.label("source_name"),
-            )
-            .where(*filters)
-            .order_by(*order_by)
-            .offset(offset)
-        )
-        if limit is not None:
-            stmt = stmt.limit(limit)
-        result = await self.conn.execute(stmt)
-        return count, self.objects_from_result(
-            models.BootAssetWithSourceName, result
-        )
-
 
 class BootAssetVersionService(Service):
     async def get(
