@@ -42,7 +42,6 @@ class BootSourcesPostResponse(BaseModel):
 
 class BootSourcesPatchRequest(BaseModel):
     priority: int | None = None
-    url: str | None = None
     keyring: str | None = None
     sync_interval: int | None = Field(default=None, ge=0)
     name: str | None = None

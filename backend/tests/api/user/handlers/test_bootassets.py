@@ -176,7 +176,6 @@ class TestBootSourcesUpdateHandler:
         orig_last_sync = boot_source.last_sync
         data = {
             "priority": 2,
-            "url": "http://another.url",
             "keyring": "another-keyring",
             "sync_interval": 200,
             "name": "Another Name",
@@ -221,11 +220,10 @@ class TestBootSourcesUpdateHandler:
     ) -> None:
         data = {
             "priority": 2,
-            "url": "http://another.url",
+            "url": "http://another.url",  # user's can't change URL
             "keyring": "another-keyring",
             "sync_interval": 200,
             "name": "Another Source",
-            "something": "extra",
         }
         resp = await user_client.patch(
             f"/bootasset-sources/{boot_source.id}", json=data
