@@ -2,12 +2,10 @@ from hashlib import sha256
 import json
 from logging import getLogger
 from math import ceil
-from os.path import join
 from socket import gethostname
 from typing import TYPE_CHECKING, Annotated, Any
 from urllib.parse import urlparse
 
-import boto3
 from fastapi import APIRouter, Depends, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
@@ -37,7 +35,7 @@ from msm.api.user.auth import (
 )
 import msm.api.user.models.images as dm
 from msm.db import CUSTOM_IMAGE_SOURCE_ID, models
-from msm.service import ServiceCollection
+from msm.service import S3Service, ServiceCollection
 from msm.service.images import END_OF_TIME, reverse_fqdn
 from msm.settings import Settings
 from msm.time import now_utc
@@ -54,6 +52,7 @@ class S3StreamResponse(StreamingResponse):
     def __init__(
         self,
         content: Any,
+        s3: S3Service,
         status_code: int = 200,
         headers: dict[str, str] | None = None,
         media_type: str = "application/octet-stream",
@@ -61,21 +60,8 @@ class S3StreamResponse(StreamingResponse):
         file_id: str = "",
     ) -> None:
         super().__init__(content, status_code, headers, media_type, background)
-        settings = Settings()
-        assert settings.s3_bucket is not None
-        self.file_path = join(
-            settings.s3_path if settings.s3_path else "",
-            file_id,
-        )
-        self.s3_bucket = settings.s3_bucket
-        self.s3 = boto3.resource(
-            "s3",
-            use_ssl=False,
-            verify=False,
-            endpoint_url=settings.s3_endpoint,
-            aws_access_key_id=settings.s3_access_key,
-            aws_secret_access_key=settings.s3_secret_key,
-        )
+        self.s3 = s3
+        self.file_path = file_id
 
     async def stream_response(self, send: Send) -> None:
         await send(
@@ -86,9 +72,7 @@ class S3StreamResponse(StreamingResponse):
             }
         )
 
-        result = self.s3.meta.client.get_object(
-            Bucket=self.s3_bucket, Key=self.file_path
-        )
+        result = self.s3.get_object(self.file_path)
 
         for chunk in result["Body"]:
             await send(
@@ -277,37 +261,23 @@ async def download(
                 )
             ],
         )
-    return S3StreamResponse(content=None, file_id=str(boot_item.id))
+    return S3StreamResponse(
+        content=None, file_id=str(boot_item.id), s3=services.s3
+    )
 
 
 class S3MultipartUploadTarget(BaseTarget):  # type: ignore
     MIN_PART_SIZE = 5 * 1024**2  # 5MiB
 
     def __init__(
-        self, settings: Settings, filename: str, max_upload_size_gb: int
+        self,
+        s3: S3Service,
+        filename: str,
+        max_upload_size_gb: int,
     ) -> None:
-        self.s3 = boto3.resource(
-            "s3",
-            use_ssl=False,
-            verify=False,
-            endpoint_url=settings.s3_endpoint,
-            aws_access_key_id=settings.s3_access_key,
-            aws_secret_access_key=settings.s3_secret_key,
-        )
-        assert settings.s3_bucket is not None
-        self.s3_bucket = settings.s3_bucket
-        self.filename = join(
-            settings.s3_path if settings.s3_path else "",
-            filename,
-        )
+        self.s3 = s3
         self.max_upload_size_bytes = max_upload_size_gb * 1000000000
-        multipart_upload = self.s3.meta.client.create_multipart_upload(
-            ACL="public-read",
-            Bucket=settings.s3_bucket,
-            Key=filename,
-            ChecksumAlgorithm="SHA256",
-        )
-        self.upload_id = multipart_upload["UploadId"]
+        self.s3_key, self.upload_id = self.s3.create_multipart_upload(filename)
         self.current_chunk = b""
         self.part_no = 1
         self.parts: list[CompletedPartTypeDef] = []
@@ -319,36 +289,27 @@ class S3MultipartUploadTarget(BaseTarget):  # type: ignore
             )
         )
 
-    def upload(self) -> None:
-        multipart_upload_part = self.s3.MultipartUploadPart(
-            self.s3_bucket, self.filename, self.upload_id, self.part_no
-        )
-        part = multipart_upload_part.upload(
-            Body=self.current_chunk,
-            ChecksumAlgorithm="SHA256",
-        )
-        self.parts.append({"ETag": part["ETag"], "PartNumber": self.part_no})
-
     def upload_current_chunk(self) -> None:
-        self.upload()
+        etag = self.s3.upload_part(
+            self.s3_key, self.upload_id, self.part_no, self.current_chunk
+        )
+        self.parts.append({"ETag": etag, "PartNumber": self.part_no})
         self.sha256.update(self.current_chunk)
         self.part_no += 1
         self.bytes_sent += len(self.current_chunk)
         self.current_chunk = b""
 
     def abort_upload(self) -> None:
-        self.s3.meta.client.abort_multipart_upload(
-            Bucket=self.s3_bucket,
-            Key=self.filename,
-            UploadId=self.upload_id,
+        self.s3.abort_upload(
+            self.s3_key,
+            self.upload_id,
         )
 
     def complete_upload(self) -> None:
-        self.s3.meta.client.complete_multipart_upload(
-            Bucket=self.s3_bucket,
-            Key=self.filename,
-            UploadId=self.upload_id,
-            MultipartUpload={"Parts": self.parts},
+        self.s3.complete_upload(
+            self.s3_key,
+            self.upload_id,
+            self.parts,
         )
 
     def on_data_received(self, chunk: bytes) -> None:
@@ -542,7 +503,7 @@ async def post_images(
 
     tmp_item = await services.boot_asset_items.create_temporary()
     s3_upload_target = S3MultipartUploadTarget(
-        settings,
+        services.s3,
         str(tmp_item.id),
         api_settings.max_image_upload_size_gb,
     )

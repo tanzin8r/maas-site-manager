@@ -21,6 +21,7 @@ from workflows.download_upstream import (  # type: ignore
     DownloadUpstreamImageWorkflow,
 )
 from workflows.sync import (  # type: ignore
+    RefreshUpstreamSourceWorkflow,
     SyncUpstreamSourceWorkflow,
 )
 
@@ -39,6 +40,7 @@ async def run_worker() -> None:
         client=client,
         workflows=[
             DownloadUpstreamImageWorkflow,
+            RefreshUpstreamSourceWorkflow,
             SyncUpstreamSourceWorkflow,
         ],
         activities=[

@@ -181,7 +181,7 @@ async def patch_boot_source(
 
 
 async def purge_and_refresh(services: ServiceCollection, id: int) -> None:
-    await services.purge_source(id)
+    await services.boot_sources.purge_source(id)
     await services.index_service.refresh()
 
 

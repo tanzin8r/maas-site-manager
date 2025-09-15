@@ -47,6 +47,7 @@ dependencies = [
   "uvloop",
 ]
 optional-dependencies.testing = [
+  "boto3-stubs[s3]",
   "httpx",
   "psycopg",
   "pytest",

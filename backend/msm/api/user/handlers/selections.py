@@ -22,7 +22,6 @@ from msm.schema import (
     SortParam,
 )
 from msm.service import ServiceCollection
-from msm.settings import Settings
 
 v1_router = APIRouter(prefix="/v1")
 
@@ -265,20 +264,9 @@ async def remove_selections(
         )
         asset_ids += [a.id for a in assets]
 
-    settings = Settings()
-    assert settings.s3_endpoint is not None
-    assert settings.s3_bucket is not None
-    assert settings.s3_path is not None
-    assert settings.s3_access_key is not None
-    assert settings.s3_secret_key is not None
     background_tasks.add_task(
-        services.purge_assets,
+        services.boot_assets.purge_assets,
         asset_ids,
-        settings.s3_endpoint,
-        settings.s3_bucket,
-        settings.s3_path,
-        settings.s3_access_key,
-        settings.s3_secret_key,
     )
 
 

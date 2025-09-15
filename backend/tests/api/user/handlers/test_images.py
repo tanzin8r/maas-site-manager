@@ -2,8 +2,9 @@ from collections.abc import AsyncIterator
 from hashlib import sha256
 import json
 from pathlib import Path
+from typing import cast
+from unittest.mock import call
 
-from pydantic_core import ValidationError
 import pytest
 from pytest_mock import MockerFixture, MockType
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -15,19 +16,10 @@ from msm.db.models import (
     BootSourceSelection,
     ItemFileType,
 )
-from msm.service import IndexService
+from msm.service import IndexService, S3Service
 from msm.service.images import END_OF_TIME
 from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
-
-
-@pytest.fixture(autouse=True)
-def s3_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("MSM_S3_BUCKET", "test-bucket")
-    monkeypatch.setenv("MSM_S3_ENDPOINT", "test-endpoint")
-    monkeypatch.setenv("MSM_S3_ACCESS_KEY", "test-access-key")
-    monkeypatch.setenv("MSM_S3_SECRET_KEY", "test-secret-key")
-    monkeypatch.setenv("MSM_S3_PATH", "test/path")
 
 
 @pytest.fixture(autouse=True)
@@ -39,27 +31,16 @@ def mock_now(mocker: MockerFixture, factory: Factory) -> MockType:
 
 
 @pytest.fixture
-def s3_resource(mocker: MockerFixture) -> MockType:
-    return mocker.patch("msm.api.user.handlers.images.boto3.resource")
-
-
-@pytest.fixture
-def s3_upload(mocker: MockerFixture) -> MockType:
-    return mocker.patch(
-        "msm.api.user.handlers.images.S3MultipartUploadTarget.upload"
-    )
-
-
-@pytest.fixture
-def s3_upload_target(mocker: MockerFixture) -> MockType:
-    return mocker.patch("msm.api.user.handlers.images.S3MultipartUploadTarget")
-
-
-@pytest.fixture
-def s3_complete_upload(mocker: MockerFixture) -> MockType:
-    return mocker.patch(
-        "msm.api.user.handlers.images.S3MultipartUploadTarget.complete_upload"
-    )
+def mock_s3_service(mocker: MockerFixture) -> MockType:
+    mock_s3 = mocker.patch("msm.service.S3Service", spec=S3Service)
+    mock = mock_s3.return_value
+    mock.create_multipart_upload.return_value = ("test-key", "test-upload-id")
+    mock.upload_part.return_value = "test-etag"
+    mock.complete_upload.return_value = None
+    mock.abort_upload.return_value = None
+    mock.delete_object.return_value = None
+    mock.get_object.return_value = {"Body": [b"cadecafe"]}
+    return cast(MockType, mock)
 
 
 @pytest.mark.asyncio
@@ -68,10 +49,8 @@ class TestCustomImageUploadHandler:
         self,
         user_client: Client,
         factory: Factory,
+        mock_s3_service: MockType,
         boot_source_custom: BootSource,
-        s3_resource: MockType,
-        s3_upload: MockType,
-        s3_complete_upload: MockType,
         tmp_path: Path,
     ) -> None:
         test_file_content = "This is a test file."
@@ -93,16 +72,11 @@ class TestCustomImageUploadHandler:
                 files=file_data,
             )
             assert resp.status_code == 200
-            s3_resource.assert_called_with(
-                "s3",
-                use_ssl=False,
-                verify=False,
-                endpoint_url="http://test-endpoint",
-                aws_access_key_id="test-access-key",
-                aws_secret_access_key="test-secret-key",
+            mock_s3_service.create_multipart_upload.assert_called_once_with(
+                "1"
             )
-            s3_upload.assert_called_once()
-            s3_complete_upload.assert_called_once()
+            mock_s3_service.upload_part.assert_called_once()
+            mock_s3_service.complete_upload.assert_called_once()
             stored_assets = await factory.get("boot_asset")
             stored_versions = await factory.get("boot_asset_version")
             stored_items = await factory.get("boot_asset_item")
@@ -155,9 +129,7 @@ class TestCustomImageUploadHandler:
         user_client: Client,
         factory: Factory,
         boot_source_custom: BootSource,
-        s3_resource: MockType,
-        s3_upload: MockType,
-        s3_complete_upload: MockType,
+        mock_s3_service: MockType,
         tmp_path: Path,
     ) -> None:
         test_file_content = "This is a test file."
@@ -187,16 +159,11 @@ class TestCustomImageUploadHandler:
             )
             assert resp.status_code == 200
             second_item_id = resp.json()["id"]
-            s3_resource.assert_called_with(
-                "s3",
-                use_ssl=False,
-                verify=False,
-                endpoint_url="http://test-endpoint",
-                aws_access_key_id="test-access-key",
-                aws_secret_access_key="test-secret-key",
+            mock_s3_service.create_multipart_upload.assert_has_calls(
+                [call("1"), call("2")]
             )
-            s3_upload.assert_called()
-            s3_complete_upload.assert_called()
+            assert mock_s3_service.upload_part.call_count == 2
+            assert mock_s3_service.complete_upload.call_count == 2
             stored_assets = await factory.get("boot_asset")
             stored_versions = await factory.get("boot_asset_version")
             stored_items = await factory.get("boot_asset_item")
@@ -264,51 +231,12 @@ class TestCustomImageUploadHandler:
             assert stored_items[0] == expected_first_item
             assert stored_items[1] == expected_second_item
 
-    async def test_post_filepath_is_correct(
-        self,
-        user_client: Client,
-        factory: Factory,
-        mocker: MockerFixture,
-        boot_source_custom: BootSource,
-        s3_resource: MockType,
-        s3_upload: MockType,
-        s3_complete_upload: MockType,
-        s3_upload_target: MockType,
-        tmp_path: Path,
-    ) -> None:
-        test_file_content = "This is a test file."
-        data = {
-            "os": "custom",
-            "release": "noble",
-            "arch": "amd64",
-            "file_size": len(test_file_content),
-            "title": "My Custom Image",
-            "filename": "test.tgz",
-        }
-        test_file = tmp_path / "testfile"
-        test_file.write_text(test_file_content)
-        with test_file.open("rb") as f:
-            file_data = {"file": f}
-            # all we care about is whether S3MultipartUploadTarget
-            # was instantiated with the right filepath
-            # mocking this object will result in a ValidationError
-            # later down the line
-            with pytest.raises(ValidationError):
-                await user_client.post(
-                    "/images",
-                    data=data,
-                    files=file_data,
-                )
-            s3_upload_target.assert_called_with(mocker.ANY, "1", mocker.ANY)
-
     async def test_post_wrong_file_size(
         self,
         user_client: Client,
         factory: Factory,
         boot_source_custom: BootSource,
-        s3_resource: MockType,
-        s3_upload: MockType,
-        s3_complete_upload: MockType,
+        mock_s3_service: MockType,
         tmp_path: Path,
     ) -> None:
         test_file_content = "This is a test file."
@@ -346,9 +274,7 @@ class TestCustomImageUploadHandler:
         user_client: Client,
         factory: Factory,
         boot_source_custom: BootSource,
-        s3_resource: MockType,
-        s3_upload: MockType,
-        s3_complete_upload: MockType,
+        mock_s3_service: MockType,
         tmp_path: Path,
     ) -> None:
         test_file_content = "This is a test file."
@@ -386,9 +312,7 @@ class TestCustomImageUploadHandler:
         user_client: Client,
         factory: Factory,
         boot_source_custom: BootSource,
-        s3_resource: MockType,
-        s3_upload: MockType,
-        s3_complete_upload: MockType,
+        mock_s3_service: MockType,
         tmp_path: Path,
     ) -> None:
         test_file_content = "This is a test file."
@@ -426,9 +350,7 @@ class TestCustomImageUploadHandler:
         user_client: Client,
         factory: Factory,
         boot_source_custom: BootSource,
-        s3_resource: MockType,
-        s3_upload: MockType,
-        s3_complete_upload: MockType,
+        mock_s3_service: MockType,
         tmp_path: Path,
     ) -> None:
         test_file_content = "This is a test file."
@@ -477,7 +399,7 @@ class TestBootAssetItemsDownloadHandler:
         user_client: Client,
         boot_source: BootSource,
         items_ubuntu_jammy_1: list[BootAssetItem],
-        s3_resource: MockType,
+        mock_s3_service: MockType,
     ) -> None:
         file_path = items_ubuntu_jammy_1[0].path
         resp = await user_client.get(
@@ -883,11 +805,6 @@ class TestPostSelectedImagesRemoveHandler:
         mock_background.assert_called_once_with(
             mocker.ANY,
             [noble_sel.id, jammy_sel.id],
-            "test-endpoint",
-            "test-bucket",
-            "test/path",
-            "test-access-key",
-            "test-secret-key",
         )
         selections = await factory.get("boot_source_selection")
         new_noble_selection = noble_sel.model_dump()

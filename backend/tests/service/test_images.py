@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 import json
+from typing import cast
+from unittest.mock import call
 
 import pytest
-from pytest_mock import MockerFixture
+from pytest_mock import MockerFixture, MockType
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -34,9 +36,64 @@ from msm.service import (
     BootSourceService,
     IndexNotFound,
     IndexService,
+    S3Service,
 )
 from msm.time import now_utc
 from tests.fixtures.factory import Factory
+
+
+@pytest.fixture
+async def single_item(
+    factory: Factory, ver_ubuntu_noble_1: BootAssetVersion
+) -> BootAssetItem:
+    return await factory.make_BootAssetItem(
+        ver_ubuntu_noble_1.id, ftype=ItemFileType.ARCHIVE_TAR_XZ
+    )
+
+
+@pytest.fixture
+async def multi_item(
+    factory: Factory, ver_ubuntu_noble_1: BootAssetVersion
+) -> list[BootAssetItem]:
+    return [
+        await factory.make_BootAssetItem(
+            ver_ubuntu_noble_1.id, ftype=ItemFileType.ARCHIVE_TAR_XZ
+        ),
+        await factory.make_BootAssetItem(
+            ver_ubuntu_noble_1.id, ftype=ItemFileType.BOOT_DTB
+        ),
+    ]
+
+
+@pytest.fixture
+async def multi_version(
+    factory: Factory,
+    ver_ubuntu_noble_1: BootAssetVersion,
+    ver_ubuntu_noble_2: BootAssetVersion,
+) -> list[BootAssetItem]:
+    return [
+        await factory.make_BootAssetItem(
+            ver_ubuntu_noble_1.id, ftype=ItemFileType.ARCHIVE_TAR_XZ
+        ),
+        await factory.make_BootAssetItem(
+            ver_ubuntu_noble_2.id, ftype=ItemFileType.BOOT_DTB
+        ),
+    ]
+
+
+@pytest.fixture
+def mock_s3_service(
+    mocker: MockerFixture, boot_asset_service: BootAssetService
+) -> MockType:
+    mock_s3 = mocker.patch.object(boot_asset_service, "s3", spec=S3Service)
+    mock = mock_s3.return_value
+    mock.create_multipart_upload.return_value = ("test-key", "test-upload-id")
+    mock.upload_part.return_value = "test-etag"
+    mock.complete_upload.return_value = None
+    mock.abort_upload.return_value = None
+    mock.delete_object.return_value = None
+    mock.get_object.return_value = {"Body": [b"cadecafe"]}
+    return cast(MockType, mock)
 
 
 @pytest.mark.asyncio
@@ -208,6 +265,40 @@ class TestBootAssetService:
         )
         assert count == 1
         assert next(iter(assets)) == grub
+
+    async def test_purge_assets(
+        self,
+        boot_asset_service: BootAssetService,
+        ubuntu_noble: BootAsset,
+        ubuntu_jammy: BootAsset,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_ubuntu_noble_2: list[BootAssetItem],
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        factory: Factory,
+        mocker: MockerFixture,
+    ) -> None:
+        mock_refresh = mocker.patch.object(
+            boot_asset_service.index_service, "refresh"
+        )
+        mock_delete = mocker.patch.object(
+            boot_asset_service.s3, "delete_object"
+        )
+        await boot_asset_service.purge_assets(
+            [ubuntu_noble.id, ubuntu_jammy.id],
+        )
+        for item in items_ubuntu_noble_1:
+            assert call(str(item.id)) in mock_delete.call_args_list
+        for item in items_ubuntu_noble_2:
+            assert call(str(item.id)) in mock_delete.call_args_list
+        for item in items_ubuntu_jammy_1:
+            assert call(str(item.id)) in mock_delete.call_args_list
+        mock_refresh.assert_called_once()
+        items = await factory.get("boot_asset_item")
+        versions = await factory.get("boot_asset_version")
+        assets = await factory.get("boot_asset")
+        assert len(items) == 0
+        assert len(versions) == 0
+        assert len(assets) == 0
 
 
 @pytest.mark.asyncio
@@ -456,6 +547,28 @@ class TestBootSourceService:
         await boot_source_service.delete(boot_source.id)
         sources = await factory.get("boot_source")
         assert len(sources) == 1
+
+    async def test_purge_source(
+        self,
+        factory: Factory,
+        mock_s3_service: MockType,
+        boot_source_service: BootSourceService,
+        boot_source_custom: BootSource,
+        boot_source: BootSource,
+        sel_ubuntu_noble: BootSourceSelection,
+        single_item: BootAssetItem,
+    ) -> None:
+        await boot_source_service.purge_source(boot_source.id)
+        sources = await factory.get("boot_source")
+        assets = await factory.get("boot_asset")
+        versions = await factory.get("boot_asset_version")
+        items = await factory.get("boot_asset_item")
+        selections = await factory.get("boot_source_selection")
+        assert sources[0]["id"] == boot_source_custom.id
+        assert assets == []
+        assert versions == []
+        assert items == []
+        assert selections == []
 
 
 class TestBootAssetVersionService:

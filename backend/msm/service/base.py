@@ -33,6 +33,9 @@ class Service:
     async def collect_metrics(self) -> None:
         """Collect metrics for this service."""
 
+    async def ensure(self) -> None:
+        """Ensure required DB entries exist."""
+
 
 class DBBackedModelService(Service, Generic[Model]):
     """This service allows getting and setting values for a Pydantic model

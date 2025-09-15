@@ -14,6 +14,7 @@ from sqlalchemy import (
     update,
 )
 from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.db import (
     CUSTOM_IMAGE_SOURCE_ID,
@@ -29,12 +30,26 @@ from msm.db.tables import (
 )
 from msm.schema import SortParam
 from msm.service.base import Service
+from msm.service.s3 import S3Service
+from msm.service.settings import SettingsService
 from msm.time import now_utc, utc_from_timestamp
 
 END_OF_TIME = datetime(MAXYEAR, 12, 31, 23, tzinfo=UTC)
 
 
 class BootSourceService(Service):
+    def __init__(
+        self,
+        connection: AsyncConnection,
+        boot_assets: "BootAssetService",
+        boot_source_selections: "BootSourceSelectionService",
+        settings: SettingsService,
+    ):
+        super().__init__(connection)
+        self.boot_assets = boot_assets
+        self.boot_source_selections = boot_source_selections
+        self.settings = settings
+
     async def get(
         self,
         sort_params: list[SortParam],
@@ -125,10 +140,12 @@ class BootSourceService(Service):
     def _select_statement(self, *columns: Any) -> Select[Any]:
         return select(*columns).select_from(BootSource)
 
-    async def ensure_custom_boot_source(self, service_url: str) -> None:
+    async def ensure(self) -> None:
         """
         Ensure that the custom image boot source is present in the database.
         """
+        service_url = await self.settings.get_service_url()
+
         stmt = self._select_statement(
             BootSource.c.id,
             BootSource.c.url,
@@ -151,6 +168,12 @@ class BootSourceService(Service):
             "last_sync": utc_from_timestamp(0.0),
         }
         await self.conn.execute(insert(BootSource), [data])
+
+    async def purge_source(self, id: int) -> None:
+        _, assets = await self.boot_assets.get([], boot_source_id=[id])
+        await self.boot_assets.purge_assets([a.id for a in assets])
+        await self.boot_source_selections.delete_by_source_id(id)
+        await self.delete(id)
 
 
 class BootSourceSelectionService(Service):
@@ -295,6 +318,20 @@ class BootSourceSelectionService(Service):
 
 
 class BootAssetService(Service):
+    def __init__(
+        self,
+        connection: AsyncConnection,
+        s3: S3Service,
+        boot_asset_versions: "BootAssetVersionService",
+        boot_asset_items: "BootAssetItemService",
+        index_service: "IndexService",
+    ):
+        super().__init__(connection)
+        self.s3 = s3
+        self.boot_asset_versions = boot_asset_versions
+        self.boot_asset_items = boot_asset_items
+        self.index_service = index_service
+
     async def get(
         self,
         sort_params: list[SortParam],
@@ -502,6 +539,28 @@ class BootAssetService(Service):
                 BootAsset.c.boot_source_id == BootSource.c.id,
             )
         )
+
+    async def purge_assets(
+        self,
+        asset_ids: list[int],
+    ) -> None:
+        for id in asset_ids:
+            if asset := await self.get_by_id(id):
+                _, versions = await self.boot_asset_versions.get(
+                    [], boot_asset_id=[asset.id]
+                )
+                for version in versions:
+                    _, items = await self.boot_asset_items.get(
+                        [], boot_asset_version_id=[version.id]
+                    )
+                    for item in items:
+                        self.s3.delete_object(str(item.id))
+                    await self.boot_asset_items.delete_by_version_id(
+                        version.id
+                    )
+                await self.boot_asset_versions.delete_by_asset_id(asset.id)
+                await self.delete(asset.id)
+        await self.index_service.refresh()
 
 
 class BootAssetVersionService(Service):
@@ -981,6 +1040,9 @@ ON ver_item.boot_asset_id = asset.id;"""
             await self.conn.execute(stmt)
         except ProgrammingError:
             raise IndexNotFound()
+
+    async def ensure(self) -> None:
+        return await self.create()
 
     async def get(
         self, index_type: models.IndexType, fqdn: str
