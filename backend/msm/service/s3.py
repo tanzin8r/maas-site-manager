@@ -77,7 +77,6 @@ class S3Service(Service):
                 self.s3_bucket,
                 self.s3_access_key,
                 self.s3_secret_key,
-                self.s3_path,
             ]
         ):
             raise S3ParametersError()
