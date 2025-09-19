@@ -5,9 +5,7 @@ const Logout = () => {
   const navigate = useNavigate();
   const { logout } = useAuthContext();
 
-  useEffect(() => {
-    logout().then(() => navigate("/login"));
-  }, [navigate, logout]);
+  logout().then(() => navigate("/login"));
 
   return null;
 };

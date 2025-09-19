@@ -4,6 +4,7 @@ import { Navigation, NavigationBar } from "@canonical/maas-react-components";
 import useLocalStorageState from "use-local-storage-state";
 
 import NavigationBanner from "./NavigationBanner";
+import NavigationItem from "./NavigationItem";
 import NavigationList from "./NavigationList";
 import type { ExternalNavLink, LocalNavLink } from "./types";
 
@@ -11,8 +12,9 @@ import { useCurrentUser } from "@/app/api/query/users";
 import BREAKPOINTS from "@/app/base/breakpoints";
 import { useGlobalKeyShortcut } from "@/app/base/hooks/useGlobalKeyShortcut";
 import type { RoutePath } from "@/app/base/routes";
+import { useAuthContext } from "@/app/context";
 import { hasImagesPage } from "@/featureFlags";
-import { useLocation } from "@/utils/router";
+import { useLocation, useNavigate } from "@/utils/router";
 
 export const navItems: LocalNavLink[] = [
   {
@@ -39,11 +41,6 @@ export const settingsNavItems: LocalNavLink[] = [
   },
 ];
 
-const generateNavItemsAccount = (userName = "User"): LocalNavLink[] => [
-  { label: userName, url: "/account", icon: "user" },
-  { label: "Log out", url: "/logout" },
-];
-
 export const navItemsBottom: ExternalNavLink[] = [
   { external: true, icon: "information", label: "Documentation", url: "https://maas.io/docs" },
   { external: true, icon: "comments", label: "Community", url: "https://discourse.maas.io/" },
@@ -61,14 +58,22 @@ type NavProps = {
 
 const AccountNavigationList = ({ handleNavlinkClick, path }: { handleNavlinkClick: () => void; path: RoutePath }) => {
   const { data } = useCurrentUser();
+  const { logout } = useAuthContext();
+  const navigate = useNavigate();
+
   return (
-    <NavigationList
-      hasIcons
-      isDark
-      items={generateNavItemsAccount(data?.username)}
-      onClick={handleNavlinkClick}
-      path={path}
-    />
+    <Navigation.List>
+      <NavigationItem
+        navLink={{ label: data?.username || "User", url: "/account" }}
+        onClick={handleNavlinkClick}
+        path={path}
+      />
+      <NavigationItem
+        navLink={{ label: "Log out", url: "/logout" }}
+        onClick={() => logout().then(() => navigate("/login"))}
+        path={path}
+      />
+    </Navigation.List>
   );
 };
 
