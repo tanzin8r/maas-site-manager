@@ -261,7 +261,7 @@ class SelectedImage(BaseModel):
     release: str
     size: int
     downloaded: int
-    is_custom_image: bool
+    custom_image_id: int | None = None
     selection_id: int | None = None
 
 

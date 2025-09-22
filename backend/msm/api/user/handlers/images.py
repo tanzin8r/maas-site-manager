@@ -596,8 +596,8 @@ async def post_images(
     return dm.ImagesPostResponse.from_model(boot_asset_item)
 
 
-@v1_router.delete(
-    "/images/{id}",
+@v1_router.post(
+    "/images:remove",
     responses={
         401: {"model": UnauthorizedErrorResponseModel},
         403: {"model": ForbiddenErrorResponseModel},
@@ -606,26 +606,36 @@ async def post_images(
     },
     status_code=204,
 )
-async def delete_image(
+async def delete_images(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
-    id: int,
+    post_request: dm.ImagesRemovePostRequest,
 ) -> None:
-    asset = await services.boot_assets.get_by_id(id)
-    if asset is None:
+    count, assets = await services.boot_assets.get_many_by_id(
+        post_request.asset_ids
+    )
+    if count != len(post_request.asset_ids):
+        missing_ids = set(post_request.asset_ids) - set([a.id for a in assets])
         raise NotFoundException(
             code=ExceptionCode.MISSING_RESOURCE,
-            message="Boot Asset does not exist.",
+            message="Some images were not found.",
             details=[
                 BaseExceptionDetail(
                     reason=ExceptionCode.MISSING_RESOURCE,
-                    messages=[f"Boot Asset with ID {id} does not exist"],
-                    field="id",
-                    location="path",
+                    messages=[
+                        f"Boot Assets with IDs {list(missing_ids)} could not be found"
+                    ],
+                    field="asset_ids",
+                    location="body",
                 )
             ],
         )
-    elif asset.boot_source_id != CUSTOM_IMAGE_SOURCE_ID:
+    non_custom = [
+        asset.id
+        for asset in assets
+        if asset.boot_source_id != CUSTOM_IMAGE_SOURCE_ID
+    ]
+    if non_custom:
         raise ForbiddenException(
             code=ExceptionCode.MISSING_PERMISSIONS,
             message="Non-custom images cannot be deleted",
@@ -633,14 +643,14 @@ async def delete_image(
                 BaseExceptionDetail(
                     reason=ExceptionCode.MISSING_PERMISSIONS,
                     messages=[
-                        f"Boot asset with ID {id} is not a custom image."
+                        f"Boot assets with IDs {non_custom} are not custom images."
                     ],
                     field="id",
                     location="path",
                 )
             ],
         )
-    await services.boot_assets.purge_assets([id])
+    await services.boot_assets.purge_assets(post_request.asset_ids)
 
 
 @v1_router.get(

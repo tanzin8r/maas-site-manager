@@ -179,7 +179,7 @@ async def get_selected_images(
                         boot_source_url=source.url,
                         size=total_size,
                         downloaded=total_downloaded,
-                        is_custom_image=asset.base_image is not None,
+                        custom_image_id=None,
                         selection_id=selection.id,
                     )
                 )
@@ -205,7 +205,7 @@ async def get_selected_images(
                 boot_source_url=custom_source.url,
                 size=total_size,
                 downloaded=total_downloaded,
-                is_custom_image=True,
+                custom_image_id=asset.id,
             )
         )
     selected.sort(key=lambda x: (x.os, x.release, x.arch))

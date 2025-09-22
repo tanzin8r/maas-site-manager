@@ -402,7 +402,9 @@ class TestCustomImageDeleteHandler:
         )
         version = await factory.make_BootAssetVersion(asset.id)
         item = await factory.make_BootAssetItem(version.id)
-        resp = await user_client.delete(f"/images/{asset.id}")
+        resp = await user_client.post(
+            "/images:remove", json={"asset_ids": [asset.id]}
+        )
         assert resp.status_code == 204
         assets = await factory.get("boot_asset")
         versions = await factory.get("boot_asset_version")
@@ -419,14 +421,18 @@ class TestCustomImageDeleteHandler:
         items_ubuntu_noble_1: list[BootAssetItem],
         factory: Factory,
     ) -> None:
-        resp = await user_client.delete(f"/images/{ubuntu_noble.id}")
+        resp = await user_client.post(
+            "/images:remove", json={"asset_ids": [ubuntu_noble.id]}
+        )
         assert resp.status_code == 403
 
     async def test_delete_not_found(
         self,
         user_client: Client,
     ) -> None:
-        resp = await user_client.delete(f"/images/999")
+        resp = await user_client.post(
+            "/images:remove", json={"asset_ids": [999]}
+        )
         assert resp.status_code == 404
 
 
@@ -674,7 +680,7 @@ class TestGetSelectedImagesHandler:
                     "boot_source_url": boot_source_custom.url,
                     "size": custom_item.file_size,
                     "downloaded": custom_item.bytes_synced,
-                    "is_custom_image": True,
+                    "custom_image_id": custom_asset.id,
                 },
                 {
                     "selection_id": sel_ubuntu_noble[1].id,
@@ -686,7 +692,7 @@ class TestGetSelectedImagesHandler:
                     "boot_source_url": boot_source.url,
                     "size": size,
                     "downloaded": downloaded,
-                    "is_custom_image": False,
+                    "custom_image_id": None,
                 },
             ]
         }
