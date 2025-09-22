@@ -59,6 +59,7 @@ logs
 /backend/.coverage*
 /backend/.tox
 /backend/build
+/backend/dist
 
 # CI
 junit*.xml

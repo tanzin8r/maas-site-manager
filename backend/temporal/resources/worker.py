@@ -1,15 +1,6 @@
 import asyncio
 import logging
 
-from activities.bootasset import (  # type: ignore
-    BootAssetActivities,
-)
-from activities.images import (  # type: ignore
-    ImageManagementActivities,
-)
-from activities.simplestream import (  # type: ignore
-    SimpleStreamActivities,
-)
 from temporallib.client import Client, Options  # type: ignore
 from temporallib.encryption import EncryptionOptions  # type: ignore
 from temporallib.worker import (  # type: ignore
@@ -17,10 +8,20 @@ from temporallib.worker import (  # type: ignore
     Worker,
     WorkerOptions,
 )
-from workflows.download_upstream import (  # type: ignore
+
+from .activities.bootasset import (
+    BootAssetActivities,
+)
+from .activities.images import (
+    ImageManagementActivities,
+)
+from .activities.simplestream import (
+    SimpleStreamActivities,
+)
+from .workflows.download_upstream import (
     DownloadUpstreamImageWorkflow,
 )
-from workflows.sync import (  # type: ignore
+from .workflows.sync import (
     RefreshUpstreamSourceWorkflow,
     SyncUpstreamSourceWorkflow,
 )

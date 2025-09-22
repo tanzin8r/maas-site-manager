@@ -51,7 +51,7 @@ class S3ResourceManager:
         use_ssl: bool = False,
         verify: bool = False,
     ) -> None:
-        self._s3_client = boto3.client(
+        self._s3_client: S3Client = boto3.client(
             "s3",
             use_ssl=use_ssl,
             verify=verify,
@@ -59,13 +59,13 @@ class S3ResourceManager:
             aws_access_key_id=s3_params.access_key,
             aws_secret_access_key=s3_params.secret_key,
         )
-        self.s3_path = s3_params.path
-        self.s3_key = join(s3_params.path, str(boot_asset_item_id))
-        self.bucket = s3_params.bucket
+        self.s3_path: str = s3_params.path
+        self.s3_key: str = join(s3_params.path, str(boot_asset_item_id))
+        self.bucket: str = s3_params.bucket
         self._upload_id: str | None = self._create_multipart_upload()
-        self._part_no = 1
+        self._part_no: int = 1
         self._parts: list[CompletedPartTypeDef] = []
-        self._bytes_sent = 0
+        self._bytes_sent: int = 0
 
     @property
     def bytes_sent(self) -> int:

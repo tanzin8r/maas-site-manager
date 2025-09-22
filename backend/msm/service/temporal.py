@@ -54,8 +54,8 @@ class TemporalService(Service):
     synchronization and refresh operations.
     """
 
-    SYNC_UPSTREAM_SOURCE_WF_NAME = "SyncUpstreamSource"
-    REFRESH_UPSTREAM_SOURCE_WF_NAME = "RefreshUpstreamSource"
+    SYNC_UPSTREAM_SOURCE_WF_NAME: str = "SyncUpstreamSource"
+    REFRESH_UPSTREAM_SOURCE_WF_NAME: str = "RefreshUpstreamSource"
 
     def __init__(
         self,
@@ -65,10 +65,10 @@ class TemporalService(Service):
         settings: SettingsService,
     ):
         super().__init__(connection)
-        self.tokens = tokens
-        self.config = config
-        self.settings = settings
-        self.application_settings = Settings()
+        self.tokens: TokenService = tokens
+        self.config: ConfigService = config
+        self.settings: SettingsService = settings
+        self.application_settings: Settings = Settings()
 
     @cached_property
     def options(self) -> Options:
@@ -235,8 +235,8 @@ class BootSourceWorkflowService(Service):
         temporal: TemporalService,
     ):
         super().__init__(connection)
-        self.s3 = s3
-        self.temporal = temporal
+        self.s3: S3Service = s3
+        self.temporal: TemporalService = temporal
 
     async def enable_sync(
         self,

@@ -2,7 +2,11 @@ from dataclasses import dataclass
 from datetime import timedelta
 import typing
 
-from activities.bootasset import (  # type: ignore
+from temporalio import workflow
+from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
+from temporalio.exceptions import WorkflowAlreadyStartedError
+
+from ..activities.bootasset import (
     GET_BOOT_SOURCE_ACTIVITY,
     PUT_AVAILABLE_ASSETS_ACTIVITY,
     PUT_NEW_ASSETS_ACTIVITY,
@@ -12,10 +16,10 @@ from activities.bootasset import (  # type: ignore
     PutAssetListResult,
     PutAvailableAssetListParams,
 )
-from activities.images import (  # type: ignore
+from ..activities.images import (
     S3Params,
 )
-from activities.simplestream import (  # type: ignore
+from ..activities.simplestream import (
     FETCH_SS_ASSETS_ACTIVITY,
     FETCH_SS_INDEXES,
     LOAD_PRODUCT_MAP_ACTIVITY,
@@ -27,10 +31,6 @@ from activities.simplestream import (  # type: ignore
     LoadProductMapResult,
     extract_base_url,
 )
-from temporalio import workflow
-from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
-from temporalio.exceptions import WorkflowAlreadyStartedError
-
 from .download_upstream import (
     DOWNLOAD_UPSTREAM_IMAGE_WF_NAME,
     DownloadUpstreamImageParams,
@@ -162,7 +162,7 @@ class SyncUpstreamSourceWorkflow:
                         msm_jwt=params.msm_jwt,
                         boot_asset_item_id=item,
                     )
-                except WorkflowAlreadyStartedError as ex:
+                except WorkflowAlreadyStartedError:
                     workflow.logger.debug(
                         "Download already in progress (item %d)", item
                     )

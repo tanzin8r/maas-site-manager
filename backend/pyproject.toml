@@ -136,3 +136,21 @@ plugins = [
   "pydantic.mypy",
 ]
 strict = true
+
+[tool.basedpyright]
+include = [
+  "msm",
+  "temporal",
+]
+exclude = [
+  "**/__pycache__",
+  "venv",
+  ".ve",
+  ".tox",
+]
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportUnusedImport = true
+reportMissingTypeStubs = false
+reportUnusedCallResult = false
+pythonVersion = "3.12"

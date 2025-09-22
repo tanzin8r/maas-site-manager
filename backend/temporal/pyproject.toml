@@ -50,3 +50,21 @@ skip_gitignore = true
 
 [tool.mypy]
 ignore_missing_imports = true
+
+[tool.basedpyright]
+include = [
+  "resources",
+  "tests",
+]
+exclude = [
+  "**/__pycache__",
+  "venv",
+  ".ve",
+  ".tox",
+]
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportUnusedImport = true
+reportMissingTypeStubs = false
+reportUnusedCallResult = false
+pythonVersion = "3.12"

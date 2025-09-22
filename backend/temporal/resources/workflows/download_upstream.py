@@ -1,17 +1,18 @@
 from dataclasses import dataclass
 from datetime import timedelta
 
-from activities.bootasset import (  # type: ignore
+from temporalio import workflow
+
+from ..activities.bootasset import (
     GET_BOOT_ASSET_ITEM_ACTIVITY,
     GetBootAssetItemParams,
     GetBootAssetItemResult,
 )
-from activities.images import (  # type: ignore
+from ..activities.images import (
     DOWNLOAD_ASSET_ACTIVITY,
     DownloadAssetParams,
     S3Params,
 )
-from temporalio import workflow
 
 DOWNLOAD_UPSTREAM_IMAGE_WF_NAME = "DownloadUpstreamImage"
 MSM_API_TIMEOUT = timedelta(minutes=2)
