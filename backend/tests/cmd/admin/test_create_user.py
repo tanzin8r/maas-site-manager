@@ -8,7 +8,7 @@ import pytest
 
 from msm.cmd import AsyncAction
 from msm.cmd.admin import script
-from msm.password import verify_password
+from msm.common.password import verify_password
 from tests.fixtures.factory import Factory
 
 

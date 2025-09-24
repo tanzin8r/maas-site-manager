@@ -3,12 +3,12 @@ from argparse import (
     Namespace,
 )
 
+from msm.apiserver.db.models import UserCreate
+from msm.apiserver.service import UserService
 from msm.cmd import (
     DatabaseAction,
     do_exit,
 )
-from msm.db.models import UserCreate
-from msm.service import UserService
 
 
 class CreateUserAction(DatabaseAction):

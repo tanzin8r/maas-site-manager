@@ -8,8 +8,8 @@ from pytest_postgresql.janitor import DatabaseJanitor
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.db import Database
-from msm.middleware import TransactionMiddleware
+from msm.apiserver.db import Database
+from msm.apiserver.middleware import TransactionMiddleware
 
 TEST_DB_NAME = "msm"
 

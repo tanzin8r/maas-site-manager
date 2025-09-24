@@ -5,7 +5,7 @@ from httpx import (
     Response,
 )
 
-from msm.jwt import (
+from msm.common.jwt import (
     JWT,
     TokenAudience,
     TokenPurpose,

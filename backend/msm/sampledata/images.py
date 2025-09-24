@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.db.models import ItemFileType
+from msm.common.enums import ItemFileType
 from msm.sampledata.db import (
     ModelCollection,
     SampleDataModel,

@@ -5,8 +5,8 @@ from typing import Any
 from sqlalchemy import Table
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.db import CUSTOM_IMAGE_SOURCE_ID
-from msm.db.tables import METADATA
+from msm.apiserver.db import CUSTOM_IMAGE_SOURCE_ID
+from msm.apiserver.db.tables import METADATA
 
 
 class SampleDataModel:

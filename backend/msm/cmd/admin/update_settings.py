@@ -3,11 +3,11 @@ from argparse import (
     Namespace,
 )
 
+from msm.apiserver.db.models.settings import SettingsUpdate
+from msm.apiserver.service import SettingsService
 from msm.cmd import (
     DatabaseAction,
 )
-from msm.db.models.settings import SettingsUpdate
-from msm.service import SettingsService
 
 
 class UpdateSettingsAction(DatabaseAction):

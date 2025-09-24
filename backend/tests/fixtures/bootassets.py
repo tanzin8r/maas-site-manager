@@ -2,14 +2,16 @@ from datetime import datetime
 
 import pytest
 
-from msm.db.models import (
+from msm.apiserver.db.models import (
     BootAsset,
     BootAssetItem,
-    BootAssetKind,
-    BootAssetLabel,
     BootAssetVersion,
     BootSource,
     BootSourceSelection,
+)
+from msm.common.enums import (
+    BootAssetKind,
+    BootAssetLabel,
     ItemFileType,
 )
 from tests.fixtures.factory import Factory

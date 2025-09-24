@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.jwt import (
+from msm.common.jwt import (
     JWT,
     TokenAudience,
     TokenPurpose,

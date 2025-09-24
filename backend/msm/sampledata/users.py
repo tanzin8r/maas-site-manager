@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.password import hash_password
+from msm.common.password import hash_password
 from msm.sampledata.db import (
     ModelCollection,
     SampleDataModel,

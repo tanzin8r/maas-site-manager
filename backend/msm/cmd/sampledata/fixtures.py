@@ -3,9 +3,10 @@ from argparse import Namespace
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from msm.api import ensure_db_entries
+from msm.apiserver.db.models import Config
+from msm.apiserver.main import ensure_db_entries
+from msm.apiserver.service import ConfigService
 from msm.cmd import DatabaseAction
-from msm.db.models import Config
 from msm.sampledata import (
     SampleDataModel,
     make_fixture_images,
@@ -17,7 +18,6 @@ from msm.sampledata import (
     purge_tokens,
     purge_users,
 )
-from msm.service import ConfigService
 
 
 class FixturesAction(DatabaseAction):

@@ -1,0 +1,9 @@
+build/
+dist/
+static/
+.vscode/
+.mypy_cache/
+.ruff_cache/
+.ve/
+.zed/
+.ropeproject/

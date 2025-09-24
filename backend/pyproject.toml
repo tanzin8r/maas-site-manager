@@ -36,19 +36,20 @@ dependencies = [
   "pydantic[email]",
   "pydantic-settings",
   "python-jose[cryptography]",
+  "python-json-logger",
   "python-multipart",
   "pytz",
+  "pyyaml>=6",
   "sqlalchemy[postgresql-asyncpg,postgresql-psycopg]",
   "streaming-form-data",
-  "strenum",                                           # emulate enum.StrEnum, which is available in Python3.11
   "temporal-lib-py>=1.8",
   "ujson",                                             # faster JSON encoding/decoding (for fastapi)
+  "urllib3",
   "uvicorn[standard]",
   "uvloop",
 ]
 optional-dependencies.testing = [
   "boto3-stubs[s3]",
-  "httpx",
   "psycopg",
   "pytest",
   "pytest-asyncio",
@@ -57,13 +58,14 @@ optional-dependencies.testing = [
   "pytest-xdist",
 ]
 scripts.msm-admin = "msm.cmd.admin:script"
-scripts.msm-api = "msm.api:run"
+scripts.msm-api = "msm.apiserver.main:run"
 scripts.msm-sampledata = "msm.cmd.sampledata:script"
+scripts.msm-worker = "msm.temporal.worker:main"
 
 [tool.setuptools.package-data]
 msm = [
-  "db/alembic/alembic.ini",
-  "db/alembic/script.py.mako",
+  "apiserver/db/alembic/alembic.ini",
+  "apiserver/db/alembic/script.py.mako",
 ]
 
 [tool.setuptools.dynamic]
@@ -72,13 +74,6 @@ version = { attr = "msm.__version__" }
 [tool.setuptools.packages.find]
 where = [
   ".",
-  "temporal/resources",
-]
-include = [
-  "msm*",
-  "workflows*",
-  "activities*",
-  "management*",
 ]
 
 [tool.ruff]
@@ -98,13 +93,11 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = [
   "tests/",
-  "temporal/tests/",
 ]
 junit_logging = "all"
 junit_suite_name = "maas-site-manager backend tests"
 pythonpath = [
   ".",
-  "temporal/resources",
 ]
 
 [tool.coverage.report]
@@ -115,13 +108,11 @@ skip_covered = true
 [tool.coverage.run]
 source = [
   "msm",
-  "temporal",
 ]
 omit = [
-  "msm/db/alembic/env.py",
+  "msm/apiserver/db/alembic/env.py",
   "msm/sampledata/*",
   "msm/cmd/sampledata/*",
-  "temporal/tests/*",
 ]
 concurrency = [
   "greenlet",
@@ -140,7 +131,6 @@ strict = true
 [tool.basedpyright]
 include = [
   "msm",
-  "temporal",
 ]
 exclude = [
   "**/__pycache__",
