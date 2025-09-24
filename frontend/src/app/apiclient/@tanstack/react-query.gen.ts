@@ -14,14 +14,15 @@ import {
   patchBootAssetItemsV1BootassetItemsIdPatch,
   downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGet,
   downloadV1ImagesTrackRiskBootSourceIdFilePathGet,
+  postImagesV1ImagesPost,
+  deleteImagesV1ImagesRemovePost,
+  refreshIndexV1RefreshIndexGet,
+  postV1LoginPost,
   selectImagesV1SelectableImagesSelectPost,
   getSelectableImagesV1SelectableImagesGet,
   getSelectedImagesV1SelectedImagesGet,
-  getImageSourcesV1ImageSourcesGet,
   removeSelectionsV1SelectedImagesRemovePost,
-  postImagesV1ImagesPost,
-  refreshIndexV1RefreshIndexGet,
-  postV1LoginPost,
+  getImageSourcesV1ImageSourcesGet,
   getV1SettingsGet,
   patchV1SettingsPatch,
   getPendingV1SitesPendingGet,
@@ -75,21 +76,24 @@ import type {
   PatchBootAssetItemsV1BootassetItemsIdPatchResponse,
   DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetData,
   DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData,
-  SelectImagesV1SelectableImagesSelectPostData,
-  SelectImagesV1SelectableImagesSelectPostError,
-  GetSelectableImagesV1SelectableImagesGetData,
-  GetSelectedImagesV1SelectedImagesGetData,
-  GetImageSourcesV1ImageSourcesGetData,
-  RemoveSelectionsV1SelectedImagesRemovePostData,
-  RemoveSelectionsV1SelectedImagesRemovePostError,
-  RemoveSelectionsV1SelectedImagesRemovePostResponse,
   PostImagesV1ImagesPostData,
   PostImagesV1ImagesPostError,
   PostImagesV1ImagesPostResponse,
+  DeleteImagesV1ImagesRemovePostData,
+  DeleteImagesV1ImagesRemovePostError,
+  DeleteImagesV1ImagesRemovePostResponse,
   RefreshIndexV1RefreshIndexGetData,
   PostV1LoginPostData,
   PostV1LoginPostError,
   PostV1LoginPostResponse,
+  SelectImagesV1SelectableImagesSelectPostData,
+  SelectImagesV1SelectableImagesSelectPostError,
+  GetSelectableImagesV1SelectableImagesGetData,
+  GetSelectedImagesV1SelectedImagesGetData,
+  RemoveSelectionsV1SelectedImagesRemovePostData,
+  RemoveSelectionsV1SelectedImagesRemovePostError,
+  RemoveSelectionsV1SelectedImagesRemovePostResponse,
+  GetImageSourcesV1ImageSourcesGetData,
   GetV1SettingsGetData,
   PatchV1SettingsPatchData,
   PatchV1SettingsPatchError,
@@ -650,6 +654,167 @@ export const downloadV1ImagesTrackRiskBootSourceIdFilePathGetOptions = (
   });
 };
 
+export const postImagesV1ImagesPostQueryKey = (options: Options<PostImagesV1ImagesPostData>) =>
+  createQueryKey("postImagesV1ImagesPost", options);
+
+/**
+ * Post Images
+ */
+export const postImagesV1ImagesPostOptions = (options: Options<PostImagesV1ImagesPostData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postImagesV1ImagesPost({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postImagesV1ImagesPostQueryKey(options),
+  });
+};
+
+/**
+ * Post Images
+ */
+export const postImagesV1ImagesPostMutation = (
+  options?: Partial<Options<PostImagesV1ImagesPostData>>,
+): UseMutationOptions<
+  PostImagesV1ImagesPostResponse,
+  AxiosError<PostImagesV1ImagesPostError>,
+  Options<PostImagesV1ImagesPostData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostImagesV1ImagesPostResponse,
+    AxiosError<PostImagesV1ImagesPostError>,
+    Options<PostImagesV1ImagesPostData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postImagesV1ImagesPost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const deleteImagesV1ImagesRemovePostQueryKey = (options: Options<DeleteImagesV1ImagesRemovePostData>) =>
+  createQueryKey("deleteImagesV1ImagesRemovePost", options);
+
+/**
+ * Delete Images
+ */
+export const deleteImagesV1ImagesRemovePostOptions = (options: Options<DeleteImagesV1ImagesRemovePostData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await deleteImagesV1ImagesRemovePost({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: deleteImagesV1ImagesRemovePostQueryKey(options),
+  });
+};
+
+/**
+ * Delete Images
+ */
+export const deleteImagesV1ImagesRemovePostMutation = (
+  options?: Partial<Options<DeleteImagesV1ImagesRemovePostData>>,
+): UseMutationOptions<
+  DeleteImagesV1ImagesRemovePostResponse,
+  AxiosError<DeleteImagesV1ImagesRemovePostError>,
+  Options<DeleteImagesV1ImagesRemovePostData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteImagesV1ImagesRemovePostResponse,
+    AxiosError<DeleteImagesV1ImagesRemovePostError>,
+    Options<DeleteImagesV1ImagesRemovePostData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteImagesV1ImagesRemovePost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const refreshIndexV1RefreshIndexGetQueryKey = (options?: Options<RefreshIndexV1RefreshIndexGetData>) =>
+  createQueryKey("refreshIndexV1RefreshIndexGet", options);
+
+/**
+ * Refresh Index
+ */
+export const refreshIndexV1RefreshIndexGetOptions = (options?: Options<RefreshIndexV1RefreshIndexGetData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await refreshIndexV1RefreshIndexGet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: refreshIndexV1RefreshIndexGetQueryKey(options),
+  });
+};
+
+export const postV1LoginPostQueryKey = (options: Options<PostV1LoginPostData>) =>
+  createQueryKey("postV1LoginPost", options);
+
+/**
+ * Post
+ */
+export const postV1LoginPostOptions = (options: Options<PostV1LoginPostData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postV1LoginPost({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postV1LoginPostQueryKey(options),
+  });
+};
+
+/**
+ * Post
+ */
+export const postV1LoginPostMutation = (
+  options?: Partial<Options<PostV1LoginPostData>>,
+): UseMutationOptions<PostV1LoginPostResponse, AxiosError<PostV1LoginPostError>, Options<PostV1LoginPostData>> => {
+  const mutationOptions: UseMutationOptions<
+    PostV1LoginPostResponse,
+    AxiosError<PostV1LoginPostError>,
+    Options<PostV1LoginPostData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postV1LoginPost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const selectImagesV1SelectableImagesSelectPostQueryKey = (
   options: Options<SelectImagesV1SelectableImagesSelectPostData>,
 ) => createQueryKey("selectImagesV1SelectableImagesSelectPost", options);
@@ -749,27 +914,6 @@ export const getSelectedImagesV1SelectedImagesGetOptions = (
   });
 };
 
-export const getImageSourcesV1ImageSourcesGetQueryKey = (options: Options<GetImageSourcesV1ImageSourcesGetData>) =>
-  createQueryKey("getImageSourcesV1ImageSourcesGet", options);
-
-/**
- * Get Image Sources
- */
-export const getImageSourcesV1ImageSourcesGetOptions = (options: Options<GetImageSourcesV1ImageSourcesGetData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getImageSourcesV1ImageSourcesGet({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getImageSourcesV1ImageSourcesGetQueryKey(options),
-  });
-};
-
 export const removeSelectionsV1SelectedImagesRemovePostQueryKey = (
   options: Options<RemoveSelectionsV1SelectedImagesRemovePostData>,
 ) => createQueryKey("removeSelectionsV1SelectedImagesRemovePost", options);
@@ -821,16 +965,16 @@ export const removeSelectionsV1SelectedImagesRemovePostMutation = (
   return mutationOptions;
 };
 
-export const postImagesV1ImagesPostQueryKey = (options: Options<PostImagesV1ImagesPostData>) =>
-  createQueryKey("postImagesV1ImagesPost", options);
+export const getImageSourcesV1ImageSourcesGetQueryKey = (options: Options<GetImageSourcesV1ImageSourcesGetData>) =>
+  createQueryKey("getImageSourcesV1ImageSourcesGet", options);
 
 /**
- * Post Images
+ * Get Image Sources
  */
-export const postImagesV1ImagesPostOptions = (options: Options<PostImagesV1ImagesPostData>) => {
+export const getImageSourcesV1ImageSourcesGetOptions = (options: Options<GetImageSourcesV1ImageSourcesGetData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await postImagesV1ImagesPost({
+      const { data } = await getImageSourcesV1ImageSourcesGet({
         ...options,
         ...queryKey[0],
         signal,
@@ -838,100 +982,8 @@ export const postImagesV1ImagesPostOptions = (options: Options<PostImagesV1Image
       });
       return data;
     },
-    queryKey: postImagesV1ImagesPostQueryKey(options),
+    queryKey: getImageSourcesV1ImageSourcesGetQueryKey(options),
   });
-};
-
-/**
- * Post Images
- */
-export const postImagesV1ImagesPostMutation = (
-  options?: Partial<Options<PostImagesV1ImagesPostData>>,
-): UseMutationOptions<
-  PostImagesV1ImagesPostResponse,
-  AxiosError<PostImagesV1ImagesPostError>,
-  Options<PostImagesV1ImagesPostData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PostImagesV1ImagesPostResponse,
-    AxiosError<PostImagesV1ImagesPostError>,
-    Options<PostImagesV1ImagesPostData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await postImagesV1ImagesPost({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const refreshIndexV1RefreshIndexGetQueryKey = (options?: Options<RefreshIndexV1RefreshIndexGetData>) =>
-  createQueryKey("refreshIndexV1RefreshIndexGet", options);
-
-/**
- * Refresh Index
- */
-export const refreshIndexV1RefreshIndexGetOptions = (options?: Options<RefreshIndexV1RefreshIndexGetData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await refreshIndexV1RefreshIndexGet({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: refreshIndexV1RefreshIndexGetQueryKey(options),
-  });
-};
-
-export const postV1LoginPostQueryKey = (options: Options<PostV1LoginPostData>) =>
-  createQueryKey("postV1LoginPost", options);
-
-/**
- * Post
- */
-export const postV1LoginPostOptions = (options: Options<PostV1LoginPostData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await postV1LoginPost({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: postV1LoginPostQueryKey(options),
-  });
-};
-
-/**
- * Post
- */
-export const postV1LoginPostMutation = (
-  options?: Partial<Options<PostV1LoginPostData>>,
-): UseMutationOptions<PostV1LoginPostResponse, AxiosError<PostV1LoginPostError>, Options<PostV1LoginPostData>> => {
-  const mutationOptions: UseMutationOptions<
-    PostV1LoginPostResponse,
-    AxiosError<PostV1LoginPostError>,
-    Options<PostV1LoginPostData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await postV1LoginPost({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
 };
 
 export const getV1SettingsGetQueryKey = (options?: Options<GetV1SettingsGetData>) =>

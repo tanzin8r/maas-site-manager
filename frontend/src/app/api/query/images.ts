@@ -3,6 +3,7 @@ import type { UseQueryOptions } from "@tanstack/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type {
+  DeleteImagesV1ImagesRemovePostData,
   GetImageSourcesV1ImageSourcesGetData,
   GetImageSourcesV1ImageSourcesGetError,
   GetImageSourcesV1ImageSourcesGetResponse,
@@ -17,6 +18,7 @@ import type {
   SelectImagesV1SelectableImagesSelectPostData,
 } from "@/app/apiclient";
 import {
+  deleteImagesV1ImagesRemovePostMutation,
   getImageSourcesV1ImageSourcesGetOptions,
   getSelectableImagesV1SelectableImagesGetOptions,
   getSelectableImagesV1SelectableImagesGetQueryKey,
@@ -94,6 +96,17 @@ export const useUploadCustomImage = (mutationOptions?: Omit<Options<PostImagesV1
 
   return useMutation({
     ...postImagesV1ImagesPostMutation(mutationOptions),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: getSelectedImagesV1SelectedImagesGetQueryKey() });
+    },
+  });
+};
+
+export const useDeleteCustomImage = (mutationOptions?: Options<DeleteImagesV1ImagesRemovePostData>) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...deleteImagesV1ImagesRemovePostMutation(mutationOptions),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: getSelectedImagesV1SelectedImagesGetQueryKey() });
     },

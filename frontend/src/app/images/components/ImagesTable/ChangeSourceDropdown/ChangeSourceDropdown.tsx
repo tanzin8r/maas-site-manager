@@ -24,7 +24,7 @@ const ChangeSourceDropdown = ({ image }: { image: SelectedImage }) => {
   return (
     <div>
       <span>{image.boot_source_name}</span>
-      {!image.is_custom_image ? (
+      {!image.custom_image_id ? (
         <ContextualMenu
           className="p-table-menu"
           hasToggleIcon

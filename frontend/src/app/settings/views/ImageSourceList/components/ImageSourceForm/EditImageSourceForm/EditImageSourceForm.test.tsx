@@ -41,23 +41,16 @@ it("pre-fills the form with the source's details", async () => {
   renderEditForm();
 
   await waitFor(() => {
-    expect(screen.getByRole("textbox", { name: "URL" })).toHaveValue(mockImageSources[1].url);
+    expect(screen.getByRole("textbox", { name: "GPG key" })).toHaveValue(mockImageSources[1].keyring);
   });
-  expect(screen.getByRole("textbox", { name: "GPG key" })).toHaveValue(mockImageSources[1].keyring);
   expect(screen.getByRole("checkbox", { name: "Automatically sync images" })).toBeChecked(); // sync interval is > 0 on this boot source
   expect(screen.getByRole("textbox", { name: "Priority" })).toHaveValue(mockImageSources[1].priority.toString());
 });
 
-it("shows a caution for changing the URL", async () => {
+it("does not show the URL", async () => {
   renderEditForm();
 
-  await waitFor(() => {
-    expect(
-      screen.getByText(
-        "Changing to an image server with different images might remove some images from MAAS Site Manager and MAAS.",
-      ),
-    ).toBeInTheDocument();
-  });
+  expect(screen.queryByRole("textbox", { name: "URL" })).not.toBeInTheDocument();
 });
 
 it("enables the submit button after a field has changed", async () => {

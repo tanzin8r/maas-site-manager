@@ -10,11 +10,6 @@
 }
 
 .images-table {
-  // TODO: custom images should be removable with a separate endpoint
-  label.p-table-checkbox:has(input.p-checkbox__input:disabled) {
-    display: none;
-  }
-
   .custom {
     text-align: center;
   }

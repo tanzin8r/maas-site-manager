@@ -44,6 +44,17 @@ import type {
   DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData,
   DownloadV1ImagesTrackRiskBootSourceIdFilePathGetResponses,
   DownloadV1ImagesTrackRiskBootSourceIdFilePathGetErrors,
+  PostImagesV1ImagesPostData,
+  PostImagesV1ImagesPostResponses,
+  PostImagesV1ImagesPostErrors,
+  DeleteImagesV1ImagesRemovePostData,
+  DeleteImagesV1ImagesRemovePostResponses,
+  DeleteImagesV1ImagesRemovePostErrors,
+  RefreshIndexV1RefreshIndexGetData,
+  RefreshIndexV1RefreshIndexGetResponses,
+  PostV1LoginPostData,
+  PostV1LoginPostResponses,
+  PostV1LoginPostErrors,
   SelectImagesV1SelectableImagesSelectPostData,
   SelectImagesV1SelectableImagesSelectPostResponses,
   SelectImagesV1SelectableImagesSelectPostErrors,
@@ -53,20 +64,12 @@ import type {
   GetSelectedImagesV1SelectedImagesGetData,
   GetSelectedImagesV1SelectedImagesGetResponses,
   GetSelectedImagesV1SelectedImagesGetErrors,
-  GetImageSourcesV1ImageSourcesGetData,
-  GetImageSourcesV1ImageSourcesGetResponses,
-  GetImageSourcesV1ImageSourcesGetErrors,
   RemoveSelectionsV1SelectedImagesRemovePostData,
   RemoveSelectionsV1SelectedImagesRemovePostResponses,
   RemoveSelectionsV1SelectedImagesRemovePostErrors,
-  PostImagesV1ImagesPostData,
-  PostImagesV1ImagesPostResponses,
-  PostImagesV1ImagesPostErrors,
-  RefreshIndexV1RefreshIndexGetData,
-  RefreshIndexV1RefreshIndexGetResponses,
-  PostV1LoginPostData,
-  PostV1LoginPostResponses,
-  PostV1LoginPostErrors,
+  GetImageSourcesV1ImageSourcesGetData,
+  GetImageSourcesV1ImageSourcesGetResponses,
+  GetImageSourcesV1ImageSourcesGetErrors,
   GetV1SettingsGetData,
   GetV1SettingsGetResponses,
   GetV1SettingsGetErrors,
@@ -445,6 +448,97 @@ export const downloadV1ImagesTrackRiskBootSourceIdFilePathGet = <ThrowOnError ex
 };
 
 /**
+ * Post Images
+ */
+export const postImagesV1ImagesPost = <ThrowOnError extends boolean = false>(
+  options: Options<PostImagesV1ImagesPostData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostImagesV1ImagesPostResponses,
+    PostImagesV1ImagesPostErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/images",
+    ...options,
+    headers: {
+      "Content-Type": null,
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Delete Images
+ */
+export const deleteImagesV1ImagesRemovePost = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteImagesV1ImagesRemovePostData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    DeleteImagesV1ImagesRemovePostResponses,
+    DeleteImagesV1ImagesRemovePostErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/images:remove",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Refresh Index
+ */
+export const refreshIndexV1RefreshIndexGet = <ThrowOnError extends boolean = false>(
+  options?: Options<RefreshIndexV1RefreshIndexGetData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<RefreshIndexV1RefreshIndexGetResponses, unknown, ThrowOnError>({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/refresh-index",
+    ...options,
+  });
+};
+
+/**
+ * Post
+ */
+export const postV1LoginPost = <ThrowOnError extends boolean = false>(
+  options: Options<PostV1LoginPostData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<PostV1LoginPostResponses, PostV1LoginPostErrors, ThrowOnError>({
+    ...urlSearchParamsBodySerializer,
+    responseType: "json",
+    url: "/v1/login",
+    ...options,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      ...options.headers,
+    },
+  });
+};
+
+/**
  * Select Images
  */
 export const selectImagesV1SelectableImagesSelectPost = <ThrowOnError extends boolean = false>(
@@ -518,29 +612,6 @@ export const getSelectedImagesV1SelectedImagesGet = <ThrowOnError extends boolea
 };
 
 /**
- * Get Image Sources
- */
-export const getImageSourcesV1ImageSourcesGet = <ThrowOnError extends boolean = false>(
-  options: Options<GetImageSourcesV1ImageSourcesGetData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetImageSourcesV1ImageSourcesGetResponses,
-    GetImageSourcesV1ImageSourcesGetErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        scheme: "bearer",
-        type: "http",
-      },
-    ],
-    url: "/v1/image-sources",
-    ...options,
-  });
-};
-
-/**
  * Remove Selections
  */
 export const removeSelectionsV1SelectedImagesRemovePost = <ThrowOnError extends boolean = false>(
@@ -567,17 +638,16 @@ export const removeSelectionsV1SelectedImagesRemovePost = <ThrowOnError extends 
 };
 
 /**
- * Post Images
+ * Get Image Sources
  */
-export const postImagesV1ImagesPost = <ThrowOnError extends boolean = false>(
-  options: Options<PostImagesV1ImagesPostData, ThrowOnError>,
+export const getImageSourcesV1ImageSourcesGet = <ThrowOnError extends boolean = false>(
+  options: Options<GetImageSourcesV1ImageSourcesGetData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<
-    PostImagesV1ImagesPostResponses,
-    PostImagesV1ImagesPostErrors,
+  return (options.client ?? _heyApiClient).get<
+    GetImageSourcesV1ImageSourcesGetResponses,
+    GetImageSourcesV1ImageSourcesGetErrors,
     ThrowOnError
   >({
-    ...formDataBodySerializer,
     responseType: "json",
     security: [
       {
@@ -585,49 +655,8 @@ export const postImagesV1ImagesPost = <ThrowOnError extends boolean = false>(
         type: "http",
       },
     ],
-    url: "/v1/images",
+    url: "/v1/image-sources",
     ...options,
-    headers: {
-      "Content-Type": null,
-      ...options.headers,
-    },
-  });
-};
-
-/**
- * Refresh Index
- */
-export const refreshIndexV1RefreshIndexGet = <ThrowOnError extends boolean = false>(
-  options?: Options<RefreshIndexV1RefreshIndexGetData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<RefreshIndexV1RefreshIndexGetResponses, unknown, ThrowOnError>({
-    responseType: "json",
-    security: [
-      {
-        scheme: "bearer",
-        type: "http",
-      },
-    ],
-    url: "/v1/refresh-index",
-    ...options,
-  });
-};
-
-/**
- * Post
- */
-export const postV1LoginPost = <ThrowOnError extends boolean = false>(
-  options: Options<PostV1LoginPostData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<PostV1LoginPostResponses, PostV1LoginPostErrors, ThrowOnError>({
-    ...urlSearchParamsBodySerializer,
-    responseType: "json",
-    url: "/v1/login",
-    ...options,
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      ...options.headers,
-    },
   });
 };
 

@@ -66,7 +66,7 @@ describe("ImagesTable", () => {
 
   describe("actions", () => {
     it("opens delete image side panel form", async () => {
-      mockServer.use(imageResolvers.selectedImages.handler([selectedImageFactory.build({ is_custom_image: false })]));
+      mockServer.use(imageResolvers.selectedImages.handler([selectedImageFactory.build()]));
 
       renderWithMemoryRouter(<ImagesTable />);
 

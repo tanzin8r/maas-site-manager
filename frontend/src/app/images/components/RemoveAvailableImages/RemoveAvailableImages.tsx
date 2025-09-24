@@ -5,23 +5,25 @@ import { Button, Notification } from "@canonical/react-components";
 import type { RowSelectionState } from "@tanstack/react-table";
 import pluralize from "pluralize";
 
-import { useRemoveImagesFromSelection } from "@/app/api/query/images";
+import { useDeleteCustomImage, useRemoveImagesFromSelection } from "@/app/api/query/images";
 import { useAppLayoutContext, useRowSelection } from "@/app/context";
 
-// TODO: https://warthogs.atlassian.net/browse/MAASENG-2661
-// refactor to use table.getSelectedRowModel(table.getState())
-export const getSelectedIndividualImageRows = (rowSelection: RowSelectionState) => {
-  // group rows have a non-numeric key (e.g. "name:CentOS")
-  const isNotGroup = (key: string) => !isNaN(Number(key));
-  return Object.keys(rowSelection).filter(isNotGroup);
+const getUpstreamAndCustomImageIds = (rowSelection: RowSelectionState) => {
+  const upstreamImages = Object.keys(rowSelection).filter((key) => !key.startsWith("custom-"));
+  const customImages = Object.keys(rowSelection).filter((key) => key.startsWith("custom-"));
+  return {
+    upstreamImageIds: upstreamImages.map((id) => Number(id)),
+    customImageIds: customImages.map((id) => Number(id.split("-")[1])),
+  };
 };
 
 export const RemoveAvailableImages = (): ReactElement => {
   const { rowSelection, clearRowSelection } = useRowSelection("images");
-  const imagesCount = getSelectedIndividualImageRows(rowSelection).length;
+  const imagesCount = Object.keys(rowSelection).length;
   const { setSidebar } = useAppLayoutContext();
 
   const deleteImagesMutation = useRemoveImagesFromSelection();
+  const deleteCustomImagesMutation = useDeleteCustomImage();
 
   // close sidebar when there are no images selected
   useEffect(() => {
@@ -58,8 +60,9 @@ export const RemoveAvailableImages = (): ReactElement => {
         <Button
           appearance="negative"
           onClick={() => {
-            const selectedIds = Object.keys(rowSelection).map((id) => Number(id));
-            deleteImagesMutation.mutate({ body: { selection_ids: selectedIds } });
+            const { upstreamImageIds, customImageIds } = getUpstreamAndCustomImageIds(rowSelection);
+            deleteImagesMutation.mutate({ body: { selection_ids: upstreamImageIds } });
+            deleteCustomImagesMutation.mutate({ body: { asset_ids: customImageIds } });
             setSidebar(null);
             clearRowSelection();
           }}

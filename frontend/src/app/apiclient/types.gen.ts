@@ -450,10 +450,6 @@ export type BootSourcesPatchRequest = {
    */
   priority?: number | null;
   /**
-   * Url
-   */
-  url?: string | null;
-  /**
    * Keyring
    */
   keyring?: string | null;
@@ -666,6 +662,16 @@ export type ImagesPostResponse = {
    * Bytes Synced
    */
   bytes_synced: number;
+};
+
+/**
+ * ImagesRemovePostRequest
+ */
+export type ImagesRemovePostRequest = {
+  /**
+   * Asset Ids
+   */
+  asset_ids: Array<number>;
 };
 
 /**
@@ -966,9 +972,9 @@ export type SelectedImage = {
    */
   downloaded: number;
   /**
-   * Is Custom Image
+   * Custom Image Id
    */
-  is_custom_image: boolean;
+  custom_image_id?: number | null;
   /**
    * Selection Id
    */
@@ -2591,6 +2597,133 @@ export type DownloadV1ImagesTrackRiskBootSourceIdFilePathGetResponses = {
   200: unknown;
 };
 
+export type PostImagesV1ImagesPostData = {
+  body: {
+    os?: string;
+    release?: string;
+    title?: string;
+    arch?: string;
+    file_size?: number;
+    filename?: string;
+    file?: Blob | File;
+  };
+  path?: never;
+  query?: never;
+  url: "/v1/images";
+};
+
+export type PostImagesV1ImagesPostErrors = {
+  /**
+   * Bad Request
+   */
+  400: BadRequestErrorResponseModel;
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type PostImagesV1ImagesPostError = PostImagesV1ImagesPostErrors[keyof PostImagesV1ImagesPostErrors];
+
+export type PostImagesV1ImagesPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: ImagesPostResponse;
+};
+
+export type PostImagesV1ImagesPostResponse = PostImagesV1ImagesPostResponses[keyof PostImagesV1ImagesPostResponses];
+
+export type DeleteImagesV1ImagesRemovePostData = {
+  body: ImagesRemovePostRequest;
+  path?: never;
+  query?: never;
+  url: "/v1/images:remove";
+};
+
+export type DeleteImagesV1ImagesRemovePostErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Forbidden
+   */
+  403: ForbiddenErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type DeleteImagesV1ImagesRemovePostError =
+  DeleteImagesV1ImagesRemovePostErrors[keyof DeleteImagesV1ImagesRemovePostErrors];
+
+export type DeleteImagesV1ImagesRemovePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DeleteImagesV1ImagesRemovePostResponse =
+  DeleteImagesV1ImagesRemovePostResponses[keyof DeleteImagesV1ImagesRemovePostResponses];
+
+export type RefreshIndexV1RefreshIndexGetData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/refresh-index";
+};
+
+export type RefreshIndexV1RefreshIndexGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown;
+};
+
+export type PostV1LoginPostData = {
+  body: BodyPostV1LoginPost;
+  path?: never;
+  query?: never;
+  url: "/v1/login";
+};
+
+export type PostV1LoginPostErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type PostV1LoginPostError = PostV1LoginPostErrors[keyof PostV1LoginPostErrors];
+
+export type PostV1LoginPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: AccessTokenResponse;
+};
+
+export type PostV1LoginPostResponse = PostV1LoginPostResponses[keyof PostV1LoginPostResponses];
+
 export type SelectImagesV1SelectableImagesSelectPostData = {
   body: SelectImagesPostRequest;
   path?: never;
@@ -2677,6 +2810,41 @@ export type GetSelectedImagesV1SelectedImagesGetResponses = {
 export type GetSelectedImagesV1SelectedImagesGetResponse =
   GetSelectedImagesV1SelectedImagesGetResponses[keyof GetSelectedImagesV1SelectedImagesGetResponses];
 
+export type RemoveSelectionsV1SelectedImagesRemovePostData = {
+  body: RemoveSelectedImagesPostRequest;
+  path?: never;
+  query?: never;
+  url: "/v1/selected-images:remove";
+};
+
+export type RemoveSelectionsV1SelectedImagesRemovePostErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type RemoveSelectionsV1SelectedImagesRemovePostError =
+  RemoveSelectionsV1SelectedImagesRemovePostErrors[keyof RemoveSelectionsV1SelectedImagesRemovePostErrors];
+
+export type RemoveSelectionsV1SelectedImagesRemovePostResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RemoveSelectionsV1SelectedImagesRemovePostResponse =
+  RemoveSelectionsV1SelectedImagesRemovePostResponses[keyof RemoveSelectionsV1SelectedImagesRemovePostResponses];
+
 export type GetImageSourcesV1ImageSourcesGetData = {
   body?: never;
   path?: never;
@@ -2720,129 +2888,6 @@ export type GetImageSourcesV1ImageSourcesGetResponses = {
 
 export type GetImageSourcesV1ImageSourcesGetResponse =
   GetImageSourcesV1ImageSourcesGetResponses[keyof GetImageSourcesV1ImageSourcesGetResponses];
-
-export type RemoveSelectionsV1SelectedImagesRemovePostData = {
-  body: RemoveSelectedImagesPostRequest;
-  path?: never;
-  query?: never;
-  url: "/v1/selected-images:remove";
-};
-
-export type RemoveSelectionsV1SelectedImagesRemovePostErrors = {
-  /**
-   * Unauthorized
-   */
-  401: UnauthorizedErrorResponseModel;
-  /**
-   * Not Found
-   */
-  404: NotFoundErrorResponseModel;
-  /**
-   * Unprocessable Entity
-   */
-  422: ValidationErrorResponseModel;
-};
-
-export type RemoveSelectionsV1SelectedImagesRemovePostError =
-  RemoveSelectionsV1SelectedImagesRemovePostErrors[keyof RemoveSelectionsV1SelectedImagesRemovePostErrors];
-
-export type RemoveSelectionsV1SelectedImagesRemovePostResponses = {
-  /**
-   * Successful Response
-   */
-  204: void;
-};
-
-export type RemoveSelectionsV1SelectedImagesRemovePostResponse =
-  RemoveSelectionsV1SelectedImagesRemovePostResponses[keyof RemoveSelectionsV1SelectedImagesRemovePostResponses];
-
-export type PostImagesV1ImagesPostData = {
-  body: {
-    os?: string;
-    release?: string;
-    title?: string;
-    arch?: string;
-    file_size?: number;
-    filename?: string;
-    file?: Blob | File;
-  };
-  path?: never;
-  query?: never;
-  url: "/v1/images";
-};
-
-export type PostImagesV1ImagesPostErrors = {
-  /**
-   * Bad Request
-   */
-  400: BadRequestErrorResponseModel;
-  /**
-   * Unauthorized
-   */
-  401: UnauthorizedErrorResponseModel;
-  /**
-   * Not Found
-   */
-  404: NotFoundErrorResponseModel;
-  /**
-   * Unprocessable Entity
-   */
-  422: ValidationErrorResponseModel;
-};
-
-export type PostImagesV1ImagesPostError = PostImagesV1ImagesPostErrors[keyof PostImagesV1ImagesPostErrors];
-
-export type PostImagesV1ImagesPostResponses = {
-  /**
-   * Successful Response
-   */
-  200: ImagesPostResponse;
-};
-
-export type PostImagesV1ImagesPostResponse = PostImagesV1ImagesPostResponses[keyof PostImagesV1ImagesPostResponses];
-
-export type RefreshIndexV1RefreshIndexGetData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/v1/refresh-index";
-};
-
-export type RefreshIndexV1RefreshIndexGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: unknown;
-};
-
-export type PostV1LoginPostData = {
-  body: BodyPostV1LoginPost;
-  path?: never;
-  query?: never;
-  url: "/v1/login";
-};
-
-export type PostV1LoginPostErrors = {
-  /**
-   * Unauthorized
-   */
-  401: UnauthorizedErrorResponseModel;
-  /**
-   * Unprocessable Entity
-   */
-  422: ValidationErrorResponseModel;
-};
-
-export type PostV1LoginPostError = PostV1LoginPostErrors[keyof PostV1LoginPostErrors];
-
-export type PostV1LoginPostResponses = {
-  /**
-   * Successful Response
-   */
-  200: AccessTokenResponse;
-};
-
-export type PostV1LoginPostResponse = PostV1LoginPostResponses[keyof PostV1LoginPostResponses];
 
 export type GetV1SettingsGetData = {
   body?: never;

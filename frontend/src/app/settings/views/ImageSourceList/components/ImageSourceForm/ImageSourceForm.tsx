@@ -78,22 +78,29 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
   };
 
   const handleSubmit = (values: ImageSourceFormValues) => {
-    const body:
-      | PatchBootSourceV1BootassetSourcesIdPatchData["body"]
-      | PostBootSourcesV1BootassetSourcesPostData["body"] = {
-      name: values.name,
-      url: values.url,
-      keyring: values.keyring,
-      priority: values.priority,
-      sync_interval: values.autosync ? 60 : 0,
-    };
     if (type === "add") {
-      createImageSource.mutate({ body } as PostBootSourcesV1BootassetSourcesPostData, { onSuccess: resetForm });
+      createImageSource.mutate(
+        {
+          body: {
+            name: values.name,
+            url: values.url,
+            keyring: values.keyring,
+            priority: values.priority,
+            sync_interval: values.autosync ? 60 : 0,
+          },
+        } as PostBootSourcesV1BootassetSourcesPostData,
+        { onSuccess: resetForm },
+      );
     } else {
       updateImageSource.mutate(
         {
           path: { id: selectedBootSourceId! },
-          body,
+          body: {
+            name: values.name,
+            keyring: values.keyring,
+            priority: values.priority,
+            sync_interval: values.autosync ? 60 : 0,
+          },
         } as PatchBootSourceV1BootassetSourcesIdPatchData,
         { onSuccess: resetForm },
       );
@@ -142,22 +149,21 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
               >
                 <Label htmlFor={nameFieldId}>Name</Label>
                 <Field as={Input} error={touched.name && errors.name} id={nameFieldId} name="name" type="text" />
-                <Label className="is-required" htmlFor={urlFieldId}>
-                  URL
-                </Label>
-                <Field
-                  as={Input}
-                  caution={
-                    type === "edit"
-                      ? "Changing to an image server with different images might remove some images from MAAS Site Manager and MAAS."
-                      : null
-                  }
-                  error={touched.url && errors.url}
-                  id={urlFieldId}
-                  name="url"
-                  required
-                  type="text"
-                />
+                {type === "add" ? (
+                  <>
+                    <Label className="is-required" htmlFor={urlFieldId}>
+                      URL
+                    </Label>
+                    <Field
+                      as={Input}
+                      error={touched.url && errors.url}
+                      id={urlFieldId}
+                      name="url"
+                      required
+                      type="text"
+                    />
+                  </>
+                ) : null}
                 <Label htmlFor={keyringFieldId}>GPG key</Label>
                 <Field
                   as={Textarea}

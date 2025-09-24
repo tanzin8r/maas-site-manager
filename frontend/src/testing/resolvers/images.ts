@@ -89,17 +89,32 @@ const imageResolvers = {
       });
     },
   },
-  uploadImage: {
+  uploadCustomImage: {
     resolved: false,
     handler: () => {
       return http.post(apiUrls.images, async () => {
-        imageResolvers.uploadImage.resolved = true;
+        imageResolvers.uploadCustomImage.resolved = true;
         return new HttpResponse(null, { status: 201 });
       });
     },
     error: (error = mockUnauthorizedError) => {
       return http.post(apiUrls.images, () => {
-        imageResolvers.uploadImage.resolved = true;
+        imageResolvers.uploadCustomImage.resolved = true;
+        return HttpResponse.json(error, { status: 401 });
+      });
+    },
+  },
+  deleteCustomImage: {
+    resolved: false,
+    handler: () => {
+      return http.post(apiUrls.removeImages, async () => {
+        imageResolvers.deleteCustomImage.resolved = true;
+        return new HttpResponse(null, { status: 204 });
+      });
+    },
+    error: (error = mockUnauthorizedError) => {
+      return http.post(apiUrls.removeImages, () => {
+        imageResolvers.deleteCustomImage.resolved = true;
         return HttpResponse.json(error, { status: 401 });
       });
     },

@@ -20,7 +20,7 @@ function createDataTransfer(file: File) {
   };
 }
 
-const mockServer = setupServer(imageResolvers.uploadImage.handler());
+const mockServer = setupServer(imageResolvers.uploadCustomImage.handler());
 
 beforeAll(() => {
   mockServer.listen();

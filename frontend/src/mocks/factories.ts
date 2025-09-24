@@ -213,6 +213,7 @@ export const selectedImageFactory = Factory.define<SelectedImage>(({ sequence })
   return {
     id: sequence,
     selection_id: !isCustom ? sequence : null,
+    custom_image_id: isCustom ? sequence : null,
     boot_source_id: bootSource.id,
     boot_source_name: bootSource.name,
     boot_source_url: bootSource.url,
@@ -221,7 +222,6 @@ export const selectedImageFactory = Factory.define<SelectedImage>(({ sequence })
     release: OS.release,
     size: size,
     downloaded: Math.floor(Math.random() * size),
-    is_custom_image: isCustom,
   };
 });
 

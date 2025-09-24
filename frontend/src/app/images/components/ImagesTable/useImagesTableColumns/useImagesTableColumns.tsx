@@ -93,11 +93,11 @@ const useImagesTableColumns = () => {
           header: "Custom",
           cell: ({
             row: {
-              original: { is_custom_image },
+              original: { custom_image_id },
             },
           }: {
             row: Row<ImageWithId>;
-          }) => (is_custom_image ? <Icon aria-label="checked" name="task-outstanding" role="img" /> : null),
+          }) => (!!custom_image_id ? <Icon aria-label="checked" name="task-outstanding" role="img" /> : null),
         },
         {
           id: "source",
@@ -112,16 +112,13 @@ const useImagesTableColumns = () => {
           header: () => "Action",
           enableSorting: false,
           cell: ({ row }: { table: Table<ImageWithId>; row: Row<ImageWithId> }) => {
-            const id = row.original.selection_id;
-            // TODO: custom images should be removable with a separate endpoint
-            const isDisabled = row.getIsGrouped() ? !row.getCanSelectSubRows() : !row.getCanSelect();
+            const id = row.original.selection_id ?? row.original.custom_image_id;
             return row.getIsGrouped() ? (
               <GroupRowActions getIsExpanded={row.getIsExpanded} toggleExpanded={row.toggleExpanded} />
             ) : (
               <TableActions
                 className="u-align--right"
-                deleteDisabled={isDisabled}
-                deleteTooltip={isDisabled ? "Custom images cannot be removed." : undefined}
+                deleteDisabled={row.getIsGrouped() ? !row.getCanSelectSubRows() : !row.getCanSelect()}
                 hasBorder
                 isDense={false}
                 onDelete={() => {

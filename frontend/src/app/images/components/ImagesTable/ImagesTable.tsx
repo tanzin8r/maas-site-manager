@@ -13,9 +13,9 @@ export type ImageWithId = SelectedImage & { id: number | string };
 
 const generateData = (selectedImages: SelectedImage[]): ImageWithId[] => {
   return selectedImages.map(
-    (image, index): ImageWithId => ({
+    (image): ImageWithId => ({
       ...image,
-      id: image.selection_id ?? `custom-${index}`,
+      id: image.selection_id ?? `custom-${image.custom_image_id}`,
     }),
   );
 };
@@ -30,8 +30,7 @@ export const ImagesTable = (): ReactElement => {
   return (
     <GenericTable
       aria-label="images"
-      // TODO: custom images should be removable with a separate endpoint
-      canSelect={(row) => !row.original.is_custom_image}
+      canSelect
       className="images-table"
       columns={columns}
       data={data}
