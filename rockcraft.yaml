@@ -11,6 +11,19 @@ platforms:
     amd64:
 
 parts:
+    openssl:
+        plugin: nil
+        stage-packages:
+            - ca-certificates
+        stage:
+            - usr/share/ca-certificates/
+            - etc/ssl/
+        override-prime: |
+            craftctl default
+            find ${CRAFT_PRIME}/usr/share/ca-certificates/ \
+              -type f \
+              -name '*.crt' \
+              -printf '%P\n' > ${CRAFT_PRIME}/etc/ca-certificates.conf
     backend:
         plugin: python
         python-requirements:
@@ -56,36 +69,34 @@ services:
         startup: disabled
         command: "./app/scripts/start-worker.sh"
         environment:
-            TEMPORAL_HOST: localhost:7233
-            TEMPORAL_NAMESPACE: default
-            TEMPORAL_QUEUE: test-queue
-            TEMPORAL_PROMETHEUS_PORT: "9000"
-            TEMPORAL_TLS_ROOT_CAS: ""
-            TEMPORAL_AUTH_PROVIDER: "" # "google" or "candid"
-            TEMPORAL_ENCRYPTION_KEY: ""
-            TEMPORAL_SENTRY_DSN: ""
-            TEMPORAL_SENTRY_RELEASE: ""
-            TEMPORAL_SENTRY_ENVIRONMENT: ""
-            TEMPORAL_SENTRY_REDACT_PARAMS: "False"
-            TEMPORAL_SENTRY_SAMPLE_RATE: "1.0"
-            TEMPORAL_CANDID_URL: ""
-            TEMPORAL_CANDID_USERNAME: ""
+            TEMPORAL_AUTH_PROVIDER: ""
             TEMPORAL_CANDID_PRIVATE_KEY: ""
             TEMPORAL_CANDID_PUBLIC_KEY: ""
-            TEMPORAL_OIDC_PROJECT_ID: ""
-            TEMPORAL_OIDC_PRIVATE_KEY_ID: ""
-            TEMPORAL_OIDC_PRIVATE_KEY: ""
+            TEMPORAL_CANDID_URL: ""
+            TEMPORAL_CANDID_USERNAME: ""
+            TEMPORAL_ENCRYPTION_KEY: ""
+            TEMPORAL_HOST: localhost:7233
+            TEMPORAL_NAMESPACE: default
+            TEMPORAL_OIDC_AUTH_CERT_URL: ""
+            TEMPORAL_OIDC_AUTH_URI: ""
+            TEMPORAL_OIDC_CLIENT_CERT_URL: ""
             TEMPORAL_OIDC_CLIENT_EMAIL: ""
             TEMPORAL_OIDC_CLIENT_ID: ""
-            TEMPORAL_OIDC_AUTH_URI: ""
+            TEMPORAL_OIDC_PRIVATE_KEY: ""
+            TEMPORAL_OIDC_PRIVATE_KEY_ID: ""
+            TEMPORAL_OIDC_PROJECT_ID: ""
             TEMPORAL_OIDC_TOKEN_URI: ""
-            TEMPORAL_OIDC_AUTH_CERT_URL: ""
-            TEMPORAL_OIDC_CLIENT_CERT_URL: ""
-
-            # Vault variables
+            TEMPORAL_PROMETHEUS_PORT: "9000"
+            TEMPORAL_QUEUE: test-queue
+            TEMPORAL_SENTRY_DSN: ""
+            TEMPORAL_SENTRY_ENVIRONMENT: ""
+            TEMPORAL_SENTRY_REDACT_PARAMS: "False"
+            TEMPORAL_SENTRY_RELEASE: ""
+            TEMPORAL_SENTRY_SAMPLE_RATE: "1.0"
+            TEMPORAL_TLS_ROOT_CAS: ""
             TEMPORAL_VAULT_ADDR: ""
             TEMPORAL_VAULT_CACERT_BYTES: ""
+            TEMPORAL_VAULT_CERT_PATH: ""
+            TEMPORAL_VAULT_MOUNT: ""
             TEMPORAL_VAULT_ROLE_ID: ""
             TEMPORAL_VAULT_ROLE_SECRET_ID: ""
-            TEMPORAL_VAULT_MOUNT: ""
-            TEMPORAL_VAULT_CERT_PATH: ""

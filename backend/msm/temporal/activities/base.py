@@ -1,4 +1,6 @@
-from httpx import AsyncClient
+import ssl
+
+from httpx import AsyncClient, Timeout
 
 from msm import __version__
 
@@ -9,7 +11,13 @@ class BaseActivity:
 
     def _create_client(self, user_agent: str | None = None) -> AsyncClient:
         user_agent = user_agent or f"maas-site-manager/{__version__}"
-        return AsyncClient(trust_env=True, headers={"User-Agent": user_agent})
+        ctx = ssl.create_default_context(capath="/etc/ssl/certs/")
+        return AsyncClient(
+            trust_env=True,
+            headers={"User-Agent": user_agent},
+            verify=ctx,
+            timeout=Timeout(60 * 60, read=120),
+        )
 
     def _get_header(self, jwt: str) -> dict[str, str]:
         return {"Authorization": f"bearer {jwt}"}

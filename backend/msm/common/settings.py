@@ -70,6 +70,9 @@ class Settings(BaseSettings):
     temporal_task_queue: str | None = Field(
         default=None, validation_alias="MSM_TEMPORAL_TASK_QUEUE"
     )
+    temporal_tls_root_cas: str | None = Field(
+        default=None, validation_alias="MSM_TEMPORAL_TLS_ROOT_CAS"
+    )
     heartbeat_interval_seconds: int = Field(
         default=300, validation_alias="MSM_HEARTBEAT_INTERVAL_SEC"
     )

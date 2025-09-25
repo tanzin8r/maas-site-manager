@@ -12,6 +12,7 @@ from temporalio.client import (
     SchedulePolicy,
     ScheduleSpec,
 )
+from temporalio.common import RetryPolicy
 from temporallib.client import Client, Options  # type: ignore
 from temporallib.encryption import EncryptionOptions  # type: ignore
 
@@ -59,6 +60,7 @@ class TemporalService(Service):
             host=self.application_settings.temporal_server_address,
             queue=self.application_settings.temporal_task_queue,
             namespace=self.application_settings.temporal_namespace,
+            tls_root_cas=self.application_settings.temporal_tls_root_cas,
             encryption=EncryptionOptions(),
         )
 
@@ -116,6 +118,11 @@ class TemporalService(Service):
                     param,
                     id=workflow_id,
                     task_queue=self.options.queue or "not-set",
+                    retry_policy=RetryPolicy(  # don't spin too fast
+                        initial_interval=timedelta(minutes=1),
+                        maximum_interval=timedelta(minutes=1),
+                    ),
+                    execution_timeout=timedelta(minutes=2 * interval),
                 ),
                 spec=ScheduleSpec(
                     intervals=[
