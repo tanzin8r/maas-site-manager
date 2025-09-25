@@ -11,12 +11,14 @@ platforms:
     amd64:
 
 parts:
-    openssl:
+    certs:
         plugin: nil
         stage-packages:
             - ca-certificates
+            - ubuntu-keyring
         stage:
             - usr/share/ca-certificates/
+            - usr/share/keyrings/
             - etc/ssl/
         override-prime: |
             craftctl default
