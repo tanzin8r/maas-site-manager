@@ -1,5 +1,3 @@
-import { hasImagesPage } from "@/featureFlags";
-
 export const protectedRoutes = {
   homepage: {
     path: "/",
@@ -41,17 +39,9 @@ export const protectedRoutes = {
     path: "/settings/images",
     title: "",
   },
-  settingsImagesServer: {
-    path: "/settings/images/server",
-    title: "Image server",
-  },
-  settingsImagesMaas: {
-    path: "/settings/images/maas",
-    title: "maas.io",
-  },
-  settingsImagesTransfer: {
-    path: "/settings/images/transfer",
-    title: "Transfer images",
+  settingsImagesSource: {
+    path: "/settings/images/source",
+    title: "Image sources",
   },
   account: {
     path: "/account",
@@ -66,12 +56,10 @@ export const protectedRoutes = {
     path: "/images",
     title: "",
   },
-  ...(hasImagesPage && {
-    images: {
-      path: "/images",
-      title: "",
-    },
-  }),
+  imagesList: {
+    path: "/images/list",
+    title: "Images list",
+  },
   password: {
     path: "/account/password",
     title: "Password",

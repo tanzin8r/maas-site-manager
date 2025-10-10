@@ -1,9 +1,8 @@
 import RequireLogin from "./RequireLogin";
 
 import MainLayout from "@/app/base/components/MainLayout";
-import { hasImagesPage } from "@/featureFlags";
 import { lazyWithErrorBoundary } from "@/utils/hoc";
-import { createRoutesFromElements, Route, redirect } from "@/utils/router";
+import { createRoutesFromElements, redirect, Route } from "@/utils/router";
 
 const Logout = lazyWithErrorBoundary(() => import("@/routes/logout"));
 const Login = lazyWithErrorBoundary(() => import("@/routes/login"));
@@ -34,24 +33,20 @@ export const routes = createRoutesFromElements(
         <Route element={<List />} index path="list" />
         <Route element={<Map />} index path="map" />
       </Route>
-      {hasImagesPage ? (
-        <Route path="images">
-          <Route index loader={() => redirect("/images/list")} />
-          <Route element={<ImagesList />} index path="list" />
-        </Route>
-      ) : null}
+      <Route path="images">
+        <Route index loader={() => redirect("/images/list")} />
+        <Route element={<ImagesList />} index path="list" />
+      </Route>
       <Route element={<Settings />} path="settings">
         <Route element={<RequireLogin />} index loader={() => redirect("/settings/tokens")} />
         <Route element={<Tokens />} path="tokens" />
         <Route element={<Requests />} path="requests" />
         <Route element={<Users />} path="users" />
         <Route element={<MapSettings />} path="map" />
-        {hasImagesPage ? (
-          <Route path="images">
-            <Route element={<RequireLogin />} index loader={() => redirect("/settings/images/server")} />
-            <Route element={<ImageSources />} path="source" />
-          </Route>
-        ) : null}
+        <Route path="images">
+          <Route element={<RequireLogin />} index loader={() => redirect("/settings/images/source")} />
+          <Route element={<ImageSources />} path="source" />
+        </Route>
       </Route>
       <Route element={<Account />} path="account">
         <Route element={<RequireLogin />} index loader={() => redirect("/account/details")} />

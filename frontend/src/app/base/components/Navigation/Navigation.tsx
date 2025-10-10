@@ -13,7 +13,6 @@ import BREAKPOINTS from "@/app/base/breakpoints";
 import { useGlobalKeyShortcut } from "@/app/base/hooks/useGlobalKeyShortcut";
 import type { RoutePath } from "@/app/base/routes";
 import { useAuthContext } from "@/app/context";
-import { hasImagesPage } from "@/featureFlags";
 import { useLocation, useNavigate } from "@/utils/router";
 
 export const navItems: LocalNavLink[] = [
@@ -22,15 +21,11 @@ export const navItems: LocalNavLink[] = [
     url: "/sites",
     icon: "machines",
   },
-  ...(hasImagesPage
-    ? [
-        {
-          label: "Images",
-          url: "/images",
-          icon: "applications",
-        },
-      ]
-    : []),
+  {
+    label: "Images",
+    url: "/images",
+    icon: "applications",
+  },
 ];
 
 export const settingsNavItems: LocalNavLink[] = [

@@ -2,9 +2,8 @@ import classNames from "classnames";
 
 import useSecondaryNavContext from "@/app/base/hooks/useSecondaryNavContext";
 import type { RoutePath, RouteTitle } from "@/app/base/routes";
-import { hasImagesPage } from "@/featureFlags";
-import { matchPath, Link, useLocation } from "@/utils/router";
 import type { Location } from "@/utils/router";
+import { Link, matchPath, useLocation } from "@/utils/router";
 
 export type NavItem =
   | {
@@ -130,14 +129,10 @@ const secondaryNavInfo: SecondaryNavInfoType = {
         label: "Map",
         path: "/settings/map",
       },
-      ...(hasImagesPage
-        ? [
-            {
-              label: "Images",
-              items: [{ path: "/settings/images/source", label: "Source" }],
-            },
-          ]
-        : []),
+      {
+        label: "Images",
+        items: [{ path: "/settings/images/source", label: "Source" }],
+      },
     ],
   },
   account: {

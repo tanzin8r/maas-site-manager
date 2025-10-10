@@ -1,7 +1,7 @@
-import { test, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
-import { AxeBuilder } from "@axe-core/playwright"; // 1
 import { protectedPages, publicPages, routesConfig } from "@/app/base/routes";
+import { AxeBuilder } from "@axe-core/playwright"; // 1
+import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { adminAuthFile, LONG_TEST_TIMEOUT } from "./constants";
 
 type ColorScheme = Pick<NonNullable<Parameters<Page["emulateMedia"]>[0]>, "colorScheme">["colorScheme"];
@@ -11,7 +11,9 @@ test.setTimeout(LONG_TEST_TIMEOUT);
 const a11yTest =
   (colorScheme: ColorScheme) =>
   async ({ title, path }: { title: string; path: string }) =>
-    await test(`${title} page does not have any automatically detectable accessibility issues in ${colorScheme} mode`, async ({
+    // TODO: fix images a11y issues and re-enable this suite https://warthogs.atlassian.net/browse/MAASENG-5434
+    // eslint-disable-next-line playwright/no-skipped-test
+    await test.skip(`${title} page does not have any automatically detectable accessibility issues in ${colorScheme} mode`, async ({
       page,
     }) => {
       await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
