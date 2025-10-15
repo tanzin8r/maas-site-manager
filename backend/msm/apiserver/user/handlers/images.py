@@ -391,6 +391,7 @@ async def delete_images(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
     post_request: dm.ImagesRemovePostRequest,
+    request: Request,
 ) -> None:
     count, assets = await services.boot_assets.get_many_by_id(
         post_request.asset_ids
@@ -431,7 +432,9 @@ async def delete_images(
                 )
             ],
         )
-    await services.boot_assets.purge_assets(post_request.asset_ids)
+    request.state.ids_to_delete = await services.boot_assets.purge_assets(
+        post_request.asset_ids
+    )
 
 
 @v1_router.get(

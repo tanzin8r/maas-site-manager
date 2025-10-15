@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, Depends, Request
 
 from msm.apiserver.db import CUSTOM_IMAGE_SOURCE_ID, models
 from msm.apiserver.dependencies import services
@@ -224,8 +224,8 @@ async def get_selected_images(
 async def remove_selections(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
-    background_tasks: BackgroundTasks,
     post_request: dm.RemoveSelectedImagesPostRequest,
+    request: Request,
 ) -> None:
     count, selections = await services.boot_source_selections.get_many_by_id(
         post_request.selection_ids
@@ -264,9 +264,8 @@ async def remove_selections(
         )
         asset_ids += [a.id for a in assets]
 
-    background_tasks.add_task(
-        services.boot_assets.purge_assets,
-        asset_ids,
+    request.state.ids_to_delete = await services.boot_assets.purge_assets(
+        asset_ids
     )
 
 

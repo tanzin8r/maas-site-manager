@@ -1,5 +1,5 @@
 from typing import Any
-from unittest.mock import call
+from unittest.mock import ANY, call
 from uuid import uuid4
 
 import pytest
@@ -13,7 +13,6 @@ from msm.apiserver.db.models import (
     BootSourceSelection,
 )
 from msm.apiserver.service.images import END_OF_TIME
-from msm.apiserver.user.handlers.bootassets import purge_and_refresh
 from msm.common.api.bootassets import (
     BootSourcesAssetsPutRequest,
     BootSourcesAssetsPutResponse,
@@ -267,15 +266,29 @@ class TestBootSourcesDeleteHandler:
         factory: Factory,
         mocker: MockerFixture,
         boot_source: BootSource,
+        boot_source_custom: BootSource,
+        items_ubuntu_noble_1: list[BootAssetItem],
     ) -> None:
-        mock_background = mocker.patch(
-            "msm.apiserver.user.handlers.bootassets.BackgroundTasks.add_task",
+        mock_start_wf = mocker.patch(
+            "msm.apiserver.middleware.S3Middleware.start_delete_workflow",
+        )
+        mock_disable_sync = mocker.patch(
+            "msm.apiserver.service.temporal.BootSourceWorkflowService.disable_sync"
         )
         resp = await user_client.delete(f"/bootasset-sources/{boot_source.id}")
         assert resp.status_code == 200
-        mock_background.assert_called_once_with(
-            purge_and_refresh, mocker.ANY, boot_source.id
+        mock_start_wf.assert_called_once_with(
+            ANY, [i.id for i in items_ubuntu_noble_1]
         )
+        mock_disable_sync.assert_called_once_with(boot_source.id)
+        sources = await factory.get("boot_source")
+        assets = await factory.get("boot_asset")
+        versions = await factory.get("boot_asset_version")
+        items = await factory.get("boot_asset_item")
+        assert sources == [boot_source_custom.model_dump()]
+        assert len(assets) == 0
+        assert len(versions) == 0
+        assert len(items) == 0
 
     async def test_delete_not_found(self, user_client: Client) -> None:
         resp = await user_client.delete("/bootasset-sources/333")

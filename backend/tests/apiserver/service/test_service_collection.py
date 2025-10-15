@@ -3,13 +3,16 @@ from collections.abc import Iterator
 import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncConnection
+from temporalio.client import Client as TemporalClient
 
 from msm.apiserver.service import ServiceCollection
 
 
 @pytest.fixture
-def collection(db_connection: AsyncConnection) -> Iterator[ServiceCollection]:
-    yield ServiceCollection(db_connection)
+def collection(
+    db_connection: AsyncConnection, temporal_client: TemporalClient
+) -> Iterator[ServiceCollection]:
+    yield ServiceCollection(db_connection, temporal_client)
 
 
 @pytest.mark.asyncio

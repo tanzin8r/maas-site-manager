@@ -13,8 +13,7 @@ from temporalio.client import (
     ScheduleSpec,
 )
 from temporalio.common import RetryPolicy
-from temporalio.contrib.pydantic import pydantic_data_converter
-from temporallib.client import Client, Options  # type: ignore
+from temporallib.client import Options  # type: ignore
 from temporallib.encryption import EncryptionOptions  # type: ignore
 
 from msm.apiserver.service.base import Service
@@ -48,12 +47,14 @@ class TemporalService(Service):
         config: ConfigService,
         tokens: TokenService,
         settings: SettingsService,
+        temporal_client: TemporalClient,
     ):
         super().__init__(connection)
         self.tokens: TokenService = tokens
         self.config: ConfigService = config
         self.settings: SettingsService = settings
         self.application_settings: Settings = Settings()
+        self.temporal_client: TemporalClient = temporal_client
 
     @cached_property
     def options(self) -> Options:
@@ -64,18 +65,6 @@ class TemporalService(Service):
             tls_root_cas=self.application_settings.temporal_tls_root_cas,
             encryption=EncryptionOptions(),
         )
-
-    async def get_client(self) -> TemporalClient:
-        """Connect to Temporal client.
-
-        Returns:
-            TemporalClient: An authenticated Temporal client instance.
-        """
-        client: TemporalClient = await Client.connect(
-            data_converter=pydantic_data_converter,
-            client_opt=self.options,
-        )
-        return client
 
     async def get_worker_credentials(self) -> tuple[str, str]:
         """Get service URL and worker token for authentication.
@@ -110,9 +99,8 @@ class TemporalService(Service):
         Returns:
             str: The ID of the created schedule handle
         """
-        client = await self.get_client()
 
-        hdl = await client.create_schedule(
+        hdl = await self.temporal_client.create_schedule(
             scheduler_id,
             Schedule(
                 action=ScheduleActionStartWorkflow(
@@ -144,8 +132,7 @@ class TemporalService(Service):
         Args:
             scheduler_id: Unique identifier for the scheduler to cancel
         """
-        client = await self.get_client()
-        hdl = client.get_schedule_handle(scheduler_id)
+        hdl = self.temporal_client.get_schedule_handle(scheduler_id)
         await hdl.delete()
 
     async def schedule_pause(
@@ -157,8 +144,7 @@ class TemporalService(Service):
             scheduler_id: Unique identifier for the scheduler to pause
             note: Optional note explaining the reason for pausing
         """
-        client = await self.get_client()
-        hdl = client.get_schedule_handle(scheduler_id)
+        hdl = self.temporal_client.get_schedule_handle(scheduler_id)
         await hdl.pause(note=note)
 
     async def schedule_resume(
@@ -170,8 +156,7 @@ class TemporalService(Service):
             scheduler_id: Unique identifier for the scheduler to resume
             note: Optional note explaining the reason for resuming
         """
-        client = await self.get_client()
-        hdl = client.get_schedule_handle(scheduler_id)
+        hdl = self.temporal_client.get_schedule_handle(scheduler_id)
         await hdl.unpause(note=note)
 
     async def schedule_fire(
@@ -183,8 +168,7 @@ class TemporalService(Service):
             scheduler_id: Unique identifier for the scheduler to fire
             force: If True, cancel other running instances; if False, buffer the execution
         """
-        client = await self.get_client()
-        hdl = client.get_schedule_handle(scheduler_id)
+        hdl = self.temporal_client.get_schedule_handle(scheduler_id)
         await hdl.trigger(
             overlap=ScheduleOverlapPolicy.CANCEL_OTHER if force else None
         )
@@ -195,9 +179,8 @@ class TemporalService(Service):
         await super().ensure()
 
         # Cancel all existing schedulers
-        client = await self.get_client()
-        async for schedule in await client.list_schedules():
-            hdl = client.get_schedule_handle(schedule.id)
+        async for schedule in await self.temporal_client.list_schedules():
+            hdl = self.temporal_client.get_schedule_handle(schedule.id)
             await hdl.delete()
 
         # renew JWT credentials for the workers

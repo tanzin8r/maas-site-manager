@@ -8,6 +8,7 @@ from fastapi import (
     Request,
 )
 from sqlalchemy.ext.asyncio import AsyncConnection
+from temporalio.client import Client as TemporalClient
 
 from msm.apiserver.db.models import Config
 from msm.apiserver.service import (
@@ -23,11 +24,19 @@ async def db_connection(request: Request) -> AsyncIterator[AsyncConnection]:
     yield request.state.conn
 
 
+async def temporal_client(request: Request) -> AsyncIterator[TemporalClient]:
+    """Provide the Temporal client from the request state.
+
+    Requires the TemporalMiddleware to be used."""
+    yield request.state.temporal_client
+
+
 def services(
     connection: Annotated[AsyncConnection, Depends(db_connection)],
+    temporal_client: Annotated[TemporalClient, Depends(temporal_client)],
 ) -> Iterator[ServiceCollection]:
     """Provide the ServiceCollection to access services."""
-    yield ServiceCollection(connection)
+    yield ServiceCollection(connection, temporal_client)
 
 
 async def config(

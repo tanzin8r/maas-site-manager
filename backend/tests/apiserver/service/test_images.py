@@ -301,18 +301,15 @@ class TestBootAssetService:
         mock_refresh = mocker.patch.object(
             boot_asset_service.index_service, "refresh"
         )
-        mock_delete = mocker.patch.object(
-            boot_asset_service.s3, "delete_object"
-        )
-        await boot_asset_service.purge_assets(
+        result = await boot_asset_service.purge_assets(
             [ubuntu_noble.id, ubuntu_jammy.id],
         )
-        for item in items_ubuntu_noble_1:
-            assert call(str(item.id)) in mock_delete.call_args_list
-        for item in items_ubuntu_noble_2:
-            assert call(str(item.id)) in mock_delete.call_args_list
-        for item in items_ubuntu_jammy_1:
-            assert call(str(item.id)) in mock_delete.call_args_list
+        assert result == [
+            i.id
+            for i in items_ubuntu_noble_1
+            + items_ubuntu_noble_2
+            + items_ubuntu_jammy_1
+        ]
         mock_refresh.assert_called_once()
         items = await factory.get("boot_asset_item")
         versions = await factory.get("boot_asset_version")

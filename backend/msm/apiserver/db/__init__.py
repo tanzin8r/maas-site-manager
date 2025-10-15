@@ -1,10 +1,6 @@
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import (
-    Any,
-    TypeVar,
-    cast,
-)
+from typing import Any, TypeVar, cast
 
 from sqlalchemy import (
     URL,
@@ -69,11 +65,13 @@ class Database:
                 yield conn
 
     async def execute_in_transaction(
-        self, func: Callable[[AsyncConnection], Awaitable[FuncResult]]
+        self,
+        func: Callable[..., Awaitable[FuncResult]],
+        *args: Any,
     ) -> FuncResult:
         """Execute the given async function in a transaction."""
         async with self.transaction() as conn:
-            return await func(conn)
+            return await func(conn, *args)
 
     async def _run_sync_in_transaction(
         self, func: Callable[[Connection], FuncResult]

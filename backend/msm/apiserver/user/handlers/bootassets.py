@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Path
+from fastapi import APIRouter, Depends, Path, Request
 
 from msm.apiserver.db import models
 from msm.apiserver.dependencies import services
@@ -180,11 +180,6 @@ async def patch_boot_source(
     return dm.BootSourcePatchResponse.from_model(updated_source)
 
 
-async def purge_and_refresh(services: ServiceCollection, id: int) -> None:
-    await services.boot_sources.purge_source(id)
-    await services.index_service.refresh()
-
-
 @v1_router.delete(
     "/bootasset-sources/{id}",
     responses={
@@ -196,10 +191,10 @@ async def purge_and_refresh(services: ServiceCollection, id: int) -> None:
 async def delete_boot_source(
     services: Annotated[ServiceCollection, Depends(services)],
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
-    background_tasks: BackgroundTasks,
     id: Annotated[
         int, Path(title="The ID of the Boot Source to delete", ge=2)
     ],
+    request: Request,
 ) -> None:
     bs = await services.boot_sources.get_by_id(id)
     if bs is None:
@@ -215,7 +210,8 @@ async def delete_boot_source(
                 )
             ],
         )
-    background_tasks.add_task(purge_and_refresh, services, id)
+    request.state.ids_to_delete = await services.boot_sources.purge_source(id)
+    await services.index_service.refresh()
 
 
 @v1_router.get(

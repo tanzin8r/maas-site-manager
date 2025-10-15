@@ -21,6 +21,9 @@ from fastapi.responses import (
 )
 from prometheus_client import REGISTRY, CollectorRegistry
 from sqlalchemy.ext.asyncio import AsyncConnection
+from temporalio.client import (
+    Client as TemporalClient,
+)
 import uvicorn
 from uvicorn.server import logger
 
@@ -34,6 +37,9 @@ from msm.apiserver.exceptions.middleware import (
 from msm.apiserver.metrics import collect_stats
 from msm.apiserver.middleware import (
     DatabaseMetricsMiddleware,
+    S3Middleware,
+    TemporalClientProxy,
+    TemporalMiddleware,
     TransactionMiddleware,
 )
 from msm.apiserver.prometheus import instrument_prometheus
@@ -75,18 +81,21 @@ def create_app(
     if not db:
         db = Database(settings.db_dsn())
 
+    temporal = TemporalClientProxy(settings)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         _log_settings(logger, settings)
-
+        await temporal.connect()
         async with aclosing(db):
+            temporal_client = temporal.get_client()
             await db.execute_in_transaction(check_server_version)
             await db.ensure_schema()
-            await db.execute_in_transaction(ensure_db_entries)
+            await db.execute_in_transaction(ensure_db_entries, temporal_client)
 
             # start background tasks
             async with anyio.create_task_group() as tg:
-                tg.start_soon(collect_stats, db, logger)
+                tg.start_soon(collect_stats, db, temporal_client, logger)
                 yield
                 # stop all tasks
                 tg.cancel_scope.cancel()
@@ -146,6 +155,8 @@ def create_app(
         # e.g. rollback a DB transaction
         a.add_middleware(DatabaseMetricsMiddleware, db=db)
         a.add_middleware(transaction_middleware_class, db=db)  # type: ignore
+        a.add_middleware(S3Middleware)
+        a.add_middleware(TemporalMiddleware, temporal=temporal)
         a.add_middleware(ExceptionMiddleware)
         a.add_exception_handler(
             RequestValidationError, request_validation_error_handler
@@ -159,9 +170,11 @@ def create_app(
     return app
 
 
-async def ensure_db_entries(conn: AsyncConnection) -> None:
+async def ensure_db_entries(
+    conn: AsyncConnection, temporal_client: TemporalClient
+) -> None:
     """Ensure global database entries are populated."""
-    services = ServiceCollection(conn)
+    services = ServiceCollection(conn, temporal_client)
     for srv in services.services:
         await srv.ensure()
 

@@ -224,7 +224,7 @@ class BootSourceService(Service):
         await self._ensure_custom()
         await self._ensure_sync()
 
-    async def purge_source(self, id: int) -> None:
+    async def purge_source(self, id: int) -> list[int]:
         """
         Purge all data associated with a boot source.
 
@@ -234,12 +234,18 @@ class BootSourceService(Service):
 
         Args:
             id: The ID of the boot source to purge.
+        Returns:
+            list[int]: A list of Boot Asset Item IDs that need to be deleted
+            from storage.
         """
         await self.workflows.disable_sync(id)
         _, assets = await self.boot_assets.get([], boot_source_id=[id])
-        await self.boot_assets.purge_assets([a.id for a in assets])
+        ids_to_delete = await self.boot_assets.purge_assets(
+            [a.id for a in assets]
+        )
         await self.boot_source_selections.delete_by_source_id(id)
         await self.delete(id)
+        return ids_to_delete
 
 
 class BootSourceSelectionService(Service):
@@ -623,7 +629,17 @@ class BootAssetService(Service):
     async def purge_assets(
         self,
         asset_ids: list[int],
-    ) -> None:
+    ) -> list[int]:
+        """
+        Purge all data associated with a list of Boot Assets.
+
+        Args:
+            asset_ids: The IDs of the Boot Assets to purge.
+        Returns:
+            list[int]: A list of Boot Asset Item IDs that need to be deleted
+            from storage.
+        """
+        ids_to_delete: list[int] = []
         for id in asset_ids:
             if asset := await self.get_by_id(id):
                 _, versions = await self.boot_asset_versions.get(
@@ -634,13 +650,14 @@ class BootAssetService(Service):
                         [], boot_asset_version_id=[version.id]
                     )
                     for item in items:
-                        self.s3.delete_object(str(item.id))
+                        ids_to_delete.append(item.id)
                     await self.boot_asset_items.delete_by_version_id(
                         version.id
                     )
                 await self.boot_asset_versions.delete_by_asset_id(asset.id)
                 await self.delete(asset.id)
         await self.index_service.refresh()
+        return ids_to_delete
 
 
 class BootAssetVersionService(Service):

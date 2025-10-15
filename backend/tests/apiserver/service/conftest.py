@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator, Iterator
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
+from temporalio.client import Client as TemporalClient
 
 from msm.apiserver.service import (
     BootAssetItemService,
@@ -21,8 +22,9 @@ from msm.apiserver.service.s3 import S3Service
 async def service_collection(
     db_connection: AsyncConnection,
     s3_env: None,
+    temporal_client: TemporalClient,
 ) -> AsyncIterator[ServiceCollection]:
-    yield ServiceCollection(db_connection)
+    yield ServiceCollection(db_connection, temporal_client)
 
 
 @pytest.fixture(autouse=True)

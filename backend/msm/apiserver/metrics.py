@@ -2,6 +2,7 @@ from logging import Logger
 
 from anyio import sleep
 from prometheus_client import Info
+from temporalio.client import Client as TemporalClient
 
 from msm import __version__
 from msm.apiserver.db import Database
@@ -14,12 +15,13 @@ msm_info.info({"version": __version__})
 
 async def collect_stats(
     db: Database,
+    temporal_client: TemporalClient,
     logger: Logger,
 ) -> None:
     refresh_interval = Settings().metrics_refresh_interval_seconds
 
     while True:
         async with db.transaction() as tx:
-            services = ServiceCollection(tx)
+            services = ServiceCollection(tx, temporal_client)
             await services.collect_metrics()
         await sleep(refresh_interval)

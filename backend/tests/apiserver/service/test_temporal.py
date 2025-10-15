@@ -3,7 +3,6 @@ from unittest.mock import call
 
 import pytest
 from pytest_mock import MockerFixture
-from temporalio.client import Client as TemporalClient
 
 from msm.apiserver.db.models import BootSource
 from msm.apiserver.service.temporal import (
@@ -15,29 +14,8 @@ from msm.common.jwt import TokenAudience, TokenPurpose
 from tests import AsyncIterator
 
 
-@pytest.fixture
-def mock_temporal_client(mocker: MockerFixture) -> Any:
-    """Fixture to provide a mocked TemporalClient."""
-    return mocker.AsyncMock(spec=TemporalClient)
-
-
 class TestTemporalService:
     """Test class for TemporalService."""
-
-    @pytest.mark.asyncio
-    async def test_client_success(
-        self,
-        mocker: MockerFixture,
-        temporal_service: TemporalService,
-        mock_temporal_client: Any,
-    ) -> None:
-        """Test successful client connection."""
-        _ = mocker.patch(
-            "msm.apiserver.service.temporal.Client.connect",
-            return_value=mock_temporal_client,
-        )
-        client = await temporal_service.get_client()
-        assert client == mock_temporal_client
 
     @pytest.mark.asyncio
     async def test_get_worker_credentials_success(
@@ -77,7 +55,7 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         scheduler_id = "test-scheduler"
         workflow = "TestWorkflow"
@@ -88,23 +66,17 @@ class TestTemporalService:
 
         mock_schedule_handle = mocker.MagicMock()
         mock_schedule_handle.id = expected_handle_id
-        mock_temporal_client.create_schedule.return_value = (
-            mock_schedule_handle
-        )
-
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.create_schedule.return_value = mock_schedule_handle
 
         result = await temporal_service.schedule_create(
             scheduler_id, workflow, workflow_id, param, interval
         )
 
         assert result == expected_handle_id
-        mock_temporal_client.create_schedule.assert_called_once()
+        temporal_client.create_schedule.assert_called_once()
 
         # Verify the call arguments
-        call_args = mock_temporal_client.create_schedule.call_args
+        call_args = temporal_client.create_schedule.call_args
         assert call_args[0][0] == scheduler_id  # First positional argument
         # Second positional argument (Schedule object)
         schedule_obj = call_args[0][1]
@@ -117,22 +89,17 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful schedule cancellation."""
         scheduler_id = "test-scheduler-to-cancel"
 
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
 
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
         await temporal_service.schedule_cancel(scheduler_id)
 
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.get_schedule_handle.assert_called_once_with(
             scheduler_id
         )
         mock_schedule_handle.delete.assert_called_once()
@@ -142,22 +109,18 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful schedule pause."""
         scheduler_id = "test-scheduler-to-pause"
         note = "Pausing for maintenance"
 
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
+
         await temporal_service.schedule_pause(scheduler_id, note)
 
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.get_schedule_handle.assert_called_once_with(
             scheduler_id
         )
         mock_schedule_handle.pause.assert_called_once_with(note=note)
@@ -167,21 +130,16 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful schedule pause without note."""
         scheduler_id = "test-scheduler-to-pause"
 
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
         await temporal_service.schedule_pause(scheduler_id)
 
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.get_schedule_handle.assert_called_once_with(
             scheduler_id
         )
         mock_schedule_handle.pause.assert_called_once_with(note=None)
@@ -191,22 +149,17 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful schedule resume."""
         scheduler_id = "test-scheduler-to-resume"
         note = "Pausing for maintenance"
 
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
         await temporal_service.schedule_resume(scheduler_id, note)
 
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.get_schedule_handle.assert_called_once_with(
             scheduler_id
         )
         mock_schedule_handle.unpause.assert_called_once_with(note=note)
@@ -216,21 +169,16 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful schedule resume without note."""
         scheduler_id = "test-scheduler-to-resume"
 
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
         await temporal_service.schedule_resume(scheduler_id)
 
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.get_schedule_handle.assert_called_once_with(
             scheduler_id
         )
         mock_schedule_handle.unpause.assert_called_once_with(note=None)
@@ -240,21 +188,16 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful schedule fire."""
         scheduler_id = "test-scheduler-to-fire"
 
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
         await temporal_service.schedule_fire(scheduler_id)
 
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.get_schedule_handle.assert_called_once_with(
             scheduler_id
         )
         mock_schedule_handle.trigger.assert_called_once_with(overlap=None)
@@ -264,7 +207,7 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful schedule fire with force=True."""
         from temporalio.client import ScheduleOverlapPolicy
@@ -272,15 +215,10 @@ class TestTemporalService:
         scheduler_id = "test-scheduler-to-fire"
 
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
         await temporal_service.schedule_fire(scheduler_id, force=True)
 
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.get_schedule_handle.assert_called_once_with(
             scheduler_id
         )
         mock_schedule_handle.trigger.assert_called_once_with(
@@ -292,7 +230,7 @@ class TestTemporalService:
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        mock_temporal_client: Any,
+        temporal_client: Any,
     ) -> None:
         """Test successful ensure operation."""
 
@@ -300,16 +238,10 @@ class TestTemporalService:
         mock_schedule = mocker.MagicMock()
         mock_schedule.id = "existing-schedule-123"
         mock_schedule_handle = mocker.AsyncMock()
-        mock_temporal_client.list_schedules.return_value = AsyncIterator(
+        temporal_client.list_schedules.return_value = AsyncIterator(
             [mock_schedule]
         )
-        mock_temporal_client.get_schedule_handle.return_value = (
-            mock_schedule_handle
-        )
-
-        _ = mocker.patch.object(
-            temporal_service, "get_client", return_value=mock_temporal_client
-        )
+        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
 
         # Mock tokens service
         mock_existing_token = mocker.MagicMock()
@@ -345,8 +277,8 @@ class TestTemporalService:
         await temporal_service.ensure()
 
         # Verify existing schedules were deleted
-        mock_temporal_client.list_schedules.assert_called_once()
-        mock_temporal_client.get_schedule_handle.assert_called_once_with(
+        temporal_client.list_schedules.assert_called_once()
+        temporal_client.get_schedule_handle.assert_called_once_with(
             mock_schedule.id
         )
         mock_schedule_handle.delete.assert_called_once()

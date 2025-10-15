@@ -2,7 +2,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 from typing import cast
-from unittest.mock import call
+from unittest.mock import ANY, call
 
 import pytest
 from pytest_mock import MockerFixture, MockType
@@ -389,8 +389,11 @@ class TestCustomImageDeleteHandler:
         user_client: Client,
         boot_source_custom: BootSource,
         factory: Factory,
-        mock_s3_service: MockType,
+        mocker: MockerFixture,
     ) -> None:
+        mock_start_wf = mocker.patch(
+            "msm.apiserver.middleware.S3Middleware.start_delete_workflow",
+        )
         asset = await factory.make_BootAsset(
             boot_source_custom.id,
             os="custom",
@@ -410,7 +413,7 @@ class TestCustomImageDeleteHandler:
         assert len(assets) == 0
         assert len(versions) == 0
         assert len(items) == 0
-        mock_s3_service.delete_object.assert_called_once_with(str(item.id))
+        mock_start_wf.assert_called_once_with(ANY, [item.id])
 
     async def test_delete_non_custom(
         self,
@@ -730,6 +733,8 @@ class TestPostSelectedImagesRemoveHandler:
         self,
         ubuntu_noble: BootAsset,
         ubuntu_jammy: BootAsset,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_ubuntu_jammy_1: list[BootAssetItem],
         factory: Factory,
         user_client: Client,
         mocker: MockerFixture,
@@ -753,19 +758,16 @@ class TestPostSelectedImagesRemoveHandler:
             arch=ubuntu_jammy.arch,
             selected=True,
         )
-        mock_background = mocker.patch(
-            "msm.apiserver.user.handlers.bootassets.BackgroundTasks.add_task",
+        mock_start_wf = mocker.patch(
+            "msm.apiserver.middleware.S3Middleware.start_delete_workflow",
         )
         resp = await user_client.post(
             "/selected-images:remove",
             json={"selection_ids": [noble_sel.id, jammy_sel.id]},
         )
         assert resp.status_code == 204
-        # We can't get the exact method call from the ServiceCollection
-        # object in memory, so just use mocker.ANY
-        mock_background.assert_called_once_with(
-            mocker.ANY,
-            [noble_sel.id, jammy_sel.id],
+        mock_start_wf.assert_called_once_with(
+            ANY, [i.id for i in items_ubuntu_noble_1 + items_ubuntu_jammy_1]
         )
         expected_calls = [
             call(
