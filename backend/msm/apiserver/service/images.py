@@ -275,6 +275,9 @@ class BootSourceSelectionService(Service):
             release=release,
             arch=arch,
         )
+        count = await queries.row_count(
+            self.conn, BootSourceSelection, *filters
+        )
         stmt = (
             self._select_statement(
                 BootSourceSelection.c.id,
@@ -292,7 +295,7 @@ class BootSourceSelectionService(Service):
         if limit is not None:
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
-        return result.rowcount, self.objects_from_result(
+        return count, self.objects_from_result(
             models.BootSourceSelection, result
         )
 

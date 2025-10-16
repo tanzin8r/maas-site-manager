@@ -234,16 +234,17 @@ async def get_boot_source_selections(
     pagination_params: Annotated[PaginationParams, Depends()],
 ) -> dm.BootSourceSelectionsGetResponse:
     """Return boot source selections."""
+    is_user = isinstance(authenticated_user, models.User)
     total, results = await services.boot_source_selections.get(
         sort_params,
-        offset=pagination_params.offset,
-        limit=pagination_params.size,
+        offset=pagination_params.offset if is_user else 0,
+        limit=pagination_params.size if is_user else None,
         boot_source_id=[id],
     )
     return dm.BootSourceSelectionsGetResponse(
         total=total,
-        page=pagination_params.page,
-        size=pagination_params.size,
+        page=pagination_params.page if is_user else 1,
+        size=pagination_params.size if is_user else total,
         items=list(results),
     )
 
