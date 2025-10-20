@@ -182,6 +182,9 @@ class TestSyncUpstreamSourceWorkflow:
         mock_start_download = mocker.patch.object(
             SyncUpstreamSourceWorkflow, "start_download"
         )
+        mock_start_remove_stale = mocker.patch.object(
+            SyncUpstreamSourceWorkflow, "remove_stale_images"
+        )
 
         # Act
         async with await WorkflowEnvironment.start_time_skipping() as env:
@@ -207,6 +210,7 @@ class TestSyncUpstreamSourceWorkflow:
         # Assert
         assert result is True
         mock_start_download.assert_called_once()
+        mock_start_remove_stale.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_success_download_in_progress(
@@ -263,6 +267,9 @@ class TestSyncUpstreamSourceWorkflow:
             "start_download",
             side_effect=WorkflowAlreadyStartedError("", ""),
         )
+        mock_start_remove_stale = mocker.patch.object(
+            SyncUpstreamSourceWorkflow, "remove_stale_images"
+        )
 
         # Act
         async with await WorkflowEnvironment.start_time_skipping() as env:
@@ -288,6 +295,7 @@ class TestSyncUpstreamSourceWorkflow:
         # Assert
         assert result is True
         mock_start_download.assert_called_once()
+        mock_start_remove_stale.assert_called_once()
 
 
 class TestRefreshUpstreamSourceWorkflow:

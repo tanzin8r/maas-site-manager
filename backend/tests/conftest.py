@@ -1,3 +1,6 @@
+from datetime import UTC, datetime
+import typing
+
 import pytest
 
 from tests.fixtures.bootassets import (
@@ -37,6 +40,32 @@ from tests.fixtures.env import (
 )
 from tests.fixtures.factory import factory
 
+
+@pytest.fixture
+def source_assets() -> dict[str, typing.Any]:
+    return {
+        "versions": [
+            {
+                "asset_id": 1,
+                "versions": {
+                    "20250716": {
+                        "complete": True,
+                        "last_seen": datetime.now(UTC),
+                    },
+                    "20250805": {
+                        "complete": True,
+                        "last_seen": datetime.now(UTC),
+                    },
+                    "20250903": {
+                        "complete": True,
+                        "last_seen": datetime.now(UTC),
+                    },
+                },
+            }
+        ]
+    }
+
+
 __all__ = [
     "boot_source_custom",
     "boot_source_disabled",
@@ -59,6 +88,7 @@ __all__ = [
     "sel_ubuntu_jammy",
     "sel_ubuntu_noble",
     "settings_environ",
+    "source_assets",
     "transaction_middleware_class",
     "ubuntu_jammy",
     "ubuntu_noble",

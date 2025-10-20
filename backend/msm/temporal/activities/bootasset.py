@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
+from typing import Any
 
+from pydantic import AwareDatetime
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
 from msm.common.api.bootassets import (
+    AssetVersions,
     AvailableBootSourceSelection,
     BootAssetItemGetResponse,
     BootSourceAvailSelectionsPutRequest,
@@ -20,6 +23,9 @@ GET_BOOT_SOURCE_ACTIVITY = "get-boot-source"
 GET_BOOT_ASSET_ITEM_ACTIVITY = "get-boot-asset-item"
 PUT_AVAILABLE_ASSETS_ACTIVITY = "patch-available-asset-list"
 PUT_NEW_ASSETS_ACTIVITY = "put-new-asset-list"
+GET_SOURCE_VERSIONS_ACTIVITY = "get-source-versions"
+REMOVE_STALE_VERSIONS_ACTIVITY = "remove-stale-versions"
+GET_SOURCE_LAST_SYNC_ACTIVITY = "get-source-last-sync"
 
 
 @dataclass
@@ -53,6 +59,27 @@ class PutAssetListParams:
 
 
 @dataclass
+class GetSourceVersionsParams:
+    msm_base_url: str
+    msm_jwt: str
+    boot_source_id: int
+
+
+@dataclass
+class GetSourceVersionsResult:
+    versions: list[AssetVersions]
+
+
+@dataclass
+class RemoveStaleVersionsParams:
+    msm_base_url: str
+    msm_jwt: str
+    versions: list[AssetVersions]
+    versions_to_keep: int
+    source_last_sync: AwareDatetime
+
+
+@dataclass
 class PutAssetListResult:
     to_download: list[int]
 
@@ -72,24 +99,37 @@ class GetBootAssetItemResult:
     bytes_synced: int
 
 
-class BootAssetActivities(BaseActivity):
-    @activity.defn(name=GET_BOOT_SOURCE_ACTIVITY)
-    async def get_boot_source(
-        self, params: GetBootSourceParams
-    ) -> GetBootSourceResult:
-        headers = self._get_header(params.msm_jwt)
+@dataclass
+class GetSourceLastSyncParams:
+    msm_base_url: str
+    msm_jwt: str
+    boot_source_id: int
 
-        # get source
+
+class BootAssetActivities(BaseActivity):
+    async def _get_boot_source(
+        self, msm_base_url: str, headers: dict[str, str], boot_source_id: int
+    ) -> BootSourceGetResponse:
         url = compose_url(
-            params.msm_base_url,
-            f"api/v1/bootasset-sources/{params.boot_source_id}",
+            msm_base_url,
+            f"api/v1/bootasset-sources/{boot_source_id}",
         )
         response = await self.client.get(url, headers=headers)
         if response.status_code != 200:
             raise ApplicationError(
                 f"Failed to get boot source: {response.status_code} {response.text}"
             )
-        boot_source = BootSourceGetResponse.from_dict(response.json())
+        return BootSourceGetResponse.from_dict(response.json())
+
+    @activity.defn(name=GET_BOOT_SOURCE_ACTIVITY)
+    async def get_boot_source(
+        self, params: GetBootSourceParams
+    ) -> GetBootSourceResult:
+        headers = self._get_header(params.msm_jwt)
+
+        boot_source = await self._get_boot_source(
+            params.msm_base_url, headers, params.boot_source_id
+        )
 
         # get selections
         url = compose_url(
@@ -206,3 +246,82 @@ class BootAssetActivities(BaseActivity):
 
         ret = response.json()["to_download"]
         return PutAssetListResult(to_download=ret)
+
+    @activity.defn(name=GET_SOURCE_LAST_SYNC_ACTIVITY)
+    async def get_source_last_sync(
+        self, params: GetSourceLastSyncParams
+    ) -> AwareDatetime:
+        headers = self._get_header(params.msm_jwt)
+        boot_source = await self._get_boot_source(
+            params.msm_base_url, headers, params.boot_source_id
+        )
+        return boot_source.last_sync
+
+    @activity.defn(name=GET_SOURCE_VERSIONS_ACTIVITY)
+    async def get_source_versions(
+        self, params: GetSourceVersionsParams
+    ) -> GetSourceVersionsResult:
+        headers = self._get_header(params.msm_jwt)
+        url = compose_url(
+            params.msm_base_url,
+            f"api/v1/bootasset-sources/{params.boot_source_id}/versions",
+        )
+        response = await self.client.get(url, headers=headers)
+        if response.status_code != 200:
+            raise ApplicationError(
+                f"Failed to retrieve versions for source {params.boot_source_id}: {response.status_code} {response.text}"
+            )
+        versions = [
+            AssetVersions.from_dict(a) for a in response.json()["versions"]
+        ]
+        return GetSourceVersionsResult(versions=versions)
+
+    @activity.defn(name=REMOVE_STALE_VERSIONS_ACTIVITY)
+    async def remove_stale_versions(
+        self,
+        params: RemoveStaleVersionsParams,
+    ) -> None:
+        # first get rid of versions that have been removed from upstream
+        versions_removed_from_up: list[tuple[int, dict[str, Any]]] = []
+        for i, av in enumerate(params.versions):
+            for v, vs in av.versions.items():
+                if vs.last_seen < params.source_last_sync:
+                    versions_removed_from_up.append(
+                        (
+                            i,
+                            {
+                                "asset_id": av.asset_id,
+                                "version": v,
+                            },
+                        )
+                    )
+
+        for i, rv in versions_removed_from_up:
+            params.versions[i].versions.pop(rv["version"])
+
+        # next, check if we have more than required number of versions
+        versions_to_remove = [v[1] for v in versions_removed_from_up]
+        for av in params.versions:
+            complete_versions = [
+                v for v, s in av.versions.items() if s.complete
+            ]
+            if len(complete_versions) > params.versions_to_keep:
+                stale = complete_versions[: -params.versions_to_keep]
+                versions_to_remove += [
+                    {"asset_id": av.asset_id, "version": v} for v in stale
+                ]
+        if versions_to_remove:
+            headers = self._get_header(params.msm_jwt)
+            url = compose_url(
+                params.msm_base_url,
+                "api/v1/bootasset-versions:remove",
+            )
+            response = await self.client.post(
+                url, headers=headers, json={"to_remove": versions_to_remove}
+            )
+            if response.status_code != 200:
+                raise ApplicationError(
+                    f"Failed to remove stale versions {versions_to_remove}: {response.status_code} {response.text}"
+                )
+        else:
+            activity.logger.debug("No stale versions to remove")

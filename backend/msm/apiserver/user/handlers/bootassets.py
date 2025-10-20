@@ -180,6 +180,53 @@ async def patch_boot_source(
     return dm.BootSourcePatchResponse.from_model(updated_source)
 
 
+@v1_router.post(
+    "/bootasset-versions:remove",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
+    },
+)
+async def remove_versions(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
+    ],
+    post_request: dm.VersionsRemovePostRequest,
+    request: Request,
+) -> None:
+    request.state.ids_to_delete = []
+    for v in post_request.to_remove:
+        count, versions = await services.boot_asset_versions.get(
+            [], boot_asset_id=[v.asset_id], version=[v.version]
+        )
+        if not count:
+            raise NotFoundException(
+                code=ExceptionCode.MISSING_RESOURCE,
+                message="Boot Asset Version does not exist.",
+                details=[
+                    BaseExceptionDetail(
+                        reason=ExceptionCode.MISSING_RESOURCE,
+                        messages=[
+                            f"BootAssetVersion {v.version} does not exist for Asset ID {v.asset_id}"
+                        ],
+                        field="version",
+                        location="body",
+                    )
+                ],
+            )
+        version = next(iter(versions))
+        _, items = await services.boot_asset_items.get(
+            [], boot_asset_version_id=[version.id]
+        )
+        await services.boot_asset_items.delete_by_version_id(version.id)
+        await services.boot_asset_versions.delete(version.id)
+        request.state.ids_to_delete += [i.id for i in items]
+    await services.index_service.refresh()
+
+
 @v1_router.delete(
     "/bootasset-sources/{id}",
     responses={
@@ -315,6 +362,59 @@ async def put_boot_source_avail_selections(
 
     await services.index_service.refresh()
     return dm.BootSourceAvailSelectionsPutResponse(stale=stale)
+
+
+@v1_router.get(
+    "/bootasset-sources/{id}/versions",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+    },
+)
+async def get_source_assets(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[
+        models.User | models.Worker,
+        Depends(verify_authenticated_user_or_worker),
+    ],
+    id: int,
+) -> dm.BootSourceVersionsGetResponse:
+    """
+    Return a list of assets, with their versions.
+    """
+    source = await services.boot_sources.get_by_id(id)
+    if source is None:
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Boot Source does not exist.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[f"BootSource ID {id} does not exist"],
+                    field="id",
+                    location="path",
+                )
+            ],
+        )
+    asset_versions: list[dm.AssetVersions] = []
+    _, assets = await services.boot_assets.get([], boot_source_id=[id])
+    for asset in assets:
+        av = dm.AssetVersions(asset_id=asset.id, versions={})
+        _, versions = await services.boot_asset_versions.get(
+            [], boot_asset_id=[asset.id]
+        )
+        for version in versions:
+            _, items = await services.boot_asset_items.get(
+                [], boot_asset_version_id=[version.id]
+            )
+            complete = all([i.bytes_synced == i.file_size for i in items])
+            av.versions[version.version] = dm.VersionStatus(
+                complete=complete, last_seen=version.last_seen
+            )
+
+        asset_versions.append(av)
+
+    return dm.BootSourceVersionsGetResponse(versions=asset_versions)
 
 
 @v1_router.put(

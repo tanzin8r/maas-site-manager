@@ -115,6 +115,10 @@ class ProductItem(BaseModel):
     source_version: str | None = None
     source_release: str | None = None
 
+    @classmethod
+    def from_item(cls, asset: models.BootAssetItem) -> Self:
+        return cls(**asset.model_dump())
+
 
 class Product(BaseModel):
     kind: BootAssetKind
@@ -135,12 +139,64 @@ class Product(BaseModel):
     versions: dict[str, list[ProductItem]]
 
 
+class IdProduct(Product):
+    id: int
+
+    @classmethod
+    def from_asset(cls, asset: models.BootAsset) -> Self:
+        return cls(**asset.model_dump(), versions={})
+
+    @classmethod
+    def from_dict(cls, product: dict[str, Any]) -> Self:
+        return cls(
+            versions={
+                ver: [
+                    ProductItem(**{ikey: ival for ikey, ival in item.items()})
+                    for item in items
+                ]
+                for ver, items in product["versions"].items()
+            },
+            **{
+                pkey: pval
+                for pkey, pval in product.items()
+                if pkey != "versions"
+            },
+        )
+
+
 class BootSourcesAssetsPutRequest(BaseModel):
     products: list[Product]
 
 
 class BootSourcesAssetsPutResponse(BaseModel):
     to_download: list[int]
+
+
+class VersionStatus(BaseModel):
+    complete: bool
+    last_seen: AwareDatetime
+
+
+class AssetVersions(BaseModel):
+    asset_id: int
+    versions: dict[str, VersionStatus]
+
+    @classmethod
+    def from_dict(cls, versions: dict[str, Any]) -> Self:
+        return cls(
+            asset_id=versions["asset_id"],
+            versions={
+                v: VersionStatus(
+                    complete=i["complete"],
+                    last_seen=i["last_seen"],
+                )
+                for v, i in versions["versions"].items()
+            },
+        )
+
+
+class BootSourceVersionsGetResponse(BaseModel):
+    versions: list[AssetVersions]
 
 
 class BootAssetItemGetResponse(models.BootAssetItem):
@@ -151,3 +207,12 @@ class BootAssetItemGetResponse(models.BootAssetItem):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(**data)
+
+
+class Version(BaseModel):
+    asset_id: int
+    version: str
+
+
+class VersionsRemovePostRequest(BaseModel):
+    to_remove: list[Version]

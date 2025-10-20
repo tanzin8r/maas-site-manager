@@ -8,9 +8,11 @@ from temporalio.exceptions import WorkflowAlreadyStartedError
 from msm.common.workflows.sync import (
     DOWNLOAD_UPSTREAM_IMAGE_WF_NAME,
     REFRESH_UPSTREAM_SOURCE_WF_NAME,
+    REMOVE_STALE_IMAGES_WF_NAME,
     SYNC_UPSTREAM_SOURCE_WF_NAME,
     DownloadUpstreamImageParams,
     RefreshUpstreamSourceParams,
+    RemoveStaleImagesParams,
     S3Params,
     SyncUpstreamSourceParams,
 )
@@ -53,6 +55,28 @@ class SyncUpstreamSourceWorkflow:
             id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE_FAILED_ONLY,
             parent_close_policy=workflow.ParentClosePolicy.ABANDON,
             retry_policy=RetryPolicy(  # don't spin too fast
+                initial_interval=timedelta(seconds=15),
+                maximum_interval=timedelta(seconds=15),
+            ),
+        )
+
+    async def remove_stale_images(
+        self,
+        msm_url: str,
+        msm_jwt: str,
+        boot_source_id: int,
+    ) -> None:
+        await workflow.start_child_workflow(
+            REMOVE_STALE_IMAGES_WF_NAME,
+            RemoveStaleImagesParams(
+                msm_url=msm_url,
+                msm_jwt=msm_jwt,
+                boot_source_id=boot_source_id,
+            ),
+            id=f"remove-stale-images-{boot_source_id}",
+            id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
+            parent_close_policy=workflow.ParentClosePolicy.ABANDON,
+            retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=15),
                 maximum_interval=timedelta(seconds=15),
             ),
@@ -135,8 +159,12 @@ class SyncUpstreamSourceWorkflow:
                 len(assets.to_download),
             )
 
+        await self.remove_stale_images(
+            params.msm_url,
+            params.msm_jwt,
+            params.boot_source_id,
+        )
         workflow.logger.info("Source %d sync completed", params.boot_source_id)
-
         return True
 
 

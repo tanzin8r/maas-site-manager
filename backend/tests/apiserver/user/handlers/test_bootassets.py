@@ -14,10 +14,13 @@ from msm.apiserver.db.models import (
 )
 from msm.apiserver.service.images import END_OF_TIME
 from msm.common.api.bootassets import (
+    AssetVersions,
     BootSourcesAssetsPutRequest,
     BootSourcesAssetsPutResponse,
+    BootSourceVersionsGetResponse,
     Product,
     ProductItem,
+    VersionStatus,
 )
 from msm.common.enums import BootAssetKind, BootAssetLabel, ItemFileType
 from msm.common.jwt import TokenAudience, TokenPurpose
@@ -622,6 +625,112 @@ class TestBootAssetItemsPatchHandler:
         stored = await factory.get("boot_asset_item")
         assert len(stored) == 3
         assert stored[0]["bytes_synced"] == data["bytes_synced"]
+
+
+@pytest.mark.asyncio
+class TestGetBootSourceVersionsHandler:
+    async def test_get(
+        self,
+        user_client: Client,
+        ubuntu_noble: BootAsset,
+        ubuntu_jammy: BootAsset,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        ver_ubuntu_noble_2: BootAssetVersion,
+        ver_ubuntu_jammy_1: BootAssetVersion,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_ubuntu_noble_2: list[BootAssetItem],
+        items_ubuntu_jammy_1: list[BootAssetItem],
+        centos: BootAsset,
+    ) -> None:
+        resp = await user_client.get(
+            f"/bootasset-sources/{ubuntu_noble.boot_source_id}/versions"
+        )
+        assert resp.status_code == 200
+
+        expected = BootSourceVersionsGetResponse(
+            versions=[
+                AssetVersions(
+                    asset_id=ubuntu_jammy.id,
+                    versions={
+                        ver_ubuntu_jammy_1.version: VersionStatus(
+                            complete=True,
+                            last_seen=ver_ubuntu_jammy_1.last_seen,
+                        )
+                    },
+                ),
+                AssetVersions(
+                    asset_id=ubuntu_noble.id,
+                    versions={
+                        ver_ubuntu_noble_1.version: VersionStatus(
+                            complete=True,
+                            last_seen=ver_ubuntu_noble_1.last_seen,
+                        ),
+                        ver_ubuntu_noble_2.version: VersionStatus(
+                            complete=False,
+                            last_seen=ver_ubuntu_noble_2.last_seen,
+                        ),
+                    },
+                ),
+            ]
+        )
+        assert resp.json() == expected.model_dump(mode="json")
+
+    async def test_get_not_found(
+        self,
+        user_client: Client,
+    ) -> None:
+        resp = await user_client.get("bootasset-sources/999/versions")
+        assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestRemoveVersionsHandler:
+    async def test_post(
+        self,
+        user_client: Client,
+        factory: Factory,
+        mocker: MockerFixture,
+        ubuntu_noble: BootAsset,
+        ver_ubuntu_noble_1: BootAssetVersion,
+        ver_ubuntu_noble_2: BootAssetVersion,
+        items_ubuntu_noble_1: list[BootAssetItem],
+        items_ubuntu_noble_2: list[BootAssetItem],
+    ) -> None:
+        mock_start_wf = mocker.patch(
+            "msm.apiserver.middleware.S3Middleware.start_delete_workflow",
+        )
+        data = {
+            "to_remove": [
+                {
+                    "asset_id": ubuntu_noble.id,
+                    "version": ver_ubuntu_noble_1.version,
+                },
+            ]
+        }
+        resp = await user_client.post("/bootasset-versions:remove", json=data)
+        assert resp.status_code == 200
+        assets = await factory.get("boot_asset")
+        assert [ubuntu_noble.model_dump()] == assets
+        versions = await factory.get("boot_asset_version")
+        assert [ver_ubuntu_noble_2.model_dump()] == versions
+        items = await factory.get("boot_asset_item")
+        assert items == [i.model_dump() for i in items_ubuntu_noble_2]
+        mock_start_wf.assert_called_once_with(
+            ANY, [i.id for i in items_ubuntu_noble_1]
+        )
+
+    async def test_post_not_found(
+        self,
+        user_client: Client,
+        ubuntu_noble: BootAsset,
+    ) -> None:
+        data = {
+            "to_remove": [
+                {"asset_id": ubuntu_noble.id, "version": "not-a-version"}
+            ]
+        }
+        resp = await user_client.post("/bootasset-versions:remove", json=data)
+        assert resp.status_code == 404
 
 
 @pytest.mark.asyncio
