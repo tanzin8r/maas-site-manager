@@ -7,12 +7,16 @@ from temporalio.client import (
     Client as TemporalClient,
     Schedule,
     ScheduleActionStartWorkflow,
+    ScheduleHandle,
     ScheduleIntervalSpec,
     ScheduleOverlapPolicy,
     SchedulePolicy,
     ScheduleSpec,
+    ScheduleUpdate,
+    ScheduleUpdateInput,
 )
 from temporalio.common import RetryPolicy
+from temporalio.service import RPCError
 from temporallib.client import Options  # type: ignore
 from temporallib.encryption import EncryptionOptions  # type: ignore
 
@@ -173,33 +177,31 @@ class TemporalService(Service):
             overlap=ScheduleOverlapPolicy.CANCEL_OTHER if force else None
         )
 
+    def get_schedule_handle(self, schedule_id: str) -> ScheduleHandle:
+        return self.temporal_client.get_schedule_handle(schedule_id)
+
     @override
     async def ensure(self) -> None:
         """Prepare Site Manager to schedule Temporal workflows."""
         await super().ensure()
 
-        # Cancel all existing schedulers
-        async for schedule in await self.temporal_client.list_schedules():
-            hdl = self.temporal_client.get_schedule_handle(schedule.id)
-            await hdl.delete()
-
         # renew JWT credentials for the workers
-        cnt, tokens = await self.tokens.get(
+        _, tokens = await self.tokens.get(
             audience=[TokenAudience.WORKER], purpose=[TokenPurpose.ACCESS]
         )
-        if cnt:
-            _ = await self.tokens.delete_many([t.id for t in tokens])
+        if expired := [t.id for t in tokens if t.is_expired()]:
+            _ = await self.tokens.delete_many(expired)
 
-        config = await self.config.get()
-        service_url = await self.settings.get_service_url()
-        _ = await self.tokens.create(
-            issuer=config.service_identifier,
-            secret_key=config.token_secret_key,
-            service_url=service_url,
-            audience=TokenAudience.WORKER,
-            purpose=TokenPurpose.ACCESS,
-            duration=WORKER_TOKEN_DURATION,
-        )
+            config = await self.config.get()
+            service_url = await self.settings.get_service_url()
+            _ = await self.tokens.create(
+                issuer=config.service_identifier,
+                secret_key=config.token_secret_key,
+                service_url=service_url,
+                audience=TokenAudience.WORKER,
+                purpose=TokenPurpose.ACCESS,
+                duration=WORKER_TOKEN_DURATION,
+            )
 
 
 class BootSourceWorkflowService(Service):
@@ -252,33 +254,97 @@ class BootSourceWorkflowService(Service):
             msm_jwt: The API JWT credentials for workers. If empty, will be retrieved automatically.
         """
         msm_url, msm_jwt = await self.temporal.get_worker_credentials()
+        try:
+            hdls = [
+                self.temporal.get_schedule_handle(
+                    f"sched-boot-select-{boot_source_id}"
+                ),
+                self.temporal.get_schedule_handle(
+                    f"sched-boot-source-{boot_source_id}"
+                ),
+            ]
+            s3_params = self.s3_params
 
-        # sync selections
-        _ = await self.temporal.schedule_create(
-            scheduler_id=f"sched-boot-select-{boot_source_id}",
-            workflow=msm_wf.REFRESH_UPSTREAM_SOURCE_WF_NAME,
-            workflow_id=f"wf-refresh-bootsel-{boot_source_id}",
-            param=msm_wf.RefreshUpstreamSourceParams(
-                msm_url=msm_url,
-                msm_jwt=msm_jwt,
-                boot_source_id=boot_source_id,
-            ),
-            interval=max(sync_interval // 2, BOOT_SELECTION_REFRESH_INTVAL),
-        )
+            def update_schedule(input: ScheduleUpdateInput) -> ScheduleUpdate:
+                if isinstance(
+                    input.description.schedule.action,
+                    ScheduleActionStartWorkflow,
+                ):
+                    if (
+                        input.description.schedule.action.workflow
+                        == msm_wf.SYNC_UPSTREAM_SOURCE_WF_NAME
+                    ):
+                        input.description.schedule.action.args = [
+                            msm_wf.SyncUpstreamSourceParams(
+                                msm_url=msm_url,
+                                msm_jwt=msm_jwt,
+                                boot_source_id=boot_source_id,
+                                s3_params=s3_params,
+                            )
+                        ]
+                        input.description.schedule.spec = ScheduleSpec(
+                            intervals=[
+                                ScheduleIntervalSpec(
+                                    every=timedelta(minutes=sync_interval)
+                                )
+                            ]
+                        )
+                    elif (
+                        input.description.schedule.action.workflow
+                        == msm_wf.REFRESH_UPSTREAM_SOURCE_WF_NAME
+                    ):
+                        input.description.schedule.action.args = [
+                            msm_wf.RefreshUpstreamSourceParams(
+                                msm_url=msm_url,
+                                msm_jwt=msm_jwt,
+                                boot_source_id=boot_source_id,
+                            )
+                        ]
+                        input.description.schedule.spec = ScheduleSpec(
+                            intervals=[
+                                ScheduleIntervalSpec(
+                                    every=timedelta(
+                                        minutes=max(
+                                            sync_interval // 2,
+                                            BOOT_SELECTION_REFRESH_INTVAL,
+                                        ),
+                                    )
+                                )
+                            ]
+                        )
+                return ScheduleUpdate(schedule=input.description.schedule)
 
-        # sync images
-        _ = await self.temporal.schedule_create(
-            scheduler_id=f"sched-boot-source-{boot_source_id}",
-            workflow=msm_wf.SYNC_UPSTREAM_SOURCE_WF_NAME,
-            workflow_id=f"wf-sync-upstream-{boot_source_id}",
-            param=msm_wf.SyncUpstreamSourceParams(
-                msm_url=msm_url,
-                msm_jwt=msm_jwt,
-                boot_source_id=boot_source_id,
-                s3_params=self.s3_params,
-            ),
-            interval=sync_interval,
-        )
+            for hdl in hdls:
+                await hdl.update(update_schedule)
+        except RPCError:
+            # sync selections
+            _ = await self.temporal.schedule_create(
+                scheduler_id=f"sched-boot-select-{boot_source_id}",
+                workflow=msm_wf.REFRESH_UPSTREAM_SOURCE_WF_NAME,
+                workflow_id=f"wf-refresh-bootsel-{boot_source_id}",
+                param=msm_wf.RefreshUpstreamSourceParams(
+                    msm_url=msm_url,
+                    msm_jwt=msm_jwt,
+                    boot_source_id=boot_source_id,
+                ),
+                interval=max(
+                    sync_interval // 2, BOOT_SELECTION_REFRESH_INTVAL
+                ),
+            )
+
+            # sync images
+            _ = await self.temporal.schedule_create(
+                scheduler_id=f"sched-boot-source-{boot_source_id}",
+                workflow=msm_wf.SYNC_UPSTREAM_SOURCE_WF_NAME,
+                workflow_id=f"wf-sync-upstream-{boot_source_id}",
+                param=msm_wf.SyncUpstreamSourceParams(
+                    msm_url=msm_url,
+                    msm_jwt=msm_jwt,
+                    boot_source_id=boot_source_id,
+                    s3_params=self.s3_params,
+                ),
+                interval=sync_interval,
+            )
 
     async def disable_sync(self, boot_source_id: int) -> None:
         """Disable upstream synchronization for a boot source."""

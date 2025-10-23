@@ -196,21 +196,13 @@ class TestBootSourcesUpdateHandler:
         assert len(sources) == 2
         assert all([sources[1][k] == data[k] for k in data.keys()])
         assert sources[1]["last_sync"] == orig_last_sync
-        expected_disable_calls = [
-            call(
-                boot_source.id,
-            ),
-        ]
         expected_enable_calls = [
             call(
                 boot_source.id,
                 200,
             ),
         ]
-        assert (
-            mock_workflow_service.disable_sync.call_args_list
-            == expected_disable_calls
-        )
+        mock_workflow_service.disable_sync.assert_not_called()
         assert (
             mock_workflow_service.enable_sync.call_args_list
             == expected_enable_calls

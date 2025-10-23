@@ -126,17 +126,17 @@ class BootSourceService(Service):
         )
         result = await self.conn.execute(stmt)
         boot_source = models.BootSource(**result.one()._asdict())
-        if details.sync_interval is not None:
+        if details.sync_interval == 0:
             try:
                 await self.workflows.disable_sync(boot_source.id)
             except RPCError:
                 # If the previous sync_interval was 0, the schedule won't exist
                 # so ignore error thrown trying to disable it
                 pass
-            if boot_source.sync_interval:
-                await self.workflows.enable_sync(
-                    boot_source_id, boot_source.sync_interval
-                )
+        elif details.sync_interval is not None:
+            await self.workflows.enable_sync(
+                boot_source_id, boot_source.sync_interval
+            )
         return boot_source
 
     async def create(

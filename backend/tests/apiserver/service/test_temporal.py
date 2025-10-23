@@ -3,6 +3,7 @@ from unittest.mock import call
 
 import pytest
 from pytest_mock import MockerFixture
+from temporalio.service import RPCError, RPCStatusCode
 
 from msm.apiserver.db.models import BootSource
 from msm.apiserver.service.temporal import (
@@ -11,7 +12,6 @@ from msm.apiserver.service.temporal import (
     TemporalService,
 )
 from msm.common.jwt import TokenAudience, TokenPurpose
-from tests import AsyncIterator
 
 
 class TestTemporalService:
@@ -226,26 +226,16 @@ class TestTemporalService:
         )
 
     @pytest.mark.asyncio
-    async def test_ensure_success(
+    async def test_ensure_tokens_expired(
         self,
         mocker: MockerFixture,
         temporal_service: TemporalService,
-        temporal_client: Any,
     ) -> None:
         """Test successful ensure operation."""
-
-        # Mock client and schedule listing
-        mock_schedule = mocker.MagicMock()
-        mock_schedule.id = "existing-schedule-123"
-        mock_schedule_handle = mocker.AsyncMock()
-        temporal_client.list_schedules.return_value = AsyncIterator(
-            [mock_schedule]
-        )
-        temporal_client.get_schedule_handle.return_value = mock_schedule_handle
-
         # Mock tokens service
         mock_existing_token = mocker.MagicMock()
         mock_existing_token.id = "existing-token-123"
+        mock_existing_token.is_expired.return_value = True
         mock_tokens_get = mocker.patch.object(
             temporal_service.tokens,
             "get",
@@ -276,13 +266,6 @@ class TestTemporalService:
 
         await temporal_service.ensure()
 
-        # Verify existing schedules were deleted
-        temporal_client.list_schedules.assert_called_once()
-        temporal_client.get_schedule_handle.assert_called_once_with(
-            mock_schedule.id
-        )
-        mock_schedule_handle.delete.assert_called_once()
-
         # Verify tokens were renewed
         mock_tokens_get.assert_called_once_with(
             audience=[TokenAudience.WORKER],
@@ -306,10 +289,44 @@ class TestTemporalService:
             duration=WORKER_TOKEN_DURATION,
         )
 
+    async def test_ensure_tokens_not_expired(
+        self,
+        mocker: MockerFixture,
+        temporal_service: TemporalService,
+    ) -> None:
+        """Test successful ensure operation."""
+        # Mock tokens service
+        mock_existing_token = mocker.MagicMock()
+        mock_existing_token.id = "existing-token-123"
+        mock_existing_token.is_expired.return_value = False
+        mock_tokens_get = mocker.patch.object(
+            temporal_service.tokens,
+            "get",
+            return_value=(1, [mock_existing_token]),
+        )
+        mock_tokens_delete_many = mocker.patch.object(
+            temporal_service.tokens, "delete_many", return_value=None
+        )
+        mock_tokens_create = mocker.patch.object(
+            temporal_service.tokens, "create", return_value=mocker.MagicMock()
+        )
+
+        await temporal_service.ensure()
+
+        # Verify tokens were renewed
+        mock_tokens_get.assert_called_once_with(
+            audience=[TokenAudience.WORKER],
+            purpose=[TokenPurpose.ACCESS],
+        )
+        mock_tokens_delete_many.assert_not_called()
+
+        # Verify new token was not created
+        mock_tokens_create.assert_not_called()
+
 
 @pytest.mark.asyncio
 class TestBootSourceWorkflowService:
-    async def test_enable_sync(
+    async def test_enable_sync_new_schedule(
         self,
         mocker: MockerFixture,
         workflow_service: BootSourceWorkflowService,
@@ -321,10 +338,26 @@ class TestBootSourceWorkflowService:
             "s3_params",
             new_callable=mocker.PropertyMock(return_value=s3_params),
         )
+
+        mock_schedule_handle1 = mocker.AsyncMock()
+        mock_schedule_handle2 = mocker.AsyncMock()
+        mock_update_1 = mocker.patch.object(mock_schedule_handle1, "update")
+        mock_update_2 = mocker.patch.object(mock_schedule_handle2, "update")
+
+        mock_update_1.side_effect = RPCError("", RPCStatusCode.NOT_FOUND, b"")
+        mock_update_2.side_effect = RPCError("", RPCStatusCode.NOT_FOUND, b"")
+
+        mock_get_handle = mocker.patch.object(
+            workflow_service.temporal, "get_schedule_handle", autospec=True
+        )
+        mock_get_handle.side_effect = [
+            mock_schedule_handle1,
+            mock_schedule_handle2,
+        ]
+
         mock_schedule_create = mocker.patch.object(
             workflow_service.temporal, "schedule_create", autospec=True
         )
-        mock_schedule_create.return_value = "test-schedule-id"
 
         mock_get_worker_credentials = mocker.patch.object(
             workflow_service.temporal,
@@ -361,6 +394,54 @@ class TestBootSourceWorkflowService:
             ),
         ]
         assert mock_schedule_create.call_args_list == expected_calls
+
+    async def test_enable_sync_update_schedule(
+        self,
+        mocker: MockerFixture,
+        workflow_service: BootSourceWorkflowService,
+        boot_source: BootSource,
+    ) -> None:
+        s3_params = mocker.sentinel
+        _ = mocker.patch.object(
+            workflow_service,
+            "s3_params",
+            new_callable=mocker.PropertyMock(return_value=s3_params),
+        )
+
+        mock_schedule_handle1 = mocker.AsyncMock()
+        mock_schedule_handle2 = mocker.AsyncMock()
+        mock_update_1 = mocker.patch.object(mock_schedule_handle1, "update")
+        mock_update_2 = mocker.patch.object(mock_schedule_handle2, "update")
+        mock_get_handle = mocker.patch.object(
+            workflow_service.temporal, "get_schedule_handle", autospec=True
+        )
+        mock_get_handle.side_effect = [
+            mock_schedule_handle1,
+            mock_schedule_handle2,
+        ]
+
+        mock_schedule_create = mocker.patch.object(
+            workflow_service.temporal, "schedule_create", autospec=True
+        )
+
+        mock_get_worker_credentials = mocker.patch.object(
+            workflow_service.temporal,
+            "get_worker_credentials",
+            autospec=True,
+        )
+        mock_get_worker_credentials.return_value = (
+            "https://test.service.url",
+            "test-jwt-token",
+        )
+
+        await workflow_service.enable_sync(
+            boot_source.id, boot_source.sync_interval
+        )
+
+        mock_get_worker_credentials.assert_called_once()
+        mock_update_1.assert_called_once()
+        mock_update_2.assert_called_once()
+        mock_schedule_create.assert_not_called()
 
     async def test_disable_sync(
         self,

@@ -7,7 +7,6 @@ import pytest
 from pytest_mock import MockerFixture, MockType
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
-from temporalio.service import RPCError, RPCStatusCode
 
 from msm.apiserver.db.models import (
     BootAsset,
@@ -616,7 +615,7 @@ class TestBootSourceService:
         sources = await factory.get("boot_source")
         assert len(sources) == 2
         assert sources[1]["sync_interval"] == new_boot_source.sync_interval
-        mock_disable_sync.assert_called_once_with(boot_source.id)
+        mock_disable_sync.assert_not_called()
         mock_enable_sync.assert_called_once_with(
             boot_source.id, new_boot_source.sync_interval
         )
@@ -664,15 +663,12 @@ class TestBootSourceService:
         mock_disable_sync = mocker.patch.object(
             boot_source_service.workflows, "disable_sync", autospec=True
         )
-        mock_disable_sync.side_effect = RPCError(
-            "not found", RPCStatusCode.NOT_FOUND, b""
-        )
         new_boot_source = BootSourceUpdate(sync_interval=30)
         await boot_source_service.update(boot_source.id, new_boot_source)
         sources = await factory.get("boot_source")
         assert len(sources) == 2
         assert sources[1]["sync_interval"] == new_boot_source.sync_interval
-        mock_disable_sync.assert_called_once_with(boot_source.id)
+        mock_disable_sync.assert_not_called()
         mock_enable_sync.assert_called_once_with(
             boot_source.id, new_boot_source.sync_interval
         )
