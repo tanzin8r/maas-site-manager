@@ -108,6 +108,8 @@ class SyncUpstreamSourceWorkflow:
             start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
         )
 
+        items = []
+
         for product_url in indexes.products:
             workflow.logger.info("Processing product index: %s", product_url)
 
@@ -123,41 +125,42 @@ class SyncUpstreamSourceWorkflow:
                     start_to_close_timeout=SS_DOWNLOAD_TIMEOUT,
                 )
             )
+            items += product_items.items
 
-            assets: act.PutAssetListResult = await workflow.execute_activity(
-                act.PUT_NEW_ASSETS_ACTIVITY,
-                act.PutAssetListParams(
-                    msm_base_url=params.msm_url,
+        assets: act.PutAssetListResult = await workflow.execute_activity(
+            act.PUT_NEW_ASSETS_ACTIVITY,
+            act.PutAssetListParams(
+                msm_base_url=params.msm_url,
+                msm_jwt=params.msm_jwt,
+                boot_source_id=params.boot_source_id,
+                items=items,
+            ),
+            result_type=act.PutAssetListResult,
+            start_to_close_timeout=MSM_API_TIMEOUT,
+        )
+
+        ss_root_url = act.extract_base_url(source.index_url)
+
+        for item in assets.to_download:
+            workflow.logger.debug("Downloading item %d", item)
+            try:
+                await self.start_download(
+                    ss_root_url=ss_root_url,
+                    s3_params=params.s3_params,
+                    msm_url=params.msm_url,
                     msm_jwt=params.msm_jwt,
-                    boot_source_id=params.boot_source_id,
-                    items=product_items.items,
-                ),
-                result_type=act.PutAssetListResult,
-                start_to_close_timeout=MSM_API_TIMEOUT,
-            )
+                    boot_asset_item_id=item,
+                )
+            except WorkflowAlreadyStartedError:
+                workflow.logger.debug(
+                    "Download already in progress (item %d)", item
+                )
 
-            ss_root_url = act.extract_base_url(source.index_url)
-
-            for item in assets.to_download:
-                workflow.logger.debug("Downloading item %d", item)
-                try:
-                    await self.start_download(
-                        ss_root_url=ss_root_url,
-                        s3_params=params.s3_params,
-                        msm_url=params.msm_url,
-                        msm_jwt=params.msm_jwt,
-                        boot_asset_item_id=item,
-                    )
-                except WorkflowAlreadyStartedError:
-                    workflow.logger.debug(
-                        "Download already in progress (item %d)", item
-                    )
-
-            workflow.logger.info(
-                "Processed %d items, %d scheduled for download",
-                len(product_items.items),
-                len(assets.to_download),
-            )
+        workflow.logger.info(
+            "Processed %d items, %d scheduled for download",
+            len(product_items.items),
+            len(assets.to_download),
+        )
 
         await self.remove_stale_images(
             params.msm_url,
