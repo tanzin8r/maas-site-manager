@@ -186,12 +186,13 @@ class TemporalService(Service):
         await super().ensure()
 
         # renew JWT credentials for the workers
-        _, tokens = await self.tokens.get(
+        count, tokens = await self.tokens.get(
             audience=[TokenAudience.WORKER], purpose=[TokenPurpose.ACCESS]
         )
-        if expired := [t.id for t in tokens if t.is_expired()]:
+        expired = [t.id for t in tokens if t.is_expired()]
+        if expired:
             _ = await self.tokens.delete_many(expired)
-
+        if expired or count == 0:
             config = await self.config.get()
             service_url = await self.settings.get_service_url()
             _ = await self.tokens.create(

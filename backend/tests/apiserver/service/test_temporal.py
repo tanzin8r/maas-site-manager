@@ -313,7 +313,6 @@ class TestTemporalService:
 
         await temporal_service.ensure()
 
-        # Verify tokens were renewed
         mock_tokens_get.assert_called_once_with(
             audience=[TokenAudience.WORKER],
             purpose=[TokenPurpose.ACCESS],
@@ -322,6 +321,61 @@ class TestTemporalService:
 
         # Verify new token was not created
         mock_tokens_create.assert_not_called()
+
+    async def test_ensure_no_tokens(
+        self,
+        mocker: MockerFixture,
+        temporal_service: TemporalService,
+    ) -> None:
+        mock_tokens_get = mocker.patch.object(
+            temporal_service.tokens,
+            "get",
+            return_value=(0, []),
+        )
+        mock_tokens_delete_many = mocker.patch.object(
+            temporal_service.tokens, "delete_many", return_value=None
+        )
+        mock_tokens_create = mocker.patch.object(
+            temporal_service.tokens, "create", return_value=mocker.MagicMock()
+        )
+
+        # Mock config service
+        mock_config = mocker.MagicMock()
+        mock_config.service_identifier = "test-service"
+        mock_config.token_secret_key = "secret-key-123"
+        mock_config_get = mocker.patch.object(
+            temporal_service.config, "get", return_value=mock_config
+        )
+
+        # Mock settings service
+        mock_service_url = "https://test-service.com"
+        mock_settings_get_service_url = mocker.patch.object(
+            temporal_service.settings,
+            "get_service_url",
+            return_value=mock_service_url,
+        )
+
+        await temporal_service.ensure()
+
+        mock_tokens_get.assert_called_once_with(
+            audience=[TokenAudience.WORKER],
+            purpose=[TokenPurpose.ACCESS],
+        )
+        mock_tokens_delete_many.assert_not_called()
+
+        # Verify config and settings were retrieved
+        mock_config_get.assert_called_once()
+        mock_settings_get_service_url.assert_called_once()
+
+        # Verify new token was created
+        mock_tokens_create.assert_called_once_with(
+            issuer=mock_config.service_identifier,
+            secret_key=mock_config.token_secret_key,
+            service_url=mock_service_url,
+            audience=TokenAudience.WORKER,
+            purpose=TokenPurpose.ACCESS,
+            duration=WORKER_TOKEN_DURATION,
+        )
 
 
 @pytest.mark.asyncio
