@@ -117,21 +117,7 @@ class IndexStreamResponse(StreamingResponse):
         )
 
 
-@v1_router.get(
-    "/images/{track}/{risk}/streams/v1/{index_path:path}",
-    responses={
-        400: {"model": BadRequestErrorResponseModel},
-        401: {"model": UnauthorizedErrorResponseModel},
-        404: {"model": NotFoundErrorResponseModel},
-    },
-)
-async def download_index(
-    services: Annotated[ServiceCollection, Depends(services)],
-    site: Annotated[Site, Depends(authenticated_site)],
-    track: str,
-    risk: str,
-    index_path: str,
-) -> StreamingResponse:
+def verify_track_risk(track: str, risk: str) -> None:
     errors: list[BaseExceptionDetail] = []
 
     if track != "latest":
@@ -160,6 +146,24 @@ async def download_index(
             message="Invalid track/risk requested.",
             details=errors,
         )
+
+
+@v1_router.get(
+    "/images/{track}/{risk}/streams/v1/{index_path:path}",
+    responses={
+        400: {"model": BadRequestErrorResponseModel},
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+    },
+)
+async def download_index(
+    services: Annotated[ServiceCollection, Depends(services)],
+    site: Annotated[Site, Depends(authenticated_site)],
+    track: str,
+    risk: str,
+    index_path: str,
+) -> StreamingResponse:
+    verify_track_risk(track, risk)
 
     service_url = await services.settings.get_service_url()
     parsed = urlparse(service_url)
@@ -203,34 +207,7 @@ async def download(
     boot_source_id: int,
     file_path: str,
 ) -> StreamingResponse:
-    errors: list[BaseExceptionDetail] = []
-
-    if track != "latest":
-        errors.append(
-            BaseExceptionDetail(
-                reason=ExceptionCode.INVALID_PARAMS,
-                messages=[f"Invalid track '{track}' requested"],
-                field="track",
-                location="path",
-            )
-        )
-
-    if risk != "stable":
-        errors.append(
-            BaseExceptionDetail(
-                reason=ExceptionCode.INVALID_PARAMS,
-                messages=[f"Invalid risk '{risk}' requested"],
-                field="risk",
-                location="path",
-            )
-        )
-
-    if errors:
-        raise BadRequestException(
-            code=ExceptionCode.INVALID_PARAMS,
-            message="Invalid track/risk requested.",
-            details=errors,
-        )
+    verify_track_risk(track, risk)
 
     boot_item = await services.boot_asset_items.get_by_path(
         boot_source_id, file_path

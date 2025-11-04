@@ -8,7 +8,6 @@ from sqlalchemy import (
     delete,
     desc,
     insert,
-    join,
     select,
     text,
     update,
@@ -71,19 +70,7 @@ class BootSourceService(Service):
         limit: int | None = None,
     ) -> tuple[int, Iterable[models.BootSource]]:
         order_by = queries.order_by_from_arguments(sort_params=sort_params)
-        stmt = (
-            self._select_statement(
-                BootSource.c.id,
-                BootSource.c.url,
-                BootSource.c.keyring,
-                BootSource.c.sync_interval,
-                BootSource.c.priority,
-                BootSource.c.name,
-                BootSource.c.last_sync,
-            )
-            .order_by(*order_by)
-            .offset(offset)
-        )
+        stmt = self._select_all(BootSource).order_by(*order_by).offset(offset)
         if limit is not None:
             stmt = stmt.limit(limit)
         result = await self.conn.execute(stmt)
@@ -92,15 +79,7 @@ class BootSourceService(Service):
         )
 
     async def get_by_id(self, id: int) -> models.BootSource | None:
-        stmt = self._select_statement(
-            BootSource.c.id,
-            BootSource.c.url,
-            BootSource.c.keyring,
-            BootSource.c.sync_interval,
-            BootSource.c.priority,
-            BootSource.c.name,
-            BootSource.c.last_sync,
-        ).where(BootSource.c.id == id)
+        stmt = self._select_all(BootSource).where(BootSource.c.id == id)
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
             return models.BootSource(**row._asdict())
@@ -114,15 +93,7 @@ class BootSourceService(Service):
             update(BootSource)
             .where(BootSource.c.id == boot_source_id)
             .values(data)
-            .returning(
-                BootSource.c.id,
-                BootSource.c.url,
-                BootSource.c.keyring,
-                BootSource.c.sync_interval,
-                BootSource.c.priority,
-                BootSource.c.name,
-                BootSource.c.last_sync,
-            )
+            .returning(*BootSource.c.values())
         )
         result = await self.conn.execute(stmt)
         boot_source = models.BootSource(**result.one()._asdict())
@@ -143,15 +114,7 @@ class BootSourceService(Service):
         self, details: models.BootSourceCreate
     ) -> models.BootSource:
         data = details.model_dump()
-        stmt = insert(BootSource).returning(
-            BootSource.c.id,
-            BootSource.c.url,
-            BootSource.c.keyring,
-            BootSource.c.sync_interval,
-            BootSource.c.priority,
-            BootSource.c.name,
-            BootSource.c.last_sync,
-        )
+        stmt = insert(BootSource).returning(*BootSource.c.values())
         result = await self.conn.execute(
             stmt,
             [data],
@@ -279,15 +242,7 @@ class BootSourceSelectionService(Service):
             self.conn, BootSourceSelection, *filters
         )
         stmt = (
-            self._select_statement(
-                BootSourceSelection.c.id,
-                BootSourceSelection.c.boot_source_id,
-                BootSourceSelection.c.label,
-                BootSourceSelection.c.os,
-                BootSourceSelection.c.release,
-                BootSourceSelection.c.arch,
-                BootSourceSelection.c.selected,
-            )
+            self._select_all(BootSourceSelection)
             .where(*filters)
             .order_by(*order_by)
             .offset(offset)
@@ -307,15 +262,7 @@ class BootSourceSelectionService(Service):
         count = await queries.row_count(
             self.conn, BootSourceSelection, *filters
         )
-        stmt = self._select_statement(
-            BootSourceSelection.c.id,
-            BootSourceSelection.c.boot_source_id,
-            BootSourceSelection.c.label,
-            BootSourceSelection.c.os,
-            BootSourceSelection.c.release,
-            BootSourceSelection.c.arch,
-            BootSourceSelection.c.selected,
-        ).where(*filters)
+        stmt = self._select_all(BootSourceSelection).where(*filters)
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(
             models.BootSourceSelection, result
@@ -355,15 +302,7 @@ class BootSourceSelectionService(Service):
                 )
             )
             .values(data)
-            .returning(
-                BootSourceSelection.c.id,
-                BootSourceSelection.c.boot_source_id,
-                BootSourceSelection.c.label,
-                BootSourceSelection.c.os,
-                BootSourceSelection.c.release,
-                BootSourceSelection.c.arch,
-                BootSourceSelection.c.selected,
-            )
+            .returning(*BootSourceSelection.c.values())
         )
         result = await self.conn.execute(stmt)
         return models.BootSourceSelection(**result.one()._asdict())
@@ -373,13 +312,7 @@ class BootSourceSelectionService(Service):
     ) -> models.BootSourceSelection:
         data = details.model_dump()
         stmt = insert(BootSourceSelection).returning(
-            BootSourceSelection.c.id,
-            BootSourceSelection.c.boot_source_id,
-            BootSourceSelection.c.label,
-            BootSourceSelection.c.os,
-            BootSourceSelection.c.release,
-            BootSourceSelection.c.arch,
-            BootSourceSelection.c.selected,
+            *BootSourceSelection.c.values()
         )
         result = await self.conn.execute(
             stmt,
@@ -401,9 +334,6 @@ class BootSourceSelectionService(Service):
             BootSourceSelection.c.boot_source_id == boot_source_id
         )
         await self.conn.execute(stmt)
-
-    def _select_statement(self, *columns: Any) -> Select[Any]:
-        return select(*columns).select_from(BootSourceSelection)
 
 
 class BootAssetService(Service):
@@ -447,25 +377,7 @@ class BootAssetService(Service):
         order_by = queries.order_by_from_arguments(sort_params=sort_params)
         count = await queries.row_count(self.conn, BootAsset, *filters)
         stmt = (
-            self._select_statement(
-                BootAsset.c.id,
-                BootAsset.c.boot_source_id,
-                BootAsset.c.kind,
-                BootAsset.c.label,
-                BootAsset.c.os,
-                BootAsset.c.release,
-                BootAsset.c.codename,
-                BootAsset.c.title,
-                BootAsset.c.arch,
-                BootAsset.c.subarch,
-                BootAsset.c.compatibility,
-                BootAsset.c.flavor,
-                BootAsset.c.base_image,
-                BootAsset.c.bootloader_type,
-                BootAsset.c.eol,
-                BootAsset.c.esm_eol,
-                BootAsset.c.signed,
-            )
+            self._select_all(BootAsset)
             .where(*filters)
             .order_by(*order_by)
             .offset(offset)
@@ -486,48 +398,12 @@ class BootAssetService(Service):
         )
         filters.append(BootAsset.c.id.in_(ids))
         count = await queries.row_count(self.conn, BootAsset, *filters)
-        stmt = self._select_statement(
-            BootAsset.c.id,
-            BootAsset.c.boot_source_id,
-            BootAsset.c.kind,
-            BootAsset.c.label,
-            BootAsset.c.os,
-            BootAsset.c.release,
-            BootAsset.c.codename,
-            BootAsset.c.title,
-            BootAsset.c.arch,
-            BootAsset.c.subarch,
-            BootAsset.c.compatibility,
-            BootAsset.c.flavor,
-            BootAsset.c.base_image,
-            BootAsset.c.bootloader_type,
-            BootAsset.c.eol,
-            BootAsset.c.esm_eol,
-            BootAsset.c.signed,
-        ).where(*filters)
+        stmt = self._select_all(BootAsset).where(*filters)
         result = await self.conn.execute(stmt)
         return count, self.objects_from_result(models.BootAsset, result)
 
     async def get_by_id(self, id: int) -> models.BootAsset | None:
-        stmt = self._select_statement(
-            BootAsset.c.id,
-            BootAsset.c.boot_source_id,
-            BootAsset.c.kind,
-            BootAsset.c.label,
-            BootAsset.c.os,
-            BootAsset.c.release,
-            BootAsset.c.codename,
-            BootAsset.c.title,
-            BootAsset.c.arch,
-            BootAsset.c.subarch,
-            BootAsset.c.compatibility,
-            BootAsset.c.flavor,
-            BootAsset.c.base_image,
-            BootAsset.c.bootloader_type,
-            BootAsset.c.eol,
-            BootAsset.c.esm_eol,
-            BootAsset.c.signed,
-        ).where(BootAsset.c.id == id)
+        stmt = self._select_all(BootAsset).where(BootAsset.c.id == id)
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
             return models.BootAsset(**row._asdict())
@@ -538,25 +414,7 @@ class BootAssetService(Service):
         details: models.BootAssetCreate,
     ) -> models.BootAsset:
         data = details.model_dump()
-        stmt = insert(BootAsset).returning(
-            BootAsset.c.id,
-            BootAsset.c.boot_source_id,
-            BootAsset.c.kind,
-            BootAsset.c.label,
-            BootAsset.c.os,
-            BootAsset.c.release,
-            BootAsset.c.codename,
-            BootAsset.c.title,
-            BootAsset.c.arch,
-            BootAsset.c.subarch,
-            BootAsset.c.compatibility,
-            BootAsset.c.flavor,
-            BootAsset.c.base_image,
-            BootAsset.c.bootloader_type,
-            BootAsset.c.eol,
-            BootAsset.c.esm_eol,
-            BootAsset.c.signed,
-        )
+        stmt = insert(BootAsset).returning(*BootAsset.c.values())
         result = await self.conn.execute(stmt, [data])
         return models.BootAsset(**result.one()._asdict())
 
@@ -568,25 +426,7 @@ class BootAssetService(Service):
             update(BootAsset)
             .where(BootAsset.c.id == id)
             .values(data)
-            .returning(
-                BootAsset.c.id,
-                BootAsset.c.boot_source_id,
-                BootAsset.c.kind,
-                BootAsset.c.label,
-                BootAsset.c.os,
-                BootAsset.c.release,
-                BootAsset.c.codename,
-                BootAsset.c.title,
-                BootAsset.c.arch,
-                BootAsset.c.subarch,
-                BootAsset.c.compatibility,
-                BootAsset.c.flavor,
-                BootAsset.c.base_image,
-                BootAsset.c.bootloader_type,
-                BootAsset.c.eol,
-                BootAsset.c.esm_eol,
-                BootAsset.c.signed,
-            )
+            .returning(*BootAsset.c.values())
         )
         result = await self.conn.execute(stmt)
         return models.BootAsset(**result.one()._asdict())
@@ -616,18 +456,6 @@ class BootAssetService(Service):
         if count == 0:
             return True, await self.create(asset)
         return False, next(iter(assets))
-
-    def _select_statement(self, *columns: Any) -> Select[Any]:
-        return select(*columns).select_from(BootAsset)
-
-    def _select_statement_join_source(self, *columns: Any) -> Select[Any]:
-        return select(*columns).select_from(
-            join(
-                BootAsset,
-                BootSource,
-                BootAsset.c.boot_source_id == BootSource.c.id,
-            )
-        )
 
     async def purge_assets(
         self,
@@ -680,12 +508,7 @@ class BootAssetVersionService(Service):
         order_by = queries.order_by_from_arguments(sort_params=sort_params)
         count = await queries.row_count(self.conn, BootAssetVersion, *filters)
         stmt = (
-            self._select_statement(
-                BootAssetVersion.c.id,
-                BootAssetVersion.c.boot_asset_id,
-                BootAssetVersion.c.version,
-                BootAssetVersion.c.last_seen,
-            )
+            self._select_all(BootAssetVersion)
             .where(*filters)
             .order_by(*order_by)
             .offset(offset)
@@ -699,12 +522,7 @@ class BootAssetVersionService(Service):
         self, boot_asset_id: int
     ) -> models.BootAssetVersion | None:
         stmt = (
-            self._select_statement(
-                BootAssetVersion.c.id,
-                BootAssetVersion.c.boot_asset_id,
-                BootAssetVersion.c.version,
-                BootAssetVersion.c.last_seen,
-            )
+            self._select_all(BootAssetVersion)
             .where(BootAssetVersion.c.boot_asset_id == boot_asset_id)
             .order_by(desc(BootAssetVersion.c.version))
         )
@@ -726,12 +544,9 @@ class BootAssetVersionService(Service):
         return await queries.row_count(self.conn, BootAssetVersion, *filters)
 
     async def get_by_id(self, id: int) -> models.BootAssetVersion | None:
-        stmt = self._select_statement(
-            BootAssetVersion.c.id,
-            BootAssetVersion.c.boot_asset_id,
-            BootAssetVersion.c.version,
-            BootAssetVersion.c.last_seen,
-        ).where(BootAssetVersion.c.id == id)
+        stmt = self._select_all(BootAssetVersion).where(
+            BootAssetVersion.c.id == id
+        )
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
             return models.BootAssetVersion(**row._asdict())
@@ -742,12 +557,7 @@ class BootAssetVersionService(Service):
         details: models.BootAssetVersionCreate,
     ) -> models.BootAssetVersion:
         data = details.model_dump()
-        stmt = insert(BootAssetVersion).returning(
-            BootAssetVersion.c.id,
-            BootAssetVersion.c.boot_asset_id,
-            BootAssetVersion.c.version,
-            BootAssetVersion.c.last_seen,
-        )
+        stmt = insert(BootAssetVersion).returning(*BootAssetVersion.c.values())
         result = await self.conn.execute(stmt, [data])
         return models.BootAssetVersion(**result.one()._asdict())
 
@@ -786,7 +596,6 @@ class BootAssetVersionService(Service):
         Update the BootAssetVersion if it exists, otherwise insert a new one.
         """
         # Update the existing version, if any
-        data = details.model_dump(exclude_none=True)
         stmt = (
             update(BootAssetVersion)
             .where(
@@ -794,12 +603,7 @@ class BootAssetVersionService(Service):
                 BootAssetVersion.c.version == details.version,
             )
             .values({"last_seen": details.last_seen})
-            .returning(
-                BootAssetVersion.c.id,
-                BootAssetVersion.c.boot_asset_id,
-                BootAssetVersion.c.version,
-                BootAssetVersion.c.last_seen,
-            )
+            .returning(*BootAssetVersion.c.values())
         )
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
@@ -822,9 +626,6 @@ class BootAssetVersionService(Service):
             BootAssetVersion.c.boot_asset_id == boot_asset_id
         )
         await self.conn.execute(stmt)
-
-    def _select_statement(self, *columns: Any) -> Select[Any]:
-        return select(*columns).select_from(BootAssetVersion)
 
 
 class BootAssetItemService(Service):
@@ -850,18 +651,7 @@ class BootAssetItemService(Service):
         order_by = queries.order_by_from_arguments(sort_params=sort_params)
         count = await queries.row_count(self.conn, BootAssetItem, *filters)
         stmt = (
-            self._select_statement(
-                BootAssetItem.c.id,
-                BootAssetItem.c.boot_asset_version_id,
-                BootAssetItem.c.ftype,
-                BootAssetItem.c.sha256,
-                BootAssetItem.c.path,
-                BootAssetItem.c.file_size,
-                BootAssetItem.c.source_package,
-                BootAssetItem.c.source_version,
-                BootAssetItem.c.source_release,
-                BootAssetItem.c.bytes_synced,
-            )
+            self._select_all(BootAssetItem)
             .where(*filters)
             .order_by(*order_by)
             .offset(offset)
@@ -890,18 +680,7 @@ class BootAssetItemService(Service):
         return await queries.row_count(self.conn, BootAssetItem, *filters)
 
     async def get_by_id(self, id: int) -> models.BootAssetItem | None:
-        stmt = self._select_statement(
-            BootAssetItem.c.id,
-            BootAssetItem.c.boot_asset_version_id,
-            BootAssetItem.c.ftype,
-            BootAssetItem.c.sha256,
-            BootAssetItem.c.path,
-            BootAssetItem.c.file_size,
-            BootAssetItem.c.source_package,
-            BootAssetItem.c.source_version,
-            BootAssetItem.c.source_release,
-            BootAssetItem.c.bytes_synced,
-        ).where(BootAssetItem.c.id == id)
+        stmt = self._select_all(BootAssetItem).where(BootAssetItem.c.id == id)
         result = await self.conn.execute(stmt)
         if row := result.one_or_none():
             return models.BootAssetItem(**row._asdict())
@@ -911,18 +690,7 @@ class BootAssetItemService(Service):
         self, boot_source_id: int, path: str
     ) -> models.BootAssetItem | None:
         stmt = (
-            self._select_statement(
-                BootAssetItem.c.id,
-                BootAssetItem.c.boot_asset_version_id,
-                BootAssetItem.c.ftype,
-                BootAssetItem.c.sha256,
-                BootAssetItem.c.path,
-                BootAssetItem.c.file_size,
-                BootAssetItem.c.source_package,
-                BootAssetItem.c.source_version,
-                BootAssetItem.c.source_release,
-                BootAssetItem.c.bytes_synced,
-            )
+            self._select_all(BootAssetItem)
             .join(
                 BootAssetVersion,
                 BootAssetVersion.c.id == BootAssetItem.c.boot_asset_version_id,
@@ -945,18 +713,7 @@ class BootAssetItemService(Service):
         details: models.BootAssetItemCreate,
     ) -> models.BootAssetItem:
         data = details.model_dump()
-        stmt = insert(BootAssetItem).returning(
-            BootAssetItem.c.id,
-            BootAssetItem.c.boot_asset_version_id,
-            BootAssetItem.c.ftype,
-            BootAssetItem.c.sha256,
-            BootAssetItem.c.path,
-            BootAssetItem.c.file_size,
-            BootAssetItem.c.source_package,
-            BootAssetItem.c.source_version,
-            BootAssetItem.c.source_release,
-            BootAssetItem.c.bytes_synced,
-        )
+        stmt = insert(BootAssetItem).returning(*BootAssetItem.c.values())
         result = await self.conn.execute(stmt, [data])
         return models.BootAssetItem(**result.one()._asdict())
 
@@ -993,18 +750,7 @@ class BootAssetItemService(Service):
             update(BootAssetItem)
             .where(BootAssetItem.c.id == id)
             .values(data)
-            .returning(
-                BootAssetItem.c.id,
-                BootAssetItem.c.boot_asset_version_id,
-                BootAssetItem.c.ftype,
-                BootAssetItem.c.sha256,
-                BootAssetItem.c.path,
-                BootAssetItem.c.file_size,
-                BootAssetItem.c.source_package,
-                BootAssetItem.c.source_version,
-                BootAssetItem.c.source_release,
-                BootAssetItem.c.bytes_synced,
-            )
+            .returning(*BootAssetItem.c.values())
         )
         result = await self.conn.execute(stmt)
         return models.BootAssetItem(**result.one()._asdict())
@@ -1023,9 +769,6 @@ class BootAssetItemService(Service):
             BootAssetItem.c.boot_asset_version_id == boot_asset_version_id
         )
         await self.conn.execute(stmt)
-
-    def _select_statement(self, *columns: Any) -> Select[Any]:
-        return select(*columns).select_from(BootAssetItem)
 
 
 class IndexNotFound(Exception):

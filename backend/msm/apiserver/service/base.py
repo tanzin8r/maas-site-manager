@@ -4,7 +4,15 @@ from typing import Any, Generic, TypeVar, cast
 
 from prometheus_client import CollectorRegistry
 from pydantic import BaseModel
-from sqlalchemy import CursorResult, Table, delete, insert, select, update
+from sqlalchemy import (
+    CursorResult,
+    Select,
+    Table,
+    delete,
+    insert,
+    select,
+    update,
+)
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql.expression import bindparam
 
@@ -35,6 +43,10 @@ class Service:
 
     async def ensure(self) -> None:
         """Ensure initial state is correct."""
+
+    def _select_all(self, table: Table) -> Select[Any]:
+        """Select all entries from the relevant table."""
+        return select(*table.c.values()).select_from(table)
 
 
 class DBBackedModelService(Service, Generic[Model]):

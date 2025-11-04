@@ -154,11 +154,7 @@ class TokenService(Service):
         result = await self.conn.execute(stmt)
         return set([x[0] for x in result.all()])
 
-    def _select_statement(
-        self,
-        audience: TokenAudience = TokenAudience.SITE,
-        purpose: TokenPurpose = TokenPurpose.ENROLMENT,
-    ) -> Select[Any]:
+    def _select_statement(self) -> Select[Any]:
         return select(
             Token.c.id,
             Token.c.value,

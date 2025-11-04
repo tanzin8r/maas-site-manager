@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -26,27 +27,15 @@ import msm.common.api.selections as dm
 v1_router = APIRouter(prefix="/v1")
 
 
-@v1_router.post(
-    "/selectable-images:select",
-    responses={
-        401: {"model": UnauthorizedErrorResponseModel},
-        404: {"model": NotFoundErrorResponseModel},
-        422: {"model": ValidationErrorResponseModel},
-    },
-    status_code=201,
-)
-async def select_images(
-    services: Annotated[ServiceCollection, Depends(services)],
-    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
-    post_request: dm.SelectImagesPostRequest,
-) -> None:
+async def get_selections(
+    services: ServiceCollection,
+    selection_ids: list[int],
+) -> Iterable[models.BootSourceSelection]:
     count, selections = await services.boot_source_selections.get_many_by_id(
-        post_request.selection_ids
+        selection_ids
     )
-    if count != len(post_request.selection_ids):
-        missing_ids = set(post_request.selection_ids) - set(
-            [s.id for s in selections]
-        )
+    if count != len(selection_ids):
+        missing_ids = set(selection_ids) - set([s.id for s in selections])
         raise NotFoundException(
             code=ExceptionCode.MISSING_RESOURCE,
             message="Some selections were not found.",
@@ -61,6 +50,24 @@ async def select_images(
                 )
             ],
         )
+    return selections
+
+
+@v1_router.post(
+    "/selectable-images:select",
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
+    },
+    status_code=201,
+)
+async def select_images(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    post_request: dm.SelectImagesPostRequest,
+) -> None:
+    await get_selections(services, post_request.selection_ids)
     await services.boot_source_selections.update_many(
         post_request.selection_ids, select=True
     )
@@ -227,29 +234,9 @@ async def remove_selections(
     post_request: dm.RemoveSelectedImagesPostRequest,
     request: Request,
 ) -> None:
-    count, selections = await services.boot_source_selections.get_many_by_id(
-        post_request.selection_ids
-    )
-    if count != len(post_request.selection_ids):
-        missing_ids = set(post_request.selection_ids) - set(
-            [s.id for s in selections]
-        )
-        raise NotFoundException(
-            code=ExceptionCode.MISSING_RESOURCE,
-            message="Some selections were not found.",
-            details=[
-                BaseExceptionDetail(
-                    reason=ExceptionCode.MISSING_RESOURCE,
-                    messages=[
-                        f"Boot Source Selections with IDs {list(missing_ids)} could not be found"
-                    ],
-                    field="selection_ids",
-                    location="body",
-                )
-            ],
-        )
+    selections = await get_selections(services, post_request.selection_ids)
     await services.boot_source_selections.update_many(
-        post_request.selection_ids, False
+        post_request.selection_ids, select=False
     )
 
     asset_ids = []

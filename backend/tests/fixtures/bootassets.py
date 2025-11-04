@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -19,7 +19,7 @@ from tests.fixtures.factory import Factory
 
 @pytest.fixture
 def prev_sync() -> datetime:
-    return datetime.fromtimestamp(0)
+    return datetime.fromtimestamp(0, tz=UTC)
 
 
 @pytest.fixture
@@ -100,8 +100,8 @@ async def ubuntu_noble(factory: Factory, boot_source: BootSource) -> BootAsset:
         arch="amd64",
         subarch="hwe-24.04",
         flavor="generic",
-        eol=datetime(2029, 5, 31),
-        esm_eol=datetime(2034, 4, 25),
+        eol=datetime(2029, 5, 31, tzinfo=UTC),
+        esm_eol=datetime(2034, 4, 25, tzinfo=UTC),
         signed=True,
     )
 
@@ -118,8 +118,8 @@ async def ubuntu_jammy(factory: Factory, boot_source: BootSource) -> BootAsset:
         arch="amd64",
         subarch="ga-22.04",
         flavor="generic",
-        eol=datetime(2027, 4, 21),
-        esm_eol=datetime(2032, 4, 21),
+        eol=datetime(2027, 4, 21, tzinfo=UTC),
+        esm_eol=datetime(2032, 4, 21, tzinfo=UTC),
         signed=True,
     )
 
@@ -135,7 +135,7 @@ async def centos(factory: Factory, boot_source_low: BootSource) -> BootAsset:
         title="CentOS 7",
         arch="amd64",
         subarch="generic",
-        eol=datetime(2024, 6, 30),
+        eol=datetime(2024, 6, 30, tzinfo=UTC),
         signed=False,
     )
 
