@@ -1,0 +1,44 @@
+# GitHub Copilot Rules for Backend
+
+# These rules help guide Copilot suggestions for this backend codebase.
+# Adjust as needed to fit evolving project standards.
+
+# General Guidelines
+rules:
+  - Prefer clear, descriptive variable and function names.
+  - Write docstrings for all public functions, classes, and modules.
+  - Follow PEP8 for Python code style and formatting.
+  - Use type hints for all function signatures.
+  - Avoid abbreviations unless they are widely understood.
+  - Write code that is modular and testable.
+  - Prefer explicit over implicit code.
+  - Handle exceptions gracefully and log errors where appropriate.
+  - Use environment variables for secrets and configuration, never hardcode them.
+  - Write unit tests for new features and bug fixes.
+
+# Security
+security:
+  - Never suggest hardcoded credentials, secrets, or tokens.
+  - Validate and sanitize all user inputs.
+  - Use parameterized queries for database access.
+  - Avoid use of deprecated or insecure libraries.
+
+# Documentation
+documentation:
+  - Update relevant documentation with every code or API change.
+  - Ensure README and inline comments are kept up to date.
+
+# Collaboration
+collaboration:
+  - Follow the project's code review and pull request process.
+  - Tag relevant team members for specialized reviews.
+  - Reference related issues and link to documentation in PRs.
+
+# Copilot-specific
+copilot:
+  - Do not suggest code that is not compatible with the current Python version in use.
+  - Avoid generating large boilerplate unless explicitly requested.
+  - Prefer project-specific patterns and idioms when available.
+  - Suggest refactoring when code duplication is detected.
+
+# End of Copilot Rules
