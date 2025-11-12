@@ -3,23 +3,23 @@ import { add, sub } from "date-fns";
 import { Factory } from "fishery";
 import { adjectives, animals, colors, starWars, uniqueNamesGenerator } from "unique-names-generator";
 
-import { TimeZone, ConnectionStatus } from "@/app/apiclient";
 import type {
-  GetV1SitesGetResponse,
-  Site,
-  SiteData,
-  User,
+  AccessTokenResponse,
   BootSource,
+  GetV1SitesGetResponse,
+  ImageSource,
+  PendingSite,
+  PendingSitesGetResponse,
   SelectableImage,
   SelectedImage,
-  ImageSource,
-  PendingSitesGetResponse,
-  UsersGetResponse,
-  AccessTokenResponse,
-  PendingSite,
   Settings,
+  Site,
+  SiteData,
   Token,
+  User,
+  UsersGetResponse,
 } from "@/app/apiclient";
+import { ConnectionStatus, TimeZone } from "@/app/apiclient";
 import type { SiteMarkerType } from "@/app/sites/views/SitesMap/components/Map/types";
 
 export const connections: ConnectionStatus[] = [
@@ -193,12 +193,12 @@ const archFactory = Factory.define<string>(({ sequence }) => {
 const osFactory = Factory.define<{ name: string; release: string }>(({ sequence }) => {
   const chance = new Chance(`${sequence}`);
   return chance.pickone([
-    { name: "Ubuntu", release: ubuntuReleaseFactory.build() },
-    { name: "CentOS", release: chance.pickone(["8", "7"]) },
-    { name: "Windows", release: chance.pickone(["10", "8.1", "7"]) },
-    { name: "RHEL", release: chance.pickone(["8", "7"]) },
+    { name: "ubuntu", release: ubuntuReleaseFactory.build() },
+    { name: "centos", release: chance.pickone(["8", "7"]) },
+    { name: "windows", release: chance.pickone(["10", "8.1", "7"]) },
+    { name: "rhel", release: chance.pickone(["8", "7"]) },
     {
-      name: "Hannah Montana Linux",
+      name: "hannah montana linux",
       release: chance.pickone(["6.0.0", "7.0.0"]),
     },
   ]);

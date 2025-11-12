@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/browser";
 import type { SortingState } from "@tanstack/react-table";
 import { formatDistanceToNowStrict, parseISO } from "date-fns";
-import { getTimezoneOffset, format, toZonedTime } from "date-fns-tz";
+import { format, getTimezoneOffset, toZonedTime } from "date-fns-tz";
 import * as countries from "i18n-iso-countries";
 import { getName } from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
@@ -134,4 +134,8 @@ export const createAccessor =
  */
 export const stripProtocolFromUrl = (url: string) => {
   return url.replace(/^(https?:\/\/)?/, "");
+};
+
+export const toTitleCase = (str: string) => {
+  return str.replace(/\w\S*/g, (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase());
 };

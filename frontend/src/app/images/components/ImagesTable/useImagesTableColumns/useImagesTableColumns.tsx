@@ -5,12 +5,12 @@ import { Icon } from "@canonical/react-components";
 import type { Column, ColumnDef, Header, Row, Table } from "@tanstack/react-table";
 import pluralize from "pluralize";
 
-import GroupRowActions from "@/app/base/components/GroupRowActions";
 import TableActions from "@/app/base/components/TableActions";
 import { useAppLayoutContext } from "@/app/context";
 import { ChangeSourceDropdown } from "@/app/images/components/ImagesTable/ChangeSourceDropdown";
 import type { ImageWithId } from "@/app/images/components/ImagesTable/ImagesTable";
 import SyncStatus from "@/app/images/components/ImagesTable/SyncStatus";
+import { toTitleCase } from "@/utils";
 
 export type ImageColumnDef = ColumnDef<ImageWithId, Partial<ImageWithId>>;
 
@@ -18,7 +18,7 @@ export const filterHeaders = (header: Header<ImageWithId, unknown>) => header.co
 
 export const filterCells = (row: Row<ImageWithId>, column: Column<ImageWithId>) => {
   if (row.getIsGrouped()) {
-    return ["select", "os", "action"].includes(column.id);
+    return ["select", "os"].includes(column.id);
   } else {
     return column.id !== "os";
   }
@@ -37,7 +37,7 @@ const useImagesTableColumns = () => {
             return (
               <div>
                 <div>
-                  <strong>{row.original.os}</strong>
+                  <strong>{toTitleCase(row.original.os)}</strong>
                 </div>
                 <small className="u-text--muted">{pluralize("image", row.getLeafRows().length ?? 0, true)}</small>
               </div>
@@ -113,9 +113,7 @@ const useImagesTableColumns = () => {
           enableSorting: false,
           cell: ({ row }: { table: Table<ImageWithId>; row: Row<ImageWithId> }) => {
             const id = row.original.selection_id ?? row.original.custom_image_id;
-            return row.getIsGrouped() ? (
-              <GroupRowActions getIsExpanded={row.getIsExpanded} toggleExpanded={row.toggleExpanded} />
-            ) : (
+            return (
               <TableActions
                 className="u-align--right"
                 deleteDisabled={row.getIsGrouped() ? !row.getCanSelectSubRows() : !row.getCanSelect()}

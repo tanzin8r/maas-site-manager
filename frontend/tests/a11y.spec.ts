@@ -11,9 +11,7 @@ test.setTimeout(LONG_TEST_TIMEOUT);
 const a11yTest =
   (colorScheme: ColorScheme) =>
   async ({ title, path }: { title: string; path: string }) =>
-    // TODO: fix images a11y issues and re-enable this suite https://warthogs.atlassian.net/browse/MAASENG-5434
-    // eslint-disable-next-line playwright/no-skipped-test
-    await test.skip(`${title} page does not have any automatically detectable accessibility issues in ${colorScheme} mode`, async ({
+    await test(`${title} page does not have any automatically detectable accessibility issues in ${colorScheme} mode`, async ({
       page,
     }) => {
       await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });

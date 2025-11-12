@@ -30,7 +30,6 @@ export const ImagesTable = (): ReactElement => {
   return (
     <GenericTable
       aria-label="images"
-      canSelect
       className="images-table"
       columns={columns}
       data={data}
@@ -40,9 +39,12 @@ export const ImagesTable = (): ReactElement => {
       isLoading={selectedImages.isPending}
       noData="No images found."
       pinGroup={[{ value: "ubuntu", isTop: true }]}
-      rowSelection={rowSelection}
-      setRowSelection={setRowSelection}
-      sortBy={[{ id: "release", desc: true }]}
+      selection={{
+        rowSelection,
+        setRowSelection,
+      }}
+      showChevron
+      sorting={[{ id: "release", desc: true }]}
     />
   );
 };

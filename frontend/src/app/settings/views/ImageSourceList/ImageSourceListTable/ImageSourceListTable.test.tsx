@@ -41,12 +41,12 @@ it("renders rows with details for each image source", () => {
     expect(cells[0]).toHaveTextContent(mockImageSources[index + 1].name);
     expect(cells[1]).toHaveTextContent(mockImageSources[index + 1].url);
     expect(
-      within(cells[2]).getByLabelText(
+      within(cells[2]).getByText(
         mockImageSources[index + 1].sync_interval > 0 ? "Source is syncing" : "Source is not syncing",
       ),
     ).toBeInTheDocument();
     expect(
-      within(cells[3]).getByLabelText(
+      within(cells[3]).getByText(
         !mockImageSources[index + 1].keyring ? "Not signed with GPG key" : "Signed with GPG key",
       ),
     ).toBeInTheDocument();

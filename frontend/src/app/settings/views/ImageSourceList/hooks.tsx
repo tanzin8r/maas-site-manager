@@ -91,9 +91,9 @@ export const useImageSourceTableColumns = () => {
           return (
             <div>
               {sync_interval! > 0 ? (
-                <Icon aria-label="Source is syncing" name="task-outstanding" />
+                <Icon name="task-outstanding">Source is syncing</Icon>
               ) : (
-                <Icon aria-label="Source is not syncing" name="error-grey" />
+                <Icon name="error-grey">Source is not syncing</Icon>
               )}
             </div>
           );
@@ -122,9 +122,9 @@ export const useImageSourceTableColumns = () => {
           if (url === "custom") {
             return <div />;
           } else if (!keyring) {
-            return <Icon aria-label="Not signed with GPG key" name="error-grey" />;
+            return <Icon name="error-grey">Not signed with GPG key</Icon>;
           } else {
-            return <Icon aria-label="Signed with GPG key" name="task-outstanding" />;
+            return <Icon name="task-outstanding">Signed with GPG key</Icon>;
           }
         },
       },

@@ -1,11 +1,12 @@
 import type { SortingState } from "@tanstack/react-table";
 
 import {
-  getTimezoneUTCString,
-  parseSearchTextToQueryParams,
-  getTimeInTimezone,
   formatDistanceToNow,
   getSortBy,
+  getTimeInTimezone,
+  getTimezoneUTCString,
+  parseSearchTextToQueryParams,
+  toTitleCase,
   unsecureCopyToClipboard,
 } from "./utils";
 
@@ -81,4 +82,10 @@ it("copies a text string unsecurely", () => {
   unsecureCopyToClipboard("test");
   expect(document.execCommand).toHaveBeenCalledWith("copy");
   document.execCommand = originalExecCommand;
+});
+
+it("converts a lowercase string to title case", () => {
+  const lowerString = "hannah montana linux";
+  const titleString = toTitleCase(lowerString);
+  expect(titleString).toStrictEqual("Hannah Montana Linux");
 });

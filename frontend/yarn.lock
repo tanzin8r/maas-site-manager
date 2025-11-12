@@ -194,10 +194,10 @@
     "@types/tough-cookie" "^4.0.5"
     tough-cookie "^4.1.4"
 
-"@canonical/maas-react-components@1.33.2":
-  version "1.33.2"
-  resolved "https://registry.yarnpkg.com/@canonical/maas-react-components/-/maas-react-components-1.33.2.tgz#bdcda7c5c816bbdcf62dc44676c3f4fd41d26005"
-  integrity sha512-nwawUE+CSUi1hvRHLAIG6CsK07YR5Jhc2pkpP2+Q498hBHWac4NEjpfooV54BMJyE/e6SfuW9XwtGmulKcYGUg==
+"@canonical/maas-react-components@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@canonical/maas-react-components/-/maas-react-components-2.0.0.tgz#22d5a2c275f8911a3ea58d268a99447b18892040"
+  integrity sha512-r2d77B8+HYhwcXj9fftKt8zUA3rTNA9FKxG23cA+Cp6HCeSs0c+gb4A8sEy17Z0wvPp67v7GTjnOAfdb5wOo3g==
 
 "@canonical/react-components@2.2.0":
   version "2.2.0"
