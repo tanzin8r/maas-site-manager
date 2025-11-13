@@ -361,3 +361,6 @@ class BootSourceWorkflowService(Service):
         await self.temporal.schedule_fire(
             f"sched-boot-source-{boot_source_id}"
         )
+        await self.temporal.schedule_fire(
+            f"sched-boot-select-{boot_source_id}"
+        )

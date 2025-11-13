@@ -531,5 +531,6 @@ class TestBootSourceWorkflowService:
         # Check the workflow parameters
         expected_calls = [
             call(f"sched-boot-source-{boot_source.id}"),
+            call(f"sched-boot-select-{boot_source.id}"),
         ]
         assert mock_schedule_fire.call_args_list == expected_calls
