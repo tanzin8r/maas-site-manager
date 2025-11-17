@@ -23,12 +23,18 @@ import type {
   PatchBootSourceV1BootassetSourcesIdPatchData,
   PatchBootSourceV1BootassetSourcesIdPatchResponses,
   PatchBootSourceV1BootassetSourcesIdPatchErrors,
+  RemoveVersionsV1BootassetVersionsRemovePostData,
+  RemoveVersionsV1BootassetVersionsRemovePostResponses,
+  RemoveVersionsV1BootassetVersionsRemovePostErrors,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetData,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetResponses,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetErrors,
   PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutData,
   PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutResponses,
   PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutErrors,
+  GetSourceAssetsV1BootassetSourcesIdVersionsGetData,
+  GetSourceAssetsV1BootassetSourcesIdVersionsGetResponses,
+  GetSourceAssetsV1BootassetSourcesIdVersionsGetErrors,
   PutBootSourceAssetsV1BootassetSourcesIdAssetsPutData,
   PutBootSourceAssetsV1BootassetSourcesIdAssetsPutResponses,
   PutBootSourceAssetsV1BootassetSourcesIdAssetsPutErrors,
@@ -38,12 +44,6 @@ import type {
   PatchBootAssetItemsV1BootassetItemsIdPatchData,
   PatchBootAssetItemsV1BootassetItemsIdPatchResponses,
   PatchBootAssetItemsV1BootassetItemsIdPatchErrors,
-  DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetData,
-  DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetResponses,
-  DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetErrors,
-  DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData,
-  DownloadV1ImagesTrackRiskBootSourceIdFilePathGetResponses,
-  DownloadV1ImagesTrackRiskBootSourceIdFilePathGetErrors,
   PostImagesV1ImagesPostData,
   PostImagesV1ImagesPostResponses,
   PostImagesV1ImagesPostErrors,
@@ -284,6 +284,33 @@ export const patchBootSourceV1BootassetSourcesIdPatch = <ThrowOnError extends bo
 };
 
 /**
+ * Remove Versions
+ */
+export const removeVersionsV1BootassetVersionsRemovePost = <ThrowOnError extends boolean = false>(
+  options: Options<RemoveVersionsV1BootassetVersionsRemovePostData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    RemoveVersionsV1BootassetVersionsRemovePostResponses,
+    RemoveVersionsV1BootassetVersionsRemovePostErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/bootasset-versions:remove",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
  * Get Boot Source Selections
  * Return boot source selections.
  */
@@ -333,6 +360,30 @@ export const putBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelections
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Get Source Assets
+ * Return a list of assets, with their versions.
+ */
+export const getSourceAssetsV1BootassetSourcesIdVersionsGet = <ThrowOnError extends boolean = false>(
+  options: Options<GetSourceAssetsV1BootassetSourcesIdVersionsGetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetSourceAssetsV1BootassetSourcesIdVersionsGetResponses,
+    GetSourceAssetsV1BootassetSourcesIdVersionsGetErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/v1/bootasset-sources/{id}/versions",
+    ...options,
   });
 };
 
@@ -410,40 +461,6 @@ export const patchBootAssetItemsV1BootassetItemsIdPatch = <ThrowOnError extends 
       "Content-Type": "application/json",
       ...options.headers,
     },
-  });
-};
-
-/**
- * Download Index
- */
-export const downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGet = <ThrowOnError extends boolean = false>(
-  options: Options<DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetResponses,
-    DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    url: "/v1/images/{track}/{risk}/streams/v1/{index_path}",
-    ...options,
-  });
-};
-
-/**
- * Download
- */
-export const downloadV1ImagesTrackRiskBootSourceIdFilePathGet = <ThrowOnError extends boolean = false>(
-  options: Options<DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    DownloadV1ImagesTrackRiskBootSourceIdFilePathGetResponses,
-    DownloadV1ImagesTrackRiskBootSourceIdFilePathGetErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    url: "/v1/images/{track}/{risk}/{boot_source_id}/{file_path}",
-    ...options,
   });
 };
 

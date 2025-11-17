@@ -5,7 +5,7 @@ import ImageSourceForm from "./ImageSourceForm";
 import { AppLayoutContext } from "@/app/context";
 import { BootSourceContext } from "@/app/context/BootSourceContext";
 import { imageSourceResolvers, mockImageSources } from "@/testing/resolvers/imageSources";
-import { render, userEvent, screen, waitFor } from "@/utils/test-utils";
+import { render, screen, userEvent, waitFor } from "@/utils/test-utils";
 
 const mockServer = setupServer(
   imageSourceResolvers.getImageSource.handler(),
@@ -49,6 +49,35 @@ it("shows an error for invalid priority", async () => {
   await userEvent.tab();
 
   expect(screen.getByText(/priority must be a whole number/i)).toBeInTheDocument();
+});
+
+it("shows an error for invalid Sync interval", async () => {
+  render(<ImageSourceForm type="add" />);
+
+  const syncIntervalInput = screen.getByRole("textbox", { name: "Sync interval" });
+
+  await userEvent.type(syncIntervalInput, "not a number");
+  await userEvent.tab();
+
+  expect(screen.getByText(/sync_interval must be a `number`/i)).toBeInTheDocument();
+
+  await userEvent.clear(syncIntervalInput);
+  await userEvent.type(syncIntervalInput, "1.5");
+  await userEvent.tab();
+
+  expect(screen.getByText(/sync interval must be a whole number/i)).toBeInTheDocument();
+});
+
+it("hides the sync interval field when 'Automatically sync images' is unchecked", async () => {
+  render(<ImageSourceForm type="add" />);
+
+  expect(screen.getByRole("textbox", { name: "Sync interval" })).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("checkbox", { name: "Automatically sync images" }));
+
+  await waitFor(() => {
+    expect(screen.queryByRole("textbox", { name: "Sync interval" })).not.toBeInTheDocument();
+  });
 });
 
 it("closes the side panel and resets selected source when 'Cancel' is clicked", async () => {

@@ -22,6 +22,7 @@ const baseInitialValues = {
   keyring: "",
   priority: 1,
   autosync: true,
+  sync_interval: 60,
 };
 
 type ImageSourceFormValues = typeof baseInitialValues;
@@ -32,6 +33,7 @@ const ImageSourceSchema = Yup.object().shape({
   keyring: Yup.string(),
   priority: Yup.number().integer("Priority must be a whole number").required("Priority is required"),
   autosync: Yup.boolean(),
+  sync_interval: Yup.number().integer("Sync interval must be a whole number of minutes."),
 });
 
 const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
@@ -53,6 +55,7 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
   const keyringFieldId = useId();
   const priorityFieldId = useId();
   const autosyncFieldId = useId();
+  const syncIntervalFieldId = useId();
 
   const isMutationPending = createImageSource.isPending || updateImageSource.isPending;
 
@@ -65,6 +68,7 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
         keyring: imageSource.keyring || "",
         priority: imageSource.priority || 1,
         autosync: imageSource.sync_interval !== undefined ? imageSource.sync_interval > 0 : true,
+        sync_interval: imageSource.sync_interval,
       });
     } else if (type === "add") {
       setInitialValues(baseInitialValues);
@@ -86,7 +90,7 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
             url: values.url,
             keyring: values.keyring,
             priority: values.priority,
-            sync_interval: values.autosync ? 60 : 0,
+            sync_interval: values.autosync ? values.sync_interval : 0,
           },
         } as PostBootSourcesV1BootassetSourcesPostData,
         { onSuccess: resetForm },
@@ -137,7 +141,7 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
             onSubmit={handleSubmit}
             validationSchema={ImageSourceSchema}
           >
-            {({ errors, isSubmitting, touched, dirty, isValid }) => (
+            {({ errors, isSubmitting, touched, dirty, isValid, values }) => (
               <FormikFormContent
                 aria-labelledby={headingId}
                 errors={
@@ -178,7 +182,7 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
                 <Field
                   as={Input}
                   error={touched.priority && errors.priority}
-                  help="If the same image is available from several sources, the image from the source with the higher priority takes precedence. 1 is the highest priority."
+                  help="If the same image is available from several sources, the image from the source with the higher priority takes precedence. 1 is the lowest priority."
                   id={priorityFieldId}
                   name="priority"
                   required
@@ -192,7 +196,19 @@ const ImageSourceForm = ({ type }: { type: "add" | "edit" }) => {
                   available.
                 </p>
                 <Field as={Input} label="Automatically sync images" name="autosync" type="checkbox" />
-
+                {values.autosync === true && (
+                  <>
+                    <Label htmlFor={syncIntervalFieldId}>Sync interval</Label>
+                    <Field
+                      as={Input}
+                      error={touched.sync_interval && errors.sync_interval}
+                      help="Polling interval for this source, in minutes"
+                      id={syncIntervalFieldId}
+                      name="sync_interval"
+                      type="text"
+                    />
+                  </>
+                )}
                 <hr />
                 <div className="u-flex u-flex--justify-end u-padding-top--medium">
                   <Button appearance="base" onClick={resetForm} type="button">

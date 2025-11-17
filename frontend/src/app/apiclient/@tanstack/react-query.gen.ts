@@ -7,13 +7,13 @@ import {
   deleteBootSourceV1BootassetSourcesIdDelete,
   getBootSourceByIdV1BootassetSourcesIdGet,
   patchBootSourceV1BootassetSourcesIdPatch,
+  removeVersionsV1BootassetVersionsRemovePost,
   getBootSourceSelectionsV1BootassetSourcesIdSelectionsGet,
   putBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPut,
+  getSourceAssetsV1BootassetSourcesIdVersionsGet,
   putBootSourceAssetsV1BootassetSourcesIdAssetsPut,
   getBootAssetItemV1BootassetItemsIdGet,
   patchBootAssetItemsV1BootassetItemsIdPatch,
-  downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGet,
-  downloadV1ImagesTrackRiskBootSourceIdFilePathGet,
   postImagesV1ImagesPost,
   deleteImagesV1ImagesRemovePost,
   refreshIndexV1RefreshIndexGet,
@@ -61,12 +61,15 @@ import type {
   PatchBootSourceV1BootassetSourcesIdPatchData,
   PatchBootSourceV1BootassetSourcesIdPatchError,
   PatchBootSourceV1BootassetSourcesIdPatchResponse,
+  RemoveVersionsV1BootassetVersionsRemovePostData,
+  RemoveVersionsV1BootassetVersionsRemovePostError,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetData,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetError,
   GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetResponse,
   PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutData,
   PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutError,
   PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutResponse,
+  GetSourceAssetsV1BootassetSourcesIdVersionsGetData,
   PutBootSourceAssetsV1BootassetSourcesIdAssetsPutData,
   PutBootSourceAssetsV1BootassetSourcesIdAssetsPutError,
   PutBootSourceAssetsV1BootassetSourcesIdAssetsPutResponse,
@@ -74,8 +77,6 @@ import type {
   PatchBootAssetItemsV1BootassetItemsIdPatchData,
   PatchBootAssetItemsV1BootassetItemsIdPatchError,
   PatchBootAssetItemsV1BootassetItemsIdPatchResponse,
-  DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetData,
-  DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData,
   PostImagesV1ImagesPostData,
   PostImagesV1ImagesPostError,
   PostImagesV1ImagesPostResponse,
@@ -424,6 +425,57 @@ export const patchBootSourceV1BootassetSourcesIdPatchMutation = (
   return mutationOptions;
 };
 
+export const removeVersionsV1BootassetVersionsRemovePostQueryKey = (
+  options: Options<RemoveVersionsV1BootassetVersionsRemovePostData>,
+) => createQueryKey("removeVersionsV1BootassetVersionsRemovePost", options);
+
+/**
+ * Remove Versions
+ */
+export const removeVersionsV1BootassetVersionsRemovePostOptions = (
+  options: Options<RemoveVersionsV1BootassetVersionsRemovePostData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await removeVersionsV1BootassetVersionsRemovePost({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: removeVersionsV1BootassetVersionsRemovePostQueryKey(options),
+  });
+};
+
+/**
+ * Remove Versions
+ */
+export const removeVersionsV1BootassetVersionsRemovePostMutation = (
+  options?: Partial<Options<RemoveVersionsV1BootassetVersionsRemovePostData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<RemoveVersionsV1BootassetVersionsRemovePostError>,
+  Options<RemoveVersionsV1BootassetVersionsRemovePostData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<RemoveVersionsV1BootassetVersionsRemovePostError>,
+    Options<RemoveVersionsV1BootassetVersionsRemovePostData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await removeVersionsV1BootassetVersionsRemovePost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getBootSourceSelectionsV1BootassetSourcesIdSelectionsGetQueryKey = (
   options: Options<GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetData>,
 ) => createQueryKey("getBootSourceSelectionsV1BootassetSourcesIdSelectionsGet", options);
@@ -528,6 +580,31 @@ export const putBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelections
   return mutationOptions;
 };
 
+export const getSourceAssetsV1BootassetSourcesIdVersionsGetQueryKey = (
+  options: Options<GetSourceAssetsV1BootassetSourcesIdVersionsGetData>,
+) => createQueryKey("getSourceAssetsV1BootassetSourcesIdVersionsGet", options);
+
+/**
+ * Get Source Assets
+ * Return a list of assets, with their versions.
+ */
+export const getSourceAssetsV1BootassetSourcesIdVersionsGetOptions = (
+  options: Options<GetSourceAssetsV1BootassetSourcesIdVersionsGetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getSourceAssetsV1BootassetSourcesIdVersionsGet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getSourceAssetsV1BootassetSourcesIdVersionsGetQueryKey(options),
+  });
+};
+
 /**
  * Put Boot Source Assets
  */
@@ -604,54 +681,6 @@ export const patchBootAssetItemsV1BootassetItemsIdPatchMutation = (
     },
   };
   return mutationOptions;
-};
-
-export const downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetQueryKey = (
-  options: Options<DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetData>,
-) => createQueryKey("downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGet", options);
-
-/**
- * Download Index
- */
-export const downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetOptions = (
-  options: Options<DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGet({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: downloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetQueryKey(options),
-  });
-};
-
-export const downloadV1ImagesTrackRiskBootSourceIdFilePathGetQueryKey = (
-  options: Options<DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData>,
-) => createQueryKey("downloadV1ImagesTrackRiskBootSourceIdFilePathGet", options);
-
-/**
- * Download
- */
-export const downloadV1ImagesTrackRiskBootSourceIdFilePathGetOptions = (
-  options: Options<DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await downloadV1ImagesTrackRiskBootSourceIdFilePathGet({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: downloadV1ImagesTrackRiskBootSourceIdFilePathGetQueryKey(options),
-  });
 };
 
 export const postImagesV1ImagesPostQueryKey = (options: Options<PostImagesV1ImagesPostData>) =>

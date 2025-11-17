@@ -19,7 +19,40 @@ export type AccessTokenResponse = {
   rotation_interval_minutes: number;
 };
 
-export type AvailableBootSourceSelection = [string, string, BootAssetLabel, string];
+/**
+ * AssetVersions
+ */
+export type AssetVersions = {
+  /**
+   * Asset Id
+   */
+  asset_id: number;
+  /**
+   * Versions
+   */
+  versions: {
+    [key: string]: VersionStatus;
+  };
+};
+
+/**
+ * AvailableBootSourceSelection
+ */
+export type AvailableBootSourceSelection = {
+  /**
+   * Os
+   */
+  os: string;
+  /**
+   * Release
+   */
+  release: string;
+  label: BootAssetLabel;
+  /**
+   * Arch
+   */
+  arch: string;
+};
 
 /**
  * BadRequestErrorBodyResponse
@@ -400,6 +433,16 @@ export type BootSourceSelectionsGetResponse = {
 };
 
 /**
+ * BootSourceVersionsGetResponse
+ */
+export type BootSourceVersionsGetResponse = {
+  /**
+   * Versions
+   */
+  versions: Array<AssetVersions>;
+};
+
+/**
  * BootSourcesAssetsPutRequest
  */
 export type BootSourcesAssetsPutRequest = {
@@ -681,6 +724,7 @@ export enum ItemFileType {
   ROOT_TGZ = "root-tgz",
   ROOT_TBZ = "root-tbz",
   ROOT_TXZ = "root-txz",
+  ROOT_DD = "root-dd",
   ROOT_DD_TAR = "root-dd.tar",
   ROOT_DD_RAW = "root-dd.raw",
   ROOT_DD_BZ2 = "root-dd.bz2",
@@ -688,7 +732,6 @@ export enum ItemFileType {
   ROOT_DD_XZ = "root-dd.xz",
   ROOT_DD_TAR_BZ2 = "root-dd.tar.bz2",
   ROOT_DD_TAR_XZ = "root-dd.tar.xz",
-  ROOT_DD = "root-dd",
   ROOT_IMAGE_GZ = "root-image.gz",
   SQUASHFS = "squashfs",
   BOOT_KERNEL = "boot-kernel",
@@ -2086,6 +2129,44 @@ export type ValidationErrorResponseModel = {
   error: ValidationErrorBodyResponse;
 };
 
+/**
+ * Version
+ */
+export type Version = {
+  /**
+   * Asset Id
+   */
+  asset_id: number;
+  /**
+   * Version
+   */
+  version: string;
+};
+
+/**
+ * VersionStatus
+ */
+export type VersionStatus = {
+  /**
+   * Complete
+   */
+  complete: boolean;
+  /**
+   * Last Seen
+   */
+  last_seen: string;
+};
+
+/**
+ * VersionsRemovePostRequest
+ */
+export type VersionsRemovePostRequest = {
+  /**
+   * To Remove
+   */
+  to_remove: Array<Version>;
+};
+
 export type GetBootSourcesV1BootassetSourcesGetData = {
   body?: never;
   path?: never;
@@ -2278,6 +2359,38 @@ export type PatchBootSourceV1BootassetSourcesIdPatchResponses = {
 export type PatchBootSourceV1BootassetSourcesIdPatchResponse =
   PatchBootSourceV1BootassetSourcesIdPatchResponses[keyof PatchBootSourceV1BootassetSourcesIdPatchResponses];
 
+export type RemoveVersionsV1BootassetVersionsRemovePostData = {
+  body: VersionsRemovePostRequest;
+  path?: never;
+  query?: never;
+  url: "/v1/bootasset-versions:remove";
+};
+
+export type RemoveVersionsV1BootassetVersionsRemovePostErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Unprocessable Entity
+   */
+  422: ValidationErrorResponseModel;
+};
+
+export type RemoveVersionsV1BootassetVersionsRemovePostError =
+  RemoveVersionsV1BootassetVersionsRemovePostErrors[keyof RemoveVersionsV1BootassetVersionsRemovePostErrors];
+
+export type RemoveVersionsV1BootassetVersionsRemovePostResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown;
+};
+
 export type GetBootSourceSelectionsV1BootassetSourcesIdSelectionsGetData = {
   body?: never;
   path: {
@@ -2366,6 +2479,46 @@ export type PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsP
 
 export type PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutResponse =
   PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutResponses[keyof PutBootSourceAvailSelectionsV1BootassetSourcesIdAvailableSelectionsPutResponses];
+
+export type GetSourceAssetsV1BootassetSourcesIdVersionsGetData = {
+  body?: never;
+  path: {
+    /**
+     * Id
+     */
+    id: number;
+  };
+  query?: never;
+  url: "/v1/bootasset-sources/{id}/versions";
+};
+
+export type GetSourceAssetsV1BootassetSourcesIdVersionsGetErrors = {
+  /**
+   * Unauthorized
+   */
+  401: UnauthorizedErrorResponseModel;
+  /**
+   * Not Found
+   */
+  404: NotFoundErrorResponseModel;
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetSourceAssetsV1BootassetSourcesIdVersionsGetError =
+  GetSourceAssetsV1BootassetSourcesIdVersionsGetErrors[keyof GetSourceAssetsV1BootassetSourcesIdVersionsGetErrors];
+
+export type GetSourceAssetsV1BootassetSourcesIdVersionsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: BootSourceVersionsGetResponse;
+};
+
+export type GetSourceAssetsV1BootassetSourcesIdVersionsGetResponse =
+  GetSourceAssetsV1BootassetSourcesIdVersionsGetResponses[keyof GetSourceAssetsV1BootassetSourcesIdVersionsGetResponses];
 
 export type PutBootSourceAssetsV1BootassetSourcesIdAssetsPutData = {
   body: BootSourcesAssetsPutRequest;
@@ -2494,108 +2647,6 @@ export type PatchBootAssetItemsV1BootassetItemsIdPatchResponses = {
 
 export type PatchBootAssetItemsV1BootassetItemsIdPatchResponse =
   PatchBootAssetItemsV1BootassetItemsIdPatchResponses[keyof PatchBootAssetItemsV1BootassetItemsIdPatchResponses];
-
-export type DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetData = {
-  body?: never;
-  path: {
-    /**
-     * Track
-     */
-    track: string;
-    /**
-     * Risk
-     */
-    risk: string;
-    /**
-     * Index Path
-     */
-    index_path: string;
-  };
-  query?: never;
-  url: "/v1/images/{track}/{risk}/streams/v1/{index_path}";
-};
-
-export type DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetErrors = {
-  /**
-   * Bad Request
-   */
-  400: BadRequestErrorResponseModel;
-  /**
-   * Unauthorized
-   */
-  401: UnauthorizedErrorResponseModel;
-  /**
-   * Not Found
-   */
-  404: NotFoundErrorResponseModel;
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetError =
-  DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetErrors[keyof DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetErrors];
-
-export type DownloadIndexV1ImagesTrackRiskStreamsV1IndexPathGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: unknown;
-};
-
-export type DownloadV1ImagesTrackRiskBootSourceIdFilePathGetData = {
-  body?: never;
-  path: {
-    /**
-     * Track
-     */
-    track: string;
-    /**
-     * Risk
-     */
-    risk: string;
-    /**
-     * Boot Source Id
-     */
-    boot_source_id: number;
-    /**
-     * File Path
-     */
-    file_path: string;
-  };
-  query?: never;
-  url: "/v1/images/{track}/{risk}/{boot_source_id}/{file_path}";
-};
-
-export type DownloadV1ImagesTrackRiskBootSourceIdFilePathGetErrors = {
-  /**
-   * Bad Request
-   */
-  400: BadRequestErrorResponseModel;
-  /**
-   * Unauthorized
-   */
-  401: UnauthorizedErrorResponseModel;
-  /**
-   * Not Found
-   */
-  404: NotFoundErrorResponseModel;
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError;
-};
-
-export type DownloadV1ImagesTrackRiskBootSourceIdFilePathGetError =
-  DownloadV1ImagesTrackRiskBootSourceIdFilePathGetErrors[keyof DownloadV1ImagesTrackRiskBootSourceIdFilePathGetErrors];
-
-export type DownloadV1ImagesTrackRiskBootSourceIdFilePathGetResponses = {
-  /**
-   * Successful Response
-   */
-  200: unknown;
-};
 
 export type PostImagesV1ImagesPostData = {
   body: {
