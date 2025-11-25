@@ -223,6 +223,7 @@ class TestBootAssetService:
             label=BootAssetLabel.STABLE,
             os="ubuntu",
             release="noble",
+            krel="noble",
             codename="Numbat",
             title="new title",
             arch="amd64",
@@ -242,6 +243,7 @@ class TestBootAssetService:
         assert assets[0] == asset_updates.model_dump() | {
             "id": ubuntu_noble.id,
             "boot_source_id": ubuntu_noble.boot_source_id,
+            "version": "24.04",
         }
 
     async def test_delete_by_source_id(
@@ -1242,10 +1244,12 @@ class TestImagesIndexService:
                     "label": "stable",
                     "os": "ubuntu",
                     "release": "jammy",
+                    "krel": "jammy",
                     "release_title": "22.04 LTS",
                     "subarch": "ga-22.04",
                     "support_eol": "2027-04-21",
                     "support_esm_eol": "2032-04-21",
+                    "version": "22.04",
                     "versions": {
                         "20250601": {
                             "items": {
@@ -1277,10 +1281,12 @@ class TestImagesIndexService:
                     "label": "stable",
                     "os": "ubuntu",
                     "release": "noble",
+                    "krel": "noble",
                     "release_title": "24.04 LTS",
                     "subarch": "hwe-24.04",
                     "support_eol": "2029-05-31",
                     "support_esm_eol": "2034-04-25",
+                    "version": "24.04",
                     "versions": {
                         "20250701": {
                             "items": {

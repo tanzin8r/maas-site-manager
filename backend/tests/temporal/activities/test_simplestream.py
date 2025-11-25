@@ -469,6 +469,7 @@ class TestLoadProductMapActivity:
         assert prod.arch == "amd64"
         assert prod.os == "ubuntu"
         assert prod.release == "noble"
+        assert prod.version == "24.04"
 
         assert len(prod.versions) == 1
         version, asset_list = prod.versions.popitem()

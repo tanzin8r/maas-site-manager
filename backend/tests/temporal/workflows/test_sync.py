@@ -122,6 +122,7 @@ def product_list() -> list[Product]:
             label=BootAssetLabel.STABLE,
             os="ubuntu",
             release="noble",
+            krel="noble",
             arch="amd64",
             versions={},
         )

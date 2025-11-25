@@ -130,7 +130,7 @@ async def get_selected_images(
     authenticated_user: Annotated[models.User, Depends(authenticated_user)],
 ) -> dm.GetSelectedImagesResponse:
     images_found: set[tuple[str, str, str]] = set()
-    selected = []
+    selected: list[models.SelectedImage] = []
     _, sources = await services.boot_sources.get(
         [SortParam("priority", asc=False)]
     )
@@ -142,8 +142,8 @@ async def get_selected_images(
             _, items = await services.boot_asset_items.get(
                 [], boot_asset_version_id=[latest_ver.id]
             )
-            total_size = 0
-            total_downloaded = 0
+            total_size: int = 0
+            total_downloaded: int = 0
             for item in items:
                 total_size += item.file_size
                 total_downloaded += item.bytes_synced
@@ -164,18 +164,22 @@ async def get_selected_images(
                 images_found.add(
                     (selection.os, selection.release, selection.arch)
                 )
-                _, assets = await services.boot_assets.get(
+                cnt, assets = await services.boot_assets.get(
                     [],
                     boot_source_id=[source.id],
                     os=[selection.os],
                     arch=[selection.arch],
                     release=[selection.release],
                 )
-                asset = next(iter(assets))
-                (
-                    total_size,
-                    total_downloaded,
-                ) = await get_total_size_and_downloaded(asset.id)
+
+                if cnt > 0:
+                    asset = next(iter(assets))
+                    (
+                        total_size,
+                        total_downloaded,
+                    ) = await get_total_size_and_downloaded(asset.id)
+                else:
+                    total_size = total_downloaded = 0
                 selected.append(
                     models.SelectedImage(
                         os=selection.os,

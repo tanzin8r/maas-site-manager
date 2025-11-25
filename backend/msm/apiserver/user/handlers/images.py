@@ -320,20 +320,25 @@ async def post_images(
     if s3_upload_target.current_chunk:
         await run_in_threadpool(s3_upload_target.upload_current_chunk)
 
+    decoded_os = os.value.decode()
+    decoded_release = release.value.decode()
+    krel = decoded_release if decoded_os.lower() == "ubuntu" else None
+
     _, asset = await services.boot_assets.get_or_create(
         models.BootAssetCreate(
             boot_source_id=CUSTOM_IMAGE_SOURCE_ID,
             kind=BootAssetKind.OS,
             label=BootAssetLabel.STABLE,
-            os=os.value.decode(),
-            release=release.value.decode(),
+            os=decoded_os,
+            release=decoded_release,
+            krel=krel,
             codename=None,
             title=title.value.decode(),
             arch=arch.value.decode(),
             subarch=None,
             compatibility=None,
             flavor=None,
-            base_image=f"{os.value.decode()}/{release.value.decode()}",
+            base_image=f"{decoded_os}/{decoded_release}",
             eol=END_OF_TIME,
             esm_eol=END_OF_TIME,
             signed=False,

@@ -363,6 +363,8 @@ class BootAssetService(Service):
         os: list[str] | None = None,
         arch: list[str] | None = None,
         release: list[str | None] | None = None,
+        version: list[str | None] | None = None,
+        krel: list[str | None] | None = None,
         bootloader_type: list[str | None] | None = None,
     ) -> tuple[int, Iterable[models.BootAsset]]:
         filters = queries.filters_from_arguments(
@@ -373,6 +375,8 @@ class BootAssetService(Service):
             os=os,
             arch=arch,
             release=release,
+            version=version,
+            krel=krel,
             bootloader_type=bootloader_type,
         )
         order_by = queries.order_by_from_arguments(sort_params=sort_params)
@@ -453,6 +457,7 @@ class BootAssetService(Service):
             os=[asset.os],
             arch=[asset.arch],
             release=[asset.release],
+            krel=[asset.krel],
         )
         if count == 0:
             return True, await self.create(asset)
@@ -792,6 +797,8 @@ SELECT DISTINCT ON (asset.boot_source_id, ver_item.ftype, ver_item.path)
     asset.os,
     asset.arch,
     asset.release,
+    asset.asset_version,
+    asset.krel,
     asset.codename,
     asset.title,
     asset.subarch,
@@ -822,6 +829,8 @@ FROM
             boot_asset.os,
             boot_asset.arch,
             boot_asset.release,
+            boot_asset.version AS asset_version,
+            boot_asset.krel,
             boot_asset.codename,
             boot_asset.title,
             boot_asset.subarch,
@@ -1100,25 +1109,30 @@ ON ver_item.boot_asset_id = asset.id;"""
                     "label": product.label.value,
                     "os": product.os,
                     "release": product.release,
+                    "krel": product.krel,
                     "release_codename": product.codename,
                     "release_title": product.title,
                     "subarch": product.subarch,
-                    "subarches": ",".join(product.compatibility)
-                    if product.compatibility
-                    else None,
-                    "bootloader-type": product.bootloader_type,
-                    "support_eol": product.eol.strftime("%Y-%m-%d")
-                    if product.eol
-                    else None,
-                    "support_esm_eol": product.esm_eol.strftime("%Y-%m-%d")
-                    if product.esm_eol
-                    else None,
+                    "version": product.asset_version,
                     "versions": {
                         product.version: {"items": {item_key: item_json}}
                     },
                 }
+                if product.eol is not None:
+                    dl_prod["support_eol"] = product.eol.strftime("%Y-%m-%d")
+                if product.esm_eol is not None:
+                    dl_prod["support_esm_eol"] = product.esm_eol.strftime(
+                        "%Y-%m-%d"
+                    )
+                if product.kind == BootAssetKind.BOOTLOADER:
+                    dl_prod["bootloader-type"] = product.bootloader_type
+                    dl_prod["arches"] = ",".join(product.compatibility or [])
+                else:
+                    dl_prod["subarches"] = ",".join(
+                        product.compatibility or []
+                    )
                 download_json["products"][product_key] = {
-                    k: v for k, v in dl_prod.items() if v is not None
+                    k: v for k, v in dl_prod.items() if v
                 }
             else:
                 download_json["products"][product_key]["versions"][

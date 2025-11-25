@@ -60,6 +60,7 @@ class BootAssetFilterParams(NamedTuple):
     os: list[str] | None
     arch: list[str] | None
     release: list[str] | None
+    version: list[str] | None
 
 
 class BootAssetVersionFilterParams(NamedTuple):

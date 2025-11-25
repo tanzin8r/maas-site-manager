@@ -126,6 +126,8 @@ class Product(BaseModel):
     os: str
     arch: str
     release: str | None = None
+    version: str | None = None
+    krel: str | None = None
     codename: str | None = None
     title: str | None = None
     subarch: str | None = None
@@ -137,6 +139,12 @@ class Product(BaseModel):
     esm_eol: AwareDatetime | None = None
     signed: bool = False
     versions: dict[str, list[ProductItem]]
+
+    @model_validator(mode="after")
+    def validate_krel_for_ubuntu(self) -> Self:
+        if self.os and self.os.lower() == "ubuntu" and not self.krel:
+            raise ValueError("krel is required for Ubuntu products")
+        return self
 
 
 class IdProduct(Product):

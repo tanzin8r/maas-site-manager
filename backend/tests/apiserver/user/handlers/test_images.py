@@ -88,6 +88,7 @@ class TestCustomImageUploadHandler:
                 "label": "stable",
                 "os": "custom",
                 "release": "noble",
+                "krel": None,
                 "arch": "amd64",
                 "title": "My Custom Image",
                 "codename": None,
@@ -99,6 +100,7 @@ class TestCustomImageUploadHandler:
                 "eol": END_OF_TIME,
                 "esm_eol": END_OF_TIME,
                 "signed": False,
+                "version": None,
             }
             expected_version = {
                 "id": 1,
@@ -175,6 +177,7 @@ class TestCustomImageUploadHandler:
                 "label": "stable",
                 "os": "custom",
                 "release": "noble",
+                "krel": None,
                 "arch": "amd64",
                 "title": "My Custom Image",
                 "codename": None,
@@ -186,6 +189,7 @@ class TestCustomImageUploadHandler:
                 "eol": END_OF_TIME,
                 "esm_eol": END_OF_TIME,
                 "signed": False,
+                "version": None,
             }
             expected_first_version = {
                 "id": 1,

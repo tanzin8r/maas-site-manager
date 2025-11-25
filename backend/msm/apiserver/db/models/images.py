@@ -1,7 +1,10 @@
+from typing import Self
+
 from pydantic import (
     AwareDatetime,
     BaseModel,
     Field,
+    model_validator,
 )
 
 from msm.common.enums import (
@@ -74,6 +77,8 @@ class BootAsset(BaseModel):
     os: str
     arch: str
     release: str | None = None
+    version: str | None = None
+    krel: str | None = None
     codename: str | None = None
     title: str | None = None
     subarch: str | None = None
@@ -97,6 +102,8 @@ class BootAssetCreate(BaseModel):
     os: str
     arch: str
     release: str | None = None
+    version: str | None = None
+    krel: str | None = None
     codename: str | None = None
     title: str | None = None
     subarch: str | None = None
@@ -108,12 +115,20 @@ class BootAssetCreate(BaseModel):
     esm_eol: AwareDatetime | None = None
     signed: bool = False
 
+    @model_validator(mode="after")
+    def check_krel_for_ubuntu(self) -> Self:
+        if self.os.lower() == "ubuntu" and not self.krel:
+            raise ValueError("krel is required for Ubuntu boot assets")
+        return self
+
 
 class BootAssetUpdate(BaseModel):
     kind: BootAssetKind | None = None
     label: BootAssetLabel | None = None
     os: str | None = None
     release: str | None = None
+    version: str | None = None
+    krel: str | None = None
     codename: str | None = None
     title: str | None = None
     arch: str | None = None
@@ -124,7 +139,7 @@ class BootAssetUpdate(BaseModel):
     bootloader_type: str | None = None
     eol: AwareDatetime | None = None
     esm_eol: AwareDatetime | None = None
-    signed: bool = False
+    signed: bool | None = None
 
 
 class BootSourceSelection(BaseModel):
@@ -224,7 +239,9 @@ class IndexProduct(BaseModel):
     file_size: int
     bytes_synced: int
     version: str
+    asset_version: str | None = None
     release: str | None = None
+    krel: str | None = None
     codename: str | None = None
     title: str | None = None
     subarch: str | None = None
