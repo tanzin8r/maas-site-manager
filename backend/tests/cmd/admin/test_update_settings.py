@@ -25,6 +25,7 @@ class CreateUpdateSettingsAction:
             ("service_url", "http://example:8080/"),
             ("token_lifetime_minutes", 300),
             ("token_rotation_interval_minutes", 200),
+            ("max_image_upload_size_gb", 50),
         ],
     )
     async def test_update_settings(
