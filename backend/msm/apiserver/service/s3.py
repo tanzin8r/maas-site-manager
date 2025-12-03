@@ -26,17 +26,24 @@ class S3Service(Service):
     def __init__(
         self,
         connection: AsyncConnection,
-        verify: bool = False,
-        use_ssl: bool = False,
     ):
         super().__init__(connection)
         self.settings = Settings()
-        self.verify = verify
-        self.use_ssl = use_ssl
 
     @property
     def s3_endpoint(self) -> str:
         return self.settings.s3_endpoint or ""
+
+    @property
+    def use_ssl(self) -> bool:
+        """Detect SSL usage from the s3_endpoint protocol."""
+        endpoint = self.s3_endpoint.lower()
+        return endpoint.startswith("https://")
+
+    @property
+    def verify_ssl(self) -> bool:
+        """Get SSL verification setting from settings."""
+        return self.settings.s3_verify_ssl
 
     @property
     def s3_bucket(self) -> str:
@@ -60,7 +67,7 @@ class S3Service(Service):
         return boto3.client(
             "s3",
             use_ssl=self.use_ssl,
-            verify=self.verify,
+            verify=self.verify_ssl,
             endpoint_url=self.s3_endpoint,
             aws_access_key_id=self.s3_access_key,
             aws_secret_access_key=self.s3_secret_key,

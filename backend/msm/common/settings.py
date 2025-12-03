@@ -61,6 +61,9 @@ class Settings(BaseSettings):
         default=None, validation_alias="MSM_S3_BUCKET"
     )
     s3_path: str | None = Field(default=None, validation_alias="MSM_S3_PATH")
+    s3_verify_ssl: bool = Field(
+        default=False, validation_alias="MSM_S3_VERIFY_SSL"
+    )
     temporal_server_address: str | None = Field(
         default=None, validation_alias="MSM_TEMPORAL_SERVER_ADDRESS"
     )
