@@ -62,7 +62,7 @@ ci-dep: install-node install-dependencies
 	export PATH=$$(pwd)/node-22/bin:$$PATH && \
 	npm install -g yarn && \
 	YARN_CACHE_FOLDER=$(YARN_CACHE_FOLDER) yarn install && \
-	PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_PATH) npx --yes playwright install
+	PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_PATH) npx --yes playwright install --with-deps
 
 ci-build:
 	export PATH=$$(pwd)/node-22/bin:$$PATH && \
