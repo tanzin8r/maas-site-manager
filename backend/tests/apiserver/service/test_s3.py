@@ -96,14 +96,14 @@ class TestS3Service:
             Bucket="test-bucket", Key="test/path/test/file.txt"
         )
 
-    def test_get_object(
+    async def test_get_object(
         self, s3_service: S3Service, mocker: MockerFixture
     ) -> None:
         mock_client = mocker.patch.object(s3_service, "s3_client")
         expected_response = {"Body": b"test-content"}
         mock_client.get_object.return_value = expected_response
 
-        response = s3_service.get_object("test/file.txt")
+        response = await s3_service.get_object("test/file.txt")
 
         assert response["Body"] is not None
         mock_client.get_object.assert_called_once_with(

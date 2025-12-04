@@ -60,7 +60,7 @@ class S3StreamResponse(StreamingResponse):
             }
         )
 
-        result = self.s3.get_object(self.file_path)
+        result = await self.s3.get_object(self.file_path)
 
         for chunk in result["Body"]:
             await send(

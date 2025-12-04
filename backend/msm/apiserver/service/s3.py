@@ -1,8 +1,10 @@
+import asyncio
 from functools import cached_property
 from os.path import join
 import typing
 
 import boto3
+from botocore.client import Config as BotoConfig
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.apiserver.service.base import Service
@@ -64,6 +66,14 @@ class S3Service(Service):
     @cached_property
     def s3_client(self) -> "S3Client":
         """Get S3 client."""
+        config = BotoConfig(
+            connect_timeout=10,  # seconds for connection
+            read_timeout=120,  # seconds for reading data
+            retries={
+                "mode": "standard",  # Use standard retry mode for better error handling
+            },
+        )
+
         return boto3.client(
             "s3",
             use_ssl=self.use_ssl,
@@ -71,6 +81,7 @@ class S3Service(Service):
             endpoint_url=self.s3_endpoint,
             aws_access_key_id=self.s3_access_key,
             aws_secret_access_key=self.s3_secret_key,
+            config=config,
         )
 
     def create_multipart_upload(self, path: str) -> tuple[str, str]:
@@ -161,8 +172,8 @@ class S3Service(Service):
         s3_key = join(self.s3_path, path)
         self.s3_client.delete_object(Bucket=self.s3_bucket, Key=s3_key)
 
-    def get_object(self, path: str) -> "GetObjectOutputTypeDef":
-        """Get an object from S3.
+    async def get_object(self, path: str) -> "GetObjectOutputTypeDef":
+        """Get an object from S3 asynchronously.
 
         Args:
             path: The file path within the S3 bucket to retrieve
@@ -171,4 +182,6 @@ class S3Service(Service):
             The S3 GetObject response containing the object data and metadata
         """
         s3_key = join(self.s3_path, path)
-        return self.s3_client.get_object(Bucket=self.s3_bucket, Key=s3_key)
+        return await asyncio.to_thread(
+            self.s3_client.get_object, Bucket=self.s3_bucket, Key=s3_key
+        )
