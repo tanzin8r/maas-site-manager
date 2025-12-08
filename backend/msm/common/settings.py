@@ -49,7 +49,7 @@ class Settings(BaseSettings):
         default=None,
         validation_alias="MSM_S3_ACCESS_KEY",
     )
-    s3_secret_key: str | None = Field(
+    s3_secret_key: SecretStr | None = Field(
         default=None,
         validation_alias="MSM_S3_SECRET_KEY",
     )

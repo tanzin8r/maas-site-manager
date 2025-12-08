@@ -217,7 +217,9 @@ class S3Middleware(BaseHTTPMiddleware):
                 S3Params(
                     settings.s3_endpoint or "",
                     settings.s3_access_key or "",
-                    settings.s3_secret_key or "",
+                    settings.s3_secret_key.get_secret_value()
+                    if settings.s3_secret_key
+                    else "",
                     settings.s3_bucket or "",
                     settings.s3_path or "",
                 ),

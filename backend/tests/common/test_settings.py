@@ -1,3 +1,4 @@
+from pydantic import SecretStr
 from pydantic_core import ValidationError
 import pytest
 
@@ -64,7 +65,9 @@ class TestSettings:
             monkeypatch.setenv(k, s3_settings[k])
         settings = Settings()
         assert settings.s3_access_key == s3_settings["MSM_S3_ACCESS_KEY"]
-        assert settings.s3_secret_key == s3_settings["MSM_S3_SECRET_KEY"]
+        assert settings.s3_secret_key == SecretStr(
+            s3_settings["MSM_S3_SECRET_KEY"]
+        )
         assert settings.s3_endpoint == s3_settings["MSM_S3_ENDPOINT"]
         assert settings.s3_bucket == s3_settings["MSM_S3_BUCKET"]
         assert settings.s3_path == s3_settings["MSM_S3_PATH"]

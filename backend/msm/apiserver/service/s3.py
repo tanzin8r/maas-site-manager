@@ -61,7 +61,11 @@ class S3Service(Service):
 
     @property
     def s3_secret_key(self) -> str:
-        return self.settings.s3_secret_key or ""
+        return (
+            self.settings.s3_secret_key.get_secret_value()
+            if self.settings.s3_secret_key
+            else ""
+        )
 
     @cached_property
     def s3_client(self) -> "S3Client":
