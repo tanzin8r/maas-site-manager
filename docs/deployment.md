@@ -89,11 +89,11 @@ curl https://git.launchpad.net/maas-site-manager/plain/deployment/terraform/temp
 curl https://git.launchpad.net/maas-site-manager/plain/deployment/terraform/variables.tf -O
 ```
 
-The MAAS Site Manager Terraform plan can take various input variables. Make sure to create a file called `terraform.tfvars` inside the `msm-deployment` directory with the entries below, or see the (sample)[https://git.launchpad.net/maas-site-manager/plain/deployment/config/terraform.tfvars.sample] file.
+The MAAS Site Manager Terraform plan can take various input variables. Make sure to create a file called `terraform.tfvars` inside the `msm-deployment` directory with the entries below, or see the [sample](https://git.launchpad.net/maas-site-manager/plain/deployment/config/terraform.tfvars.sample) file.
 
 ```
 # Use the IP address from `sudo microceph status` and the port specified with `sudo microceph enable rgw` as shown above
-s3_endpoint = "10.207.11.185:8080"
+s3_endpoint = "http://10.207.11.185:8080"
 s3_access_key = "my_access_key"
 s3_secret_key = "my_secret_key"
 s3_bucket = "my_s3_bucket"
@@ -105,6 +105,16 @@ Finally, apply the Terraform plan:
 terraform init
 terraform apply -auto-approve
 ```
+
+## Create admin account and log in
+
+Once the Terraform plan has been applied, create an admin account in MAAS Site Manager:
+
+```bash
+juju run -m msm maas-site-manager-k8s/0 create-admin username=admin password=admin email=admin@example.com
+```
+
+Then, you can access MAAS Site Manager at `http://<MULTIPASS_VM_IP>/msm-maas-site-manager-k8s`
 
 ## Configure deployment to use pre-existing Juju offers
 
