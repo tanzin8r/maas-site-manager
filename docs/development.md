@@ -86,6 +86,7 @@ network:
       addresses:
         - 10.135.87.XX/24
 EOF
+sudo netplan apply
 ```
 
 The XX may be replaced with any number that isn't the same as the charm-dev-vm.
