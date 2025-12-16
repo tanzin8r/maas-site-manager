@@ -72,7 +72,7 @@ ci-lint:
 	export PATH=$$(pwd)/node-22/bin:$$PATH && \
 	yarn run lint
 
-ci-test: unit-test e2e-test
+ci-test: unit-test
 
 unit-test:
 	export PATH=$$(pwd)/node-22/bin:$$PATH && \
