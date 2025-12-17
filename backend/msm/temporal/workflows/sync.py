@@ -209,7 +209,7 @@ class SyncUpstreamSourceWorkflow:
 
         workflow.logger.info(
             "Processed %d items, %d scheduled for download",
-            len(product_items.items),
+            len(items),
             len(assets.to_download),
         )
 
