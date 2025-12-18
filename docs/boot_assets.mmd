@@ -3,60 +3,69 @@ MAAS Site Manager Image Service
 ---
 
 erDiagram
-    BootSource ||--o| BootSourceSelection: selects
-    BootSource ||--o| BootAsset: has
-    BootAsset ||--|{ BootAssetVersion: aggregates
-    BootAssetVersion ||--|{ BootAssetItem: "set of" 
+    BootSource ||--o{ BootSourceSelection: selects
+    BootSource ||--o{ BootAsset: has
+    BootAsset ||--o{ BootAssetVersion: aggregates
+    BootAssetVersion ||--o{ BootAssetItem: "set of" 
 
     BootSource {
         int id PK
-        int priority  "source priority"
+        int priority "source priority"
         string url "simplestream URL"
-        string keyring "ASCII-armored GPG public key"
-        int sync_interval "Periodic synchronization interval, 0=disabled"
+        string keyring "ASCII-armored GPG public key (nullable)"
+        int sync_interval "Periodic synchronization interval, nullable (0=disabled)"
+        string name "source name"
+        datetime last_sync "timestamp of last successful sync"
     }
 
     BootAsset {
         int id PK
-        int bootsource_id FK
+        int boot_source_id FK
         int kind "0 = OS, 1 = Bootloader"
         string label "stable or candidate"
-        string os_name "OS name: ubuntu, centos"
-        string os_release "OS release name: oracular, 8"
-        string codename "Ubuntu codename: Noble Numbat"
-        string title "User-friendly name"
-        string architecture "HW architecture: amd64"
-        string subarch "HW sub-architecture: generic, hwe"
-        ARRAY[string] compatibility "list of compatible subarch"
-        string flavor "flavor: generic, lowlatency"
-        string base_image "base os/release for custom images"
-        datetime eol "Regular support EOL"
-        datetime esm_eol "Expanded Security Maintenance support EOL"
+        string os "OS name: ubuntu, centos"
+        string release "OS release name (nullable)"
+        string version "version string (nullable)"
+        string krel "kernel release (nullable)"
+        string codename "Ubuntu codename: Noble Numbat (nullable)"
+        string title "User-friendly name (nullable)"
+        string arch "HW architecture: amd64"
+        string subarch "HW sub-architecture: generic, hwe (nullable)"
+        ARRAY[string] compatibility "list of compatible subarch (nullable)"
+        string flavor "flavor: generic, lowlatency (nullable)"
+        string base_image "base os/release for custom images (nullable)"
+        string bootloader_type "bootloader type (nullable)"
+        datetime eol "Regular support EOL (nullable)"
+        datetime esm_eol "Expanded Security Maintenance support EOL (nullable)"
+        boolean signed "whether the asset is signed"
     }
 
     BootAssetVersion {
         int id PK
-        int bootasset_id FK
+        int boot_asset_id FK
         string version "Asset version, YYYYMMDD(.REV)"
+        datetime last_seen "timestamp when version was last seen upstream"
     }
 
     BootAssetItem {
         int id PK
-        int bootassetversion_id FK
+        int boot_asset_version_id FK "nullable"
         string ftype "file type, e.g. kernel, initrd, tarxz, squashfs"
         string sha256 "file hash"
         string path "file path relative to source URL"
-        int size "file size, in bytes"
-        string source_package "Ubuntu package name"
-        string source_version "package version"
-        string source_release "Ubuntu release name"
+        bigint file_size "file size, in bytes"
+        bigint bytes_synced "bytes downloaded so far"
+        string source_package "Ubuntu package name (nullable)"
+        string source_version "package version (nullable)"
+        string source_release "Ubuntu release name (nullable)"
     }
     
     BootSourceSelection {
         int id PK
-        int bootsource_id FK
+        int boot_source_id FK
         string label "stable or candidate"
-        string os_name "OS name"
-        string os_release "OS release name"
-        ARRAY[string] architectures "list of architectures to match"
+        string os "OS name"
+        string release "OS release name"
+        string arch "architecture to match"
+        boolean selected "whether this selection is active"
     }

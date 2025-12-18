@@ -4,57 +4,69 @@ sequenceDiagram
     participant MSM as MAAS Site Manager
     actor User as MSM User
 
-      User->>+MSM: Generate Onboarding Token(s)
-      MSM->>-User: Token(s)
+    User->>MSM: Generate Onboarding Token(s)
+    activate MSM
+    MSM-->>User: Token(s)
+    deactivate MSM
+
     rect rgb(245, 245, 245)
-      note left of User: Manually
-      User->>MA: Distribute Onboarding Token  
+        note left of User: Manually distribute token
+        User->>MA: Distribute Onboarding Token
     end
 
-    MA->>+MAAS: Initiate onboarding
-    MAAS->>+MSM: Onboarding request + meta data
+    MA->>MAAS: Initiate onboarding
+    MAAS->>MSM: POST /enroll<br/>(onboarding token + metadata + cluster_uuid)
     alt valid token
-      MSM-->>MAAS: JWT API token
-      MAAS-->>MA: Success
+        activate MSM
+        MSM-->>MAAS: 202 Accepted<br/>(site created as pending)
+        deactivate MSM
+        MAAS-->>MA: Success
     else invalid or expired token
-      MSM-->>-MAAS: Error
-      MAAS-->>-MA: Error
+        activate MSM
+        MSM-->>MAAS: 401 Unauthorized
+        deactivate MSM
+        MAAS-->>MA: Error
     end
 
-    MA -->> MA: Onboarding done
-
-    loop Every X
-        MAAS-->>+MSM: Am I authorized?
-        MSM->>-MAAS: No
+    loop Poll every few seconds
+        MAAS->>MSM: GET /enroll<br/>(check enrollment status)
+        alt site not yet accepted
+            activate MSM
+            MSM-->>MAAS: 204 No Content<br/>(still pending)
+            deactivate MSM
+        else site accepted
+            activate MSM
+            MSM-->>MAAS: 200 OK<br/>(JWT access token + rotation interval)
+            deactivate MSM
+            MAAS->>MAAS: Store access token<br/>Switch to sending heartbeats
+        end
     end
 
-    User->>+MSM: Authorize or deny site(s)
-    destroy User
-    MSM-->>-User: OK
-    alt Site authorized by MSM User
-        MAAS-->>+MSM: Am I authorized?
-        MSM->>-MAAS: Yes  <headers: next checkin>
-        MAAS->>MAAS: Switch to sending heartbeats
-    else Site denied by MSM User
-        MAAS-->>+MSM: Am I authorized?
-        MSM->>-MAAS: You've been rejected
-        MAAS->>MAAS: Disconnect from Site Manager
-    end
+    User->>MSM: POST /sites/pending<br/>(authorize or deny site)
+    activate MSM
+    MSM-->>User: 204 No Content
+    deactivate MSM
+
+    Note over MAAS,MSM: MAAS continues polling GET /enroll<br/>until site is accepted or token expires
 
     loop Every Heartbeat Interval
-        MAAS-->>+MSM: Heartbeat and statisics
-        MSM->>-MAAS: Tasks <headers: next checkin>
-        MAAS-->>MAAS: Execute Task or Update State
+        MAAS->>MSM: POST /details<br/>(heartbeat + statistics)
+        activate MSM
+        note over MSM: Update site data<br/>Update last_seen timestamp
+        MSM-->>MAAS: 200 OK<br/>(header: MSM-Heartbeat-Interval-Seconds)
+        deactivate MSM
+        MAAS->>MAAS: Execute Task or Update State
     end
 
     loop Every Token Rotation Interval
-        activate MAAS
-        MAAS->>+MSM: Get new token
-        MSM-->>-MAAS: Updated token
-        MAAS-->>MAAS: Store new token, remove old token
-        MAAS->>+MSM: Invalidate old token
-        MSM-->>MSM: Remove old token from DB
-        MSM-->>-MAAS: 200, OK
-        deactivate MAAS
+        MAAS->>MSM: GET /enroll/refresh<br/>(get new token)
+        activate MSM
+        MSM-->>MAAS: 200 OK<br/>(new JWT access token + rotation interval)
+        deactivate MSM
+        MAAS->>MAAS: Store new token
+        MAAS->>MSM: GET /enroll/verify<br/>(verify new token installed)
+        activate MSM
+        note over MSM: Revoke all other<br/>access tokens for this site
+        MSM-->>MAAS: 200 OK
+        deactivate MSM
     end
-

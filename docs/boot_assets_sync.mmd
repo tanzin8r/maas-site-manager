@@ -1,36 +1,32 @@
 sequenceDiagram
     participant T as Sync Trigger
-    participant sm as Site Manager
+    participant SyncW as SyncUpstreamSourceWorkflow
+    participant MSM as MSM API
+    participant SS as SimpleStream Source
 
-    create participant SyncW  as Sync Assets
-    T->>SyncW: start workflow
-    SyncW->>+sm: get sources
-    sm-->>-SyncW: sources[]
-    par for each source
-        create participant SS as Sync Source
-        SyncW->>SS: start child workflow
-        note over SS: fetch index
-        note over SS: fetch products
-        note over SS: check signatures<br>if needed
-        note over SS: filter select assets
-        destroy SS
-        SS-->>SyncW: assets[]
-    end
-
-    SyncW->>+sm: get current assets
-    sm->>-SyncW: assets[]
-    note over SyncW: compute new index
+    T->>SyncW: start workflow (boot_source_id)
     
-    par for each new asset
-        create participant Down as Download
-        SyncW->>Down: create child workflow
-        note over Down: donwload the file
-        note over Down: check SHA
-        destroy Down
-        Down-->>SyncW: done
+    SyncW->>+MSM: GET boot source config<br/>(GET_BOOT_SOURCE_ACTIVITY)
+    MSM-->>-SyncW: source config + selections
+    
+    SyncW->>+SS: Fetch SimpleStream index<br/>(FETCH_SS_INDEXES)
+    SS-->>-SyncW: product index URLs[]
+    
+    loop for each product index
+        SyncW->>+SS: Load product map<br/>(LOAD_PRODUCT_MAP_ACTIVITY)
+        note over SS: fetch product index<br/>check signatures if needed<br/>filter by selections
+        SS-->>-SyncW: asset items[]
     end
     
-    note over SyncW: write new index<br>to the storage
-    note over SyncW: remove unreferenced<br>assets from storage
-    destroy SyncW
+    SyncW->>+MSM: PUT new assets<br/>(PUT_NEW_ASSETS_ACTIVITY)
+    note over MSM: create/update assets<br/>determine what needs downloading
+    MSM-->>-SyncW: to_download[] (item IDs)
+    
+    par for each item to download
+        SyncW->>SyncW: start DownloadUpstreamImageWorkflow<br/>(ABANDON policy)
+    end
+    
+    SyncW->>SyncW: start RemoveStaleImagesWorkflow<br/>(ABANDON policy)
+    note over SyncW: parent doesn't wait<br/>for child to complete
+    
     SyncW-->>T: done

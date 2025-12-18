@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant T as Refresh Trigger
+    participant RefreshW as RefreshUpstreamSourceWorkflow
+    participant MSM as MSM API
+    participant SS as SimpleStream Source
+
+    T->>RefreshW: start workflow (boot_source_id, msm_url, msm_jwt)
+    
+    RefreshW->>+MSM: GET boot source config<br/>(GET_BOOT_SOURCE_ACTIVITY)
+    note over MSM: retrieve source config<br/>index_url, keyring<br/>(selections not used in refresh)
+    MSM-->>-RefreshW: GetBootSourceResult<br/>(index_url, keyring)
+    
+    RefreshW->>+SS: Fetch SimpleStream index<br/>(FETCH_SS_INDEXES)
+    note over SS: download index file<br/>verify signature if .sjson<br/>extract product URLs
+    SS-->>-RefreshW: FetchSsIndexesResult<br/>(products[] URLs)
+    
+    loop for each product index URL
+        RefreshW->>+SS: Fetch asset list<br/>(FETCH_SS_ASSETS_ACTIVITY)
+        note over SS: download product index<br/>verify signature if needed<br/>extract available OS assets<br/>(exclude bootloader assets)
+        SS-->>-RefreshW: FetchAssetListResult<br/>(assets[] AvailableAsset)
+    end
+    
+    RefreshW->>+MSM: PUT available assets<br/>(PUT_AVAILABLE_ASSETS_ACTIVITY)
+    note over MSM: update catalog of available assets<br/>(metadata only, no downloads)<br/>used for selection UI
+    MSM-->>-RefreshW: done
+    
+    RefreshW-->>T: done (returns True)
+
