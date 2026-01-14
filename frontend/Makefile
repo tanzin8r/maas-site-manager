@@ -61,8 +61,7 @@ install-dependencies:
 ci-dep: install-node install-dependencies
 	export PATH=$$(pwd)/node-22/bin:$$PATH && \
 	npm install -g yarn && \
-	YARN_CACHE_FOLDER=$(YARN_CACHE_FOLDER) yarn install && \
-	PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_PATH) npx --yes playwright install --with-deps
+	YARN_CACHE_FOLDER=$(YARN_CACHE_FOLDER) yarn install
 
 ci-build:
 	export PATH=$$(pwd)/node-22/bin:$$PATH && \
@@ -81,6 +80,9 @@ unit-test:
 		--retry=$(FE_TEST_RETRY) --silent --reporter=junit \
 		--reporter=default \
 		--outputFile.junit=../junit-frontend.xml
+
+e2e-dep:
+	PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_PATH) npx --yes playwright install --with-deps
 
 e2e-test:
 	@if [ -z "$(JENKINS_URL)" ]; then \

@@ -9,6 +9,10 @@ install-dependencies ci-dep ci-build ci-lint ci-test:
 	$(MAKE) -C frontend $@
 .PHONY: install-dependencies ci-dep ci-build ci-lint ci-test
 
+e2e-dep e2e-test:
+	$(MAKE) -C frontend $@
+.PHONY: e2e-dep e2e-test
+
 # run by the build-env-prepare job
 ci-dep-docker-prepare:
 	$(MAKE) -C backend ci-dep
