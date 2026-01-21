@@ -5,6 +5,7 @@ Image download and delete activities.
 """
 
 from dataclasses import dataclass
+import hashlib
 from os.path import join
 import typing
 
@@ -150,6 +151,7 @@ class S3ResourceManager:
             PartNumber=self._part_no,
             Body=chunk,
             ChecksumAlgorithm="SHA256",
+            ChecksumSHA256=hashlib.sha256(chunk).hexdigest(),
         )
         activity.heartbeat(f"Uploaded part {self._part_no}")
         self._parts.append({"ETag": part["ETag"], "PartNumber": self._part_no})
