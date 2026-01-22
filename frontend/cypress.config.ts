@@ -27,4 +27,8 @@ export default defineConfig({
     viewportHeight: 1300,
     viewportWidth: 1440,
   },
+  env: {
+    password: "admin",
+    email: "admin@example.com",
+  },
 });

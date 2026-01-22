@@ -320,4 +320,10 @@ export default tseslint.config(
       "prettier/prettier": "error",
     },
   },
+  {
+    files: ["cypress/**/*.ts", "cypress/**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
+    },
+  },
 );
