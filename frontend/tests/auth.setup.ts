@@ -1,8 +1,8 @@
 import { routesConfig } from "@/app/base/routes";
 import { expect, test as setup } from "@playwright/test";
-import { adminAuthFile, LONG_EXPECTATION_TIMEOUT, LONG_TEST_TIMEOUT } from "./constants";
 import fs from "fs";
 import path from "path";
+import { adminAuthFile, LONG_EXPECTATION_TIMEOUT, LONG_TEST_TIMEOUT } from "./constants";
 
 setup.setTimeout(LONG_TEST_TIMEOUT);
 
@@ -14,8 +14,7 @@ setup("authenticate", async ({ page }) => {
 
   await page.goto(routesConfig.login.path);
 
-  // eslint-disable-next-line playwright/no-networkidle
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
 
   const emailInput = page.getByRole("textbox", { name: "Email" });
   await emailInput.waitFor({ state: "visible", timeout: LONG_EXPECTATION_TIMEOUT });

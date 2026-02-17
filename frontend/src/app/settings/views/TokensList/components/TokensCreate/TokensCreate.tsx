@@ -3,6 +3,7 @@ import { useId } from "react";
 import { Button, Input, Label, Notification } from "@canonical/react-components";
 import type { FormikHelpers } from "formik";
 import { Field, Formik } from "formik";
+import pluralize from "pluralize";
 import * as Yup from "yup";
 
 import { humanIntervalToISODuration } from "./utils";
@@ -79,7 +80,7 @@ const TokensCreate = () => {
         validateOnBlur={false}
         validationSchema={TokensCreateSchema}
       >
-        {({ isSubmitting, errors, touched, isValid, dirty }) => (
+        {({ isSubmitting, errors, touched, isValid, dirty, values }) => (
           <FormikFormContent
             aria-labelledby={headingId}
             className="tokens-create"
@@ -126,7 +127,7 @@ const TokensCreate = () => {
                 disabled={!dirty || !isValid || tokensCreateMutation.isPending || isSubmitting}
                 type="submit"
               >
-                Generate tokens
+                Generate {values.count !== "" ? values.count : "0"} {pluralize("token", parseInt(values.count))}
               </Button>
             </div>
           </FormikFormContent>

@@ -13,7 +13,8 @@ Cypress.Commands.add("login", (options = {}) => {
 
   cy.visit("/login");
 
-  cy.findByRole("textbox", { name: /email/i }).type(email);
+  // use longer timeout for initial page load as this can take a while
+  cy.findByRole("textbox", { name: /email/i, timeout: 30000 }).type(email);
   cy.findByLabelText(/password/i).type(password);
   cy.findByRole("button", { name: /login/i }).click();
 

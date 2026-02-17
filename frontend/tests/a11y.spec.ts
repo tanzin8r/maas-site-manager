@@ -1,4 +1,4 @@
-import { protectedPages, publicPages, routesConfig } from "@/app/base/routes";
+import { protectedPages, publicPages } from "@/app/base/routes";
 import { AxeBuilder } from "@axe-core/playwright"; // 1
 import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
@@ -17,8 +17,7 @@ const a11yTest =
       await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
 
       await page.goto(path, {
-        // map tends to trigger continuous network requests disallowing the use of networkidle
-        waitUntil: path.includes(routesConfig.sitesMap.path) ? "domcontentloaded" : "networkidle",
+        waitUntil: "domcontentloaded",
       });
       // verify the correct page has been displayed
       await expect(page).toHaveTitle(new RegExp(title));

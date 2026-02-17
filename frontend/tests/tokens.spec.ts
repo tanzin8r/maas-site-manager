@@ -1,8 +1,8 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { adminAuthFile } from "./constants";
 import { routesConfig } from "@/app/base/routes";
 import fs from "fs";
+import { adminAuthFile } from "./constants";
 test.use({ storageState: adminAuthFile });
 
 test.beforeEach(async ({ page }) => {
@@ -51,7 +51,7 @@ test("closes and clears the form after creating the token", async ({ page }) => 
   await page.getByRole("textbox", { name: /Expiration time/i }).type("1 week");
   await page
     .getByRole("form", { name: /Generate new enrollment tokens/i })
-    .getByRole("button", { name: /Generate tokens/i })
+    .getByRole("button", { name: /Generate 1 token/i })
     .click();
   await page.waitForResponse((resp) => resp.url().includes("/tokens") && resp.status() === 200);
   // eslint-disable-next-line playwright/no-wait-for-selector
@@ -61,7 +61,7 @@ test("closes and clears the form after creating the token", async ({ page }) => 
   await expect(
     page
       .getByRole("form", { name: /Generate new enrollment tokens/i })
-      .getByRole("button", { name: /Generate tokens/i }),
+      .getByRole("button", { name: /Generate 0 tokens/i }),
   ).toBeDisabled();
 });
 

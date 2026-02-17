@@ -28,10 +28,10 @@ it("if not all required fields have been entered the submit button is disabled",
   renderWithMemoryRouter(<TokensCreate />);
   const amount = screen.getByLabelText(/Amount of tokens to generate/i);
   const expires = screen.getByLabelText(/Expiration time/i);
-  expect(screen.getByRole("button", { name: /Generate tokens/i })).toBeAriaDisabled();
+  expect(screen.getByRole("button", { name: /Generate 0 tokens/i })).toBeAriaDisabled();
   await userEvent.type(amount, "1");
   await userEvent.type(expires, "1 month");
-  expect(screen.getByRole("button", { name: /Generate tokens/i })).not.toBeAriaDisabled();
+  expect(screen.getByRole("button", { name: /Generate 1 token/i })).not.toBeAriaDisabled();
 });
 
 it("displays an error for invalid expiration value", async () => {
