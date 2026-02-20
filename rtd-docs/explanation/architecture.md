@@ -60,7 +60,7 @@ in the Site Manager UI.
 
 After doing so, the site will start sending updates every heartbeat interval.
 
-See [mermaid sequence diagram](./onboarding-workflow-sequence-diagram.mermaid) for details of this workflow.
+See [mermaid sequence diagram](/explanation/onboarding-workflow-sequence-diagram.mermaid) for details of this workflow.
 
 ### Re-onboarding a Site
 

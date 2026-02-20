@@ -49,7 +49,7 @@ After refreshing, check the status with `juju status` and wait for the applicati
 ## Attaching Site Manager to MAAS
 
 Assuming you have installed MAAS using the [maas-dev-setup](https://github.com/canonical/maas-dev-setup/) Github repository, you should have an LXD instance running your MAAS instance.
-To allow the `charm-dev-vm` created previously in [deployment](docs/deployment.md) to communicate with MAAS and vice versa, take the following steps:
+To allow the `charm-dev-vm` created previously in [deployment](/how-to/deployment.md) to communicate with MAAS and vice versa, take the following steps:
 
 Confirm the existence of the multipass bridge:
 
