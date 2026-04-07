@@ -22,17 +22,25 @@ jobs:
       packages: write
 
     steps:
+      - name: Install dependencies
+        run: |
+          sudo snap install rockcraft --classic
+          sudo snap install yq
       - name: Checkout code
         uses: actions/checkout@v5
         with:
           ref: ${{ env.BRANCH }}
-      - name: Install dependencies
+      - name: Build rock
+        uses: canonical/craft-actions/rockcraft-pack@9f9af048b247978a330f4e7cce3a3fcb8ca267b9
+        id: rockcraft
+      - name: Log in to the Container registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload rock
         run: |
-          snap install rockcraft --classic
-          snap install yq
-      - name: Build rock(s)
-        run: |
-          rockcraft pack -v
           rock_file=$(find -name "*.rock" -exec basename {} \;)
           image_name=$(cat ./rockcraft.yaml | yq .name)
           if [ "${BRANCH}" = "main" ]; then
@@ -40,8 +48,8 @@ jobs:
           else
             version=$(cat ./rockcraft.yaml | yq .version)
           fi
-          rockcraft.skopeo --insecure-policy copy \
-            --dest-creds ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} \
+          sudo rockcraft.skopeo --insecure-policy copy \
             "oci-archive:${rock_file}" \
-            "docker://ghcr.io/canonical/${image_name}:${version}"
+            docker-daemon:"ghcr.io/canonical/${image_name}:${version}"
+          docker push ghcr.io/canonical/${image_name}:${version}
           echo "Published rock ${image_name}:${version}"
