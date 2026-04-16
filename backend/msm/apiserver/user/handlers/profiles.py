@@ -1,12 +1,24 @@
-from typing import Annotated
+from typing import (
+    Annotated,
+    Any,
+    Self,
+)
 
 from fastapi import (
     APIRouter,
     Depends,
     Path,
 )
+from pydantic import (
+    BaseModel,
+    Field,
+    StringConstraints,
+    ValidationError,
+    model_validator,
+)
 
 from msm.apiserver.db import DEFAULT_SITE_PROFILE_ID, models
+from msm.apiserver.db.models.global_site_config import SiteConfigFactory
 from msm.apiserver.dependencies import services
 from msm.apiserver.exceptions.catalog import (
     BaseExceptionDetail,
@@ -35,6 +47,28 @@ profile_sort_parameters = SortParamParser(
         "id",
     ]
 )
+
+
+async def validate_selections_exist(
+    services: ServiceCollection, selections: list[str]
+) -> list[str]:
+    """
+    Validate that all selections exist in boot source selections.
+
+    Returns a list of missing selections.
+    """
+    missing_selections = []
+    for selection in selections:
+        os, release, arch = selection.split("/")
+        count, _ = await services.boot_source_selections.get(
+            [],
+            os=[os],
+            release=[release],
+            arch=[arch],
+        )
+        if count == 0:
+            missing_selections.append(selection)
+    return missing_selections
 
 
 class ProfilesGetResponse(PaginatedResults[models.SiteProfile]):
@@ -95,6 +129,88 @@ async def get_id(
                 location="path",
             )
         ],
+    )
+
+
+class ProfilesPostRequest(BaseModel):
+    """Request to create a Site Profile."""
+
+    name: str = Field(min_length=1, max_length=255)
+    selections: list[
+        Annotated[str, StringConstraints(pattern=r"^[^\s/]+/[^\s/]+/[^\s/]+$")]
+    ] = Field(min_length=1)
+    global_config: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def validate_global_config(self) -> Self:
+        """Ensure global_config keys and values are valid according to SiteConfigFactory."""
+        if self.global_config is None:
+            return self
+
+        invalid_keys = set(self.global_config.keys()) - set(
+            SiteConfigFactory.ALL_CONFIGS.keys()
+        )
+        if invalid_keys:
+            raise ValueError(
+                f"Invalid global_config keys: {', '.join(sorted(invalid_keys))}. "
+                f"Valid keys are: {', '.join(sorted(SiteConfigFactory.ALL_CONFIGS.keys()))}"
+            )
+
+        for key, value in self.global_config.items():
+            config_class = SiteConfigFactory.ALL_CONFIGS[key]
+            try:
+                config_class(value=value)
+            except ValidationError as e:
+                error_messages = "; ".join(
+                    [
+                        f"{err['loc'][0] if err['loc'] else key}: {err['msg']}"
+                        for err in e.errors()
+                    ]
+                )
+                raise ValueError(
+                    f"Invalid value for '{key}': {error_messages}"
+                ) from e
+
+        return self
+
+
+@v1_router.post(
+    "/profiles",
+    status_code=201,
+    responses={
+        401: {"model": UnauthorizedErrorResponseModel},
+        404: {"model": NotFoundErrorResponseModel},
+        422: {"model": ValidationErrorResponseModel},
+    },
+)
+async def post(
+    services: Annotated[ServiceCollection, Depends(services)],
+    authenticated_user: Annotated[models.User, Depends(authenticated_user)],
+    post_request: ProfilesPostRequest,
+) -> models.SiteProfile:
+    """Create a new site profile."""
+    # Validate that all selections exist in the database
+    missing_selections = await validate_selections_exist(
+        services, post_request.selections
+    )
+    if missing_selections:
+        raise NotFoundException(
+            code=ExceptionCode.MISSING_RESOURCE,
+            message="Some selections do not exist in available boot sources.",
+            details=[
+                BaseExceptionDetail(
+                    reason=ExceptionCode.MISSING_RESOURCE,
+                    messages=[
+                        f"The following selections do not exist: {', '.join(missing_selections)}"
+                    ],
+                    field="selections",
+                    location="body",
+                )
+            ],
+        )
+
+    return await services.site_profiles.create(
+        models.SiteProfileCreate(**post_request.model_dump())
     )
 
 

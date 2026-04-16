@@ -1,6 +1,10 @@
+from collections.abc import Callable
+from typing import Any
+
 import pytest
 
 from msm.apiserver.db import DEFAULT_SITE_PROFILE_ID
+from msm.apiserver.db.models import BootSourceSelection
 from msm.apiserver.db.models.global_site_config import SiteConfigFactory
 from tests.fixtures.client import Client
 from tests.fixtures.factory import Factory
@@ -17,7 +21,7 @@ class TestProfilesGetHandler:
         )
         profile2 = await factory.make_SiteProfile(
             name="Test Profile 2",
-            selections=["ubuntu/focal/amd64"],
+            selections=["ubuntu/noble/amd64"],
             global_config={},
         )
 
@@ -39,7 +43,7 @@ class TestProfilesGetHandler:
             name="Profile A", selections=["ubuntu/jammy/amd64"]
         )
         await factory.make_SiteProfile(
-            name="Profile B", selections=["ubuntu/focal/amd64"]
+            name="Profile B", selections=["ubuntu/noble/amd64"]
         )
 
         response = await user_client.get("/profiles?page=1&size=1")
@@ -98,6 +102,184 @@ class TestProfilesGetHandler:
         """Test GET /profiles returns 422 for invalid pagination params."""
         response = await user_client.get(f"/profiles?page={page}&size={size}")
         assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+class TestProfilesPostHandler:
+    @pytest.mark.parametrize(
+        "name,selections,global_config,expected_config_check",
+        [
+            (
+                "New Profile",
+                ["ubuntu/jammy/amd64"],
+                {"theme": "dark"},
+                lambda cfg: cfg.get("theme") == "dark",
+            ),
+            (
+                "Minimal Profile",
+                ["ubuntu/noble/amd64"],
+                None,
+                lambda cfg: all(
+                    cfg.get(key) == value
+                    for key, value in SiteConfigFactory.DEFAULT_CONFIG.items()
+                ),
+            ),
+            (
+                "Empty Config Profile",
+                ["ubuntu/jammy/amd64"],
+                {},
+                lambda cfg: all(
+                    cfg.get(key) == value
+                    for key, value in SiteConfigFactory.DEFAULT_CONFIG.items()
+                ),
+            ),
+            (
+                "Multiple Existing Selections",
+                ["ubuntu/jammy/amd64", "ubuntu/noble/amd64"],
+                None,
+                lambda cfg: all(
+                    cfg.get(key) == value
+                    for key, value in SiteConfigFactory.DEFAULT_CONFIG.items()
+                ),
+            ),
+        ],
+    )
+    async def test_post_success(
+        self,
+        user_client: Client,
+        factory: Factory,
+        sel_ubuntu_jammy: list[BootSourceSelection],
+        sel_ubuntu_noble: list[BootSourceSelection],
+        name: str,
+        selections: list[str],
+        global_config: dict[str, Any] | None,
+        expected_config_check: Callable[[Any], bool],
+    ) -> None:
+        """Test POST /profiles successfully creates profiles with valid selections."""
+        data: dict[str, Any] = {
+            "name": name,
+            "selections": selections,
+        }
+        if global_config is not None:
+            data["global_config"] = global_config
+
+        response = await user_client.post("/profiles", json=data)
+        assert response.status_code == 201
+
+        result = response.json()
+        assert result["name"] == name
+        assert result["selections"] == selections
+        assert expected_config_check(result["global_config"])
+        assert "id" in result
+
+    @pytest.mark.parametrize(
+        "name,selections,expected_error_text",
+        [
+            (
+                "Nonexistent Selection",
+                ["nonexistent/release/arch"],
+                "do not exist",
+            ),
+            (
+                "Mixed Selections",
+                ["ubuntu/noble/amd64", "nonexistent/release/arch"],
+                "nonexistent/release/arch",
+            ),
+            (
+                "Multiple Nonexistent Selections",
+                ["nonexistent1/release/arch", "nonexistent2/other/i386"],
+                "do not exist",
+            ),
+        ],
+    )
+    async def test_post_with_nonexistent_selections(
+        self,
+        user_client: Client,
+        factory: Factory,
+        sel_ubuntu_jammy: list[BootSourceSelection],
+        sel_ubuntu_noble: list[BootSourceSelection],
+        name: str,
+        selections: list[str],
+        expected_error_text: str,
+    ) -> None:
+        """Test POST /profiles returns 404 when selections don't exist in database."""
+        data: dict[str, Any] = {
+            "name": name,
+            "selections": selections,
+        }
+
+        response = await user_client.post("/profiles", json=data)
+        assert response.status_code == 404
+
+        result = response.json()
+        assert expected_error_text.lower() in str(result).lower()
+
+    @pytest.mark.parametrize(
+        "data,expected_error_text",
+        [
+            (
+                {"selections": ["ubuntu/jammy/amd64"]},
+                None,  # Missing name
+            ),
+            (
+                {"name": "No Selections Profile"},
+                None,
+            ),
+            (
+                {"name": "Empty Selections", "selections": []},
+                None,
+            ),
+            (
+                {
+                    "name": "Invalid Selections",
+                    "selections": [
+                        "ubuntu/jammy/amd64",
+                        "",
+                        "ubuntu/noble/amd64",
+                    ],
+                },
+                None,
+            ),
+            (
+                {"name": "Invalid Format", "selections": ["ubuntu/jammy"]},
+                "string should match pattern",
+            ),
+            (
+                {"name": "Empty Parts", "selections": ["ubuntu//amd64"]},
+                "string should match pattern",
+            ),
+            (
+                {
+                    "name": "Invalid Config Key",
+                    "selections": ["ubuntu/jammy/amd64"],
+                    "global_config": {"invalid_key": "value"},
+                },
+                "Invalid global_config keys: invalid_key",
+            ),
+            (
+                {
+                    "name": "Invalid Config Value",
+                    "selections": ["ubuntu/jammy/amd64"],
+                    "global_config": {"maas_proxy_port": 99999},
+                },
+                "maas_proxy_port",  # Invalid value (port out of range)
+            ),
+        ],
+    )
+    async def test_post_format_validation_failures(
+        self,
+        user_client: Client,
+        factory: Factory,
+        data: dict[str, Any],
+        expected_error_text: str | None,
+    ) -> None:
+        """Test POST /profiles returns errors for format/schema validation failures."""
+        response = await user_client.post("/profiles", json=data)
+        assert response.status_code == 422
+
+        if expected_error_text:
+            result = response.json()
+            assert expected_error_text.lower() in str(result).lower()
 
 
 @pytest.mark.asyncio
