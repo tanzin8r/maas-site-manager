@@ -1,5 +1,6 @@
 import hashlib
 import json
+from typing import Any
 
 import pytest
 
@@ -16,7 +17,7 @@ from msm.common.config_hash import (
 
 def _make_stored(
     selections: list[str],
-    global_config: dict | None = None,
+    global_config: dict[str, Any] | None = None,
 ) -> SiteProfileStored:
     return SiteProfileStored(
         id=1, name="test", selections=selections, global_config=global_config
@@ -96,7 +97,7 @@ class TestMergedConfigForResponse:
 
 
 class TestHashDesiredConfig:
-    def _payload(self) -> dict:
+    def _payload(self) -> dict[str, Any]:
         return {
             "global_config": {"theme": "light"},
             "selections": ["ubuntu/jammy/amd64"],
@@ -121,7 +122,7 @@ class TestHashDesiredConfig:
         ],
     )
     def test_different_inputs_give_different_hashes(
-        self, field: str, values: list
+        self, field: str, values: list[Any]
     ) -> None:
         p1 = {**self._payload(), field: values[0]}
         p2 = {**self._payload(), field: values[1]}

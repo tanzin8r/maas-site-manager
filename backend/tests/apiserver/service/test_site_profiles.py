@@ -240,7 +240,9 @@ class TestSiteProfileService:
         assert stored is not None
         assert merged is not None
         assert stored.global_config == {"theme": "dark"}
+        assert stored.global_config is not None
         assert len(stored.global_config) == 1
+        assert merged.global_config is not None
         assert len(merged.global_config) > 1
 
     async def test_ensure_keeps_existing_default_profile(

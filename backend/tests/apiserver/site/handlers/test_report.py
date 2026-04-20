@@ -309,7 +309,7 @@ class TestDetailsPostHandler:
         fresh_site = await site_service.get_by_id(site.id)
         assert stored is not None
         assert fresh_site is not None
-        expected_hash = hash_desired_config(
-            desired_config(stored, fresh_site.trigger_image_sync)
-        )
+        preimage = desired_config(stored, fresh_site.trigger_image_sync)
+        assert preimage is not None
+        expected_hash = hash_desired_config(preimage)
         assert heartbeat_response.json()["config_hash"] == expected_hash
