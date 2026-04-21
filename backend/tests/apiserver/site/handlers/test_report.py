@@ -4,9 +4,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from msm.apiserver.db import models
-from msm.apiserver.service.site import SiteService
 from msm.apiserver.service.site_profiles import SiteProfileService
-from msm.common.config_hash import desired_config, hash_desired_config
+from msm.apiserver.utils import desired_config, hash_desired_config
 from msm.common.jwt import TokenAudience, TokenPurpose
 from msm.common.settings import Settings
 from msm.common.time import now_utc
@@ -304,12 +303,9 @@ class TestDetailsPostHandler:
         assert heartbeat_response.status_code == 200
 
         profile_service = SiteProfileService(db_connection)
-        site_service = SiteService(db_connection)
         stored = await profile_service.get_stored_by_site_id(site.id)
-        fresh_site = await site_service.get_by_id(site.id)
         assert stored is not None
-        assert fresh_site is not None
-        preimage = desired_config(stored, fresh_site.trigger_image_sync)
+        preimage = desired_config(stored, site.trigger_image_sync)
         assert preimage is not None
         expected_hash = hash_desired_config(preimage)
         assert heartbeat_response.json()["config_hash"] == expected_hash

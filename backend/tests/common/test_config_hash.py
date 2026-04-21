@@ -4,14 +4,10 @@ from typing import Any
 
 import pytest
 
-from msm.apiserver.db.models.site_profiles import (
-    SiteProfile,
-    SiteProfileStored,
-)
-from msm.common.config_hash import (
+from msm.apiserver.db.models.site_profiles import SiteProfileStored
+from msm.apiserver.utils import (
     desired_config,
     hash_desired_config,
-    merged_config_for_response,
 )
 
 
@@ -82,18 +78,24 @@ class TestDesiredConfig:
         assert result is not None
         assert result["global_config"]["tags"] == ["alpha", "zebra"]
 
-
-class TestMergedConfigForResponse:
-    def test_includes_merged_defaults(self) -> None:
-        profile = SiteProfile(
-            id=1,
-            name="merged",
-            selections=["ubuntu/jammy/amd64"],
-            global_config={"theme": "dark"},
+    def test_non_string_list_sorted_in_global_config(self) -> None:
+        profile = _make_stored(
+            [],
+            global_config={
+                "maas_auto_ipmi_workaround_flags": [
+                    "opensesspriv",
+                    "authcap",
+                    "idzero",
+                ]
+            },
         )
-        result = merged_config_for_response(profile, trigger_image_sync=False)
-        assert len(result["global_config"]) > 1
-        assert result["global_config"]["theme"] == "dark"
+        result = desired_config(profile, trigger_image_sync=False)
+        assert result is not None
+        assert result["global_config"]["maas_auto_ipmi_workaround_flags"] == [
+            "authcap",
+            "idzero",
+            "opensesspriv",
+        ]
 
 
 class TestHashDesiredConfig:
@@ -107,7 +109,7 @@ class TestHashDesiredConfig:
     def test_matches_manual_sha256(self) -> None:
         payload = self._payload()
         serialized = json.dumps(
-            payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            payload, separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")
         assert (
             hash_desired_config(payload)
