@@ -2,6 +2,7 @@ import hashlib
 import json
 from typing import Any
 
+from pydantic import IPvAnyAddress, TypeAdapter
 import pytest
 
 from msm.apiserver.db.models.site_profiles import SiteProfileStored
@@ -9,6 +10,7 @@ from msm.apiserver.utils import (
     desired_config,
     hash_desired_config,
 )
+from msm.common.enums import IPMIWorkaroundFlags
 
 
 def _make_stored(
@@ -96,6 +98,36 @@ class TestDesiredConfig:
             "idzero",
             "opensesspriv",
         ]
+
+    def test_hash_stable_when_strenum_and_ipv_lists_are_permuted(self) -> None:
+        ta = TypeAdapter(list[IPvAnyAddress])
+        ips = [str(x) for x in ta.validate_python(["192.0.2.2", "192.0.2.1"])]
+        flags_a = [
+            IPMIWorkaroundFlags.OPENSESSPRIV,
+            IPMIWorkaroundFlags.AUTHCAP,
+        ]
+        flags_b = [
+            IPMIWorkaroundFlags.AUTHCAP,
+            IPMIWorkaroundFlags.OPENSESSPRIV,
+        ]
+        p_a = _make_stored(
+            [],
+            global_config={
+                "maas_auto_ipmi_workaround_flags": flags_a,
+                "upstream_dns": list(reversed(ips)),
+            },
+        )
+        p_b = _make_stored(
+            [],
+            global_config={
+                "maas_auto_ipmi_workaround_flags": flags_b,
+                "upstream_dns": ips,
+            },
+        )
+        ca = desired_config(p_a, trigger_image_sync=False)
+        cb = desired_config(p_b, trigger_image_sync=False)
+        assert ca is not None and cb is not None
+        assert hash_desired_config(ca) == hash_desired_config(cb)
 
 
 class TestHashDesiredConfig:
