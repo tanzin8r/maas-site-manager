@@ -101,7 +101,12 @@ class TestDesiredConfig:
 
     def test_hash_stable_when_strenum_and_ipv_lists_are_permuted(self) -> None:
         ta = TypeAdapter(list[IPvAnyAddress])
-        ips = [str(x) for x in ta.validate_python(["192.0.2.2", "192.0.2.1"])]
+        ips = [
+            str(x)
+            for x in ta.validate_python(
+                ["192.0.2.2", "192.0.2.1", "2001:db8::1"]
+            )
+        ]
         flags_a = [
             IPMIWorkaroundFlags.OPENSESSPRIV,
             IPMIWorkaroundFlags.AUTHCAP,
