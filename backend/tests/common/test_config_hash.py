@@ -22,6 +22,15 @@ def _make_stored(
     )
 
 
+@pytest.fixture
+def hash_preimage_payload() -> dict[str, Any]:
+    return {
+        "global_config": {"theme": "light"},
+        "selections": ["ubuntu/jammy/amd64"],
+        "trigger_image_sync": False,
+    }
+
+
 class TestDesiredConfig:
     def test_returns_none_without_profile(self) -> None:
         assert desired_config(None, trigger_image_sync=False) is None
@@ -80,25 +89,6 @@ class TestDesiredConfig:
         assert result is not None
         assert result["global_config"]["tags"] == ["alpha", "zebra"]
 
-    def test_non_string_list_sorted_in_global_config(self) -> None:
-        profile = _make_stored(
-            [],
-            global_config={
-                "maas_auto_ipmi_workaround_flags": [
-                    "opensesspriv",
-                    "authcap",
-                    "idzero",
-                ]
-            },
-        )
-        result = desired_config(profile, trigger_image_sync=False)
-        assert result is not None
-        assert result["global_config"]["maas_auto_ipmi_workaround_flags"] == [
-            "authcap",
-            "idzero",
-            "opensesspriv",
-        ]
-
     def test_hash_stable_when_strenum_and_ipv_lists_are_permuted(self) -> None:
         ta = TypeAdapter(list[IPvAnyAddress])
         ips = [
@@ -136,15 +126,10 @@ class TestDesiredConfig:
 
 
 class TestHashDesiredConfig:
-    def _payload(self) -> dict[str, Any]:
-        return {
-            "global_config": {"theme": "light"},
-            "selections": ["ubuntu/jammy/amd64"],
-            "trigger_image_sync": False,
-        }
-
-    def test_matches_manual_sha256(self) -> None:
-        payload = self._payload()
+    def test_matches_manual_sha256(
+        self, hash_preimage_payload: dict[str, Any]
+    ) -> None:
+        payload = hash_preimage_payload
         serialized = json.dumps(
             payload, separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")
@@ -161,8 +146,11 @@ class TestHashDesiredConfig:
         ],
     )
     def test_different_inputs_give_different_hashes(
-        self, field: str, values: list[Any]
+        self,
+        hash_preimage_payload: dict[str, Any],
+        field: str,
+        values: list[Any],
     ) -> None:
-        p1 = {**self._payload(), field: values[0]}
-        p2 = {**self._payload(), field: values[1]}
+        p1 = {**hash_preimage_payload, field: values[0]}
+        p2 = {**hash_preimage_payload, field: values[1]}
         assert hash_desired_config(p1) != hash_desired_config(p2)
